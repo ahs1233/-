@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# prisma
+packages/db/prisma/*.db
+packages/db/prisma/migrations/dev.db*
+
+# testing
+coverage/
+
+# typescript incremental build info
+*.tsbuildinfo
+
+# misc
+.DS_Store
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.vscode/
+.idea/
+
+# pwa generated
+apps/web/public/sw.js
+apps/web/public/workbox-*.js

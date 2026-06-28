@@ -1,0 +1,119 @@
+"use client";
+
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button, Card, CardBody } from "@al-souq/ui";
+import { ar } from "@al-souq/i18n";
+import { trpc } from "@/src/trpc/react";
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const next = params.get("next") || "/";
+
+  const [step, setStep] = useState<"phone" | "code">("phone");
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [devCode, setDevCode] = useState<string | undefined>();
+  const [error, setError] = useState<string | null>(null);
+
+  const requestOtp = trpc.auth.requestOtp.useMutation({
+    onSuccess: (res) => {
+      setDevCode(res.devCode);
+      setStep("code");
+      setError(null);
+    },
+    onError: (e) => setError(e.message),
+  });
+
+  const verifyOtp = trpc.auth.verifyOtp.useMutation({
+    onSuccess: () => {
+      router.replace(next);
+      router.refresh();
+    },
+    onError: (e) => setError(e.message),
+  });
+
+  return (
+    <div className="container-app flex min-h-screen flex-col items-center justify-center py-8">
+      <Card className="w-full max-w-sm">
+        <CardBody className="space-y-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-brand-600">{ar.common.appName}</h1>
+            <p className="mt-1 text-sm text-neutral-500">{ar.auth.login}</p>
+          </div>
+
+          {step === "phone" && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                requestOtp.mutate({ phone, purpose: "login" });
+              }}
+              className="space-y-3"
+            >
+              <label className="block text-sm font-medium">{ar.auth.phoneLabel}</label>
+              <input
+                dir="ltr"
+                inputMode="tel"
+                autoFocus
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={ar.auth.phonePlaceholder}
+                className="h-11 w-full rounded-lg border border-neutral-300 px-3 text-center outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              />
+              <Button type="submit" className="w-full" loading={requestOtp.isPending}>
+                {ar.auth.sendCode}
+              </Button>
+            </form>
+          )}
+
+          {step === "code" && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                verifyOtp.mutate({ phone, code });
+              }}
+              className="space-y-3"
+            >
+              {devCode && (
+                <p className="rounded-lg bg-gold-400/20 p-2 text-center text-sm">
+                  رمز التطوير: <span className="font-bold nums">{devCode}</span>
+                </p>
+              )}
+              <label className="block text-sm font-medium">{ar.auth.codeLabel}</label>
+              <input
+                dir="ltr"
+                inputMode="numeric"
+                autoFocus
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="••••••"
+                className="h-11 w-full rounded-lg border border-neutral-300 px-3 text-center text-lg tracking-widest outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              />
+              <Button type="submit" className="w-full" loading={verifyOtp.isPending}>
+                {ar.auth.verify}
+              </Button>
+              <button
+                type="button"
+                onClick={() => requestOtp.mutate({ phone, purpose: "login" })}
+                className="w-full text-sm text-neutral-500 hover:text-brand-600"
+              >
+                {ar.auth.resend}
+              </button>
+            </form>
+          )}
+
+          {error && <p className="text-center text-sm text-danger">{error}</p>}
+        </CardBody>
+      </Card>
+    </div>
+  );
+}

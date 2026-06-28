@@ -1,0 +1,30 @@
+{
+  "name": "@al-souq/auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./jwt": "./src/jwt.ts",
+    "./rbac": "./src/rbac.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@al-souq/db": "workspace:*",
+    "@al-souq/utils": "workspace:*",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.6.3"
+  },
+  "devDependencies": {
+    "@al-souq/config": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.5"
+  }
+}
