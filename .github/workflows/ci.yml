@@ -27,6 +27,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://souq:souq@localhost:5432/al_souq?schema=public
+      DIRECT_URL: postgresql://souq:souq@localhost:5432/al_souq?schema=public
       JWT_ACCESS_SECRET: ci-access-secret-placeholder-32-characters
       JWT_REFRESH_SECRET: ci-refresh-secret-placeholder-32-characters
       SMS_PROVIDER: console

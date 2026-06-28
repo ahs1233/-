@@ -15,6 +15,7 @@
     "test": "turbo run test",
     "db:generate": "pnpm --filter @al-souq/db generate",
     "db:migrate": "pnpm --filter @al-souq/db migrate",
+    "db:deploy": "pnpm --filter @al-souq/db deploy",
     "db:push": "pnpm --filter @al-souq/db push",
     "db:seed": "pnpm --filter @al-souq/db seed",
     "db:studio": "pnpm --filter @al-souq/db studio",
