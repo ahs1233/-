@@ -17,7 +17,8 @@
     "db:migrate": "pnpm --filter @al-souq/db migrate",
     "db:push": "pnpm --filter @al-souq/db push",
     "db:seed": "pnpm --filter @al-souq/db seed",
-    "db:studio": "pnpm --filter @al-souq/db studio"
+    "db:studio": "pnpm --filter @al-souq/db studio",
+    "vapid": "pnpm --filter @al-souq/api exec web-push generate-vapid-keys"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

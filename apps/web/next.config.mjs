@@ -15,7 +15,7 @@ const nextConfig = {
   ],
   experimental: {
     // Prisma وحزم الخادم لا تُجمَّع ضمن حزمة المتصفح
-    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs", "@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner"],
+    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs", "@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner", "web-push"],
   },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],

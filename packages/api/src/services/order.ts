@@ -22,6 +22,7 @@ import {
   canTransition,
   type Actor,
 } from "@al-souq/domain";
+import { sendPush, sendPushMany, type PushPayload } from "./push";
 
 const DELIVERY_FEE_IQD = 5000; // رسوم توصيل ثابتة مبدئياً (ستُحسب لاحقاً حسب المحافظة)
 const PLATFORM_RATE_FALLBACK = 0.1;
@@ -55,8 +56,10 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
     throw new TRPCError({ code: "FORBIDDEN", message: "عنوان غير صالح" });
   }
 
-  // تجميع العناصر حسب البائع (كل بائع = طلب مستقل)
-  return prisma.$transaction(async (tx) => {
+  // مهام Push تُجمع داخل المعاملة وتُرسل بعد نجاحها (لا شبكة داخل المعاملة)
+  const pushJobs: { userId: string; payload: PushPayload }[] = [];
+
+  const result = await prisma.$transaction(async (tx) => {
     const platformRate = await getPlatformRate(tx);
 
     // حلّ المتغيّرات والتحقق من توفّرها وحالة المنتج/البائع
@@ -175,6 +178,10 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
           data: { orderId: order.id },
         },
       });
+      pushJobs.push({
+        userId: input.customerId,
+        payload: { title: "تم استلام طلبك", body: `طلبك ${order.number} بانتظار التأكيد.`, url: `/orders/${order.id}` },
+      });
       const vendorUser = await tx.vendorProfile.findUnique({ where: { id: vendorId }, select: { userId: true } });
       if (vendorUser) {
         await tx.notification.create({
@@ -186,6 +193,10 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
             data: { orderId: order.id },
           },
         });
+        pushJobs.push({
+          userId: vendorUser.userId,
+          payload: { title: "طلب جديد", body: `طلب ${order.number}`, url: `/vendor/orders/${order.id}` },
+        });
       }
 
       created.push({ id: order.id, number: order.number, vendorId, total });
@@ -194,6 +205,10 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
 
     return { orders: created };
   });
+
+  // إرسال Push بعد نجاح المعاملة (best-effort)
+  await sendPushMany(prisma, pushJobs).catch(() => undefined);
+  return result;
 }
 
 async function resolveVariant(tx: Tx, productId: string, variantId: string | null) {
@@ -226,7 +241,7 @@ export async function changeOrderStatus(
   prisma: PrismaClient,
   args: { orderId: string; to: OrderStatus; actor: Actor; actorId: string; note?: string },
 ) {
-  return prisma.$transaction(async (tx) => {
+  const { order: updated, push } = await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { id: args.orderId },
       include: { items: true, vendor: { select: { userId: true } } },
@@ -238,7 +253,7 @@ export async function changeOrderStatus(
 
     await applyStockEffects(tx, order.id, order.status, args.to, order.items);
 
-    const updated = await tx.order.update({
+    const result = await tx.order.update({
       where: { id: order.id },
       data: {
         status: args.to,
@@ -247,7 +262,7 @@ export async function changeOrderStatus(
       },
     });
 
-    // إشعار الطرف الآخر بتغيّر الحالة
+    // إشعار المشتري بتغيّر الحالة
     await tx.notification.create({
       data: {
         userId: order.customerId,
@@ -258,8 +273,15 @@ export async function changeOrderStatus(
       },
     });
 
-    return updated;
+    const push: { userId: string; payload: PushPayload } = {
+      userId: order.customerId,
+      payload: { title: "تحديث حالة الطلب", body: `${order.number}: ${statusLabel(args.to)}`, url: `/orders/${order.id}` },
+    };
+    return { order: result, push };
   });
+
+  await sendPush(prisma, push.userId, push.payload).catch(() => undefined);
+  return updated;
 }
 
 async function applyStockEffects(

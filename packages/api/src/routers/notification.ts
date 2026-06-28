@@ -1,6 +1,7 @@
-/** راوتر الإشعارات (داخل التطبيق). إشعارات Push الفعلية في المرحلة 6. */
+/** راوتر الإشعارات (داخل التطبيق + Web Push). */
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc";
+import { router, publicProcedure, protectedProcedure } from "../trpc";
+import { getVapidPublicKey, isPushConfigured, sendPush } from "../services/push";
 
 export const notificationRouter = router({
   list: protectedProcedure
@@ -38,6 +39,51 @@ export const notificationRouter = router({
     await ctx.prisma.notification.updateMany({
       where: { userId: ctx.user.id, readAt: null },
       data: { readAt: new Date() },
+    });
+    return { ok: true };
+  }),
+
+  // ── Web Push ──
+  pushConfig: publicProcedure.query(() => ({
+    configured: isPushConfigured(),
+    publicKey: getVapidPublicKey(),
+  })),
+
+  subscribe: protectedProcedure
+    .input(
+      z.object({
+        endpoint: z.string().url(),
+        keys: z.object({ p256dh: z.string(), auth: z.string() }),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.pushSubscription.upsert({
+        where: { endpoint: input.endpoint },
+        update: { userId: ctx.user.id, p256dh: input.keys.p256dh, auth: input.keys.auth, userAgent: ctx.userAgent },
+        create: {
+          userId: ctx.user.id,
+          endpoint: input.endpoint,
+          p256dh: input.keys.p256dh,
+          auth: input.keys.auth,
+          userAgent: ctx.userAgent,
+        },
+      });
+      return { ok: true };
+    }),
+
+  unsubscribe: protectedProcedure
+    .input(z.object({ endpoint: z.string().url() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.pushSubscription.deleteMany({ where: { endpoint: input.endpoint, userId: ctx.user.id } });
+      return { ok: true };
+    }),
+
+  // إرسال إشعار تجريبي للمستخدم نفسه (للتحقق من التهيئة)
+  sendTest: protectedProcedure.mutation(async ({ ctx }) => {
+    await sendPush(ctx.prisma, ctx.user.id, {
+      title: "السوگ",
+      body: "تم تفعيل الإشعارات بنجاح ✓",
+      url: "/notifications",
     });
     return { ok: true };
   }),

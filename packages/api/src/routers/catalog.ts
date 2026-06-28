@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { Prisma } from "@al-souq/db";
-import { normalizeArabic } from "@al-souq/utils";
+import { normalizeArabic, tokenize } from "@al-souq/utils";
 import { productListQuerySchema } from "@al-souq/validators";
 import { router, publicProcedure } from "../trpc";
 
@@ -120,6 +120,37 @@ export const catalogRouter = router({
       });
     }),
 
+  // اقتراحات بحث فورية (منتجات + فئات مطابقة)
+  suggest: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/suggest", tags: ["catalog"] } })
+    .input(z.object({ q: z.string().min(1).max(60) }))
+    .output(
+      z.object({
+        products: z.array(z.object({ title: z.string(), slug: z.string() })),
+        categories: z.array(z.object({ nameAr: z.string(), slug: z.string() })),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const norm = normalizeArabic(input.q);
+      if (!norm) return { products: [], categories: [] };
+      const [products, categories] = await Promise.all([
+        ctx.prisma.product.findMany({
+          where: { status: "ACTIVE", vendor: { status: "APPROVED" }, titleNorm: { contains: norm } },
+          take: 6,
+          orderBy: { soldCount: "desc" },
+          select: { title: true, slug: true },
+        }),
+        ctx.prisma.category.findMany({
+          where: { isActive: true },
+          take: 20,
+          select: { nameAr: true, slug: true },
+        }),
+      ]);
+      // ترشيح الفئات بالتطبيع في الذاكرة (أسماء قليلة)
+      const cats = categories.filter((c) => normalizeArabic(c.nameAr).includes(norm)).slice(0, 4);
+      return { products, categories: cats };
+    }),
+
   categoryBySlug: publicProcedure
     .meta({ openapi: { method: "GET", path: "/catalog/categories/{slug}", tags: ["catalog"] } })
     .input(z.object({ slug: z.string() }))
@@ -151,7 +182,13 @@ export const catalogRouter = router({
         status: "ACTIVE",
         vendor: { status: "APPROVED" },
       };
-      if (input.q) where.titleNorm = { contains: normalizeArabic(input.q) };
+      if (input.q) {
+        // بحث عربي متعدّد الكلمات: كل كلمة مطبّعة يجب أن تَرِد (AND)
+        const tokens = tokenize(input.q);
+        if (tokens.length > 0) {
+          where.AND = tokens.map((t) => ({ titleNorm: { contains: t } }));
+        }
+      }
       if (input.categoryId) {
         // فئة أب → اشمل منتجات فئاتها الفرعية أيضاً
         const children = await ctx.prisma.category.findMany({

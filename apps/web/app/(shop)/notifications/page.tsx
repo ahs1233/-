@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
+import { PushToggle } from "@/src/pwa/push-toggle";
 
 export default function NotificationsPage() {
   const list = trpc.notification.list.useQuery(undefined, { retry: false });
@@ -39,6 +40,8 @@ export default function NotificationsPage() {
           تعليم الكل كمقروء
         </Button>
       </div>
+
+      <PushToggle />
 
       {list.isLoading ? (
         <p className="text-neutral-500">جارٍ التحميل…</p>
