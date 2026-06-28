@@ -22,7 +22,9 @@
 
 1. افتح <https://vercel.com> → **Continue with GitHub**.
 2. **Add New… → Project** → اختر مستودعك `-` → **Import**.
-3. اترك كل الإعدادات كما هي (Vercel يقرأها من `vercel.json`).
+3. ⚠️ **مهم جداً — Root Directory**: في صفحة الإعداد اضغط **Edit** بجانب
+   **Root Directory** واكتب **`apps/web`** ثم **Continue**.
+   (هذا يحلّ خطأ «No Next.js version detected» لأن التطبيق داخل هذا المجلد.)
 4. وسّع **Environment Variables** وأضف هذه الخمسة:
 
    | Key | Value |
@@ -34,6 +36,10 @@
    | `SMS_PROVIDER` | `console` |
 
 5. اضغط **Deploy** وانتظر (≈٣ دقائق). ستحصل على رابط مثل `https://al-souq-xxxx.vercel.app`.
+
+> إن كنت قد أنشأت المشروع مسبقاً وفشل البناء: اذهب إلى **Settings → Build and
+> Deployment → Root Directory**، اكتب `apps/web`، احفظ، ثم من **Deployments**
+> أعِد النشر (**Redeploy**).
 
 > أثناء البناء، Vercel يُنشئ كل الجداول ويملأ المنتجات العراقية تلقائياً
 > (`db:deploy` + `db:seed` مضبوطان في `vercel.json`).

@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @al-souq/db generate && pnpm --filter @al-souq/db deploy && (pnpm --filter @al-souq/db seed || true) && next build"
+}
