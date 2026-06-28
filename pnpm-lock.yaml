@@ -192,6 +192,9 @@ importers:
       '@al-souq/config':
         specifier: workspace:*
         version: link:../config
+      '@al-souq/domain':
+        specifier: workspace:*
+        version: link:../domain
       '@al-souq/utils':
         specifier: workspace:*
         version: link:../utils

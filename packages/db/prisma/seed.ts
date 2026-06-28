@@ -3,8 +3,24 @@
  * يشمل: 18 محافظة + مناطق، فئات، أدمن، بائعين معتمدين، ومنتجات بأسعار IQD.
  * idempotent قدر الإمكان عبر upsert على المفاتيح الفريدة.
  */
-import { PrismaClient, Prisma, Role, VendorStatus, ProductStatus } from "@prisma/client";
+import {
+  PrismaClient,
+  Prisma,
+  Role,
+  VendorStatus,
+  ProductStatus,
+  OrderStatus,
+  PayoutStatus,
+  ReviewStatus,
+} from "@prisma/client";
 import { normalizeArabic, slugify } from "@al-souq/utils";
+import {
+  calculateCommission,
+  resolveCommissionRate,
+  buildOrderNumber,
+} from "@al-souq/domain";
+
+const PLATFORM_RATE = 0.1;
 
 const prisma = new PrismaClient();
 
@@ -235,7 +251,273 @@ async function main() {
     console.log(`✅ بائع: ${v.storeName} (${v.products.length} منتج)`);
   }
 
+  // ── بائع قيد المراجعة (لاختبار اعتماد الأدمن لاحقاً) ──
+  const pendingUser = await prisma.user.upsert({
+    where: { phone: "+9647705555555" },
+    update: { role: Role.VENDOR, phoneVerified: true },
+    create: { phone: "+9647705555555", name: "نور", role: Role.VENDOR, phoneVerified: true },
+  });
+  await prisma.vendorProfile.upsert({
+    where: { userId: pendingUser.id },
+    update: {},
+    create: {
+      userId: pendingUser.id,
+      storeName: "متجر نور للإكسسوارات",
+      slug: slugify("متجر نور للإكسسوارات"),
+      slugNorm: normalizeArabic("متجر نور للإكسسوارات"),
+      status: VendorStatus.PENDING,
+      governorateId: govByName["أربيل"],
+    },
+  });
+  console.log("✅ بائع قيد المراجعة (متجر نور)");
+
+  // ── زبائن + عناوين ──
+  const customersSeed = [
+    { phone: "+9647708888888", name: "علي حسن", gov: "بغداد", area: "الكرادة" },
+    { phone: "+9647709999999", name: "زينب كريم", gov: "النجف", area: "الكوفة" },
+  ];
+  const customers: { id: string; addressId: string }[] = [];
+  for (const c of customersSeed) {
+    const user = await prisma.user.upsert({
+      where: { phone: c.phone },
+      update: { name: c.name, phoneVerified: true },
+      create: { phone: c.phone, name: c.name, role: Role.CUSTOMER, phoneVerified: true },
+    });
+    const govId = govByName[c.gov]!;
+    const area = await prisma.area.findFirst({ where: { governorateId: govId, nameAr: c.area } });
+    let address = await prisma.address.findFirst({ where: { userId: user.id } });
+    if (!address && area) {
+      address = await prisma.address.create({
+        data: {
+          userId: user.id,
+          fullName: c.name,
+          phone: c.phone,
+          governorateId: govId,
+          areaId: area.id,
+          line: "قرب الجامع الكبير، بناية رقم 12",
+          isDefault: true,
+        },
+      });
+    }
+    if (address) customers.push({ id: user.id, addressId: address.id });
+  }
+  console.log(`✅ ${customers.length} زبون + عناوينهم`);
+
+  // ── مراجعات → تحديث تقييم المنتجات والبائعين ──
+  const allProducts = await prisma.product.findMany({
+    where: { status: ProductStatus.ACTIVE },
+    select: { id: true, vendorId: true },
+  });
+  const reviewTexts = ["منتج ممتاز وجودة عالية", "وصل بسرعة، شكراً", "جيد لكن التغليف بسيط", "رائع وأنصح به"];
+  let reviewCount = 0;
+  for (let i = 0; i < allProducts.length; i++) {
+    const product = allProducts[i]!;
+    const numReviews = Math.min((i % 3) + 1, customers.length); // مراجعة لكل زبون متمايز
+    let sum = 0;
+    let count = 0;
+    for (let r = 0; r < numReviews; r++) {
+      const customer = customers[r % customers.length];
+      if (!customer) continue;
+      const rating = 3 + ((i + r) % 3); // 3..5
+      const existingReview = await prisma.review.findFirst({
+        where: { userId: customer.id, productId: product.id, orderId: null },
+      });
+      if (!existingReview) {
+        await prisma.review.create({
+          data: {
+            userId: customer.id,
+            productId: product.id,
+            rating,
+            comment: reviewTexts[(i + r) % reviewTexts.length],
+            status: ReviewStatus.PUBLISHED,
+          },
+        });
+      }
+      sum += rating;
+      count += 1;
+      reviewCount += 1;
+    }
+    if (count > 0) {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { ratingAvg: new Prisma.Decimal((sum / count).toFixed(2)), ratingCount: count },
+      });
+    }
+  }
+  // تجميع تقييم كل بائع من منتجاته
+  const vendorsAll = await prisma.vendorProfile.findMany({ select: { id: true } });
+  for (const v of vendorsAll) {
+    const agg = await prisma.product.aggregate({
+      where: { vendorId: v.id, ratingCount: { gt: 0 } },
+      _avg: { ratingAvg: true },
+      _sum: { ratingCount: true },
+    });
+    await prisma.vendorProfile.update({
+      where: { id: v.id },
+      data: {
+        ratingAvg: agg._avg.ratingAvg ?? new Prisma.Decimal(0),
+        ratingCount: agg._sum.ratingCount ?? 0,
+      },
+    });
+  }
+  console.log(`✅ ${reviewCount} مراجعة + تحديث التقييمات`);
+
+  // ── مفضلة ──
+  if (customers[0]) {
+    for (const p of allProducts.slice(0, 3)) {
+      await prisma.favorite.upsert({
+        where: { userId_productId: { userId: customers[0].id, productId: p.id } },
+        update: {},
+        create: { userId: customers[0].id, productId: p.id },
+      });
+    }
+    console.log("✅ مفضلة لعميل");
+  }
+
+  // ── طلبات نموذجية (لملء لوحات البائع/الأدمن) ──
+  await seedSampleOrders(customers);
+
   console.log("🎉 اكتمل البذر بنجاح.");
+}
+
+/**
+ * ينشئ طلبين نموذجيين: واحد مكتمل (مع عمولة وتسوية مدفوعة) وواحد قيد الانتظار،
+ * بطريقة متّسقة مع نماذج العمولة/المخزون. يُحدّث المخزون و soldCount.
+ */
+async function seedSampleOrders(customers: { id: string; addressId: string }[]) {
+  if (customers.length === 0) return;
+
+  const variants = await prisma.productVariant.findMany({
+    where: { stock: { gt: 0 } },
+    include: { product: { include: { vendor: true } } },
+    take: 4,
+  });
+  if (variants.length === 0) return;
+
+  let seq = 1;
+  const now = new Date();
+
+  async function makeOrder(
+    variant: (typeof variants)[number],
+    customer: { id: string; addressId: string },
+    quantity: number,
+    targetStatus: OrderStatus,
+  ) {
+    const existing = await prisma.order.findFirst({
+      where: { customerId: customer.id, vendorId: variant.product.vendorId, status: targetStatus },
+    });
+    if (existing) return existing;
+
+    const address = await prisma.address.findUniqueOrThrow({
+      where: { id: customer.addressId },
+      include: { governorate: true, area: true },
+    });
+    const unitPrice = Number(variant.price);
+    const subtotal = unitPrice * quantity;
+    const deliveryFee = 5000;
+    const rate = resolveCommissionRate(PLATFORM_RATE, variant.product.vendor.commissionRate ? Number(variant.product.vendor.commissionRate) : null);
+    const { commissionAmount } = calculateCommission(subtotal, rate);
+
+    const order = await prisma.order.create({
+      data: {
+        number: buildOrderNumber(seq++, now),
+        customerId: customer.id,
+        vendorId: variant.product.vendorId,
+        status: targetStatus,
+        subtotal: new Prisma.Decimal(subtotal),
+        deliveryFee: new Prisma.Decimal(deliveryFee),
+        total: new Prisma.Decimal(subtotal + deliveryFee),
+        commissionRate: new Prisma.Decimal(rate),
+        commissionAmount: new Prisma.Decimal(commissionAmount),
+        shipTo: {
+          fullName: address.fullName,
+          phone: address.phone,
+          governorate: address.governorate.nameAr,
+          area: address.area.nameAr,
+          line: address.line,
+        },
+        items: {
+          create: [
+            {
+              productId: variant.productId,
+              variantId: variant.id,
+              titleSnapshot: variant.product.title,
+              attributesSnapshot: variant.attributes ?? {},
+              unitPrice: new Prisma.Decimal(unitPrice),
+              quantity,
+              lineTotal: new Prisma.Decimal(subtotal),
+            },
+          ],
+        },
+      },
+    });
+
+    // سجل الحالات حتى الحالة المستهدفة
+    const flow: OrderStatus[] = [
+      OrderStatus.PENDING,
+      OrderStatus.CONFIRMED,
+      OrderStatus.PREPARING,
+      OrderStatus.SHIPPED,
+      OrderStatus.DELIVERED,
+      OrderStatus.COMPLETED,
+    ];
+    const upto = flow.slice(0, flow.indexOf(targetStatus) + 1);
+    let prev: OrderStatus | null = null;
+    for (const s of upto) {
+      await prisma.orderStatusHistory.create({
+        data: { orderId: order.id, fromStatus: prev, toStatus: s, note: "بذرة" },
+      });
+      prev = s;
+    }
+
+    // تحديث المخزون والمبيعات
+    await prisma.productVariant.update({
+      where: { id: variant.id },
+      data: { stock: { decrement: quantity } },
+    });
+    await prisma.product.update({
+      where: { id: variant.productId },
+      data: { soldCount: { increment: quantity } },
+    });
+
+    // عمولة + تسوية للطلب المكتمل
+    if (targetStatus === OrderStatus.COMPLETED) {
+      const payout = await prisma.payout.create({
+        data: {
+          vendorId: variant.product.vendorId,
+          amount: new Prisma.Decimal(subtotal - commissionAmount),
+          status: PayoutStatus.PAID,
+          periodStart: new Date(now.getFullYear(), now.getMonth(), 1),
+          periodEnd: now,
+          paidAt: now,
+        },
+      });
+      await prisma.commission.create({
+        data: {
+          orderId: order.id,
+          vendorId: variant.product.vendorId,
+          rate: new Prisma.Decimal(rate),
+          amount: new Prisma.Decimal(commissionAmount),
+          payoutId: payout.id,
+        },
+      });
+    } else {
+      await prisma.commission.create({
+        data: {
+          orderId: order.id,
+          vendorId: variant.product.vendorId,
+          rate: new Prisma.Decimal(rate),
+          amount: new Prisma.Decimal(commissionAmount),
+        },
+      });
+    }
+    return order;
+  }
+
+  await makeOrder(variants[0]!, customers[0]!, 2, OrderStatus.COMPLETED);
+  if (variants[1] && customers[0]) await makeOrder(variants[1], customers[0], 1, OrderStatus.PENDING);
+  if (variants[2] && customers[1]) await makeOrder(variants[2], customers[1], 1, OrderStatus.SHIPPED);
+  console.log("✅ طلبات نموذجية (مكتمل + قيد الانتظار + قيد الشحن) مع عمولات وتسوية");
 }
 
 main()

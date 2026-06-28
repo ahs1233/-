@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@al-souq/config": "workspace:*",
+    "@al-souq/domain": "workspace:*",
     "@al-souq/utils": "workspace:*",
     "@types/node": "^20.14.10",
     "prisma": "^5.18.0",

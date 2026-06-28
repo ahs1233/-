@@ -90,6 +90,8 @@ model User {
   reviews       Review[]
   notifications Notification[]
   sessions      Session[]
+  favorites     Favorite[]
+  pushSubs      PushSubscription[]
   auditLogs     AuditLog[]     @relation("ActorLogs")
 
   @@index([role])
@@ -139,6 +141,10 @@ model VendorProfile {
   commissionRate Decimal?     @db.Decimal(5, 4)
   governorateId  String?
   governorate    Governorate? @relation(fields: [governorateId], references: [id])
+  ratingAvg      Decimal      @default(0) @db.Decimal(3, 2)
+  ratingCount    Int          @default(0)
+  // تفاصيل التسوية المالية (طريقة الدفع للبائع) — يملؤها البائع
+  payoutDetails  Json?
   rejectionNote  String?
   approvedAt     DateTime?
   createdAt      DateTime     @default(now())
@@ -185,12 +191,15 @@ model Product {
   status      ProductStatus @default(DRAFT)
   ratingAvg   Decimal       @default(0) @db.Decimal(3, 2)
   ratingCount Int           @default(0)
+  soldCount   Int           @default(0) // عدد القطع المباعة (للتحليلات والترتيب)
+  viewCount   Int           @default(0)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  images   ProductImage[]
-  variants ProductVariant[]
-  reviews  Review[]
+  images    ProductImage[]
+  variants  ProductVariant[]
+  reviews   Review[]
+  favorites Favorite[]
 
   @@index([vendorId, status])
   @@index([categoryId, status])
@@ -400,6 +409,18 @@ model Review {
   @@index([productId, status])
 }
 
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
 model Notification {
   id        String    @id @default(cuid())
   userId    String
@@ -412,6 +433,20 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId, readAt])
+}
+
+// اشتراك Web Push — يُستخدم في المرحلة 6 لإرسال الإشعارات الفورية.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model AuditLog {
