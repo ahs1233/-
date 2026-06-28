@@ -9,8 +9,23 @@ import { placeOrderSchema } from "@al-souq/validators";
 import { router, protectedProcedure } from "../trpc";
 import { placeOrder, changeOrderStatus, releaseExpiredReservations } from "../services/order";
 
+const orderSummaryOut = z.object({
+  id: z.string(),
+  number: z.string(),
+  status: z.string(),
+  total: z.number(),
+  placedAt: z.date(),
+  itemCount: z.number(),
+  firstItem: z.string(),
+  vendor: z.object({ storeName: z.string(), slug: z.string() }),
+});
+
 export const orderRouter = router({
-  place: protectedProcedure.input(placeOrderSchema).mutation(async ({ ctx, input }) => {
+  place: protectedProcedure
+    .meta({ openapi: { method: "POST", path: "/orders", tags: ["order"], protect: true } })
+    .input(placeOrderSchema)
+    .output(z.object({ orders: z.array(z.object({ id: z.string(), number: z.string(), vendorId: z.string(), total: z.number() })) }))
+    .mutation(async ({ ctx, input }) => {
     await releaseExpiredReservations(ctx.prisma);
     const result = await placeOrder(ctx.prisma, {
       customerId: ctx.user.id,
@@ -22,7 +37,9 @@ export const orderRouter = router({
   }),
 
   myOrders: protectedProcedure
+    .meta({ openapi: { method: "GET", path: "/orders", tags: ["order"], protect: true } })
     .input(z.object({ cursor: z.string().cuid().optional(), limit: z.number().int().min(1).max(50).default(20) }))
+    .output(z.object({ items: z.array(orderSummaryOut), nextCursor: z.string().optional() }))
     .query(async ({ ctx, input }) => {
       await releaseExpiredReservations(ctx.prisma);
       const orders = await ctx.prisma.order.findMany({
@@ -100,25 +117,27 @@ export const orderRouter = router({
     .input(z.object({ orderId: z.string().cuid(), reason: z.string().trim().max(200).optional() }))
     .mutation(async ({ ctx, input }) => {
       await assertOwnership(ctx.prisma, input.orderId, ctx.user.id);
-      return changeOrderStatus(ctx.prisma, {
+      const o = await changeOrderStatus(ctx.prisma, {
         orderId: input.orderId,
         to: "CANCELLED",
         actor: "CUSTOMER",
         actorId: ctx.user.id,
         note: input.reason,
       });
+      return { id: o.id, status: o.status };
     }),
 
   confirmReceipt: protectedProcedure
     .input(z.object({ orderId: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
       await assertOwnership(ctx.prisma, input.orderId, ctx.user.id);
-      return changeOrderStatus(ctx.prisma, {
+      const o = await changeOrderStatus(ctx.prisma, {
         orderId: input.orderId,
         to: "COMPLETED",
         actor: "CUSTOMER",
         actorId: ctx.user.id,
       });
+      return { id: o.id, status: o.status };
     }),
 });
 

@@ -47,7 +47,9 @@ export const favoriteRouter = router({
   }),
 
   toggle: protectedProcedure
+    .meta({ openapi: { method: "POST", path: "/favorites/toggle", tags: ["favorite"], protect: true } })
     .input(z.object({ productId: z.string().cuid() }))
+    .output(z.object({ favorited: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
       const existing = await ctx.prisma.favorite.findUnique({
         where: { userId_productId: { userId: ctx.user.id, productId: input.productId } },

@@ -10,7 +10,8 @@
     "./client": "./src/client.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@al-souq/auth": "workspace:*",
@@ -29,6 +30,7 @@
     "@al-souq/config": "workspace:*",
     "@types/node": "^20.14.10",
     "@types/web-push": "^3.6.3",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.5"
   }
 }

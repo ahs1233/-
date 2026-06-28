@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // إخراج مستقل (standalone) لصورة Docker صغيرة
+  output: "standalone",
   // حزم الـ monorepo الداخلية تُترجم مباشرة من مصدر TS (بلا خطوة بناء منفصلة)
   transpilePackages: [
     "@al-souq/api",

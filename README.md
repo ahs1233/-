@@ -87,9 +87,37 @@ pnpm dev                    # http://localhost:3000
 ---
 
 ## العقود للـ native
-- وثيقة OpenAPI: `GET /api/openapi.json`
+- وثيقة OpenAPI: `GET /api/openapi.json` (15 endpoint موثّق للمشتري)
 - جسر REST: `/api/rest/*` (نفس منطق tRPC)
 - نفس مصادقة OTP ونفس نماذج البيانات.
+- تفاصيل المعمارية والعقود: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+
+## الإشعارات (Web Push)
+```bash
+pnpm vapid    # ولّد مفاتيح VAPID وضعها في .env (عام + خاص + NEXT_PUBLIC_*)
+```
+تبقى الإشعارات داخل التطبيق تعمل دائماً؛ Push يُفعّل عند ضبط المفاتيح.
+
+## النشر
+
+### الويب (Vercel — موصى به)
+- اربط المستودع، اضبط متغيّرات البيئة (`DATABASE_URL`, `JWT_*`, `S3_*`, `VAPID_*`).
+- الجذر monorepo؛ أمر البناء `pnpm build`، مخرجات `apps/web`.
+
+### الويب (Docker — أي مزوّد)
+```bash
+docker build -t al-souq-web .
+docker run -p 3000:3000 --env-file .env al-souq-web
+```
+يستخدم إخراج Next standalone لصورة صغيرة.
+
+### قاعدة البيانات والتخزين
+- PostgreSQL مُدار (Render/Neon/Supabase) — طبّق الهجرات: `pnpm db:migrate deploy`.
+- تخزين S3-compatible (Cloudflare R2/MinIO/S3) لصور المنتجات.
+
+### CI
+`.github/workflows/ci.yml` يشغّل على كل دفعة: install → generate → push + seed →
+typecheck → lint → اختبارات (وحدة + تكامل على PostgreSQL) → build.
 
 ---
 
@@ -109,4 +137,6 @@ pnpm dev                    # http://localhost:3000
 - [x] **المرحلة 6**: الإشعارات (Web Push عبر VAPID + service worker، مع إبقاء
       الإشعار داخل التطبيق)، البحث العربي المحسّن (مطابقة متعدّدة الكلمات AND +
       اقتراحات فورية في الهيدر)، PWA كامل (تخزين بطبقات، صفحة أوفلاين، تثبيت)
-- [ ] المرحلة 7: الاختبارات + التوثيق + النشر
+- [x] **المرحلة 7**: اختبارات تكامل (api/test على PostgreSQL)، توسيع عقد OpenAPI
+      للمشتري، CI (GitHub Actions مع Postgres)، Dockerfile (Next standalone)،
+      توثيق المعمارية، وSessionStart hook لجلسات Claude على الويب

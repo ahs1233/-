@@ -6,7 +6,25 @@ import { addressSchema } from "@al-souq/validators";
 import { router, protectedProcedure } from "../trpc";
 
 export const addressRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: protectedProcedure
+    .meta({ openapi: { method: "GET", path: "/addresses", tags: ["address"], protect: true } })
+    .input(z.void())
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          fullName: z.string(),
+          phone: z.string(),
+          governorateId: z.string(),
+          areaId: z.string(),
+          governorate: z.string(),
+          area: z.string(),
+          line: z.string(),
+          isDefault: z.boolean(),
+        }),
+      ),
+    )
+    .query(async ({ ctx }) => {
     const addresses = await ctx.prisma.address.findMany({
       where: { userId: ctx.user.id },
       orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],

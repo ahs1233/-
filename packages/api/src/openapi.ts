@@ -11,6 +11,6 @@ export function buildOpenApiDocument(baseUrl: string) {
     description: "واجهة برمجة منصة السوگ — العقد الرسمي للعملاء (ويب/native).",
     version: "0.1.0",
     baseUrl: `${baseUrl}/api/rest`,
-    tags: ["auth", "geo", "catalog"],
+    tags: ["auth", "geo", "catalog", "order", "address", "favorite"],
   });
 }
