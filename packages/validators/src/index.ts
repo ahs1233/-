@@ -89,6 +89,39 @@ export const presignUploadSchema = z.object({
   purpose: z.enum(["product", "logo", "banner"]).default("product"),
 });
 
+// ─────────────────────────── Admin ───────────────────────────
+
+export const categoryCreateSchema = z.object({
+  nameAr: z.string().trim().min(2).max(60),
+  parentId: z.string().cuid().optional().nullable(),
+  icon: z.string().trim().max(40).optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
+export const categoryUpdateSchema = z.object({
+  id: z.string().cuid(),
+  nameAr: z.string().trim().min(2).max(60).optional(),
+  icon: z.string().trim().max(40).optional(),
+  sortOrder: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const productReviewSchema = z.object({
+  productId: z.string().cuid(),
+  decision: z.enum(["ACTIVE", "REJECTED"]),
+  note: z.string().trim().max(300).optional(),
+});
+
+export const userManageSchema = z.object({
+  userId: z.string().cuid(),
+  action: z.enum(["block", "unblock"]),
+});
+
+export const platformSettingsSchema = z.object({
+  commissionRate: z.number().min(0).max(1).optional(),
+  deliveryFee: z.number().int().min(0).max(100_000).optional(),
+});
+
 // ─────────────────────────── Product ───────────────────────────
 
 const priceIQD = z

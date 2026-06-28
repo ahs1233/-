@@ -9,6 +9,7 @@ import { reviewRouter } from "./routers/review";
 import { notificationRouter } from "./routers/notification";
 import { vendorRouter } from "./routers/vendor";
 import { uploadRouter } from "./routers/upload";
+import { adminRouter } from "./routers/admin";
 
 /**
  * الراوتر الجذر — العقد الكامل للـ API.
@@ -25,6 +26,7 @@ export const appRouter = router({
   notification: notificationRouter,
   vendor: vendorRouter,
   upload: uploadRouter,
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;
