@@ -66,6 +66,16 @@ export async function createContext(opts: {
 
 const COOKIE_BASE = "Path=/; HttpOnly; SameSite=Lax";
 
+/** يضبط كوكي الوصول فقط (مثلاً عند تغيّر الدور بعد تسجيل بائع). */
+export function setAccessCookie(ctx: Context, accessToken: string, ttl: number): void {
+  if (!ctx.resHeaders) return;
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  ctx.resHeaders.append(
+    "set-cookie",
+    `al_access=${encodeURIComponent(accessToken)}; ${COOKIE_BASE}; Max-Age=${ttl}${secure}`,
+  );
+}
+
 /** يضبط كوكيز المصادقة على الويب (في native تُتجاهل ويُعتمد على جسم الرد). */
 export function setAuthCookies(
   ctx: Context,
@@ -74,10 +84,7 @@ export function setAuthCookies(
 ): void {
   if (!ctx.resHeaders) return;
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  ctx.resHeaders.append(
-    "set-cookie",
-    `al_access=${encodeURIComponent(tokens.accessToken)}; ${COOKIE_BASE}; Max-Age=${ttl.access}${secure}`,
-  );
+  setAccessCookie(ctx, tokens.accessToken, ttl.access);
   ctx.resHeaders.append(
     "set-cookie",
     `al_refresh=${encodeURIComponent(tokens.refreshToken)}; ${COOKIE_BASE}; Max-Age=${ttl.refresh}${secure}`,

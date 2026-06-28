@@ -62,6 +62,33 @@ export const vendorReviewSchema = z.object({
   note: z.string().trim().max(300).optional(),
 });
 
+export const vendorSettingsSchema = z.object({
+  storeName: z.string().trim().min(2).max(80).optional(),
+  description: z.string().trim().max(500).optional(),
+  logoUrl: z.string().url().optional().or(z.literal("")),
+  bannerUrl: z.string().url().optional().or(z.literal("")),
+  governorateId: z.string().cuid().optional(),
+  // تفاصيل التسوية (طريقة استلام البائع لمستحقاته)
+  payoutMethod: z.string().trim().max(40).optional(),
+  payoutAccount: z.string().trim().max(80).optional(),
+});
+
+export const updateStockSchema = z.object({
+  variantId: z.string().cuid(),
+  stock: z.number().int().min(0).max(1_000_000),
+});
+
+export const orderStatusUpdateSchema = z.object({
+  orderId: z.string().cuid(),
+  status: z.enum(["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "CANCELLED"]),
+  note: z.string().trim().max(200).optional(),
+});
+
+export const presignUploadSchema = z.object({
+  contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/avif"]),
+  purpose: z.enum(["product", "logo", "banner"]).default("product"),
+});
+
 // ─────────────────────────── Product ───────────────────────────
 
 const priceIQD = z

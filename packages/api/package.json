@@ -16,6 +16,7 @@
     "@al-souq/auth": "workspace:*",
     "@al-souq/db": "workspace:*",
     "@al-souq/domain": "workspace:*",
+    "@al-souq/storage": "workspace:*",
     "@al-souq/utils": "workspace:*",
     "@al-souq/validators": "workspace:*",
     "@trpc/server": "^11.0.0-rc.477",

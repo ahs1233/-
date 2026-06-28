@@ -35,6 +35,7 @@ export default function AccountPage() {
     { href: "/favorites", label: ar.nav.favorites, icon: "♥" },
     { href: "/account/addresses", label: "عناويني", icon: "📍" },
     { href: "/notifications", label: "الإشعارات", icon: "🔔" },
+    ...(u.role === "CUSTOMER" ? [{ href: "/become-seller", label: "افتح متجرك", icon: "🏪" }] : []),
     ...(u.role === "VENDOR" ? [{ href: "/vendor", label: ar.vendor.dashboard, icon: "🏪" }] : []),
     ...(u.role === "ADMIN" ? [{ href: "/admin", label: ar.admin.dashboard, icon: "🛡️" }] : []),
   ];

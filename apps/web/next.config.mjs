@@ -8,13 +8,14 @@ const nextConfig = {
     "@al-souq/db",
     "@al-souq/domain",
     "@al-souq/i18n",
+    "@al-souq/storage",
     "@al-souq/ui",
     "@al-souq/utils",
     "@al-souq/validators",
   ],
   experimental: {
     // Prisma وحزم الخادم لا تُجمَّع ضمن حزمة المتصفح
-    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs"],
+    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs", "@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner"],
   },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],

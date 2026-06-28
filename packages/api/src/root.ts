@@ -7,6 +7,8 @@ import { addressRouter } from "./routers/address";
 import { favoriteRouter } from "./routers/favorite";
 import { reviewRouter } from "./routers/review";
 import { notificationRouter } from "./routers/notification";
+import { vendorRouter } from "./routers/vendor";
+import { uploadRouter } from "./routers/upload";
 
 /**
  * الراوتر الجذر — العقد الكامل للـ API.
@@ -21,6 +23,8 @@ export const appRouter = router({
   favorite: favoriteRouter,
   review: reviewRouter,
   notification: notificationRouter,
+  vendor: vendorRouter,
+  upload: uploadRouter,
 });
 
 export type AppRouter = typeof appRouter;
