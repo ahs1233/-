@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { ar } from "@al-souq/i18n";
@@ -29,6 +30,15 @@ export default function AccountPage() {
   }
 
   const u = me.data;
+  const links = [
+    { href: "/orders", label: ar.nav.orders, icon: "📦" },
+    { href: "/favorites", label: ar.nav.favorites, icon: "♥" },
+    { href: "/account/addresses", label: "عناويني", icon: "📍" },
+    { href: "/notifications", label: "الإشعارات", icon: "🔔" },
+    ...(u.role === "VENDOR" ? [{ href: "/vendor", label: ar.vendor.dashboard, icon: "🏪" }] : []),
+    ...(u.role === "ADMIN" ? [{ href: "/admin", label: ar.admin.dashboard, icon: "🛡️" }] : []),
+  ];
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">{ar.nav.account}</h1>
@@ -39,6 +49,19 @@ export default function AccountPage() {
           <Row label="الدور" value={roleLabel(u.role)} />
         </CardBody>
       </Card>
+
+      <Card>
+        <CardBody className="divide-y divide-neutral-100 p-0">
+          {links.map((l) => (
+            <Link key={l.href} href={l.href} className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50">
+              <span>{l.icon}</span>
+              <span className="flex-1">{l.label}</span>
+              <span className="text-neutral-300">‹</span>
+            </Link>
+          ))}
+        </CardBody>
+      </Card>
+
       <Button variant="outline" className="w-full" loading={logout.isPending} onClick={() => logout.mutate({})}>
         {ar.auth.logout}
       </Button>

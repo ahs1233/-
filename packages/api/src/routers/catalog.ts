@@ -120,6 +120,28 @@ export const catalogRouter = router({
       });
     }),
 
+  categoryBySlug: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/categories/{slug}", tags: ["catalog"] } })
+    .input(z.object({ slug: z.string() }))
+    .output(
+      z
+        .object({
+          id: z.string(),
+          nameAr: z.string(),
+          slug: z.string(),
+          childIds: z.array(z.string()),
+        })
+        .nullable(),
+    )
+    .query(async ({ ctx, input }) => {
+      const cat = await ctx.prisma.category.findUnique({
+        where: { slug: input.slug },
+        select: { id: true, nameAr: true, slug: true, children: { select: { id: true } } },
+      });
+      if (!cat) return null;
+      return { id: cat.id, nameAr: cat.nameAr, slug: cat.slug, childIds: cat.children.map((c) => c.id) };
+    }),
+
   products: publicProcedure
     .meta({ openapi: { method: "GET", path: "/catalog/products", tags: ["catalog"] } })
     .input(productListQuerySchema)
@@ -130,7 +152,14 @@ export const catalogRouter = router({
         vendor: { status: "APPROVED" },
       };
       if (input.q) where.titleNorm = { contains: normalizeArabic(input.q) };
-      if (input.categoryId) where.categoryId = input.categoryId;
+      if (input.categoryId) {
+        // فئة أب → اشمل منتجات فئاتها الفرعية أيضاً
+        const children = await ctx.prisma.category.findMany({
+          where: { parentId: input.categoryId },
+          select: { id: true },
+        });
+        where.categoryId = { in: [input.categoryId, ...children.map((c) => c.id)] };
+      }
       if (input.vendorId) where.vendorId = input.vendorId;
       if (input.minPrice !== undefined || input.maxPrice !== undefined) {
         where.basePrice = {};

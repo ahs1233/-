@@ -32,7 +32,8 @@ interface Transition {
 const TRANSITIONS: Record<OrderStatus, Transition[]> = {
   PENDING: [
     { to: "CONFIRMED", by: ["VENDOR"] },
-    { to: "CANCELLED", by: ["CUSTOMER", "VENDOR"] },
+    // SYSTEM يلغي تلقائياً عند انتهاء مهلة حجز المخزون
+    { to: "CANCELLED", by: ["CUSTOMER", "VENDOR", "SYSTEM"] },
   ],
   CONFIRMED: [
     { to: "PREPARING", by: ["VENDOR"] },
