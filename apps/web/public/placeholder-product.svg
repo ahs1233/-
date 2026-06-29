@@ -1,5 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-  <rect width="400" height="400" fill="#f4f4f5"/>
-  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-        font-family="Tahoma, sans-serif" font-size="28" fill="#a1a1aa">صورة المنتج</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0fdf4"/>
+      <stop offset="1" stop-color="#dcfce7"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#g)"/>
+  <g fill="none" stroke="#86efac" stroke-width="2" opacity="0.5">
+    <circle cx="300" cy="270" r="120"/>
+    <circle cx="300" cy="270" r="160"/>
+  </g>
+  <g transform="translate(228,198)" fill="#16a34a">
+    <path d="M36 12 h72 a12 12 0 0 1 12 12 v12 h24 a12 12 0 0 1 12 12 v84 a12 12 0 0 1 -12 12 h-144 a12 12 0 0 1 -12 -12 v-84 a12 12 0 0 1 12 -12 h24 v-12 a12 12 0 0 1 12 -12 z m0 24 v12 h72 v-12 z" opacity="0.92"/>
+  </g>
+  <text x="300" y="470" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="34" font-weight="700" fill="#16a34a">السوگ</text>
+  <text x="300" y="510" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="22" fill="#4ade80">منتج عراقي</text>
 </svg>
