@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    /* اتجاه ولغة افتراضيان — يُضبطان أيضاً على <html> في layout */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900 antialiased;
+    font-family: var(--font-sans), "Tajawal", "Cairo", system-ui, sans-serif;
+  }
+
+  /* الأرقام تبقى منطقية ضمن RTL */
+  .nums {
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-screen-md px-4;
+  }
+}

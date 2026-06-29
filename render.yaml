@@ -1,0 +1,45 @@
+# نشر بنقرة واحدة على Render — يُنشئ قاعدة بيانات + خدمة ويب معاً.
+# Render يقرأ هذا الملف تلقائياً عند "New + → Blueprint" أو زر Deploy to Render.
+# يطبّق الهجرات ويبذر البيانات عند كل إقلاع (البذر idempotent).
+
+databases:
+  - name: al-souq-db
+    plan: free
+    databaseName: al_souq
+    user: souq
+
+services:
+  - type: web
+    name: al-souq
+    runtime: node
+    plan: free
+    region: frankfurt
+    healthCheckPath: /
+    # NEXT_PUBLIC_* مطلوبة وقت البناء، لذا نمرّرها كـ build env عبر envVars أدناه.
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm db:generate && pnpm --filter @al-souq/web build
+    startCommand: corepack enable && pnpm db:deploy && (pnpm db:seed || true) && pnpm --filter @al-souq/web start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # السماح بتثبيت devDependencies اللازمة للبناء (Render يضبط production افتراضياً)
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: al-souq-db
+          property: connectionString
+      - key: DIRECT_URL
+        fromDatabase:
+          name: al-souq-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # وضع التطوير لمزوّد الرسائل: رمز OTP يظهر على شاشة الدخول مباشرةً
+      - key: SMS_PROVIDER
+        value: console
+      # اختياري: بعد أول نشر، اضبط هذا على رابط Render
+      # (مثل https://al-souq.onrender.com) — التطبيق يعمل بدونه أيضاً.
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false

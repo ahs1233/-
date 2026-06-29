@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: souq
+          POSTGRES_PASSWORD: souq
+          POSTGRES_DB: al_souq
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U souq -d al_souq"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://souq:souq@localhost:5432/al_souq?schema=public
+      DIRECT_URL: postgresql://souq:souq@localhost:5432/al_souq?schema=public
+      JWT_ACCESS_SECRET: ci-access-secret-placeholder-32-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-placeholder-32-characters
+      SMS_PROVIDER: console
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Apply schema + seed
+        run: |
+          pnpm db:push
+          pnpm db:seed
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit + integration tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

@@ -1,0 +1,23 @@
+{
+  "name": "@al-souq/utils",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./arabic": "./src/arabic.ts",
+    "./currency": "./src/currency.ts",
+    "./phone": "./src/phone.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.5",
+    "@al-souq/config": "workspace:*"
+  }
+}
