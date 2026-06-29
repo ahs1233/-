@@ -179,6 +179,8 @@ export const productListQuerySchema = z.object({
   q: z.string().trim().max(80).optional(),
   categoryId: z.string().cuid().optional(),
   vendorId: z.string().cuid().optional(),
+  governorateId: z.string().cuid().optional(), // عزل السوق حسب المحافظة
+
   minPrice: z.number().int().min(0).optional(),
   maxPrice: z.number().int().min(0).optional(),
   sort: z.enum(["newest", "price_asc", "price_desc", "rating"]).default("newest"),

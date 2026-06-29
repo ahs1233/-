@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ShieldCheck, Truck, BadgeCheck, ChevronLeft } from "lucide-react";
+import { ShieldCheck, Truck, BadgeCheck, ChevronLeft, Store, LayoutGrid } from "lucide-react";
 import { getServerApi } from "@/src/trpc/server";
+import { getGovernorate } from "@/src/lib/governorate";
 import { ProductCard, type ProductCardData } from "@/src/components/product-card";
 import { CategoryIcon } from "@/src/components/category-icon";
 
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 type Category = { id: string; nameAr: string; slug: string; icon: string | null };
 
 export default async function HomePage() {
+  const gov = getGovernorate();
   let categories: Category[] = [];
   let products: { items: ProductCardData[] } = { items: [] };
   let dbReady = true;
@@ -16,7 +18,7 @@ export default async function HomePage() {
     const api = await getServerApi();
     [categories, products] = await Promise.all([
       api.catalog.categories(),
-      api.catalog.products({ sort: "newest", limit: 24 }),
+      api.catalog.products({ sort: "newest", limit: 24, governorateId: gov?.id }),
     ]);
   } catch {
     dbReady = false;
@@ -39,10 +41,10 @@ export default async function HomePage() {
             <BadgeCheck className="h-3.5 w-3.5" /> سوق العراق الموثوق
           </span>
           <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">
-            كل ما تحتاجه من تجّار محافظتك
+            {gov ? `سوق ${gov.name} بين يديك` : "كل ما تحتاجه من تجّار محافظتك"}
           </h1>
           <p className="mt-1 max-w-md text-sm text-white/90">
-            تسوّق من متاجر موثوقة في عموم العراق، والدفع عند الاستلام — بساطة وأمان.
+            تسوّق من متاجر موثوقة في {gov ? `محافظة ${gov.name}` : "محافظتك"}، والدفع عند الاستلام.
           </p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
             <Feature icon={<Truck className="h-4 w-4" />} text="دفع عند الاستلام" />
@@ -57,6 +59,15 @@ export default async function HomePage() {
           المتجر قيد التجهيز — لم تُربط قاعدة البيانات بعد.
         </div>
       )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <Link href="/stores" className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 font-medium text-neutral-800 shadow-sm transition hover:border-brand-300">
+          <Store className="h-5 w-5 text-brand-600" /> تصفّح المتاجر
+        </Link>
+        <Link href="/categories" className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 font-medium text-neutral-800 shadow-sm transition hover:border-brand-300">
+          <LayoutGrid className="h-5 w-5 text-brand-600" /> كل الفئات
+        </Link>
+      </div>
 
       {/* الفئات */}
       {categories.length > 0 && (

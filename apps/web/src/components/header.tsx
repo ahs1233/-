@@ -31,8 +31,12 @@ export function Header() {
     return () => document.removeEventListener("click", onClick);
   }, []);
 
+  const govId =
+    typeof document !== "undefined"
+      ? (document.cookie.match(/(?:^|;\s*)al_gov=([^;]+)/)?.[1] ?? undefined)
+      : undefined;
   const suggest = trpc.catalog.suggest.useQuery(
-    { q: debounced },
+    { q: debounced, governorateId: govId },
     { enabled: debounced.length >= 2, staleTime: 30_000 },
   );
 
