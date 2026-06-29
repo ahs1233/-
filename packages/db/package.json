@@ -12,6 +12,7 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "deploy": "prisma migrate deploy",
+    "setup:prod": "node scripts/setup-prod.mjs",
     "push": "prisma db push",
     "seed": "tsx prisma/seed.ts",
     "studio": "prisma studio",
