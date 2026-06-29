@@ -1,4 +1,5 @@
 import { getServerApi } from "@/src/trpc/server";
+import { getGovernorate } from "@/src/lib/governorate";
 import { ProductCard } from "@/src/components/product-card";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ const SORTS: { value: string; label: string }[] = [
 
 export default async function SearchPage({ searchParams }: { searchParams: SP }) {
   const api = await getServerApi();
+  const gov = getGovernorate();
   const sort = (["newest", "price_asc", "price_desc", "rating"].includes(searchParams.sort ?? "")
     ? searchParams.sort
     : "newest") as "newest" | "price_asc" | "price_desc" | "rating";
@@ -23,6 +25,7 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
     sort,
     minPrice: searchParams.minPrice ? Number(searchParams.minPrice) : undefined,
     maxPrice: searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined,
+    governorateId: gov?.id,
     limit: 40,
   });
 

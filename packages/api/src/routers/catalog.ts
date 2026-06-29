@@ -123,7 +123,7 @@ export const catalogRouter = router({
   // اقتراحات بحث فورية (منتجات + فئات مطابقة)
   suggest: publicProcedure
     .meta({ openapi: { method: "GET", path: "/catalog/suggest", tags: ["catalog"] } })
-    .input(z.object({ q: z.string().min(1).max(60) }))
+    .input(z.object({ q: z.string().min(1).max(60), governorateId: z.string().cuid().optional() }))
     .output(
       z.object({
         products: z.array(z.object({ title: z.string(), slug: z.string() })),
@@ -135,7 +135,11 @@ export const catalogRouter = router({
       if (!norm) return { products: [], categories: [] };
       const [products, categories] = await Promise.all([
         ctx.prisma.product.findMany({
-          where: { status: "ACTIVE", vendor: { status: "APPROVED" }, titleNorm: { contains: norm } },
+          where: {
+            status: "ACTIVE",
+            vendor: { status: "APPROVED", ...(input.governorateId ? { governorateId: input.governorateId } : {}) },
+            titleNorm: { contains: norm },
+          },
           take: 6,
           orderBy: { soldCount: "desc" },
           select: { title: true, slug: true },
@@ -180,7 +184,7 @@ export const catalogRouter = router({
     .query(async ({ ctx, input }) => {
       const where: Prisma.ProductWhereInput = {
         status: "ACTIVE",
-        vendor: { status: "APPROVED" },
+        vendor: { status: "APPROVED", ...(input.governorateId ? { governorateId: input.governorateId } : {}) },
       };
       if (input.q) {
         // بحث عربي متعدّد الكلمات: كل كلمة مطبّعة يجب أن تَرِد (AND)
@@ -307,5 +311,51 @@ export const catalogRouter = router({
         },
       });
       return { vendor, products: products.map(serializeProduct) };
+    }),
+
+  // قائمة المتاجر (اختياري حسب المحافظة) — لتصفّح سوق كل محافظة
+  stores: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/stores", tags: ["catalog"] } })
+    .input(z.object({ governorateId: z.string().cuid().optional() }))
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          storeName: z.string(),
+          slug: z.string(),
+          logoUrl: z.string().nullable(),
+          governorate: z.string().nullable(),
+          ratingAvg: z.number(),
+          ratingCount: z.number(),
+          productCount: z.number(),
+        }),
+      ),
+    )
+    .query(async ({ ctx, input }) => {
+      const vendors = await ctx.prisma.vendorProfile.findMany({
+        where: { status: "APPROVED", ...(input.governorateId ? { governorateId: input.governorateId } : {}) },
+        orderBy: { ratingAvg: "desc" },
+        take: 60,
+        select: {
+          id: true,
+          storeName: true,
+          slug: true,
+          logoUrl: true,
+          ratingAvg: true,
+          ratingCount: true,
+          governorate: { select: { nameAr: true } },
+          _count: { select: { products: { where: { status: "ACTIVE" } } } },
+        },
+      });
+      return vendors.map((v) => ({
+        id: v.id,
+        storeName: v.storeName,
+        slug: v.slug,
+        logoUrl: v.logoUrl,
+        governorate: v.governorate?.nameAr ?? null,
+        ratingAvg: Number(v.ratingAvg),
+        ratingCount: v.ratingCount,
+        productCount: v._count.products,
+      }));
     }),
 });
