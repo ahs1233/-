@@ -4,6 +4,7 @@ import { getServerApi } from "@/src/trpc/server";
 import { getGovernorate } from "@/src/lib/governorate";
 import { ProductCard, type ProductCardData } from "@/src/components/product-card";
 import { CategoryIcon } from "@/src/components/category-icon";
+import { BrandMark } from "@/src/components/brand-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -27,18 +28,19 @@ export default async function HomePage() {
   return (
     <div className="space-y-7">
       {/* البطل */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-brand-600 via-brand-500 to-brand-700 p-6 text-white shadow-lg">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-brand-700 via-brand-600 to-petrol p-6 text-white shadow-lg ring-1 ring-gold-500/30">
         <div
-          className="pointer-events-none absolute inset-0 opacity-15"
+          className="pointer-events-none absolute inset-0 opacity-10"
           style={{
             backgroundImage:
               "radial-gradient(circle at 20% 20%, white 1.5px, transparent 1.5px), radial-gradient(circle at 70% 60%, white 1.5px, transparent 1.5px)",
             backgroundSize: "32px 32px",
           }}
         />
+        <BrandMark className="pointer-events-none absolute -bottom-6 -start-6 h-40 w-40 opacity-10" />
         <div className="relative">
-          <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
-            <BadgeCheck className="h-3.5 w-3.5" /> سوق العراق الموثوق
+          <span className="inline-flex items-center gap-1 rounded-full border border-gold-400/50 bg-gold-400/15 px-3 py-1 text-xs font-semibold text-gold-100 backdrop-blur">
+            <BadgeCheck className="h-3.5 w-3.5" /> ندعم المنتج العراقي
           </span>
           <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">
             {gov ? `سوق ${gov.name} بين يديك` : "كل ما تحتاجه من تجّار محافظتك"}
