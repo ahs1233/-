@@ -14,6 +14,7 @@ export default async function HomePage() {
   const gov = getGovernorate();
   let categories: Category[] = [];
   let products: { items: ProductCardData[] } = { items: [] };
+  let otherGov = false;
   let dbReady = true;
   try {
     const api = await getServerApi();
@@ -21,6 +22,11 @@ export default async function HomePage() {
       api.catalog.categories(),
       api.catalog.products({ sort: "newest", limit: 24, governorateId: gov?.id }),
     ]);
+    // إن لم توجد منتجات في محافظتك بعد، اعرض منتجات من بقية العراق بدل صفحة فارغة.
+    if (products.items.length === 0 && gov) {
+      products = await api.catalog.products({ sort: "newest", limit: 24 });
+      otherGov = products.items.length > 0;
+    }
   } catch {
     dbReady = false;
   }
@@ -90,7 +96,12 @@ export default async function HomePage() {
 
       {/* المنتجات */}
       <section>
-        <SectionHeader title="أحدث المنتجات" />
+        <SectionHeader title={otherGov ? "منتجات من محافظات أخرى" : "أحدث المنتجات"} />
+        {otherGov && (
+          <p className="mb-3 rounded-2xl border border-gold-200 bg-gold-50 p-3 text-sm text-gold-700">
+            لا توجد منتجات في {gov?.name} بعد — هذه منتجات من بقية العراق.
+          </p>
+        )}
         {products.items.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
             لا توجد منتجات بعد.
