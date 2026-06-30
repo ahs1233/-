@@ -1,18 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f0fdf4"/>
-      <stop offset="1" stop-color="#dcfce7"/>
+      <stop offset="0" stop-color="#f7f4ee"/>
+      <stop offset="1" stop-color="#e7dcc6"/>
+    </linearGradient>
+    <linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c99a6a"/>
+      <stop offset="1" stop-color="#9a6638"/>
     </linearGradient>
   </defs>
   <rect width="600" height="600" fill="url(#g)"/>
-  <g fill="none" stroke="#86efac" stroke-width="2" opacity="0.5">
-    <circle cx="300" cy="270" r="120"/>
-    <circle cx="300" cy="270" r="160"/>
+  <g fill="none" stroke="#0fa3a3" stroke-width="2" opacity="0.35">
+    <circle cx="300" cy="265" r="120"/>
+    <circle cx="300" cy="265" r="158"/>
   </g>
-  <g transform="translate(228,198)" fill="#16a34a">
-    <path d="M36 12 h72 a12 12 0 0 1 12 12 v12 h24 a12 12 0 0 1 12 12 v84 a12 12 0 0 1 -12 12 h-144 a12 12 0 0 1 -12 -12 v-84 a12 12 0 0 1 12 -12 h24 v-12 a12 12 0 0 1 12 -12 z m0 24 v12 h72 v-12 z" opacity="0.92"/>
+  <g transform="translate(300,265) scale(3.4)" fill="url(#bm)">
+    <circle cx="0" cy="0" r="8"/>
+    <circle cx="0" cy="0" r="3.2" fill="#f7f4ee"/>
+    <path d="M-2 -2 L-22 -8 q-3 1 -2 4 L-4 1 Z"/>
+    <path d="M-2 1 L-19 -2 q-3 1 -2 4 L-4 3.5 Z"/>
+    <path d="M2 -2 L22 -8 q3 1 2 4 L4 1 Z"/>
+    <path d="M2 1 L19 -2 q3 1 2 4 L4 3.5 Z"/>
+    <path d="M-3 8 h6 l-1 8 h-4 Z"/>
   </g>
-  <text x="300" y="470" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="34" font-weight="700" fill="#16a34a">السوگ</text>
-  <text x="300" y="510" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="22" fill="#4ade80">منتج عراقي</text>
+  <text x="300" y="510" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="30" font-weight="700" fill="#0a6e6e">السوگ<tspan fill="#b87d4a">.</tspan></text>
 </svg>
