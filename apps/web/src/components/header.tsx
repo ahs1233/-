@@ -7,6 +7,7 @@ import { Search, Bell, ShoppingCart, LayoutGrid } from "lucide-react";
 import { ar } from "@al-souq/i18n";
 import { trpc } from "@/src/trpc/react";
 import { useCart } from "@/src/store/cart";
+import { BrandMark } from "@/src/components/brand-logo";
 
 export function Header() {
   const router = useRouter();
@@ -49,9 +50,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white/90 backdrop-blur-md">
       <div className="container-app flex h-16 items-center gap-2">
-        <Link href="/" className="flex items-center gap-1 text-2xl font-extrabold text-brand-600">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-500 text-base text-white shadow-sm">سو</span>
-          <span className="hidden sm:inline">{ar.common.appName}</span>
+        <Link href="/" className="flex items-center gap-1.5 text-2xl font-extrabold text-brand-700">
+          <BrandMark className="h-9 w-9" />
+          <span className="hidden sm:inline">
+            {ar.common.appName}
+            <span className="text-gold-500">.</span>
+          </span>
         </Link>
 
         <div ref={boxRef} className="relative flex-1">

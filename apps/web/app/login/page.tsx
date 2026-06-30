@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { ar } from "@al-souq/i18n";
 import { trpc } from "@/src/trpc/react";
+import { BrandMark } from "@/src/components/brand-logo";
 
 export default function LoginPage() {
   return (
@@ -46,8 +47,12 @@ function LoginForm() {
     <div className="container-app flex min-h-screen flex-col items-center justify-center py-8">
       <Card className="w-full max-w-sm">
         <CardBody className="space-y-4">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-brand-600">{ar.common.appName}</h1>
+          <div className="flex flex-col items-center text-center">
+            <BrandMark className="h-14 w-14" />
+            <h1 className="mt-2 text-2xl font-extrabold text-brand-700">
+              {ar.common.appName}
+              <span className="text-gold-500">.</span>
+            </h1>
             <p className="mt-1 text-sm text-neutral-500">{ar.auth.login}</p>
           </div>
 

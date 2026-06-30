@@ -12,6 +12,9 @@ module.exports = {
       colors: {
         brand: tokens.colors.brand,
         gold: tokens.colors.gold,
+        sand: tokens.colors.sand,
+        clay: tokens.colors.clay,
+        petrol: tokens.colors.petrol,
         neutral: tokens.colors.neutral,
         status: tokens.colors.status,
         danger: tokens.colors.danger,
