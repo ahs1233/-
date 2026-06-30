@@ -2,12 +2,13 @@ import { notFound } from "next/navigation";
 import { Store, MapPin, BadgeCheck } from "lucide-react";
 import { getServerApi } from "@/src/trpc/server";
 import { ProductCard } from "@/src/components/product-card";
+import { decodeSlug } from "@/src/lib/slug";
 
 export const dynamic = "force-dynamic";
 
 export default async function StorePage({ params }: { params: { slug: string } }) {
   const api = await getServerApi();
-  const data = await api.catalog.storeBySlug({ slug: params.slug });
+  const data = await api.catalog.storeBySlug({ slug: decodeSlug(params.slug) });
   if (!data) notFound();
   const { vendor, products } = data;
 

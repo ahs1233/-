@@ -2,13 +2,14 @@ import { notFound } from "next/navigation";
 import { getServerApi } from "@/src/trpc/server";
 import { getGovernorate } from "@/src/lib/governorate";
 import { ProductCard } from "@/src/components/product-card";
+import { decodeSlug } from "@/src/lib/slug";
 
 export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const api = await getServerApi();
   const gov = getGovernorate();
-  const category = await api.catalog.categoryBySlug({ slug: params.slug });
+  const category = await api.catalog.categoryBySlug({ slug: decodeSlug(params.slug) });
   if (!category) notFound();
   const products = await api.catalog.products({ categoryId: category.id, sort: "newest", limit: 30, governorateId: gov?.id });
 
