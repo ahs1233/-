@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardBody, Input, Select, Textarea } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
@@ -25,17 +25,14 @@ export default function BecomeSellerPage() {
   const [governorateId, setGovernorateId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  if (me.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
-  if (me.isError || !me.data) {
-    return (
-      <Card>
-        <CardBody className="space-y-3 text-center">
-          <p>سجّل الدخول لفتح متجرك.</p>
-          <Button onClick={() => router.push("/login?next=/become-seller")}>تسجيل الدخول</Button>
-        </CardBody>
-      </Card>
-    );
-  }
+  // غير مسجّل الدخول → حوّله مباشرةً إلى تسجيل الدخول بهاتفه، وبعد التحقق يعود إلى نموذج المتجر.
+  // نتجنّب التحويل أثناء جلب حالة المصادقة (حتى لا نرتدّ قبل اكتمال تسجيل الدخول).
+  const notLoggedIn = !me.isFetching && (me.isError || (me.isSuccess && !me.data));
+  useEffect(() => {
+    if (notLoggedIn) router.replace("/login?next=/become-seller");
+  }, [notLoggedIn, router]);
+
+  if (me.isLoading || notLoggedIn || !me.data) return <p className="text-neutral-500">جارٍ التحميل…</p>;
   if (me.data.role === "VENDOR" || me.data.role === "ADMIN") {
     return (
       <Card>

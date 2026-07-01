@@ -21,7 +21,9 @@ function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/";
+  const isSeller = next.includes("become-seller");
 
+  const utils = trpc.useUtils();
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -38,7 +40,9 @@ function LoginForm() {
   });
 
   const verifyOtp = trpc.auth.verifyOtp.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // حدّث حالة المصادقة المخزّنة قبل الانتقال، وإلا رأت الصفحة التالية المستخدم كغير مسجّل.
+      await utils.auth.me.invalidate();
       router.replace(next);
       router.refresh();
     },
@@ -55,7 +59,9 @@ function LoginForm() {
               {ar.common.appName}
               <span className="text-gold-500">.</span>
             </h1>
-            <p className="mt-1 text-sm text-neutral-500">{ar.auth.login}</p>
+            <p className="mt-1 text-sm text-neutral-500">
+              {isSeller ? "لفتح متجرك، سجّل دخولك برقم هاتفك أولاً" : ar.auth.login}
+            </p>
           </div>
 
           {step === "phone" && (
@@ -122,13 +128,15 @@ function LoginForm() {
         </CardBody>
       </Card>
 
-      <Link
-        href="/become-seller"
-        className="mt-4 flex w-full max-w-sm items-center justify-center gap-2 rounded-xl border border-gold-300 bg-gold-50 px-4 py-3 text-sm font-medium text-gold-700 transition hover:bg-gold-100"
-      >
-        <Store className="h-4 w-4" />
-        صاحب متجر؟ افتح متجرك في السوگ
-      </Link>
+      {!isSeller && (
+        <Link
+          href="/login?next=/become-seller"
+          className="mt-4 flex w-full max-w-sm items-center justify-center gap-2 rounded-xl border border-gold-300 bg-gold-50 px-4 py-3 text-sm font-medium text-gold-700 transition hover:bg-gold-100"
+        >
+          <Store className="h-4 w-4" />
+          صاحب متجر؟ افتح متجرك في السوگ
+        </Link>
+      )}
     </div>
   );
 }
