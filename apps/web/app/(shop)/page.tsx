@@ -114,6 +114,21 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      {/* دعوة أصحاب المتاجر للتسجيل */}
+      <Link
+        href="/become-seller"
+        className="flex items-center gap-3 overflow-hidden rounded-3xl border border-gold-300 bg-gradient-to-l from-gold-50 to-sand-100 p-5 shadow-sm transition hover:border-gold-400"
+      >
+        <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-gold-500 text-white">
+          <Store className="h-6 w-6" />
+        </span>
+        <span className="flex-1">
+          <span className="block font-bold text-neutral-900">هل لديك متجر؟ بِع في السوگ</span>
+          <span className="block text-sm text-neutral-600">سجّل متجرك وابدأ البيع لكل العراق — الدفع عند الاستلام.</span>
+        </span>
+        <ChevronLeft className="h-5 w-5 flex-shrink-0 text-gold-600" />
+      </Link>
     </div>
   );
 }
