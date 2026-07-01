@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { useCart } from "@/src/store/cart";
+import { useCartHydrated } from "@/src/store/use-cart-hydrated";
 import { AddressForm } from "@/src/components/address-form";
 
 const DELIVERY_FEE = 5000; // لكل بائع (مطابق للخادم)
@@ -17,12 +18,19 @@ export default function CheckoutPage() {
   const subtotal = useCart((s) => s.subtotal());
   const clear = useCart((s) => s.clear);
 
+  const hydrated = useCartHydrated();
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
   const addresses = trpc.address.list.useQuery(undefined, { enabled: me.isSuccess });
   const [addressId, setAddressId] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // فتح نموذج العنوان تلقائياً عند عدم وجود عنوان محفوظ (حتى لا يعلق المستخدم على زر معطّل).
+  const noAddresses = addresses.isSuccess && addresses.data.length === 0;
+  useEffect(() => {
+    if (noAddresses) setShowForm(true);
+  }, [noAddresses]);
 
   const place = trpc.order.place.useMutation({
     onSuccess: () => {
@@ -37,7 +45,7 @@ export default function CheckoutPage() {
   const deliveryTotal = vendorCount * DELIVERY_FEE;
   const effectiveAddress = addressId || addresses.data?.find((a) => a.isDefault)?.id || addresses.data?.[0]?.id || "";
 
-  if (me.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
+  if (me.isLoading || !hydrated) return <p className="text-neutral-500">جارٍ التحميل…</p>;
 
   if (me.isError || !me.data) {
     return (
@@ -100,7 +108,11 @@ export default function CheckoutPage() {
               ))}
             </div>
           ) : (
-            !showForm && <p className="text-sm text-neutral-500">لا يوجد عنوان محفوظ. أضف عنواناً.</p>
+            !showForm && (
+              <p className="rounded-lg bg-gold-50 p-2 text-sm text-gold-700">
+                لإتمام الطلب، أضف عنوان التوصيل أولاً.
+              </p>
+            )
           )}
 
           {showForm && <AddressForm onDone={() => setShowForm(false)} />}

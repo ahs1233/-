@@ -4,12 +4,18 @@ import Link from "next/link";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { useCart } from "@/src/store/cart";
+import { useCartHydrated } from "@/src/store/use-cart-hydrated";
 
 export default function CartPage() {
   const lines = useCart((s) => s.lines);
   const setQty = useCart((s) => s.setQty);
   const remove = useCart((s) => s.remove);
   const subtotal = useCart((s) => s.subtotal());
+  const hydrated = useCartHydrated();
+
+  if (!hydrated) {
+    return <div className="py-16 text-center text-neutral-400">جارٍ تحميل السلة…</div>;
+  }
 
   if (lines.length === 0) {
     return (
