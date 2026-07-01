@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Store } from "lucide-react";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { ar } from "@al-souq/i18n";
 import { trpc } from "@/src/trpc/react";
@@ -119,6 +121,14 @@ function LoginForm() {
           {error && <p className="text-center text-sm text-danger">{error}</p>}
         </CardBody>
       </Card>
+
+      <Link
+        href="/become-seller"
+        className="mt-4 flex w-full max-w-sm items-center justify-center gap-2 rounded-xl border border-gold-300 bg-gold-50 px-4 py-3 text-sm font-medium text-gold-700 transition hover:bg-gold-100"
+      >
+        <Store className="h-4 w-4" />
+        صاحب متجر؟ افتح متجرك في السوگ
+      </Link>
     </div>
   );
 }
