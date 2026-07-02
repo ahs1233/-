@@ -22,6 +22,35 @@ import {
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { setAuthCookies, clearAuthCookies, readRefreshCookie, type Context } from "../context";
 
+/**
+ * حدّ معدّل طلبات OTP لكل رقم (حماية من قصف الرسائل / التكلفة / DoS).
+ * يعتمد على عدّ سجلّات OtpCode الحديثة (الفهرس [phone,purpose,expiresAt] متاح).
+ */
+const OTP_RATE = {
+  shortWindowMs: 10 * 60 * 1000, // ١٠ دقائق
+  shortMax: 3,
+  longWindowMs: 60 * 60 * 1000, // ساعة
+  longMax: 8,
+};
+
+async function enforceOtpRateLimit(ctx: Context, phone: string): Promise<void> {
+  const now = Date.now();
+  const [shortCount, longCount] = await Promise.all([
+    ctx.prisma.otpCode.count({
+      where: { phone, createdAt: { gte: new Date(now - OTP_RATE.shortWindowMs) } },
+    }),
+    ctx.prisma.otpCode.count({
+      where: { phone, createdAt: { gte: new Date(now - OTP_RATE.longWindowMs) } },
+    }),
+  ]);
+  if (shortCount >= OTP_RATE.shortMax || longCount >= OTP_RATE.longMax) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "طلبت رموزاً كثيرة، انتظر قليلاً ثم حاول مجدداً.",
+    });
+  }
+}
+
 async function issueTokens(ctx: Context, user: { id: string; role: string; phone: string }) {
   const accessToken = await signAccessToken({
     sub: user.id,
@@ -42,7 +71,8 @@ export const authRouter = router({
     .meta({ openapi: { method: "POST", path: "/auth/otp/request", tags: ["auth"] } })
     .input(requestOtpSchema)
     .output(z.object({ ok: z.literal(true), expiresAt: z.date(), devCode: z.string().optional() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      await enforceOtpRateLimit(ctx, input.phone);
       const res = await requestOtp(input.phone, input.purpose);
       return { ok: true as const, expiresAt: res.expiresAt, devCode: res.devCode };
     }),
