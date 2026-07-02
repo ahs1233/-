@@ -5,6 +5,7 @@ import { Button, Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { useCart } from "@/src/store/cart";
 import { useCartHydrated } from "@/src/store/use-cart-hydrated";
+import { QtyStepper } from "@/src/components/qty-stepper";
 
 export default function CartPage() {
   const lines = useCart((s) => s.lines);
@@ -47,19 +48,15 @@ export default function CartPage() {
                 <p className="text-xs text-neutral-500">{l.variantLabel}</p>
                 <p className="text-xs text-neutral-500">{l.vendorName}</p>
                 <div className="mt-1 flex items-center justify-between">
-                  <div className="flex items-center rounded-lg border border-neutral-300 text-sm">
-                    <button className="px-2.5 py-1" onClick={() => setQty(l.variantId, l.quantity - 1)}>
-                      −
-                    </button>
-                    <span className="min-w-7 text-center nums">{l.quantity}</span>
-                    <button className="px-2.5 py-1" onClick={() => setQty(l.variantId, l.quantity + 1)}>
-                      +
-                    </button>
-                  </div>
+                  <QtyStepper size="sm" value={l.quantity} min={0} max={l.maxAvailable} onChange={(n) => setQty(l.variantId, n)} />
                   <span className="font-bold text-brand-600 nums">{formatIQD(l.unitPrice * l.quantity)}</span>
                 </div>
               </div>
-              <button onClick={() => remove(l.variantId)} className="self-start text-neutral-400 hover:text-danger">
+              <button
+                onClick={() => remove(l.variantId)}
+                aria-label={`إزالة ${l.title} من السلة`}
+                className="self-start text-neutral-400 hover:text-danger"
+              >
                 ✕
               </button>
             </CardBody>

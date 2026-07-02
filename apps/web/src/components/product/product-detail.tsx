@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Button, Card, CardBody } from "@al-souq/ui";
+import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { useCart } from "@/src/store/cart";
 import { AppImage } from "@/src/components/app-image";
+import { QtyStepper } from "@/src/components/qty-stepper";
 import { ReviewsSection } from "./reviews-section";
 
 type Variant = {
@@ -43,6 +44,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
   const add = useCart((s) => s.add);
+  const { success } = useToast();
 
   const favIds = trpc.favorite.ids.useQuery(undefined, { retry: false });
   const utils = trpc.useUtils();
@@ -75,6 +77,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
       qty,
     );
     setAdded(true);
+    success("أُضيف إلى السلة");
     setTimeout(() => setAdded(false), 1500);
   }
 
@@ -99,6 +102,8 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               <button
                 key={i}
                 onClick={() => setImgIdx(i)}
+                aria-label={`عرض الصورة ${i + 1}`}
+                aria-current={i === imgIdx}
                 className={`h-14 w-14 flex-shrink-0 overflow-hidden rounded border-2 ${i === imgIdx ? "border-brand-500" : "border-transparent"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -161,18 +166,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 
         {/* الكمية + الإضافة */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-lg border border-neutral-300">
-            <button className="px-3 py-2" onClick={() => setQty((q) => Math.max(1, q - 1))}>
-              −
-            </button>
-            <span className="min-w-8 text-center nums">{qty}</span>
-            <button
-              className="px-3 py-2"
-              onClick={() => setQty((q) => Math.min(selected?.available ?? 1, q + 1))}
-            >
-              +
-            </button>
-          </div>
+          <QtyStepper value={qty} onChange={setQty} min={1} max={selected?.available ?? 1} />
           <span className="text-xs text-neutral-500">
             {outOfStock ? "غير متوفر" : `متوفر: ${selected?.available}`}
           </span>

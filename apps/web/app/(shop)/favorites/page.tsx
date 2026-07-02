@@ -1,13 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { ListRowSkeleton } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { ProductCard } from "@/src/components/product-card";
 
 export default function FavoritesPage() {
   const favs = trpc.favorite.list.useQuery(undefined, { retry: false });
 
-  if (favs.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
+  if (favs.isLoading) return (
+    <div className="space-y-3">
+      <ListRowSkeleton />
+      <ListRowSkeleton />
+      <ListRowSkeleton />
+    </div>
+  );
   if (favs.isError) {
     return (
       <div className="py-16 text-center">

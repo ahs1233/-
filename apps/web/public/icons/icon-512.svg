@@ -1,5 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#16a34a"/>
-  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
-        font-family="Tahoma, sans-serif" font-size="200" font-weight="bold" fill="#ffffff">سوگ</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0fa3a3"/>
+      <stop offset="1" stop-color="#0a6e6e"/>
+    </linearGradient>
+    <linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7dcc6"/>
+      <stop offset="1" stop-color="#c99a6a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g fill="none" stroke="#f7f4ee" stroke-width="4" opacity="0.25">
+    <circle cx="256" cy="222" r="118"/>
+  </g>
+  <g transform="translate(256,222) scale(4.6)" fill="url(#bm)">
+    <circle cx="0" cy="0" r="8"/>
+    <circle cx="0" cy="0" r="3.2" fill="#0a6e6e"/>
+    <path d="M-2 -2 L-22 -8 q-3 1 -2 4 L-4 1 Z"/>
+    <path d="M-2 1 L-19 -2 q-3 1 -2 4 L-4 3.5 Z"/>
+    <path d="M-2 4 L-16 3 q-3 1 -2 4 L-3 6 Z"/>
+    <path d="M2 -2 L22 -8 q3 1 2 4 L4 1 Z"/>
+    <path d="M2 1 L19 -2 q3 1 2 4 L4 3.5 Z"/>
+    <path d="M2 4 L16 3 q3 1 2 4 L3 6 Z"/>
+    <path d="M-3 8 h6 l-1 8 h-4 Z"/>
+  </g>
+  <text x="256" y="430" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="96" font-weight="700" fill="#f7f4ee">السوگ<tspan fill="#c99a6a">.</tspan></text>
 </svg>

@@ -1,10 +1,11 @@
 "use client";
 
-import { Button, Card, CardBody, Badge } from "@al-souq/ui";
+import { Button, Card, CardBody, Badge , useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 
 export default function AdminPayouts() {
+  const { error: toastError } = useToast();
   const balances = trpc.admin.payoutBalances.useQuery(undefined, { retry: false });
   const history = trpc.admin.payoutHistory.useQuery(undefined, { retry: false });
   const utils = trpc.useUtils();
@@ -13,7 +14,7 @@ export default function AdminPayouts() {
       utils.admin.payoutBalances.invalidate();
       utils.admin.payoutHistory.invalidate();
     },
-    onError: (e) => alert(e.message),
+    onError: (e) => toastError(e.message),
   });
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardBody, OrderStatusBadge, Select, Button } from "@al-souq/ui";
+import { Card, CardBody, OrderStatusBadge, Select, Button , useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 
@@ -10,11 +10,12 @@ const FORCE_OPTIONS = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLE
 
 export default function AdminOrders() {
   const [status, setStatus] = useState("");
+  const { error: toastError } = useToast();
   const orders = trpc.admin.orders.useQuery({ status: status || undefined, limit: 100 }, { retry: false });
   const utils = trpc.useUtils();
   const force = trpc.admin.forceOrderStatus.useMutation({
     onSuccess: () => utils.admin.orders.invalidate(),
-    onError: (e) => alert(e.message),
+    onError: (e) => toastError(e.message),
   });
 
   return (

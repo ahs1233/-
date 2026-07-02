@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, CardBody, Badge, Input } from "@al-souq/ui";
+import { Button, Card, CardBody, Badge, Input, useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 
 const ROLE_LABEL: Record<string, string> = { CUSTOMER: "مشترٍ", VENDOR: "بائع", ADMIN: "مدير" };
@@ -10,11 +10,15 @@ const ROLE_FILTERS = ["", "CUSTOMER", "VENDOR", "ADMIN"];
 export default function AdminUsers() {
   const [role, setRole] = useState("");
   const [q, setQ] = useState("");
+  const { success, error } = useToast();
   const users = trpc.admin.users.useQuery({ role: role || undefined, q: q || undefined }, { retry: false });
   const utils = trpc.useUtils();
   const manage = trpc.admin.manageUser.useMutation({
-    onSuccess: () => utils.admin.users.invalidate(),
-    onError: (e) => alert(e.message),
+    onSuccess: () => {
+      utils.admin.users.invalidate();
+      success("تم تحديث حالة المستخدم");
+    },
+    onError: (e) => error(e.message),
   });
 
   return (
