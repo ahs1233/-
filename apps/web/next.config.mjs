@@ -31,6 +31,10 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  env: {
+    // مؤشر إصدار مرئي في التذييل — للتحقق من أن الجهاز يفتح النشرة الأحدث
+    NEXT_PUBLIC_BUILD: (process.env.VERCEL_GIT_COMMIT_SHA ?? "dev").slice(0, 7),
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
