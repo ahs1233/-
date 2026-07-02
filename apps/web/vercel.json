@@ -4,7 +4,7 @@
   "crons": [
     {
       "path": "/api/cron/release-reservations",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }

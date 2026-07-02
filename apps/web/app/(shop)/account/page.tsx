@@ -59,6 +59,8 @@ export default function AccountPage() {
           <Row label={ar.auth.nameLabel} value={u.name ?? "—"} />
           <Row label={ar.auth.phoneLabel} value={formatIraqiPhoneLocal(u.phone)} ltr />
           <Row label="الدور" value={roleLabel(u.role)} />
+          {/* إصدار النسخة المفتوحة في هذه الجلسة — للتحقق من وصول التحديثات */}
+          <Row label="إصدار التطبيق" value={`v-${process.env.NEXT_PUBLIC_BUILD ?? "؟"}`} ltr />
         </CardBody>
       </Card>
 
