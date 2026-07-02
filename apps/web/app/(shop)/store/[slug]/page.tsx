@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Store, MapPin, BadgeCheck } from "lucide-react";
 import { getServerApi } from "@/src/trpc/server";
@@ -6,14 +7,51 @@ import { decodeSlug } from "@/src/lib/slug";
 
 export const dynamic = "force-dynamic";
 
-export default async function StorePage({ params }: { params: { slug: string } }) {
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://one-theta-81.vercel.app";
+
+async function getStore(slug: string) {
   const api = await getServerApi();
-  const data = await api.catalog.storeBySlug({ slug: decodeSlug(params.slug) });
+  return api.catalog.storeBySlug({ slug: decodeSlug(slug) });
+}
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  try {
+    const data = await getStore(params.slug);
+    if (!data) return { title: "متجر غير موجود" };
+    const description =
+      data.vendor.description?.slice(0, 160) ??
+      `تسوّق من ${data.vendor.storeName}${data.vendor.governorate ? ` في ${data.vendor.governorate.nameAr}` : ""} — الدفع عند الاستلام في السوگ.`;
+    const url = `${BASE}/store/${encodeURIComponent(data.vendor.slug)}`;
+    return {
+      title: data.vendor.storeName,
+      description,
+      alternates: { canonical: url },
+      openGraph: { title: data.vendor.storeName, description, url, type: "website", siteName: "السوگ", locale: "ar_IQ" },
+    };
+  } catch {
+    return { title: "السوگ" };
+  }
+}
+
+export default async function StorePage({ params }: { params: { slug: string } }) {
+  const data = await getStore(params.slug);
   if (!data) notFound();
   const { vendor, products } = data;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: vendor.storeName,
+    description: vendor.description ?? undefined,
+    url: `${BASE}/store/${encodeURIComponent(vendor.slug)}`,
+    ...(vendor.governorate
+      ? { address: { "@type": "PostalAddress", addressRegion: vendor.governorate.nameAr, addressCountry: "IQ" } }
+      : {}),
+  };
+
   return (
     <div className="space-y-5">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
         <div className="h-24 bg-gradient-to-bl from-brand-500 to-brand-700" />
         <div className="flex items-start gap-3 p-4">

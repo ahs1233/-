@@ -1,5 +1,6 @@
 import { Header } from "@/src/components/header";
 import { BottomNav } from "@/src/components/bottom-nav";
+import { Footer } from "@/src/components/footer";
 import { GovernorateBar } from "@/src/components/governorate/control";
 import { getGovernorate } from "@/src/lib/governorate";
 
@@ -10,6 +11,7 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
       <Header />
       <GovernorateBar current={gov} />
       <main className="container-app flex-1 py-4">{children}</main>
+      <Footer />
       <BottomNav />
     </div>
   );
