@@ -24,7 +24,7 @@ import {
 } from "@al-souq/domain";
 import { sendPush, sendPushMany, type PushPayload } from "./push";
 
-const DELIVERY_FEE_IQD = 5000; // رسوم توصيل ثابتة مبدئياً (ستُحسب لاحقاً حسب المحافظة)
+const DELIVERY_FEE_FALLBACK_IQD = 5000;
 const PLATFORM_RATE_FALLBACK = 0.1;
 
 type Tx = Prisma.TransactionClient;
@@ -40,6 +40,22 @@ async function getPlatformRate(db: Tx | PrismaClient): Promise<number> {
   const setting = await db.platformSetting.findUnique({ where: { key: "commission_rate" } });
   const val = setting?.value;
   return typeof val === "number" ? val : PLATFORM_RATE_FALLBACK;
+}
+
+/**
+ * رسوم التوصيل الفعلية لمحافظة العنوان: رسوم خاصة بالمحافظة إن ضُبطت،
+ * وإلا الرسوم الافتراضية من إعدادات المنصة، وإلا القيمة الاحتياطية.
+ */
+export async function getDeliveryFee(db: Tx | PrismaClient, governorateId?: string): Promise<number> {
+  const [byGovSetting, defaultSetting] = await Promise.all([
+    governorateId ? db.platformSetting.findUnique({ where: { key: "delivery_fees_by_gov" } }) : null,
+    db.platformSetting.findUnique({ where: { key: "delivery_fee" } }),
+  ]);
+  if (governorateId && byGovSetting?.value && typeof byGovSetting.value === "object") {
+    const fee = (byGovSetting.value as Record<string, unknown>)[governorateId];
+    if (typeof fee === "number") return fee;
+  }
+  return typeof defaultSetting?.value === "number" ? defaultSetting.value : DELIVERY_FEE_FALLBACK_IQD;
 }
 
 /**
@@ -60,7 +76,10 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
   const pushJobs: { userId: string; payload: PushPayload }[] = [];
 
   const result = await prisma.$transaction(async (tx) => {
-    const platformRate = await getPlatformRate(tx);
+    const [platformRate, deliveryFee] = await Promise.all([
+      getPlatformRate(tx),
+      getDeliveryFee(tx, address.governorateId),
+    ]);
 
     // حلّ المتغيّرات والتحقق من توفّرها وحالة المنتج/البائع
     interface Resolved {
@@ -128,7 +147,7 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
       const subtotal = items.reduce((s, it) => s + it.unitPrice * it.quantity, 0);
       const rate = resolveCommissionRate(platformRate, items[0]!.vendorRate);
       const { commissionAmount } = calculateCommission(subtotal, rate);
-      const total = subtotal + DELIVERY_FEE_IQD;
+      const total = subtotal + deliveryFee;
 
       const order = await tx.order.create({
         data: {
@@ -137,7 +156,7 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
           vendorId,
           status: "PENDING",
           subtotal: new Prisma.Decimal(subtotal),
-          deliveryFee: new Prisma.Decimal(DELIVERY_FEE_IQD),
+          deliveryFee: new Prisma.Decimal(deliveryFee),
           total: new Prisma.Decimal(total),
           commissionRate: new Prisma.Decimal(rate),
           commissionAmount: new Prisma.Decimal(commissionAmount),

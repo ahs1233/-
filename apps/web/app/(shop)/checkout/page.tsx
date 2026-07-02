@@ -10,8 +10,6 @@ import { useCart } from "@/src/store/cart";
 import { useCartHydrated } from "@/src/store/use-cart-hydrated";
 import { AddressForm } from "@/src/components/address-form";
 
-const DELIVERY_FEE = 5000; // لكل بائع (مطابق للخادم)
-
 export default function CheckoutPage() {
   const router = useRouter();
   const lines = useCart((s) => s.lines);
@@ -40,10 +38,14 @@ export default function CheckoutPage() {
     onError: (e) => setError(e.message),
   });
 
-  // عدد البائعين في السلة (لحساب رسوم التوصيل لكل بائع)
+  // عدد البائعين في السلة (رسوم التوصيل تُحتسب لكل بائع)
   const vendorCount = useMemo(() => new Set(lines.map((l) => l.vendorId)).size, [lines]);
-  const deliveryTotal = vendorCount * DELIVERY_FEE;
   const effectiveAddress = addressId || addresses.data?.find((a) => a.isDefault)?.id || addresses.data?.[0]?.id || "";
+  // رسوم التوصيل الفعلية لمحافظة العنوان المختار (تُضبط من إعدادات المنصة)
+  const selectedGovId = addresses.data?.find((a) => a.id === effectiveAddress)?.governorateId;
+  const feeQuery = trpc.geo.deliveryFee.useQuery({ governorateId: selectedGovId }, { enabled: Boolean(effectiveAddress) });
+  const deliveryFee = feeQuery.data?.fee ?? 5000;
+  const deliveryTotal = vendorCount * deliveryFee;
 
   if (me.isLoading || !hydrated) return <p className="text-neutral-500">جارٍ التحميل…</p>;
 

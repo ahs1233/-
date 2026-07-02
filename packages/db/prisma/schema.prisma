@@ -94,9 +94,10 @@ model User {
   reviews       Review[]
   notifications Notification[]
   sessions      Session[]
-  favorites     Favorite[]
-  pushSubs      PushSubscription[]
-  auditLogs     AuditLog[]         @relation("ActorLogs")
+  favorites      Favorite[]
+  pushSubs       PushSubscription[]
+  auditLogs      AuditLog[]         @relation("ActorLogs")
+  returnRequests ReturnRequest[]
 
   @@index([role])
 }
@@ -306,14 +307,39 @@ model Order {
   placedAt         DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  items        OrderItem[]
-  history      OrderStatusHistory[]
-  commission   Commission?
-  reservations StockReservation[]
+  items         OrderItem[]
+  history       OrderStatusHistory[]
+  commission    Commission?
+  reservations  StockReservation[]
+  returnRequest ReturnRequest?
 
   @@index([customerId])
   @@index([vendorId, status])
   @@index([status, placedAt])
+}
+
+/// حالة طلب الإرجاع (RMA)
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+
+/// طلب إرجاع من المشتري بعد التسليم — يُراجعه البائع، وعند القبول
+/// يتحوّل الطلب إلى RETURNED (مع إعادة المخزون عبر آلة الحالة).
+model ReturnRequest {
+  id         String       @id @default(cuid())
+  orderId    String       @unique
+  order      Order        @relation(fields: [orderId], references: [id])
+  customerId String
+  customer   User         @relation(fields: [customerId], references: [id])
+  reason     String
+  status     ReturnStatus @default(REQUESTED)
+  vendorNote String?
+  createdAt  DateTime     @default(now())
+  decidedAt  DateTime?
+
+  @@index([status, createdAt])
 }
 
 model OrderItem {

@@ -380,9 +380,11 @@ export const adminRouter = router({
   getSettings: adminProcedure.query(async ({ ctx }) => {
     const settings = await ctx.prisma.platformSetting.findMany();
     const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+    const byGov = map.delivery_fees_by_gov;
     return {
       commissionRate: typeof map.commission_rate === "number" ? map.commission_rate : 0.1,
       deliveryFee: typeof map.delivery_fee === "number" ? map.delivery_fee : 5000,
+      deliveryFeesByGov: (byGov && typeof byGov === "object" ? byGov : {}) as Record<string, number>,
     };
   }),
 
@@ -403,6 +405,15 @@ export const adminRouter = router({
           where: { key: "delivery_fee" },
           update: { value: input.deliveryFee },
           create: { key: "delivery_fee", value: input.deliveryFee },
+        }),
+      );
+    }
+    if (input.deliveryFeesByGov !== undefined) {
+      ops.push(
+        ctx.prisma.platformSetting.upsert({
+          where: { key: "delivery_fees_by_gov" },
+          update: { value: input.deliveryFeesByGov },
+          create: { key: "delivery_fees_by_gov", value: input.deliveryFeesByGov },
         }),
       );
     }
