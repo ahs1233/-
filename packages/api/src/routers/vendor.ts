@@ -14,9 +14,24 @@ import {
   orderStatusUpdateSchema,
 } from "@al-souq/validators";
 import { signAccessToken, authEnv } from "@al-souq/auth";
+import { getStorage } from "@al-souq/storage";
 import { router, protectedProcedure, vendorProcedure } from "../trpc";
 import { setAccessCookie } from "../context";
 import { changeOrderStatus } from "../services/order";
+
+/**
+ * عند تفعيل التخزين الكائني (S3/R2) نرفض صور data: — يجب الرفع عبر presign.
+ * وضع data: يبقى مقبولاً فقط كمسار احتياطي حين لا يوجد تخزين مهيّأ.
+ */
+function assertImagesStorable(images: string[] | undefined) {
+  if (!images || !getStorage().configured) return;
+  if (images.some((u) => u.startsWith("data:"))) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "ارفع الصور عبر خدمة الرفع بدل تضمينها — أعد اختيار الصور",
+    });
+  }
+}
 
 /** يجلب ملف البائع للمستخدم الحالي أو يرمي خطأً. */
 async function requireVendor(prisma: PrismaClient, userId: string) {
@@ -165,6 +180,7 @@ export const vendorRouter = router({
   productCreate: vendorProcedure.input(productCreateSchema).mutation(async ({ ctx, input }) => {
     const vendor = await requireVendor(ctx.prisma, ctx.user.id);
     assertApproved(vendor.status);
+    assertImagesStorable(input.images);
     const slug = `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`;
     const product = await ctx.prisma.product.create({
       data: {
@@ -194,6 +210,7 @@ export const vendorRouter = router({
     const vendor = await requireVendor(ctx.prisma, ctx.user.id);
     const owned = await ctx.prisma.product.findFirst({ where: { id: input.id, vendorId: vendor.id } });
     if (!owned) throw new TRPCError({ code: "NOT_FOUND", message: "المنتج غير موجود" });
+    assertImagesStorable(input.images);
 
     await ctx.prisma.$transaction(async (tx) => {
       await tx.product.update({

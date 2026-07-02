@@ -38,7 +38,7 @@ export default function CartPage() {
             <CardBody className="flex gap-3">
               <Link href={`/product/${l.slug}`} className="h-20 w-20 flex-shrink-0 overflow-hidden rounded bg-neutral-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={l.image ?? "/placeholder-product.svg"} alt={l.title} className="h-full w-full object-cover" />
+                <img loading="lazy" decoding="async" src={l.image ?? "/placeholder-product.svg"} alt={l.title} className="h-full w-full object-cover" />
               </Link>
               <div className="flex-1">
                 <Link href={`/product/${l.slug}`} className="line-clamp-1 font-medium">

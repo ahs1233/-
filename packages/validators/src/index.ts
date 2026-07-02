@@ -137,12 +137,32 @@ export const productVariantSchema = z.object({
   stock: z.number().int().min(0),
 });
 
+/**
+ * صورة منتج مقبولة:
+ * - رابط https (تخزين كائني/CDN) بطول معقول، أو
+ * - مسار نسبي داخل الموقع (placeholders)، أو
+ * - data URL لصورة، بسقف حجم صارم (~260KB) — مسار احتياطي فقط ريثما يُفعَّل التخزين،
+ *   يمنع حشو قاعدة البيانات بصور ضخمة.
+ */
+export const productImageSchema = z
+  .string()
+  .max(350_000, "الصورة كبيرة جداً")
+  .refine(
+    (v) =>
+      /^https:\/\/[^\s]+$/.test(v) && v.length <= 2000
+        ? true
+        : /^\/[a-zA-Z0-9/_.-]+$/.test(v) && v.length <= 300
+          ? true
+          : /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v),
+    "رابط صورة غير صالح",
+  );
+
 export const productCreateSchema = z.object({
   title: z.string().trim().min(3, "العنوان قصير").max(120),
   description: z.string().trim().max(2000).optional(),
   categoryId: z.string().cuid(),
   basePrice: priceIQD,
-  images: z.array(z.string().url()).max(8).default([]),
+  images: z.array(productImageSchema).max(8).default([]),
   variants: z.array(productVariantSchema).min(1, "أضف متغيّراً واحداً على الأقل"),
 });
 

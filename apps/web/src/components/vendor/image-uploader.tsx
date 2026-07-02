@@ -12,7 +12,7 @@ import { trpc } from "@/src/trpc/react";
  *     كـ data URL — يعمل فوراً من كاميرا/معرض الهاتف.
  *  3) لصق رابط صورة جاهز.
  */
-async function fileToResizedDataUrl(file: File, maxSize = 800, quality = 0.7): Promise<string> {
+async function fileToCanvas(file: File, maxSize = 1200): Promise<HTMLCanvasElement> {
   const dataUrl: string = await new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(r.result as string);
@@ -22,16 +22,27 @@ async function fileToResizedDataUrl(file: File, maxSize = 800, quality = 0.7): P
   const img = await new Promise<HTMLImageElement>((res, rej) => {
     const im = new Image();
     im.onload = () => res(im);
-    im.onerror = rej;
+    im.onerror = () => rej(new Error("تعذّر قراءة الصورة — جرّب صورة JPG أو PNG"));
     im.src = dataUrl;
   });
   const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-  const w = Math.round(img.width * scale);
-  const h = Math.round(img.height * scale);
   const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext("2d")?.drawImage(img, 0, 0, w, h);
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
+/** يصغّر الصورة ويعيدها JPEG Blob — يوحّد الصيغة (يحلّ HEIC على سفاري) ويوفّر الحجم. */
+async function fileToJpegBlob(file: File, maxSize = 1200, quality = 0.8): Promise<Blob> {
+  const canvas = await fileToCanvas(file, maxSize);
+  return new Promise((res, rej) => {
+    canvas.toBlob((b) => (b ? res(b) : rej(new Error("تعذّر ضغط الصورة"))), "image/jpeg", quality);
+  });
+}
+
+async function fileToResizedDataUrl(file: File, maxSize = 800, quality = 0.7): Promise<string> {
+  const canvas = await fileToCanvas(file, maxSize);
   return canvas.toDataURL("image/jpeg", quality);
 }
 
@@ -45,14 +56,22 @@ export function ImageUploader({ value, onChange }: { value: string[]; onChange: 
   const [error, setError] = useState<string | null>(null);
 
   async function handleFile(file: File) {
+    if (value.length >= 8) {
+      setError("الحد الأقصى ٨ صور");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      if (status.data?.configured && ["image/jpeg", "image/png", "image/webp", "image/avif"].includes(file.type)) {
-        // رفع موقّع إلى S3
-        const ct = file.type as "image/jpeg" | "image/png" | "image/webp" | "image/avif";
-        const { uploadUrl, publicUrl } = await presign.mutateAsync({ contentType: ct, purpose: "product" });
-        const res = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      if (status.data?.configured) {
+        // التخزين مهيّأ: نضغط دائماً إلى JPEG ثم نرفع عبر رابط موقّع
+        // (يوحّد الصيغ — حتى HEIC من الآيفون — ويوفّر حجم النقل)
+        const blob = await fileToJpegBlob(file);
+        const { uploadUrl, publicUrl } = await presign.mutateAsync({
+          contentType: "image/jpeg",
+          purpose: "product",
+        });
+        const res = await fetch(uploadUrl, { method: "PUT", body: blob, headers: { "Content-Type": "image/jpeg" } });
         if (!res.ok) throw new Error("فشل رفع الصورة");
         onChange([...value, publicUrl]);
       } else {
@@ -121,10 +140,12 @@ export function ImageUploader({ value, onChange }: { value: string[]; onChange: 
             size="sm"
             variant="outline"
             onClick={() => {
-              if (/^https?:\/\//.test(urlInput)) {
+              if (/^https:\/\/\S+$/.test(urlInput.trim()) && value.length < 8) {
                 onChange([...value, urlInput.trim()]);
                 setUrlInput("");
                 setShowUrl(false);
+              } else {
+                setError("أدخل رابط https صالحاً");
               }
             }}
           >
