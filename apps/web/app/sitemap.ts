@@ -7,8 +7,18 @@ const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://one-theta-81.vercel.app
 
 /** خريطة الموقع: الصفحات الثابتة + الفئات والمنتجات والمتاجر النشطة. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // ملاحظة: صفحات الثقة (about/terms/privacy/…) تُضاف هنا عند إنشائها (المرحلة ٤).
-  const staticPages: MetadataRoute.Sitemap = ["", "/stores", "/categories", "/become-seller"].map((p) => ({
+  const staticPages: MetadataRoute.Sitemap = [
+    "",
+    "/stores",
+    "/categories",
+    "/become-seller",
+    "/about",
+    "/faq",
+    "/terms",
+    "/privacy",
+    "/returns",
+    "/contact",
+  ].map((p) => ({
     url: `${BASE}${p}`,
     changeFrequency: p === "" ? "daily" : "weekly",
     priority: p === "" ? 1 : 0.5,

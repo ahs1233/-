@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerApi } from "@/src/trpc/server";
 import { getGovernorate } from "@/src/lib/governorate";
@@ -5,6 +6,20 @@ import { ProductCard } from "@/src/components/product-card";
 import { decodeSlug } from "@/src/lib/slug";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  try {
+    const api = await getServerApi();
+    const category = await api.catalog.categoryBySlug({ slug: decodeSlug(params.slug) });
+    if (!category) return { title: "فئة غير موجودة" };
+    return {
+      title: category.nameAr,
+      description: `تسوّق ${category.nameAr} من تجّار محافظتك — الدفع عند الاستلام في السوگ.`,
+    };
+  } catch {
+    return { title: "السوگ" };
+  }
+}
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const api = await getServerApi();
