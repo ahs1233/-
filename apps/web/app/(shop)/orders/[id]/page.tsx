@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, CardBody, OrderStatusBadge, ORDER_STATUS_LABEL } from "@al-souq/ui";
+import { Button, Card, CardBody, OrderStatusBadge, ORDER_STATUS_LABEL, Textarea, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 
@@ -10,6 +11,9 @@ const TRACK_STEPS = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED"
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
   const order = trpc.order.byId.useQuery({ id: params.id }, { retry: false });
   const utils = trpc.useUtils();
+  const { success, error: toastError } = useToast();
+  const [showReturn, setShowReturn] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
 
   const cancel = trpc.order.cancel.useMutation({
     onSuccess: () => {
@@ -22,6 +26,14 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       utils.order.byId.invalidate({ id: params.id });
       utils.order.myOrders.invalidate();
     },
+  });
+  const requestReturn = trpc.order.requestReturn.useMutation({
+    onSuccess: () => {
+      utils.order.byId.invalidate({ id: params.id });
+      setShowReturn(false);
+      success("أُرسل طلب الإرجاع للبائع");
+    },
+    onError: (e) => toastError(e.message),
   });
 
   if (order.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
@@ -109,11 +121,66 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         </CardBody>
       </Card>
 
+      {/* طلب الإرجاع */}
+      {o.returnRequest ? (
+        <Card>
+          <CardBody className="space-y-1 text-sm">
+            <h2 className="font-bold">طلب الإرجاع</h2>
+            <p>
+              الحالة:{" "}
+              <span className={o.returnRequest.status === "REJECTED" ? "font-bold text-danger" : "font-bold text-brand-600"}>
+                {o.returnRequest.status === "REQUESTED"
+                  ? "قيد مراجعة البائع"
+                  : o.returnRequest.status === "APPROVED"
+                    ? "مقبول — سيتواصل معك المندوب"
+                    : "مرفوض"}
+              </span>
+            </p>
+            <p className="text-neutral-500">سببك: {o.returnRequest.reason}</p>
+            {o.returnRequest.vendorNote && <p className="text-neutral-500">ردّ البائع: {o.returnRequest.vendorNote}</p>}
+          </CardBody>
+        </Card>
+      ) : (
+        o.status === "DELIVERED" &&
+        showReturn && (
+          <Card>
+            <CardBody className="space-y-2">
+              <h2 className="font-bold">طلب إرجاع</h2>
+              <p className="text-xs text-neutral-500">الإرجاع متاح خلال ٤٨ ساعة من الاستلام (راجع سياسة الإرجاع).</p>
+              <Textarea
+                rows={2}
+                value={returnReason}
+                onChange={(e) => setReturnReason(e.target.value)}
+                placeholder="اذكر سبب الإرجاع (عيب مصنعي، مخالف للوصف…)"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  loading={requestReturn.isPending}
+                  disabled={returnReason.trim().length < 5}
+                  onClick={() => requestReturn.mutate({ orderId: o.id, reason: returnReason.trim() })}
+                >
+                  إرسال طلب الإرجاع
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setShowReturn(false)}>
+                  إلغاء
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        )
+      )}
+
       {/* الإجراءات */}
       <div className="flex gap-2">
         {canConfirm && (
           <Button className="flex-1" loading={confirm.isPending} onClick={() => confirm.mutate({ orderId: o.id })}>
             تأكيد الاستلام
+          </Button>
+        )}
+        {o.status === "DELIVERED" && !o.returnRequest && !showReturn && (
+          <Button variant="outline" className="flex-1" onClick={() => setShowReturn(true)}>
+            طلب إرجاع
           </Button>
         )}
         {canCancel && (
