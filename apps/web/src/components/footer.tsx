@@ -60,6 +60,9 @@ export function Footer() {
       <div className="border-t border-neutral-100">
         <p className="container-app py-4 text-center text-xs text-neutral-400">
           © {new Date().getFullYear()} السوگ — جميع الحقوق محفوظة. صُنع بحب في العراق 🇮🇶
+          <span className="ms-2 text-neutral-300 nums" dir="ltr">
+            v-{process.env.NEXT_PUBLIC_BUILD}
+          </span>
         </p>
       </div>
     </footer>
