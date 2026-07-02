@@ -51,9 +51,9 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
 
-      - name: Apply schema + seed
+      - name: Apply migrations + seed
         run: |
-          pnpm db:push
+          pnpm db:deploy
           pnpm db:seed
 
       - name: Typecheck

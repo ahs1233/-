@@ -4,12 +4,15 @@ import Link from "next/link";
 import { Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
+import { QueryError } from "@/src/components/query-error";
 
 export default function VendorHome() {
   const analytics = trpc.vendor.analytics.useQuery(undefined, { retry: false });
   const payouts = trpc.vendor.payouts.useQuery(undefined, { retry: false });
 
   if (analytics.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
+  if (analytics.isError)
+    return <QueryError message={analytics.error.message} onRetry={() => analytics.refetch()} />;
   const a = analytics.data;
 
   return (
