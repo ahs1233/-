@@ -120,6 +120,8 @@ export const userManageSchema = z.object({
 export const platformSettingsSchema = z.object({
   commissionRate: z.number().min(0).max(1).optional(),
   deliveryFee: z.number().int().min(0).max(100_000).optional(),
+  /** رسوم توصيل خاصة لكل محافظة (تتجاوز الافتراضية) — المفتاح governorateId. */
+  deliveryFeesByGov: z.record(z.string().cuid(), z.number().int().min(0).max(100_000)).optional(),
 });
 
 // ─────────────────────────── Product ───────────────────────────
