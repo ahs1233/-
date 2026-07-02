@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, CardBody, Input, Select } from "@al-souq/ui";
+import { Button, Card, CardBody, Input, Select , useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 
 export default function AdminCategories() {
+  const { error: toastError } = useToast();
   const cats = trpc.admin.categories.useQuery(undefined, { retry: false });
   const utils = trpc.useUtils();
   const invalidate = () => {
@@ -13,7 +14,7 @@ export default function AdminCategories() {
   };
   const create = trpc.admin.createCategory.useMutation({ onSuccess: invalidate });
   const update = trpc.admin.updateCategory.useMutation({ onSuccess: invalidate });
-  const remove = trpc.admin.removeCategory.useMutation({ onSuccess: invalidate, onError: (e) => alert(e.message) });
+  const remove = trpc.admin.removeCategory.useMutation({ onSuccess: invalidate, onError: (e) => toastError(e.message) });
 
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");

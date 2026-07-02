@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "./cn";
+import { Spinner } from "./spinner";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -40,7 +41,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {loading ? "…" : children}
+        {loading && <Spinner className="h-4 w-4" />}
+        {children}
       </button>
     );
   },

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { Card, CardBody, OrderStatusBadge } from "@al-souq/ui";
+import { Card, CardBody, OrderStatusBadge , ListRowSkeleton } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 
@@ -20,7 +20,13 @@ function OrdersList() {
   const justPlaced = params.get("placed") === "1";
   const orders = trpc.order.myOrders.useQuery({ limit: 30 }, { retry: false });
 
-  if (orders.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
+  if (orders.isLoading) return (
+    <div className="space-y-3">
+      <ListRowSkeleton />
+      <ListRowSkeleton />
+      <ListRowSkeleton />
+    </div>
+  );
   if (orders.isError) {
     return (
       <div className="py-16 text-center">
