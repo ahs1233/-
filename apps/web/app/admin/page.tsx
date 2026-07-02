@@ -4,12 +4,14 @@ import Link from "next/link";
 import { Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
+import { QueryError } from "@/src/components/query-error";
 
 export default function AdminDashboard() {
   const kpi = trpc.admin.dashboard.useQuery(undefined, { retry: false });
 
   if (kpi.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
-  const d = kpi.data!;
+  if (kpi.isError || !kpi.data) return <QueryError message={kpi.error?.message} onRetry={() => kpi.refetch()} />;
+  const d = kpi.data;
 
   return (
     <div className="space-y-4">
