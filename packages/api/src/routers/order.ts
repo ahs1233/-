@@ -77,12 +77,21 @@ export const orderRouter = router({
         vendor: { select: { storeName: true, slug: true } },
         items: true,
         history: { orderBy: { createdAt: "asc" } },
+        returnRequest: true,
       },
     });
     if (!order || order.customerId !== ctx.user.id) {
       throw new TRPCError({ code: "NOT_FOUND", message: "الطلب غير موجود" });
     }
     return {
+      returnRequest: order.returnRequest
+        ? {
+            status: order.returnRequest.status,
+            reason: order.returnRequest.reason,
+            vendorNote: order.returnRequest.vendorNote,
+            createdAt: order.returnRequest.createdAt,
+          }
+        : null,
       id: order.id,
       number: order.number,
       status: order.status,
@@ -138,6 +147,54 @@ export const orderRouter = router({
         actorId: ctx.user.id,
       });
       return { id: o.id, status: o.status };
+    }),
+
+  /**
+   * طلب إرجاع بعد التسليم (سياسة الإرجاع: خلال ٤٨ ساعة من الاستلام).
+   * يُنشئ RMA بحالة REQUESTED ويُشعر البائع؛ القرار للبائع (قبول → RETURNED).
+   */
+  requestReturn: protectedProcedure
+    .input(z.object({ orderId: z.string().cuid(), reason: z.string().trim().min(5).max(500) }))
+    .mutation(async ({ ctx, input }) => {
+      const order = await ctx.prisma.order.findUnique({
+        where: { id: input.orderId },
+        include: {
+          returnRequest: true,
+          history: { where: { toStatus: "DELIVERED" }, orderBy: { createdAt: "desc" }, take: 1 },
+          vendor: { select: { userId: true } },
+        },
+      });
+      if (!order || order.customerId !== ctx.user.id) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "الطلب غير موجود" });
+      }
+      if (order.returnRequest) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "يوجد طلب إرجاع مسجّل لهذا الطلب" });
+      }
+      if (order.status !== "DELIVERED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "الإرجاع متاح للطلبات المُسلّمة فقط" });
+      }
+      const deliveredAt = order.history[0]?.createdAt;
+      const RETURN_WINDOW_MS = 48 * 60 * 60 * 1000;
+      if (deliveredAt && Date.now() - deliveredAt.getTime() > RETURN_WINDOW_MS) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "انتهت مهلة الإرجاع (٤٨ ساعة من الاستلام)" });
+      }
+
+      const rr = await ctx.prisma.returnRequest.create({
+        data: { orderId: order.id, customerId: ctx.user.id, reason: input.reason },
+      });
+      // إشعار البائع
+      if (order.vendor) {
+        await ctx.prisma.notification.create({
+          data: {
+            userId: order.vendor.userId,
+            type: "order.return_requested",
+            title: "طلب إرجاع",
+            body: `المشتري طلب إرجاع الطلب ${order.number}.`,
+            data: { orderId: order.id },
+          },
+        });
+      }
+      return { id: rr.id, status: rr.status };
     }),
 });
 

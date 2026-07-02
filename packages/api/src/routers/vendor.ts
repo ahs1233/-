@@ -312,10 +312,19 @@ export const vendorRouter = router({
     const vendor = await requireVendor(ctx.prisma, ctx.user.id);
     const order = await ctx.prisma.order.findFirst({
       where: { id: input.id, vendorId: vendor.id },
-      include: { items: true, history: { orderBy: { createdAt: "asc" } } },
+      include: { items: true, history: { orderBy: { createdAt: "asc" } }, returnRequest: true },
     });
     if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "الطلب غير موجود" });
     return {
+      returnRequest: order.returnRequest
+        ? {
+            id: order.returnRequest.id,
+            status: order.returnRequest.status,
+            reason: order.returnRequest.reason,
+            vendorNote: order.returnRequest.vendorNote,
+            createdAt: order.returnRequest.createdAt,
+          }
+        : null,
       id: order.id,
       number: order.number,
       status: order.status,
@@ -353,6 +362,54 @@ export const vendorRouter = router({
       note: input.note,
     });
   }),
+
+  /**
+   * قرار البائع في طلب الإرجاع. القبول ينقل الطلب إلى RETURNED (مع إعادة
+   * المخزون عبر آلة الحالة) — الانتقال باسم المشتري لأنه صاحب الطلب الأصلي.
+   */
+  reviewReturn: vendorProcedure
+    .input(z.object({ id: z.string().cuid(), approve: z.boolean(), note: z.string().trim().max(300).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const vendor = await requireVendor(ctx.prisma, ctx.user.id);
+      const rr = await ctx.prisma.returnRequest.findFirst({
+        where: { id: input.id, order: { vendorId: vendor.id } },
+        include: { order: { select: { id: true, number: true, customerId: true, status: true } } },
+      });
+      if (!rr) throw new TRPCError({ code: "NOT_FOUND", message: "طلب الإرجاع غير موجود" });
+      if (rr.status !== "REQUESTED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "طلب الإرجاع محسوم مسبقاً" });
+      }
+
+      if (input.approve) {
+        // قبول: الطلب يتحول إلى RETURNED (المشتري هو المبادر بالطلب)
+        await changeOrderStatus(ctx.prisma, {
+          orderId: rr.order.id,
+          to: "RETURNED",
+          actor: "CUSTOMER",
+          actorId: rr.order.customerId,
+          note: input.note ?? "قَبِل البائع طلب الإرجاع",
+        });
+      }
+      const updated = await ctx.prisma.returnRequest.update({
+        where: { id: rr.id },
+        data: {
+          status: input.approve ? "APPROVED" : "REJECTED",
+          vendorNote: input.note ?? null,
+          decidedAt: new Date(),
+        },
+      });
+      // إشعار المشتري بالقرار
+      await ctx.prisma.notification.create({
+        data: {
+          userId: rr.order.customerId,
+          type: "order.return_decided",
+          title: input.approve ? "قُبل طلب الإرجاع" : "رُفض طلب الإرجاع",
+          body: `طلبك ${rr.order.number}: ${input.approve ? "تم قبول الإرجاع، سيتواصل معك المندوب" : `رُفض الإرجاع${input.note ? ` — ${input.note}` : ""}`}.`,
+          data: { orderId: rr.order.id },
+        },
+      });
+      return { id: updated.id, status: updated.status };
+    }),
 
   // ── التحليلات ──
   analytics: vendorProcedure.query(async ({ ctx }) => {
