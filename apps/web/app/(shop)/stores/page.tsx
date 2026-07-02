@@ -42,7 +42,7 @@ export default async function StoresPage() {
                 <span className="grid h-14 w-14 flex-shrink-0 place-items-center overflow-hidden rounded-xl bg-brand-50 text-brand-600">
                   {s.logoUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={s.logoUrl} alt={s.storeName} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={s.logoUrl} alt={s.storeName} className="h-full w-full object-cover" />
                   ) : (
                     <Store className="h-6 w-6" />
                   )}

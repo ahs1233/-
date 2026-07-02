@@ -42,7 +42,7 @@ export default function VendorProducts() {
                 <CardBody className="flex gap-3">
                   <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded bg-neutral-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.image ?? "/placeholder-product.svg"} alt={p.title} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={p.image ?? "/placeholder-product.svg"} alt={p.title} className="h-full w-full object-cover" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-2">

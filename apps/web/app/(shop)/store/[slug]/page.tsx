@@ -20,7 +20,7 @@ export default async function StorePage({ params }: { params: { slug: string } }
           <span className="-mt-10 grid h-20 w-20 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-brand-50 text-brand-600 shadow">
             {vendor.logoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={vendor.logoUrl} alt={vendor.storeName} className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={vendor.logoUrl} alt={vendor.storeName} className="h-full w-full object-cover" />
             ) : (
               <Store className="h-8 w-8" />
             )}

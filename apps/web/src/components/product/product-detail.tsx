@@ -6,6 +6,7 @@ import { Button, Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { useCart } from "@/src/store/cart";
+import { AppImage } from "@/src/components/app-image";
 import { ReviewsSection } from "./reviews-section";
 
 type Variant = {
@@ -83,11 +84,12 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
     <div className="space-y-5">
       {/* الصور */}
       <Card className="overflow-hidden">
-        <div className="aspect-square w-full bg-neutral-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div className="relative aspect-square w-full bg-neutral-100">
+          <AppImage
             src={product.images[imgIdx]?.url ?? "/placeholder-product.svg"}
             alt={product.images[imgIdx]?.alt ?? product.title}
+            sizes="(max-width: 640px) 100vw, 640px"
+            priority
             className="h-full w-full object-cover"
           />
         </div>
@@ -100,7 +102,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                 className={`h-14 w-14 flex-shrink-0 overflow-hidden rounded border-2 ${i === imgIdx ? "border-brand-500" : "border-transparent"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={im.url} alt="" className="h-full w-full object-cover" />
+                <img loading="lazy" decoding="async" src={im.url} alt="" className="h-full w-full object-cover" />
               </button>
             ))}
           </div>
