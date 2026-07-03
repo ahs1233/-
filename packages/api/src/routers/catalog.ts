@@ -208,14 +208,18 @@ export const catalogRouter = router({
         if (input.maxPrice !== undefined) where.basePrice.lte = new Prisma.Decimal(input.maxPrice);
       }
 
-      const orderBy: Prisma.ProductOrderByWithRelationInput =
+      // ترتيب النتائج: للسعر/التقييم صريح؛ وإلا للبحث نرتّب بالصلة (الأكثر مبيعاً
+      // ثم الأعلى تقييماً) وللتصفّح العام بالأحدث.
+      const orderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[] =
         input.sort === "price_asc"
           ? { basePrice: "asc" }
           : input.sort === "price_desc"
             ? { basePrice: "desc" }
             : input.sort === "rating"
               ? { ratingAvg: "desc" }
-              : { createdAt: "desc" };
+              : input.q
+                ? [{ soldCount: "desc" }, { ratingAvg: "desc" }, { createdAt: "desc" }]
+                : { createdAt: "desc" };
 
       const items = await ctx.prisma.product.findMany({
         where,

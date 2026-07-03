@@ -1,31 +1,28 @@
 import Link from "next/link";
 import { ShieldCheck, Truck, BadgeCheck, ChevronLeft, Store, LayoutGrid } from "lucide-react";
-import { getServerApi } from "@/src/trpc/server";
 import { getGovernorate } from "@/src/lib/governorate";
 import { ProductCard, type ProductCardData } from "@/src/components/product-card";
 import { CategoryIcon } from "@/src/components/category-icon";
 import { BrandMark } from "@/src/components/brand-logo";
+import { getCachedCategories, getCachedHomeProducts, type CachedCategory } from "@/src/lib/catalog-cache";
 
 export const dynamic = "force-dynamic";
 
-type Category = { id: string; nameAr: string; slug: string; icon: string | null };
-
 export default async function HomePage() {
   const gov = getGovernorate();
-  let categories: Category[] = [];
-  let products: { items: ProductCardData[] } = { items: [] };
+  let categories: CachedCategory[] = [];
+  let products: ProductCardData[] = [];
   let otherGov = false;
   let dbReady = true;
   try {
-    const api = await getServerApi();
     [categories, products] = await Promise.all([
-      api.catalog.categories(),
-      api.catalog.products({ sort: "newest", limit: 24, governorateId: gov?.id }),
+      getCachedCategories(),
+      getCachedHomeProducts(gov?.id),
     ]);
     // إن لم توجد منتجات في محافظتك بعد، اعرض منتجات من بقية العراق بدل صفحة فارغة.
-    if (products.items.length === 0 && gov) {
-      products = await api.catalog.products({ sort: "newest", limit: 24 });
-      otherGov = products.items.length > 0;
+    if (products.length === 0 && gov) {
+      products = await getCachedHomeProducts(undefined);
+      otherGov = products.length > 0;
     }
   } catch {
     dbReady = false;
@@ -102,13 +99,13 @@ export default async function HomePage() {
             لا توجد منتجات في {gov?.name} بعد — هذه منتجات من بقية العراق.
           </p>
         )}
-        {products.items.length === 0 ? (
+        {products.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
             لا توجد منتجات بعد.
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {products.items.map((p) => (
+            {products.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>

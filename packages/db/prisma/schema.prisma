@@ -4,9 +4,11 @@
 // لقطات تاريخية للطلبات، حجز مخزون آمن للـ COD.
 
 generator client {
-  provider      = "prisma-client-js"
+  provider = "prisma-client-js"
   // native للتطوير المحلي + rhel لبيئات النشر (Vercel/AWS Lambda — OpenSSL 3)
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  // إدارة امتدادات PostgreSQL (pg_trgm لبحث الاحتواء) عبر Prisma رسمياً.
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
@@ -14,6 +16,8 @@ datasource db {
   url       = env("DATABASE_URL") // اتصال مُجمّع (pooled) لوقت التشغيل
   // اتصال مباشر للهجرات (Neon/Supabase). محلياً = نفس DATABASE_URL.
   directUrl = env("DIRECT_URL")
+  // امتداد trigram لتسريع البحث العربي بالاحتواء (فهرس GIN على titleNorm).
+  extensions = [pg_trgm]
 }
 
 // ─────────────────────────── Enums ───────────────────────────
@@ -209,6 +213,8 @@ model Product {
   @@index([vendorId, status])
   @@index([categoryId, status])
   @@index([titleNorm])
+  // فهرس trigram (GIN) لبحث الاحتواء العربي القابل للتوسّع.
+  @@index([titleNorm(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_titleNorm_trgm_idx")
   @@index([status, createdAt])
 }
 
