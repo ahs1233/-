@@ -1,29 +1,38 @@
 import Link from "next/link";
 import { ShieldCheck, Truck, BadgeCheck, ChevronLeft, Store, LayoutGrid } from "lucide-react";
 import { getGovernorate } from "@/src/lib/governorate";
-import { ProductCard, type ProductCardData } from "@/src/components/product-card";
+import { getServerApi } from "@/src/trpc/server";
+import { ProductCard } from "@/src/components/product-card";
 import { CategoryIcon } from "@/src/components/category-icon";
 import { BrandMark } from "@/src/components/brand-logo";
-import { getCachedCategories, getCachedHomeProducts, type CachedCategory } from "@/src/lib/catalog-cache";
+import { AppImage } from "@/src/components/app-image";
+import { getCachedCategories, type CachedCategory } from "@/src/lib/catalog-cache";
 
 export const dynamic = "force-dynamic";
+
+// هوية كل قسم: عنوان + هدف (Δ1). المصدر الوحيد للأقسام هو محرّك الاكتشاف.
+const SECTION_META: Record<string, { title: string; purpose: string }> = {
+  today: { title: "اليوم في السوگ", purpose: "مختارات متنوّعة تبدأ منها رحلة تسوّقك" },
+  trending: { title: "الأكثر رواجاً هذا الأسبوع", purpose: "ما يشتريه الناس فعلاً حولك" },
+  new: { title: "جديد هذا الأسبوع", purpose: "أحدث ما وصل من التجّار" },
+  top_rated: { title: "الأعلى تقييماً", purpose: "منتجات نالت رضا المشترين" },
+  best_selling: { title: "الأكثر مبيعاً", purpose: "الأكثر طلباً عبر الوقت" },
+  new_stores: { title: "متاجر جديدة", purpose: "تجّار انضموا حديثاً إلى السوگ" },
+};
+
+type HomeSections = Awaited<ReturnType<Awaited<ReturnType<typeof getServerApi>>["discovery"]["home"]>>;
 
 export default async function HomePage() {
   const gov = getGovernorate();
   let categories: CachedCategory[] = [];
-  let products: ProductCardData[] = [];
-  let otherGov = false;
+  let sections: HomeSections = [];
   let dbReady = true;
   try {
-    [categories, products] = await Promise.all([
+    const api = await getServerApi();
+    [categories, sections] = await Promise.all([
       getCachedCategories(),
-      getCachedHomeProducts(gov?.id),
+      api.discovery.home({ governorateId: gov?.id }),
     ]);
-    // إن لم توجد منتجات في محافظتك بعد، اعرض منتجات من بقية العراق بدل صفحة فارغة.
-    if (products.length === 0 && gov) {
-      products = await getCachedHomeProducts(undefined);
-      otherGov = products.length > 0;
-    }
   } catch {
     dbReady = false;
   }
@@ -74,7 +83,7 @@ export default async function HomePage() {
         </Link>
       </div>
 
-      {/* الفئات */}
+      {/* الفئات — تصنيف تنقّل (ليس اكتشافاً) */}
       {categories.length > 0 && (
         <section>
           <SectionHeader title="تسوّق حسب الفئة" href="/categories" />
@@ -91,26 +100,37 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* المنتجات */}
-      <section>
-        <SectionHeader title={otherGov ? "منتجات من محافظات أخرى" : "أحدث المنتجات"} />
-        {otherGov && (
-          <p className="mb-3 rounded-2xl border border-gold-200 bg-gold-50 p-3 text-sm text-gold-700">
-            لا توجد منتجات في {gov?.name} بعد — هذه منتجات من بقية العراق.
-          </p>
-        )}
-        {products.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
-            لا توجد منتجات بعد.
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        )}
-      </section>
+      {/* أقسام الاكتشاف — المصدر الوحيد: DiscoveryService */}
+      {dbReady && sections.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
+          لا توجد منتجات بعد.
+        </div>
+      )}
+
+      {sections.map((section) => {
+        const meta = SECTION_META[section.key];
+        return (
+          <section key={section.key}>
+            <div className="mb-3">
+              <h2 className="text-lg font-bold text-neutral-900">{meta?.title ?? section.key}</h2>
+              {meta?.purpose && <p className="text-sm text-neutral-500">{meta.purpose}</p>}
+            </div>
+            {section.kind === "stores" ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {section.items.map((s) => (
+                  <StoreCard key={s.id} store={s} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {section.items.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
 
       {/* دعوة أصحاب المتاجر للتسجيل */}
       <Link
@@ -127,6 +147,29 @@ export default async function HomePage() {
         <ChevronLeft className="h-5 w-5 flex-shrink-0 text-gold-600" />
       </Link>
     </div>
+  );
+}
+
+function StoreCard({
+  store,
+}: {
+  store: { slug: string; storeName: string; logoUrl: string | null; productCount: number };
+}) {
+  return (
+    <Link
+      href={`/store/${store.slug}`}
+      className="group flex flex-col items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
+    >
+      <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
+        {store.logoUrl ? (
+          <AppImage src={store.logoUrl} alt={store.storeName} className="h-full w-full object-cover" />
+        ) : (
+          <Store className="h-7 w-7 text-brand-600" />
+        )}
+      </span>
+      <span className="line-clamp-1 text-sm font-semibold text-neutral-900">{store.storeName}</span>
+      <span className="text-xs text-neutral-400">{store.productCount} منتج</span>
+    </Link>
   );
 }
 
