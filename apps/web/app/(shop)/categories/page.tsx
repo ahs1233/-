@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { getServerApi } from "@/src/trpc/server";
 import { Card, CardBody } from "@al-souq/ui";
+import { getCachedCategories } from "@/src/lib/catalog-cache";
 
+// الصفحة ديناميكية (التخطيط يقرأ كوكي المحافظة)، لكن بيانات الفئات تُخدَم من الكاش.
 export const dynamic = "force-dynamic";
 
 export default async function CategoriesPage() {
-  const api = await getServerApi();
-  const categories = await api.catalog.categories();
+  const categories = await getCachedCategories();
 
   return (
     <div className="space-y-4">
