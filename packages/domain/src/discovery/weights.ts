@@ -1,4 +1,13 @@
 /**
+ * Discovery Engine V1
+ *
+ * Status: Stable
+ * Product Contract: Discovery Model V1
+ * Breaking Changes: أي تغيير في صيغة النقاط (score) أو الأوزان أو مجموعة
+ *   المرشّحين (candidate pool) يغيّر سلوك المنصّة بالكامل ولو بقيت الاختبارات
+ *   خضراء — لذا يستلزم Product Review إلى جانب المراجعة التقنية. هذا المحرّك
+ *   نواة منتج (Product Core) لا Service عادياً.
+ *
  * أوزان وعتبات محرّك الاكتشاف — «الدستور كـ code» (مصدر واحد للحقيقة).
  * تعديلها قرار مُراجَع، وأثره مُفسَّر عبر Reason-To-Rank.
  */

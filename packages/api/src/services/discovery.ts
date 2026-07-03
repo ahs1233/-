@@ -1,4 +1,8 @@
 /**
+ * Discovery Engine V1 — Status: Stable · Product Contract: Discovery Model V1.
+ * Breaking Changes: تعديل مجموعة المرشّحين (candidate pool) أدناه يستلزم
+ * Product Review (نواة منتج، لا Service عادي) — راجع weights.ts.
+ *
  * DiscoveryService — طبقة بيانات محرّك الاكتشاف (V1).
  * تجلب مجموعة مرشّحين من قاعدة البيانات، تحسب مبيعات ٧ أيام بمشترين متمايزين
  * (مع استبعاد الشراء الذاتي)، ثم تشتقّ كل الأقسام عبر دوال domain النقية.

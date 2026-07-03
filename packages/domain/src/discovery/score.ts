@@ -1,4 +1,8 @@
 /**
+ * Discovery Engine V1 — Status: Stable · Product Contract: Discovery Model V1.
+ * Breaking Changes: تعديل صيغة النقاط (score) أدناه يستلزم Product Review
+ * (نواة منتج، لا Service عادي) — راجع weights.ts.
+ *
  * منطق ترتيب الاكتشاف — دوال نقية (بلا AI، بلا قاعدة بيانات) قابلة للاختبار.
  * تُجسّد Discovery Model V1: النقاط، التقييم البايزي، الحداثة، الأسباب،
  * الإخفاء المُفسَّر (Explainable)، وتنوّع الفئات/المتاجر.
