@@ -26,6 +26,18 @@ export default function AdminDashboard() {
         <Stat label="منتجات قيد المراجعة" value={String(d.pendingProducts)} warn={d.pendingProducts > 0} />
       </div>
 
+      <Link href="/admin/finance">
+        <Card className="bg-brand-600 text-white hover:shadow-md">
+          <CardBody className="flex items-center justify-between">
+            <div>
+              <p className="font-bold">المالية والمحاسبة</p>
+              <p className="text-sm text-white/80">دخل المنصّة، رسوم التوصيل، ومستحقات البائعين — بفلاتر زمنية</p>
+            </div>
+            <span aria-hidden>←</span>
+          </CardBody>
+        </Card>
+      </Link>
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Card>
           <CardBody>
