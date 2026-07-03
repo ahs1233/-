@@ -40,10 +40,12 @@ function LoginForm() {
   });
 
   const verifyOtp = trpc.auth.verifyOtp.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       // حدّث حالة المصادقة المخزّنة قبل الانتقال، وإلا رأت الصفحة التالية المستخدم كغير مسجّل.
       await utils.auth.me.invalidate();
-      router.replace(next);
+      // توجيه حسب الدور: المتجر إلى لوحته، الأدمن إلى لوحته، والمشتري إلى وجهته.
+      const dest = data.user.role === "VENDOR" ? "/vendor" : data.user.role === "ADMIN" ? "/admin" : next;
+      router.replace(dest);
       router.refresh();
     },
     onError: (e) => setError(e.message),

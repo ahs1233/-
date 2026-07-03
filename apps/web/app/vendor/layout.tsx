@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { ar } from "@al-souq/i18n";
 import { trpc } from "@/src/trpc/react";
 
@@ -15,18 +16,32 @@ const NAV = [
 
 export default function VendorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const me = trpc.vendor.me.useQuery(undefined, { retry: false });
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      router.replace("/login");
+      router.refresh();
+    },
+  });
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white">
         <div className="container-app flex h-14 items-center justify-between">
-          <Link href="/vendor" className="text-lg font-bold text-brand-600">
-            {ar.vendor.dashboard}
+          <Link href="/vendor" className="flex flex-col leading-tight">
+            <span className="text-lg font-bold text-brand-600">
+              {me.data?.storeName ?? ar.vendor.dashboard}
+            </span>
+            <span className="text-[11px] text-neutral-400">{ar.vendor.dashboard}</span>
           </Link>
-          <Link href="/" className="text-sm text-neutral-500">
-            ← المتجر
-          </Link>
+          <button
+            onClick={() => logout.mutate({})}
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100 hover:text-danger"
+          >
+            <LogOut className="h-4 w-4" />
+            {ar.auth.logout}
+          </button>
         </div>
         <nav className="container-app flex gap-1 overflow-x-auto pb-2">
           {NAV.map((n) => {
