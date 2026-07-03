@@ -50,6 +50,64 @@ export const adminRouter = router({
     };
   }),
 
+  // ── ملخّص مالي/محاسبي (بفلتر زمني) ──
+  financeSummary: adminProcedure
+    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
+    .query(async ({ ctx, input }) => {
+      const now = new Date();
+      let since: Date | null = null;
+      if (input.period === "today") since = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      else if (input.period === "7d") since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      else if (input.period === "30d") since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // الإيراد يُعترف به على الطلبات المُنجزة (مسلّمة/مكتملة) ضمن الفترة.
+      const realizedWhere = {
+        status: { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] },
+        ...(since ? { placedAt: { gte: since } } : {}),
+      };
+      const [agg, unsettled, settledAgg] = await Promise.all([
+        ctx.prisma.order.aggregate({
+          where: realizedWhere,
+          _sum: { subtotal: true, deliveryFee: true, commissionAmount: true, total: true },
+          _count: true,
+        }),
+        // الرصيد المستحق للبائعين (غير مسوّى) — رصيد لحظي لا يتقيّد بالفترة.
+        ctx.prisma.commission.findMany({
+          where: { payoutId: null, order: { status: { in: ["DELIVERED", "COMPLETED"] } } },
+          include: { order: { select: { subtotal: true } } },
+        }),
+        ctx.prisma.payout.aggregate({ where: { status: "PAID" }, _sum: { amount: true } }),
+      ]);
+
+      const merchandiseSales = Number(agg._sum.subtotal ?? 0); // مبيعات البضاعة
+      const deliveryRevenue = Number(agg._sum.deliveryFee ?? 0); // رسوم التوصيل (تعود للمنصّة)
+      const commissionRevenue = Number(agg._sum.commissionAmount ?? 0);
+      const gmv = Number(agg._sum.total ?? 0); // إجمالي قيمة الطلبات (بضاعة + توصيل)
+      const realizedOrders = agg._count;
+
+      const platformRevenue = commissionRevenue + deliveryRevenue; // صافي دخل المنصّة
+      const vendorEarnings = merchandiseSales - commissionRevenue; // ما يكسبه البائعون على المُنجز بالفترة
+      const avgOrderValue = realizedOrders > 0 ? gmv / realizedOrders : 0;
+
+      let outstandingPayable = 0;
+      for (const c of unsettled) outstandingPayable += Number(c.order.subtotal) - Number(c.amount);
+      const settledTotal = Number(settledAgg._sum.amount ?? 0);
+
+      return {
+        period: input.period,
+        merchandiseSales,
+        deliveryRevenue,
+        commissionRevenue,
+        gmv,
+        platformRevenue,
+        vendorEarnings,
+        realizedOrders,
+        avgOrderValue,
+        outstandingPayable,
+        settledTotal,
+      };
+    }),
+
   // ── البائعون ──
   vendors: adminProcedure
     .input(z.object({ status: z.string().optional() }).optional())
