@@ -10,6 +10,16 @@ import { useCart } from "@/src/store/cart";
 import { useCartHydrated } from "@/src/store/use-cart-hydrated";
 import { AddressForm } from "@/src/components/address-form";
 
+const DELIVERY_FEE = 5000; // لكل بائع (مطابق للخادم)
+
+// تعليمات توصيل جاهزة (تُدمج في ملاحظة الطلب) — مطابقة لتجربة تطبيقات التوصيل.
+const DELIVERY_INSTRUCTIONS = [
+  { key: "door", icon: "🚪", label: "اتركه عند الباب" },
+  { key: "no-bell", icon: "🔕", label: "لا ترن الجرس" },
+  { key: "call", icon: "📞", label: "اتصل عند الوصول" },
+  { key: "reception", icon: "🛎️", label: "اتركه مع موظف الاستقبال" },
+] as const;
+
 export default function CheckoutPage() {
   const router = useRouter();
   const lines = useCart((s) => s.lines);
@@ -20,14 +30,19 @@ export default function CheckoutPage() {
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
   const addresses = trpc.address.list.useQuery(undefined, { enabled: me.isSuccess });
   const [addressId, setAddressId] = useState<string>("");
+  const [changingAddress, setChangingAddress] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [instructions, setInstructions] = useState<Set<string>>(new Set());
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // فتح نموذج العنوان تلقائياً عند عدم وجود عنوان محفوظ (حتى لا يعلق المستخدم على زر معطّل).
+  // فتح نموذج العنوان تلقائياً عند عدم وجود عنوان محفوظ.
   const noAddresses = addresses.isSuccess && addresses.data.length === 0;
   useEffect(() => {
-    if (noAddresses) setShowForm(true);
+    if (noAddresses) {
+      setShowForm(true);
+      setChangingAddress(true);
+    }
   }, [noAddresses]);
 
   const place = trpc.order.place.useMutation({
@@ -38,14 +53,28 @@ export default function CheckoutPage() {
     onError: (e) => setError(e.message),
   });
 
-  // عدد البائعين في السلة (رسوم التوصيل تُحتسب لكل بائع)
   const vendorCount = useMemo(() => new Set(lines.map((l) => l.vendorId)).size, [lines]);
-  const effectiveAddress = addressId || addresses.data?.find((a) => a.isDefault)?.id || addresses.data?.[0]?.id || "";
-  // رسوم التوصيل الفعلية لمحافظة العنوان المختار (تُضبط من إعدادات المنصة)
-  const selectedGovId = addresses.data?.find((a) => a.id === effectiveAddress)?.governorateId;
-  const feeQuery = trpc.geo.deliveryFee.useQuery({ governorateId: selectedGovId }, { enabled: Boolean(effectiveAddress) });
-  const deliveryFee = feeQuery.data?.fee ?? 5000;
-  const deliveryTotal = vendorCount * deliveryFee;
+  const deliveryTotal = vendorCount * DELIVERY_FEE;
+  const total = subtotal + deliveryTotal;
+
+  const effectiveAddress =
+    addressId || addresses.data?.find((a) => a.isDefault)?.id || addresses.data?.[0]?.id || "";
+  const selectedAddress = addresses.data?.find((a) => a.id === effectiveAddress);
+
+  function toggleInstruction(key: string) {
+    setInstructions((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
+
+  function composedNote(): string | undefined {
+    const chips = DELIVERY_INSTRUCTIONS.filter((i) => instructions.has(i.key)).map((i) => i.label);
+    const parts = [...chips, note.trim()].filter(Boolean);
+    const joined = parts.join("، ").slice(0, 300);
+    return joined || undefined;
+  }
 
   if (me.isLoading || !hydrated) return <p className="text-neutral-500">جارٍ التحميل…</p>;
 
@@ -71,23 +100,59 @@ export default function CheckoutPage() {
     );
   }
 
+  const hasAddresses = (addresses.data?.length ?? 0) > 0;
+
   return (
-    <div className="space-y-4 pb-28">
+    <div className="space-y-3 pb-28">
       <h1 className="text-xl font-bold">إتمام الطلب</h1>
 
-      {/* العنوان */}
+      {/* وقت التوصيل */}
+      <Card>
+        <CardBody className="flex items-center justify-between">
+          <div>
+            <h2 className="font-bold">وقت التوصيل</h2>
+            <p className="text-sm text-neutral-500">خلال ٣٠–٦٠ دقيقة تقريباً</p>
+          </div>
+          <span className="text-2xl" aria-hidden>
+            🕒
+          </span>
+        </CardBody>
+      </Card>
+
+      {/* عنوان التوصيل */}
       <Card>
         <CardBody className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-bold">عنوان التوصيل</h2>
-            <button className="text-sm text-brand-600" onClick={() => setShowForm((s) => !s)}>
-              + عنوان جديد
-            </button>
+            {hasAddresses && !changingAddress && (
+              <button
+                className="rounded-lg border border-brand-500 px-3 py-1 text-sm text-brand-600"
+                onClick={() => setChangingAddress(true)}
+              >
+                تغيير
+              </button>
+            )}
           </div>
 
-          {addresses.data && addresses.data.length > 0 ? (
+          {/* عرض العنوان المختار مطويّاً */}
+          {hasAddresses && !changingAddress && selectedAddress && (
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 text-xl" aria-hidden>
+                📍
+              </span>
+              <div className="text-sm">
+                <p className="font-medium">{selectedAddress.fullName}</p>
+                <p className="text-neutral-500">
+                  {selectedAddress.governorate}/{selectedAddress.area} — {selectedAddress.line}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* اختيار العنوان (عند التغيير) */}
+          {changingAddress && (
             <div className="space-y-2">
-              {addresses.data.map((a) => (
+              {addresses.data?.map((a) => (
                 <label
                   key={a.id}
                   className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2 ${
@@ -99,7 +164,10 @@ export default function CheckoutPage() {
                     name="address"
                     className="mt-1"
                     checked={effectiveAddress === a.id}
-                    onChange={() => setAddressId(a.id)}
+                    onChange={() => {
+                      setAddressId(a.id);
+                      setChangingAddress(false);
+                    }}
                   />
                   <span className="text-sm">
                     <span className="font-medium">{a.fullName}</span> — {a.governorate}/{a.area}
@@ -108,20 +176,76 @@ export default function CheckoutPage() {
                   </span>
                 </label>
               ))}
-            </div>
-          ) : (
-            !showForm && (
-              <p className="rounded-lg bg-gold-50 p-2 text-sm text-gold-700">
-                لإتمام الطلب، أضف عنوان التوصيل أولاً.
-              </p>
-            )
-          )}
 
-          {showForm && <AddressForm onDone={() => setShowForm(false)} />}
+              {!showForm ? (
+                <button className="text-sm text-brand-600" onClick={() => setShowForm(true)}>
+                  + إضافة عنوان جديد
+                </button>
+              ) : (
+                <AddressForm
+                  onDone={() => {
+                    setShowForm(false);
+                    if (hasAddresses) setChangingAddress(false);
+                  }}
+                />
+              )}
+            </div>
+          )}
         </CardBody>
       </Card>
 
-      {/* الملخّص */}
+      {/* تعليمات التوصيل */}
+      <Card>
+        <CardBody className="space-y-3">
+          <h2 className="font-bold">تعليمات التوصيل</h2>
+          <div className="grid grid-cols-2 gap-2">
+            {DELIVERY_INSTRUCTIONS.map((i) => {
+              const active = instructions.has(i.key);
+              return (
+                <button
+                  key={i.key}
+                  onClick={() => toggleInstruction(i.key)}
+                  className={`flex items-center gap-2 rounded-lg border p-2 text-sm ${
+                    active ? "border-brand-500 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600"
+                  }`}
+                >
+                  <span aria-hidden>{i.icon}</span>
+                  <span className="text-start leading-tight">{i.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="ملاحظة إضافية للبائع (اختياري)"
+            rows={2}
+            maxLength={300}
+            className="w-full rounded-lg border border-neutral-300 p-2 text-sm"
+          />
+        </CardBody>
+      </Card>
+
+      {/* طريقة الدفع */}
+      <Card>
+        <CardBody className="space-y-3">
+          <h2 className="font-bold">طريقة الدفع</h2>
+          <div className="flex items-center gap-3 rounded-lg border border-brand-500 bg-brand-50 p-3">
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-500 text-white" aria-hidden>
+              💵
+            </span>
+            <div className="flex-1 text-sm">
+              <p className="font-medium">نقداً</p>
+              <p className="text-neutral-500">الدفع نقداً عند الاستلام</p>
+            </div>
+            <span className="text-brand-600" aria-hidden>
+              ✓
+            </span>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* ملخّص الطلب */}
       <Card>
         <CardBody className="space-y-2">
           <h2 className="font-bold">ملخّص الطلب</h2>
@@ -134,27 +258,23 @@ export default function CheckoutPage() {
             </div>
           ))}
           <div className="my-1 border-t border-neutral-100" />
-          <Row label="المجموع" value={formatIQD(subtotal)} />
+          <Row label="المجموع الجزئي" value={formatIQD(subtotal)} />
           <Row label={`التوصيل (${vendorCount} بائع)`} value={formatIQD(deliveryTotal)} />
-          <Row label="الإجمالي" value={formatIQD(subtotal + deliveryTotal)} bold />
-          <p className="pt-1 text-xs text-neutral-500">طريقة الدفع: الدفع عند الاستلام (COD)</p>
+          <Row label="الإجمالي" value={formatIQD(total)} bold />
         </CardBody>
       </Card>
 
-      <textarea
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder="ملاحظة للبائع (اختياري)"
-        rows={2}
-        className="w-full rounded-lg border border-neutral-300 p-2 text-sm"
-      />
-
       {error && <p className="text-sm text-danger">{error}</p>}
 
+      {/* الشريط السفلي الثابت */}
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-200 bg-white p-3">
-        <div className="container-app">
+        <div className="container-app flex items-center gap-3">
+          <div className="shrink-0">
+            <span className="text-xs text-neutral-500">الإجمالي</span>
+            <div className="font-bold text-brand-600 nums">{formatIQD(total)}</div>
+          </div>
           <Button
-            className="w-full"
+            className="flex-1"
             size="lg"
             loading={place.isPending}
             disabled={!effectiveAddress}
@@ -163,11 +283,11 @@ export default function CheckoutPage() {
               place.mutate({
                 addressId: effectiveAddress,
                 items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
-                customerNote: note || undefined,
+                customerNote: composedNote(),
               });
             }}
           >
-            {effectiveAddress ? `تأكيد الطلب — ${formatIQD(subtotal + deliveryTotal)}` : "اختر عنواناً"}
+            {effectiveAddress ? "إتمام الطلب" : "أضف عنواناً أولاً"}
           </Button>
         </div>
       </div>
