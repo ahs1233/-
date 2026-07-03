@@ -30,7 +30,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4 pb-40 md:pb-24">
       <h1 className="text-xl font-bold">السلة</h1>
 
       <ul className="space-y-3">
@@ -64,7 +64,7 @@ export default function CartPage() {
         ))}
       </ul>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-200 bg-white p-3">
+      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-neutral-200 bg-white p-3 md:bottom-0">
         <div className="container-app flex items-center justify-between gap-3">
           <div>
             <span className="text-sm text-neutral-500">المجموع</span>
