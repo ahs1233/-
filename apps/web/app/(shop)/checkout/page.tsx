@@ -103,7 +103,7 @@ export default function CheckoutPage() {
   const hasAddresses = (addresses.data?.length ?? 0) > 0;
 
   return (
-    <div className="space-y-3 pb-28">
+    <div className="space-y-3 pb-44 md:pb-28">
       <h1 className="text-xl font-bold">إتمام الطلب</h1>
 
       {/* وقت التوصيل */}
@@ -266,8 +266,8 @@ export default function CheckoutPage() {
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      {/* الشريط السفلي الثابت */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-200 bg-white p-3">
+      {/* الشريط السفلي الثابت — يُرفع فوق شريط التنقّل السفلي على الجوال */}
+      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-neutral-200 bg-white p-3 md:bottom-0">
         <div className="container-app flex items-center gap-3">
           <div className="shrink-0">
             <span className="text-xs text-neutral-500">الإجمالي</span>

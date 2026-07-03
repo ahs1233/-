@@ -64,10 +64,11 @@ const nextConfig = {
     serverComponentsExternalPackages: ["@prisma/client", "bcryptjs", "@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner", "web-push"],
   },
   images: {
-    // مصدر الصور مقيَّد بمضيف التخزين/الـ CDN فقط (بدل فتحه لأي مضيف).
+    // مصدر الصور مقيَّد بمضيف التخزين/الـ CDN عند ضبط NEXT_PUBLIC_IMAGE_HOST،
+    // وإلا يبقى مفتوحاً (السلوك الحالي) حتى لا تتعطّل صور المنتجات.
     remotePatterns: process.env.NEXT_PUBLIC_IMAGE_HOST
       ? [{ protocol: "https", hostname: process.env.NEXT_PUBLIC_IMAGE_HOST }]
-      : [],
+      : [{ protocol: "https", hostname: "**" }],
   },
 };
 
