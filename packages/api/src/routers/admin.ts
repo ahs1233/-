@@ -182,6 +182,7 @@ export const adminRouter = router({
       phone: v.user.phone,
       ownerName: v.user.name,
       governorate: v.governorate?.nameAr ?? null,
+      commissionRate: v.commissionRate ? Number(v.commissionRate) : null,
       createdAt: v.createdAt,
       productsCount: v._count.products,
       ordersCount: v._count.orders,
@@ -271,20 +272,30 @@ export const adminRouter = router({
     });
     if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "المنتج غير موجود" });
 
+    const TITLES: Record<string, string> = {
+      ACTIVE: "تم نشر منتجك",
+      REJECTED: "تم رفض منتجك",
+      ARCHIVED: "تم إخفاء منتجك",
+    };
+    const ACTIONS: Record<string, string> = { ACTIVE: "approve", REJECTED: "reject", ARCHIVED: "archive" };
+
     await ctx.prisma.$transaction(async (tx) => {
       await tx.product.update({ where: { id: product.id }, data: { status: input.decision } });
       await tx.notification.create({
         data: {
           userId: product.vendor.userId,
           type: `product.${input.decision.toLowerCase()}`,
-          title: input.decision === "ACTIVE" ? "تم نشر منتجك" : "تم رفض منتجك",
-          body: input.decision === "REJECTED" ? input.note : `«${product.title}» أصبح منشوراً.`,
+          title: TITLES[input.decision] ?? "تحديث حالة المنتج",
+          body:
+            input.decision === "ACTIVE"
+              ? `«${product.title}» أصبح منشوراً.`
+              : (input.note ?? `تم تحديث حالة «${product.title}».`),
           data: { productId: product.id },
         },
       });
       await writeAudit(tx, {
         actorId: ctx.user.id,
-        action: `product.${input.decision === "ACTIVE" ? "approve" : "reject"}`,
+        action: `product.${ACTIONS[input.decision] ?? "update"}`,
         entityType: "Product",
         entityId: product.id,
         before: { status: product.status },
@@ -294,6 +305,52 @@ export const adminRouter = router({
     });
     return { ok: true };
   }),
+
+  // منتجات متجر بعينه (لإدارتها من لوحة الأدمن) — كل الحالات.
+  vendorProducts: adminProcedure.input(z.object({ vendorId: z.string().cuid() })).query(async ({ ctx, input }) => {
+    const products = await ctx.prisma.product.findMany({
+      where: { vendorId: input.vendorId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        category: { select: { nameAr: true } },
+        images: { take: 1, orderBy: { sortOrder: "asc" }, select: { url: true } },
+      },
+    });
+    return products.map((p) => ({
+      id: p.id,
+      title: p.title,
+      price: Number(p.basePrice),
+      status: p.status,
+      soldCount: p.soldCount,
+      category: p.category.nameAr,
+      image: p.images[0]?.url ?? null,
+    }));
+  }),
+
+  // ضبط نسبة عمولة خاصة بمتجر (null = استخدام النسبة العامة للمنصّة).
+  setVendorCommission: adminProcedure
+    .input(z.object({ vendorId: z.string().cuid(), rate: z.number().min(0).max(1).nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const before = await ctx.prisma.vendorProfile.findUnique({
+        where: { id: input.vendorId },
+        select: { commissionRate: true },
+      });
+      if (!before) throw new TRPCError({ code: "NOT_FOUND", message: "البائع غير موجود" });
+      await ctx.prisma.vendorProfile.update({
+        where: { id: input.vendorId },
+        data: { commissionRate: input.rate === null ? null : new Prisma.Decimal(input.rate) },
+      });
+      await writeAudit(ctx.prisma, {
+        actorId: ctx.user.id,
+        action: "vendor.commission",
+        entityType: "VendorProfile",
+        entityId: input.vendorId,
+        before: { commissionRate: before.commissionRate ? Number(before.commissionRate) : null },
+        after: { commissionRate: input.rate },
+        ip: ctx.reqIp,
+      });
+      return { ok: true };
+    }),
 
   // ── الفئات ──
   categories: adminProcedure.query(async ({ ctx }) => {
