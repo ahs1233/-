@@ -180,10 +180,47 @@ export const cartItemSchema = z.object({
   quantity: z.number().int().min(1).max(99),
 });
 
+/** رمز كوبون: أحرف/أرقام/شرطة، يُطبَّع إلى حروف كبيرة. */
+export const couponCode = z
+  .string()
+  .trim()
+  .min(3, "رمز قصير")
+  .max(24, "رمز طويل")
+  .regex(/^[A-Za-z0-9-]+$/, "رمز غير صالح")
+  .transform((v) => v.toUpperCase());
+
 export const placeOrderSchema = z.object({
   addressId: z.string().cuid(),
   items: z.array(cartItemSchema).min(1, "السلة فارغة"),
   customerNote: z.string().trim().max(300).optional(),
+  couponCode: couponCode.optional(),
+});
+
+export const validateCouponSchema = z.object({
+  code: couponCode,
+  items: z.array(cartItemSchema).min(1, "السلة فارغة"),
+});
+
+// ─────────────────────────── Coupons (admin) ───────────────────────────
+
+export const couponCreateSchema = z
+  .object({
+    code: couponCode,
+    type: z.enum(["PERCENT", "FIXED"]),
+    value: z.number().positive("القيمة مطلوبة"),
+    minSubtotal: z.number().int().min(0).default(0),
+    maxDiscount: z.number().int().min(0).optional(),
+    usageLimit: z.number().int().min(1).optional(),
+    expiresAt: z.coerce.date().optional(),
+  })
+  .refine((v) => (v.type === "PERCENT" ? v.value <= 100 : true), {
+    message: "النسبة يجب أن تكون ٠–١٠٠",
+    path: ["value"],
+  });
+
+export const couponToggleSchema = z.object({
+  id: z.string().cuid(),
+  isActive: z.boolean(),
 });
 
 // ─────────────────────────── Review ───────────────────────────

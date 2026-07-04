@@ -125,6 +125,12 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           ))}
           <div className="my-1 border-t border-neutral-100" />
           <Row label="المجموع" value={formatIQD(o.subtotal)} />
+          {o.discount > 0 && (
+            <div className="flex justify-between text-sm text-brand-600">
+              <span>خصم الكوبون{o.couponCode ? ` (${o.couponCode})` : ""}</span>
+              <span className="nums">−{formatIQD(o.discount)}</span>
+            </div>
+          )}
           <Row label="التوصيل" value={formatIQD(o.deliveryFee)} />
           <Row label="الإجمالي" value={formatIQD(o.total)} bold />
           <p className="pt-1 text-xs text-neutral-500">الدفع عند الاستلام</p>

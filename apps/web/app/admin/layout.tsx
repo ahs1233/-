@@ -24,7 +24,13 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/payouts", label: "التسويات" },
     ],
   },
-  { title: "الكتالوج", items: [{ href: "/admin/categories", label: "الفئات" }] },
+  {
+    title: "الكتالوج",
+    items: [
+      { href: "/admin/categories", label: "الفئات" },
+      { href: "/admin/coupons", label: "الكوبونات" },
+    ],
+  },
   {
     title: "النظام",
     items: [
