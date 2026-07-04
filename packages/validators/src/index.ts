@@ -108,7 +108,7 @@ export const categoryUpdateSchema = z.object({
 
 export const productReviewSchema = z.object({
   productId: z.string().cuid(),
-  decision: z.enum(["ACTIVE", "REJECTED"]),
+  decision: z.enum(["ACTIVE", "REJECTED", "ARCHIVED"]),
   note: z.string().trim().max(300).optional(),
 });
 
