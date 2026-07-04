@@ -414,7 +414,8 @@ export const vendorRouter = router({
   // ── التحليلات ──
   analytics: vendorProcedure.query(async ({ ctx }) => {
     const vendor = await requireVendor(ctx.prisma, ctx.user.id);
-    const [productAgg, statusGroups, soldAgg, topProducts] = await Promise.all([
+    const since14 = new Date(Date.now() - 14 * 86_400_000);
+    const [productAgg, statusGroups, soldAgg, topProducts, windowOrders, lowStockVariants] = await Promise.all([
       ctx.prisma.product.groupBy({ by: ["status"], where: { vendorId: vendor.id }, _count: true }),
       ctx.prisma.order.groupBy({ by: ["status"], where: { vendorId: vendor.id }, _count: true }),
       ctx.prisma.order.aggregate({
@@ -428,6 +429,15 @@ export const vendorRouter = router({
         take: 5,
         select: { id: true, title: true, soldCount: true },
       }),
+      ctx.prisma.order.findMany({
+        where: { vendorId: vendor.id, placedAt: { gte: since14 }, status: { not: "CANCELLED" } },
+        select: { placedAt: true, subtotal: true, status: true },
+      }),
+      ctx.prisma.productVariant.findMany({
+        where: { product: { vendorId: vendor.id }, isActive: true, stock: { lte: 5 } },
+        select: { id: true, stock: true, reservedStock: true, attributes: true, product: { select: { title: true } } },
+        take: 30,
+      }),
     ]);
     const grossRevenue = Number(soldAgg._sum.subtotal ?? 0);
     const commission = Number(soldAgg._sum.commissionAmount ?? 0);
@@ -435,6 +445,37 @@ export const vendorRouter = router({
     for (const g of statusGroups) ordersByStatus[g.status] = g._count;
     const productsByStatus: Record<string, number> = {};
     for (const g of productAgg) productsByStatus[g.status] = g._count;
+
+    // سلسلة مبيعات آخر ١٤ يوماً (لرسم بياني)
+    const DAYS = 14;
+    const now = new Date();
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const todayStart = startOfDay(now);
+    const salesSeries = Array.from({ length: DAYS }, (_, k) => {
+      const d = new Date(todayStart - (DAYS - 1 - k) * 86_400_000);
+      return { day: `${d.getMonth() + 1}/${d.getDate()}`, revenue: 0, orders: 0 };
+    });
+    for (const o of windowOrders) {
+      const diff = Math.floor((todayStart - startOfDay(o.placedAt)) / 86_400_000);
+      const bucket = salesSeries[DAYS - 1 - diff];
+      if (bucket) {
+        bucket.orders += 1;
+        if (o.status === "DELIVERED" || o.status === "COMPLETED") bucket.revenue += Number(o.subtotal);
+      }
+    }
+
+    // مخزون منخفض (المتاح = المخزون − المحجوز)
+    const lowStock = lowStockVariants
+      .map((v) => ({
+        id: v.id,
+        title: v.product.title,
+        attributes: (v.attributes ?? {}) as Record<string, string>,
+        available: v.stock - v.reservedStock,
+      }))
+      .filter((v) => v.available <= 5)
+      .sort((a, b) => a.available - b.available)
+      .slice(0, 8);
+
     return {
       grossRevenue,
       commission,
@@ -444,6 +485,8 @@ export const vendorRouter = router({
       ordersByStatus,
       productsByStatus,
       topProducts,
+      salesSeries,
+      lowStock,
     };
   }),
 
