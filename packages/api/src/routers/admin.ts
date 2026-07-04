@@ -110,10 +110,13 @@ export const adminRouter = router({
 
   // ── البائعون ──
   vendors: adminProcedure
-    .input(z.object({ status: z.string().optional() }).optional())
+    .input(z.object({ status: z.string().optional(), search: z.string().trim().max(60).optional() }).optional())
     .query(async ({ ctx, input }) => {
+      const where: Prisma.VendorProfileWhereInput = {};
+      if (input?.status) where.status = input.status as Prisma.EnumVendorStatusFilter["equals"];
+      if (input?.search) where.storeName = { contains: input.search, mode: "insensitive" };
       const vendors = await ctx.prisma.vendorProfile.findMany({
-        where: input?.status ? { status: input.status as Prisma.EnumVendorStatusFilter["equals"] } : {},
+        where,
         orderBy: { createdAt: "desc" },
         include: {
           user: { select: { phone: true, name: true } },
@@ -134,6 +137,68 @@ export const adminRouter = router({
         createdAt: v.createdAt,
       }));
     }),
+
+  // تفاصيل بائع مع بياناته المالية (مبيعات، عمولة، رصيد مستحق، مسوّى، وطلبات حديثة).
+  vendorDetail: adminProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+    const v = await ctx.prisma.vendorProfile.findUnique({
+      where: { id: input.id },
+      include: {
+        user: { select: { phone: true, name: true } },
+        governorate: { select: { nameAr: true } },
+        _count: { select: { products: true, orders: true } },
+      },
+    });
+    if (!v) throw new TRPCError({ code: "NOT_FOUND", message: "البائع غير موجود" });
+
+    const realized = { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] };
+    const [salesAgg, unsettled, settledAgg, recentOrders] = await Promise.all([
+      ctx.prisma.order.aggregate({
+        where: { vendorId: v.id, status: realized },
+        _sum: { subtotal: true, commissionAmount: true },
+        _count: true,
+      }),
+      ctx.prisma.commission.findMany({
+        where: { vendorId: v.id, payoutId: null, order: { status: realized } },
+        include: { order: { select: { subtotal: true } } },
+      }),
+      ctx.prisma.payout.aggregate({ where: { vendorId: v.id, status: "PAID" }, _sum: { amount: true } }),
+      ctx.prisma.order.findMany({
+        where: { vendorId: v.id },
+        orderBy: { placedAt: "desc" },
+        take: 8,
+        select: { id: true, number: true, status: true, total: true, placedAt: true },
+      }),
+    ]);
+    let outstanding = 0;
+    for (const c of unsettled) outstanding += Number(c.order.subtotal) - Number(c.amount);
+
+    return {
+      id: v.id,
+      storeName: v.storeName,
+      slug: v.slug,
+      status: v.status,
+      description: v.description,
+      rejectionNote: v.rejectionNote,
+      phone: v.user.phone,
+      ownerName: v.user.name,
+      governorate: v.governorate?.nameAr ?? null,
+      createdAt: v.createdAt,
+      productsCount: v._count.products,
+      ordersCount: v._count.orders,
+      realizedSales: Number(salesAgg._sum.subtotal ?? 0),
+      commissionPaid: Number(salesAgg._sum.commissionAmount ?? 0),
+      realizedOrders: salesAgg._count,
+      outstanding,
+      settled: Number(settledAgg._sum.amount ?? 0),
+      recentOrders: recentOrders.map((o) => ({
+        id: o.id,
+        number: o.number,
+        status: o.status,
+        total: Number(o.total),
+        placedAt: o.placedAt,
+      })),
+    };
+  }),
 
   reviewVendor: adminProcedure.input(vendorReviewSchema).mutation(async ({ ctx, input }) => {
     const vendor = await ctx.prisma.vendorProfile.findUnique({ where: { id: input.vendorId } });
@@ -308,10 +373,26 @@ export const adminRouter = router({
 
   // ── الطلبات والنزاعات ──
   orders: adminProcedure
-    .input(z.object({ status: z.string().optional(), limit: z.number().int().min(1).max(100).default(50) }).optional())
+    .input(
+      z
+        .object({
+          status: z.string().optional(),
+          search: z.string().trim().max(60).optional(),
+          limit: z.number().int().min(1).max(100).default(50),
+        })
+        .optional(),
+    )
     .query(async ({ ctx, input }) => {
+      const where: Prisma.OrderWhereInput = {};
+      if (input?.status) where.status = input.status as OrderStatus;
+      if (input?.search) {
+        where.OR = [
+          { number: { contains: input.search, mode: "insensitive" } },
+          { customer: { phone: { contains: input.search } } },
+        ];
+      }
       const orders = await ctx.prisma.order.findMany({
-        where: input?.status ? { status: input.status as OrderStatus } : {},
+        where,
         orderBy: { placedAt: "desc" },
         take: input?.limit ?? 50,
         include: { vendor: { select: { storeName: true } }, customer: { select: { name: true, phone: true } } },
@@ -326,6 +407,51 @@ export const adminRouter = router({
         placedAt: o.placedAt,
       }));
     }),
+
+  // تفاصيل طلب واحد (لوحة الإدارة) — دون قيد ملكية.
+  orderDetail: adminProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+    const o = await ctx.prisma.order.findUnique({
+      where: { id: input.id },
+      include: {
+        vendor: { select: { id: true, storeName: true, slug: true } },
+        customer: { select: { name: true, phone: true } },
+        items: true,
+        history: { orderBy: { createdAt: "asc" } },
+      },
+    });
+    if (!o) throw new TRPCError({ code: "NOT_FOUND", message: "الطلب غير موجود" });
+    return {
+      id: o.id,
+      number: o.number,
+      status: o.status,
+      paymentMethod: o.paymentMethod,
+      subtotal: Number(o.subtotal),
+      deliveryFee: Number(o.deliveryFee),
+      total: Number(o.total),
+      commissionRate: Number(o.commissionRate),
+      commissionAmount: Number(o.commissionAmount),
+      shipTo: o.shipTo,
+      customerNote: o.customerNote,
+      cancelReason: o.cancelReason,
+      placedAt: o.placedAt,
+      vendor: o.vendor,
+      customer: o.customer,
+      items: o.items.map((it) => ({
+        id: it.id,
+        title: it.titleSnapshot,
+        attributes: it.attributesSnapshot,
+        unitPrice: Number(it.unitPrice),
+        quantity: it.quantity,
+        lineTotal: Number(it.lineTotal),
+      })),
+      history: o.history.map((h) => ({
+        fromStatus: h.fromStatus,
+        toStatus: h.toStatus,
+        note: h.note,
+        createdAt: h.createdAt,
+      })),
+    };
+  }),
 
   // حلّ النزاعات: الأدمن يفرض حالة (يتقيّد بصحة الانتقال عبر آلة الحالة)
   forceOrderStatus: adminProcedure

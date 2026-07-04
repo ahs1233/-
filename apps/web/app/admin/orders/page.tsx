@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardBody, OrderStatusBadge, Select, Button , useToast } from "@al-souq/ui";
+import Link from "next/link";
+import { Card, CardBody, OrderStatusBadge, Select, Button, Input, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 
@@ -10,8 +11,12 @@ const FORCE_OPTIONS = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLE
 
 export default function AdminOrders() {
   const [status, setStatus] = useState("");
+  const [search, setSearch] = useState("");
   const { error: toastError } = useToast();
-  const orders = trpc.admin.orders.useQuery({ status: status || undefined, limit: 100 }, { retry: false });
+  const orders = trpc.admin.orders.useQuery(
+    { status: status || undefined, search: search.trim() || undefined, limit: 100 },
+    { retry: false },
+  );
   const utils = trpc.useUtils();
   const force = trpc.admin.forceOrderStatus.useMutation({
     onSuccess: () => utils.admin.orders.invalidate(),
@@ -21,6 +26,12 @@ export default function AdminOrders() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">الطلبات والنزاعات</h1>
+
+      <Input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="بحث برقم الطلب أو هاتف الزبون…"
+      />
 
       <div className="flex gap-1 overflow-x-auto pb-1">
         {FILTERS.map((f) => (
@@ -44,7 +55,9 @@ export default function AdminOrders() {
             <Card key={o.id}>
               <CardBody className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold nums">{o.number}</span>
+                  <Link href={`/admin/orders/${o.id}`} className="font-bold text-brand-600 nums hover:underline">
+                    {o.number}
+                  </Link>
                   <OrderStatusBadge status={o.status} />
                 </div>
                 <p className="text-sm text-neutral-500">

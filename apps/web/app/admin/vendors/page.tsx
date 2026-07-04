@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, CardBody, Badge } from "@al-souq/ui";
+import Link from "next/link";
+import { Button, Card, CardBody, Badge, Input } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 
 const VSTATUS: Record<string, { label: string; style: string }> = {
@@ -15,7 +16,11 @@ const FILTERS = ["", "PENDING", "APPROVED", "SUSPENDED", "REJECTED"];
 
 export default function AdminVendors() {
   const [status, setStatus] = useState("");
-  const vendors = trpc.admin.vendors.useQuery({ status: status || undefined }, { retry: false });
+  const [search, setSearch] = useState("");
+  const vendors = trpc.admin.vendors.useQuery(
+    { status: status || undefined, search: search.trim() || undefined },
+    { retry: false },
+  );
   const utils = trpc.useUtils();
   const review = trpc.admin.reviewVendor.useMutation({
     onSuccess: () => {
@@ -27,6 +32,8 @@ export default function AdminVendors() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">البائعون</h1>
+
+      <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث باسم المتجر…" />
 
       <div className="flex gap-1 overflow-x-auto pb-1">
         {FILTERS.map((f) => (
@@ -51,7 +58,9 @@ export default function AdminVendors() {
               <CardBody className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-bold">{v.storeName}</p>
+                    <Link href={`/admin/vendors/${v.id}`} className="font-bold text-brand-600 hover:underline">
+                      {v.storeName}
+                    </Link>
                     <p className="text-sm text-neutral-500">
                       {v.ownerName ?? "—"} · <span className="nums">{v.phone}</span>
                       {v.governorate ? ` · ${v.governorate}` : ""}
