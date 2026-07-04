@@ -522,4 +522,113 @@ export const vendorRouter = router({
       })),
     };
   }),
+
+  // ── كشف الحساب المالي (بفلتر زمني) ──
+  financeSummary: vendorProcedure
+    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
+    .query(async ({ ctx, input }) => {
+      const vendor = await requireVendor(ctx.prisma, ctx.user.id);
+      const since = periodSince(input.period);
+
+      const [realized, pendingAgg, unsettled] = await Promise.all([
+        // المُنجز (مسلّم/مكتمل) ضمن الفترة — الإيراد المعترف به
+        ctx.prisma.order.aggregate({
+          where: {
+            vendorId: vendor.id,
+            status: { in: ["DELIVERED", "COMPLETED"] },
+            ...(since ? { placedAt: { gte: since } } : {}),
+          },
+          _sum: { subtotal: true, commissionAmount: true },
+          _count: true,
+        }),
+        // قيد التنفيذ (لم يُنجز بعد) ضمن الفترة — للسياق
+        ctx.prisma.order.aggregate({
+          where: {
+            vendorId: vendor.id,
+            status: { in: ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED"] },
+            ...(since ? { placedAt: { gte: since } } : {}),
+          },
+          _sum: { subtotal: true },
+          _count: true,
+        }),
+        // الرصيد المستحق (كل الفترات، غير مسوّى) — رصيد لحظي
+        ctx.prisma.commission.findMany({
+          where: { vendorId: vendor.id, payoutId: null, order: { status: { in: ["DELIVERED", "COMPLETED"] } } },
+          include: { order: { select: { subtotal: true } } },
+        }),
+      ]);
+
+      const grossSales = Number(realized._sum.subtotal ?? 0);
+      const commission = Number(realized._sum.commissionAmount ?? 0);
+      const netEarnings = grossSales - commission;
+      const realizedOrders = realized._count;
+      const outstandingBalance = unsettled.reduce((s, c) => s + (Number(c.order.subtotal) - Number(c.amount)), 0);
+
+      return {
+        period: input.period,
+        grossSales,
+        commission,
+        netEarnings,
+        realizedOrders,
+        avgOrderValue: realizedOrders > 0 ? grossSales / realizedOrders : 0,
+        pendingSales: Number(pendingAgg._sum.subtotal ?? 0),
+        pendingOrders: pendingAgg._count,
+        outstandingBalance,
+      };
+    }),
+
+  /** تصدير كشف حساب البائع (طلبات الفترة مع تفصيل الأرباح) كـ CSV بترميز يدعم العربية. */
+  exportStatementCsv: vendorProcedure
+    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
+    .query(async ({ ctx, input }) => {
+      const vendor = await requireVendor(ctx.prisma, ctx.user.id);
+      const since = periodSince(input.period);
+      const orders = await ctx.prisma.order.findMany({
+        where: { vendorId: vendor.id, ...(since ? { placedAt: { gte: since } } : {}) },
+        orderBy: { placedAt: "desc" },
+        take: 5000,
+      });
+      const STATUS_AR: Record<string, string> = {
+        PENDING: "بانتظار التأكيد",
+        CONFIRMED: "مؤكّد",
+        PREPARING: "قيد التحضير",
+        SHIPPED: "مشحون",
+        DELIVERED: "مُسلّم",
+        COMPLETED: "مكتمل",
+        CANCELLED: "ملغى",
+        RETURNED: "مُرتجع",
+      };
+      const esc = (v: string | number) => {
+        const s = String(v);
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const headers = ["رقم الطلب", "التاريخ", "الحالة", "قيمة البضاعة", "نسبة العمولة", "العمولة", "صافي الربح"];
+      const rows = orders.map((o) => {
+        const realized = o.status === "DELIVERED" || o.status === "COMPLETED";
+        const commission = Number(o.commissionAmount);
+        const net = realized ? Number(o.subtotal) - commission : 0;
+        return [
+          o.number,
+          o.placedAt.toISOString().slice(0, 16).replace("T", " "),
+          STATUS_AR[o.status] ?? o.status,
+          Number(o.subtotal),
+          `${(Number(o.commissionRate) * 100).toFixed(2)}%`,
+          realized ? commission : 0,
+          net,
+        ]
+          .map(esc)
+          .join(",");
+      });
+      const csv = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+      return { filename: `statement-${input.period}-${new Date().toISOString().slice(0, 10)}.csv`, csv, count: orders.length };
+    }),
 });
+
+/** بداية الفترة الزمنية للفلاتر المالية (null = كل الوقت). */
+function periodSince(period: "today" | "7d" | "30d" | "all"): Date | null {
+  const now = new Date();
+  if (period === "today") return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === "7d") return new Date(now.getTime() - 7 * 86_400_000);
+  if (period === "30d") return new Date(now.getTime() - 30 * 86_400_000);
+  return null;
+}
