@@ -5,9 +5,10 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { PrismaClient } from "@al-souq/db";
-import { placeOrderSchema } from "@al-souq/validators";
+import { placeOrderSchema, validateCouponSchema } from "@al-souq/validators";
 import { router, protectedProcedure } from "../trpc";
 import { placeOrder, changeOrderStatus, releaseExpiredReservations } from "../services/order";
+import { resolveCoupon, computeDiscount } from "../services/coupon";
 
 const orderSummaryOut = z.object({
   id: z.string(),
@@ -32,9 +33,32 @@ export const orderRouter = router({
       addressId: input.addressId,
       items: input.items,
       customerNote: input.customerNote,
+      couponCode: input.couponCode,
     });
     return result;
   }),
+
+  /**
+   * معاينة كوبون قبل الطلب: يتحقّق من الصلاحية ويحسب الخصم على مجموع السلة.
+   * لا يستهلك الكوبون (الاستهلاك يتمّ فقط عند إتمام الطلب).
+   */
+  validateCoupon: protectedProcedure
+    .input(validateCouponSchema)
+    .output(z.object({ code: z.string(), discount: z.number(), subtotal: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      // نحسب المجموع الجزئي من أسعار المتغيّرات الحيّة (لا نثق بسعر العميل).
+      let subtotal = 0;
+      for (const it of input.items) {
+        const variant = it.variantId
+          ? await ctx.prisma.productVariant.findUnique({ where: { id: it.variantId }, select: { price: true } })
+          : null;
+        if (!variant) throw new TRPCError({ code: "BAD_REQUEST", message: "عنصر غير صالح في السلة" });
+        subtotal += Number(variant.price) * it.quantity;
+      }
+      const coupon = await resolveCoupon(ctx.prisma, input.code);
+      const discount = computeDiscount(coupon, subtotal);
+      return { code: coupon.code, discount, subtotal };
+    }),
 
   myOrders: protectedProcedure
     .meta({ openapi: { method: "GET", path: "/orders", tags: ["order"], protect: true } })
@@ -98,6 +122,8 @@ export const orderRouter = router({
       paymentMethod: order.paymentMethod,
       subtotal: Number(order.subtotal),
       deliveryFee: Number(order.deliveryFee),
+      discount: Number(order.discount),
+      couponCode: order.couponCode,
       total: Number(order.total),
       shipTo: order.shipTo,
       customerNote: order.customerNote,

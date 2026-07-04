@@ -13,6 +13,8 @@ import {
   categoryUpdateSchema,
   userManageSchema,
   platformSettingsSchema,
+  couponCreateSchema,
+  couponToggleSchema,
 } from "@al-souq/validators";
 import { router, adminProcedure } from "../trpc";
 import { writeAudit, settleVendorPayout } from "../services/admin";
@@ -423,6 +425,60 @@ export const adminRouter = router({
       entityType: "Category",
       entityId: input.id,
       before: { nameAr: cat.nameAr },
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // ── الكوبونات ──
+  coupons: adminProcedure.query(async ({ ctx }) => {
+    const list = await ctx.prisma.coupon.findMany({ orderBy: { createdAt: "desc" } });
+    return list.map((c) => ({
+      id: c.id,
+      code: c.code,
+      type: c.type,
+      value: Number(c.value),
+      minSubtotal: Number(c.minSubtotal),
+      maxDiscount: c.maxDiscount === null ? null : Number(c.maxDiscount),
+      usageLimit: c.usageLimit,
+      usedCount: c.usedCount,
+      expiresAt: c.expiresAt,
+      isActive: c.isActive,
+    }));
+  }),
+
+  createCoupon: adminProcedure.input(couponCreateSchema).mutation(async ({ ctx, input }) => {
+    const exists = await ctx.prisma.coupon.findUnique({ where: { code: input.code } });
+    if (exists) throw new TRPCError({ code: "BAD_REQUEST", message: "الرمز مستخدم مسبقاً" });
+    const coupon = await ctx.prisma.coupon.create({
+      data: {
+        code: input.code,
+        type: input.type,
+        value: new Prisma.Decimal(input.value),
+        minSubtotal: new Prisma.Decimal(input.minSubtotal),
+        maxDiscount: input.maxDiscount === undefined ? null : new Prisma.Decimal(input.maxDiscount),
+        usageLimit: input.usageLimit ?? null,
+        expiresAt: input.expiresAt ?? null,
+      },
+    });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "coupon.create",
+      entityType: "Coupon",
+      entityId: coupon.id,
+      after: { code: coupon.code, type: coupon.type, value: input.value },
+      ip: ctx.reqIp,
+    });
+    return { id: coupon.id };
+  }),
+
+  toggleCoupon: adminProcedure.input(couponToggleSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.coupon.update({ where: { id: input.id }, data: { isActive: input.isActive } });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: input.isActive ? "coupon.enable" : "coupon.disable",
+      entityType: "Coupon",
+      entityId: input.id,
       ip: ctx.reqIp,
     });
     return { ok: true };

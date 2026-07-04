@@ -35,6 +35,20 @@ export default function CheckoutPage() {
   const [instructions, setInstructions] = useState<Set<string>>(new Set());
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [applied, setApplied] = useState<{ code: string; discount: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  const validateCoupon = trpc.order.validateCoupon.useMutation({
+    onSuccess: (r) => {
+      setApplied({ code: r.code, discount: r.discount });
+      setCouponError(null);
+    },
+    onError: (e) => {
+      setApplied(null);
+      setCouponError(e.message);
+    },
+  });
 
   // فتح نموذج العنوان تلقائياً عند عدم وجود عنوان محفوظ.
   const noAddresses = addresses.isSuccess && addresses.data.length === 0;
@@ -55,7 +69,15 @@ export default function CheckoutPage() {
 
   const vendorCount = useMemo(() => new Set(lines.map((l) => l.vendorId)).size, [lines]);
   const deliveryTotal = vendorCount * DELIVERY_FEE;
-  const total = subtotal + deliveryTotal;
+  // الخصم المطبَّق لا يتجاوز المجموع الجزئي (حماية عرضية؛ الخادم هو المرجع).
+  const discount = applied ? Math.min(applied.discount, subtotal) : 0;
+  const total = subtotal - discount + deliveryTotal;
+
+  // إبطال الكوبون المطبَّق إن تغيّرت السلة (يُعاد التحقّق يدوياً).
+  useEffect(() => {
+    setApplied(null);
+    setCouponError(null);
+  }, [subtotal]);
 
   const effectiveAddress =
     addressId || addresses.data?.find((a) => a.isDefault)?.id || addresses.data?.[0]?.id || "";
@@ -245,6 +267,57 @@ export default function CheckoutPage() {
         </CardBody>
       </Card>
 
+      {/* كوبون الخصم */}
+      <Card>
+        <CardBody className="space-y-2">
+          <h2 className="font-bold">كوبون الخصم</h2>
+          {applied ? (
+            <div className="flex items-center justify-between rounded-lg border border-brand-500 bg-brand-50 p-3 text-sm">
+              <span className="font-medium text-brand-700">
+                <span className="nums">{applied.code}</span> — وفّرت {formatIQD(discount)}
+              </span>
+              <button
+                className="text-neutral-500 underline"
+                onClick={() => {
+                  setApplied(null);
+                  setCouponInput("");
+                  setCouponError(null);
+                }}
+              >
+                إزالة
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                placeholder="أدخل رمز الكوبون"
+                className="h-10 flex-1 rounded-lg border border-neutral-300 px-3 text-sm uppercase nums"
+              />
+              <Button
+                variant="outline"
+                loading={validateCoupon.isPending}
+                disabled={couponInput.trim().length < 3}
+                onClick={() =>
+                  validateCoupon.mutate({
+                    code: couponInput.trim(),
+                    items: lines.map((l) => ({
+                      productId: l.productId,
+                      variantId: l.variantId,
+                      quantity: l.quantity,
+                    })),
+                  })
+                }
+              >
+                تطبيق
+              </Button>
+            </div>
+          )}
+          {couponError && <p className="text-sm text-danger">{couponError}</p>}
+        </CardBody>
+      </Card>
+
       {/* ملخّص الطلب */}
       <Card>
         <CardBody className="space-y-2">
@@ -259,6 +332,12 @@ export default function CheckoutPage() {
           ))}
           <div className="my-1 border-t border-neutral-100" />
           <Row label="المجموع الجزئي" value={formatIQD(subtotal)} />
+          {discount > 0 && (
+            <div className="flex justify-between text-sm text-brand-600">
+              <span>خصم الكوبون ({applied?.code})</span>
+              <span className="nums">−{formatIQD(discount)}</span>
+            </div>
+          )}
           <Row label={`التوصيل (${vendorCount} بائع)`} value={formatIQD(deliveryTotal)} />
           <Row label="الإجمالي" value={formatIQD(total)} bold />
         </CardBody>
@@ -284,6 +363,7 @@ export default function CheckoutPage() {
                 addressId: effectiveAddress,
                 items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
                 customerNote: composedNote(),
+                couponCode: applied?.code,
               });
             }}
           >

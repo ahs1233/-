@@ -23,6 +23,7 @@ import {
   type Actor,
 } from "@al-souq/domain";
 import { sendPush, sendPushMany, type PushPayload } from "./push";
+import { resolveCoupon, computeDiscount } from "./coupon";
 
 const DELIVERY_FEE_FALLBACK_IQD = 5000;
 const PLATFORM_RATE_FALLBACK = 0.1;
@@ -34,6 +35,7 @@ export interface PlaceOrderInput {
   addressId: string;
   items: { productId: string; variantId: string | null; quantity: number }[];
   customerNote?: string;
+  couponCode?: string;
 }
 
 async function getPlatformRate(db: Tx | PrismaClient): Promise<number> {
@@ -130,6 +132,50 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
       byVendor.set(r.vendorId, arr);
     }
 
+    // مجموع كل بائع (بترتيب ثابت) — يُستخدم للتوزيع النسبي للخصم.
+    const vendorEntries = [...byVendor.entries()].map(([vendorId, items]) => ({
+      vendorId,
+      items,
+      subtotal: items.reduce((s, it) => s + it.unitPrice * it.quantity, 0),
+    }));
+    const cartSubtotal = vendorEntries.reduce((s, v) => s + v.subtotal, 0);
+
+    // ── الكوبون: يُحسب على مجموع السلة كاملاً ثم يُوزَّع بالتناسب على البائعين ──
+    let couponId: string | null = null;
+    let couponCodeSnap: string | null = null;
+    const discountByVendor = new Map<string, number>();
+    if (input.couponCode) {
+      const coupon = await resolveCoupon(tx, input.couponCode);
+      const totalDiscount = computeDiscount(coupon, cartSubtotal);
+      // حجز استخدام ذرّي: يفشل إن بلغ الحدّ (يمنع تجاوزه تحت التزامن).
+      const bumped = await tx.coupon.updateMany({
+        where: {
+          id: coupon.id,
+          isActive: true,
+          ...(coupon.usageLimit !== null ? { usedCount: { lt: coupon.usageLimit } } : {}),
+        },
+        data: { usedCount: { increment: 1 } },
+      });
+      if (bumped.count === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "بلغ الكوبون حدّ الاستخدام" });
+      }
+      couponId = coupon.id;
+      couponCodeSnap = coupon.code;
+      // توزيع نسبي مع تصحيح الباقي في آخر بائع (يضمن مساواة المجموع تماماً).
+      let allocated = 0;
+      vendorEntries.forEach((v, i) => {
+        const share =
+          i === vendorEntries.length - 1
+            ? totalDiscount - allocated
+            : cartSubtotal > 0
+              ? Math.round((totalDiscount * v.subtotal) / cartSubtotal)
+              : 0;
+        discountByVendor.set(v.vendorId, share);
+        allocated += share;
+      });
+    }
+    void couponId;
+
     const baseCount = await tx.order.count();
     const expiresAt = reservationExpiry();
     const shipTo = {
@@ -143,11 +189,12 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
     const created: { id: string; number: string; vendorId: string; total: number }[] = [];
     let idx = 0;
 
-    for (const [vendorId, items] of byVendor) {
-      const subtotal = items.reduce((s, it) => s + it.unitPrice * it.quantity, 0);
+    for (const { vendorId, items, subtotal } of vendorEntries) {
       const rate = resolveCommissionRate(platformRate, items[0]!.vendorRate);
+      // العمولة تُحتسب على المجموع الجزئي كاملاً (المنصّة تتحمّل الخصم).
       const { commissionAmount } = calculateCommission(subtotal, rate);
-      const total = subtotal + deliveryFee;
+      const discount = discountByVendor.get(vendorId) ?? 0;
+      const total = subtotal - discount + deliveryFee;
 
       const order = await tx.order.create({
         data: {
@@ -157,6 +204,8 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
           status: "PENDING",
           subtotal: new Prisma.Decimal(subtotal),
           deliveryFee: new Prisma.Decimal(deliveryFee),
+          discount: new Prisma.Decimal(discount),
+          couponCode: couponCodeSnap,
           total: new Prisma.Decimal(total),
           commissionRate: new Prisma.Decimal(rate),
           commissionAmount: new Prisma.Decimal(commissionAmount),
