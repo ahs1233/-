@@ -7,6 +7,7 @@ import { Button, Card, CardBody, OrderStatusBadge, Select, useToast } from "@al-
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { QueryError } from "@/src/components/query-error";
+import { OrderElapsed } from "@/src/components/order-elapsed";
 
 const FORCE_OPTIONS = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as const;
 
@@ -39,6 +40,10 @@ export default function AdminOrderDetail() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold nums">{o.number}</h1>
         <OrderStatusBadge status={o.status} />
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-neutral-500">وقت الطلب:</span>
+        <OrderElapsed placedAt={o.placedAt} status={o.status} />
       </div>
 
       {/* أطراف الطلب */}

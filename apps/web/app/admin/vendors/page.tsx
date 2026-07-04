@@ -56,11 +56,12 @@ export default function AdminVendors() {
           {vendors.data?.map((v) => (
             <Card key={v.id}>
               <CardBody className="space-y-2">
-                <div className="flex items-start justify-between">
+                <Link
+                  href={`/admin/vendors/${v.id}`}
+                  className="-m-1 flex items-start justify-between gap-2 rounded-lg p-1 hover:bg-neutral-50"
+                >
                   <div>
-                    <Link href={`/admin/vendors/${v.id}`} className="font-bold text-brand-600 hover:underline">
-                      {v.storeName}
-                    </Link>
+                    <p className="font-bold text-brand-600">{v.storeName}</p>
                     <p className="text-sm text-neutral-500">
                       {v.ownerName ?? "—"} · <span className="nums">{v.phone}</span>
                       {v.governorate ? ` · ${v.governorate}` : ""}
@@ -69,10 +70,20 @@ export default function AdminVendors() {
                       {v.products} منتج · {v.orders} طلب
                     </p>
                   </div>
-                  <Badge className={VSTATUS[v.status]?.style ?? ""}>{VSTATUS[v.status]?.label ?? v.status}</Badge>
-                </div>
+                  <span className="flex items-center gap-1">
+                    <Badge className={VSTATUS[v.status]?.style ?? ""}>{VSTATUS[v.status]?.label ?? v.status}</Badge>
+                    <span className="text-neutral-400" aria-hidden>
+                      ←
+                    </span>
+                  </span>
+                </Link>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/admin/vendors/${v.id}`}>
+                    <Button size="sm" variant="outline">
+                      إدارة المتجر ←
+                    </Button>
+                  </Link>
                   {v.status !== "APPROVED" && (
                     <Button
                       size="sm"

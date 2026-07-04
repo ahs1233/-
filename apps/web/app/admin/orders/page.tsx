@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardBody, OrderStatusBadge, Select, Button, Input, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
+import { OrderElapsed } from "@/src/components/order-elapsed";
 
 const FILTERS = ["", "PENDING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"];
 const FORCE_OPTIONS = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as const;
@@ -60,9 +61,12 @@ export default function AdminOrders() {
                   </Link>
                   <OrderStatusBadge status={o.status} />
                 </div>
-                <p className="text-sm text-neutral-500">
-                  {o.vendor} ← {o.customer}
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm text-neutral-500">
+                    {o.vendor} ← {o.customer}
+                  </p>
+                  <OrderElapsed placedAt={o.placedAt} status={o.status} />
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-brand-600 nums">{formatIQD(o.total)}</span>
                   <ForceAction
