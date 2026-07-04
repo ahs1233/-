@@ -35,3 +35,16 @@ export function resolveCommissionRate(
   }
   return platformRate;
 }
+
+/**
+ * نسبة العمولة لعنصرٍ بعينه بأولوية: الفئة ← البائع ← المنصّة.
+ * (تجاوز الفئة أقوى لأنه سياسة تسعير للمنصّة على نوع المنتج.)
+ */
+export function resolveItemCommissionRate(
+  platformRate: number,
+  vendorOverride?: number | null,
+  categoryOverride?: number | null,
+): number {
+  if (categoryOverride !== null && categoryOverride !== undefined) return categoryOverride;
+  return resolveCommissionRate(platformRate, vendorOverride);
+}

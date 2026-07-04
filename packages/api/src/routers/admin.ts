@@ -110,6 +110,69 @@ export const adminRouter = router({
       };
     }),
 
+  /** تصدير طلبات الفترة كـ CSV (للمحاسبة). يشمل رأس BOM ليُقرأ العربي في Excel. */
+  exportOrdersCsv: adminProcedure
+    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
+    .query(async ({ ctx, input }) => {
+      const now = new Date();
+      let since: Date | null = null;
+      if (input.period === "today") since = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      else if (input.period === "7d") since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      else if (input.period === "30d") since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const orders = await ctx.prisma.order.findMany({
+        where: since ? { placedAt: { gte: since } } : {},
+        orderBy: { placedAt: "desc" },
+        take: 5000,
+        include: { vendor: { select: { storeName: true } } },
+      });
+
+      const STATUS_AR: Record<string, string> = {
+        PENDING: "بانتظار التأكيد",
+        CONFIRMED: "مؤكّد",
+        PREPARING: "قيد التحضير",
+        SHIPPED: "مشحون",
+        DELIVERED: "مُسلّم",
+        COMPLETED: "مكتمل",
+        CANCELLED: "ملغى",
+        RETURNED: "مُرتجع",
+      };
+      const esc = (v: string | number) => {
+        const s = String(v);
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const headers = [
+        "رقم الطلب",
+        "التاريخ",
+        "المتجر",
+        "الحالة",
+        "المجموع",
+        "الخصم",
+        "الكوبون",
+        "التوصيل",
+        "العمولة",
+        "الإجمالي",
+      ];
+      const rows = orders.map((o) =>
+        [
+          o.number,
+          o.placedAt.toISOString().slice(0, 16).replace("T", " "),
+          o.vendor.storeName,
+          STATUS_AR[o.status] ?? o.status,
+          Number(o.subtotal),
+          Number(o.discount),
+          o.couponCode ?? "",
+          Number(o.deliveryFee),
+          Number(o.commissionAmount),
+          Number(o.total),
+        ]
+          .map(esc)
+          .join(","),
+      );
+      const csv = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+      return { filename: `orders-${input.period}-${now.toISOString().slice(0, 10)}.csv`, csv, count: orders.length };
+    }),
+
   // ── البائعون ──
   vendors: adminProcedure
     .input(z.object({ status: z.string().optional(), search: z.string().trim().max(60).optional() }).optional())
@@ -368,6 +431,7 @@ export const adminRouter = router({
       parentId: c.parentId,
       sortOrder: c.sortOrder,
       isActive: c.isActive,
+      commissionRate: c.commissionRate === null ? null : Number(c.commissionRate),
       products: c._count.products,
       children: c._count.children,
     }));
@@ -682,6 +746,7 @@ export const adminRouter = router({
       commissionRate: typeof map.commission_rate === "number" ? map.commission_rate : 0.1,
       deliveryFee: typeof map.delivery_fee === "number" ? map.delivery_fee : 5000,
       deliveryFeesByGov: (byGov && typeof byGov === "object" ? byGov : {}) as Record<string, number>,
+      minOrderValue: typeof map.min_order_value === "number" ? map.min_order_value : 0,
     };
   }),
 
@@ -711,6 +776,15 @@ export const adminRouter = router({
           where: { key: "delivery_fees_by_gov" },
           update: { value: input.deliveryFeesByGov },
           create: { key: "delivery_fees_by_gov", value: input.deliveryFeesByGov },
+        }),
+      );
+    }
+    if (input.minOrderValue !== undefined) {
+      ops.push(
+        ctx.prisma.platformSetting.upsert({
+          where: { key: "min_order_value" },
+          update: { value: input.minOrderValue },
+          create: { key: "min_order_value", value: input.minOrderValue },
         }),
       );
     }

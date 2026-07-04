@@ -15,8 +15,7 @@
 import { TRPCError } from "@trpc/server";
 import { Prisma, type PrismaClient, type OrderStatus } from "@al-souq/db";
 import {
-  calculateCommission,
-  resolveCommissionRate,
+  resolveItemCommissionRate,
   buildOrderNumber,
   reservationExpiry,
   canTransition,
@@ -42,6 +41,12 @@ async function getPlatformRate(db: Tx | PrismaClient): Promise<number> {
   const setting = await db.platformSetting.findUnique({ where: { key: "commission_rate" } });
   const val = setting?.value;
   return typeof val === "number" ? val : PLATFORM_RATE_FALLBACK;
+}
+
+/** الحدّ الأدنى لقيمة السلة (بضاعة) لإتمام الطلب. 0 = بلا حدّ. */
+async function getMinOrderValue(db: Tx | PrismaClient): Promise<number> {
+  const setting = await db.platformSetting.findUnique({ where: { key: "min_order_value" } });
+  return typeof setting?.value === "number" ? setting.value : 0;
 }
 
 /**
@@ -89,6 +94,7 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
       productId: string;
       vendorId: string;
       vendorRate: number | null;
+      categoryRate: number | null;
       title: string;
       attributes: Prisma.JsonValue;
       unitPrice: number;
@@ -106,6 +112,7 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
         productId: variant.productId,
         vendorId: variant.product.vendorId,
         vendorRate: variant.product.vendor.commissionRate ? Number(variant.product.vendor.commissionRate) : null,
+        categoryRate: variant.product.category?.commissionRate ? Number(variant.product.category.commissionRate) : null,
         title: variant.product.title,
         attributes: variant.attributes,
         unitPrice: Number(variant.price),
@@ -139,6 +146,15 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
       subtotal: items.reduce((s, it) => s + it.unitPrice * it.quantity, 0),
     }));
     const cartSubtotal = vendorEntries.reduce((s, v) => s + v.subtotal, 0);
+
+    // الحدّ الأدنى لقيمة الطلب (سياسة المنصّة)
+    const minOrder = await getMinOrderValue(tx);
+    if (minOrder > 0 && cartSubtotal < minOrder) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `الحدّ الأدنى للطلب ${minOrder.toLocaleString("en-US")} د.ع`,
+      });
+    }
 
     // ── الكوبون: يُحسب على مجموع السلة كاملاً ثم يُوزَّع بالتناسب على البائعين ──
     let couponId: string | null = null;
@@ -190,9 +206,14 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
     let idx = 0;
 
     for (const { vendorId, items, subtotal } of vendorEntries) {
-      const rate = resolveCommissionRate(platformRate, items[0]!.vendorRate);
-      // العمولة تُحتسب على المجموع الجزئي كاملاً (المنصّة تتحمّل الخصم).
-      const { commissionAmount } = calculateCommission(subtotal, rate);
+      // العمولة موزونة لكل عنصر (فئة ← بائع ← منصّة)، على المجموع الكامل
+      // (المنصّة تتحمّل الخصم). النسبة المخزّنة هي المعدّل الفعلي الموزون.
+      let commissionAmount = 0;
+      for (const it of items) {
+        const itemRate = resolveItemCommissionRate(platformRate, it.vendorRate, it.categoryRate);
+        commissionAmount += Math.round(it.unitPrice * it.quantity * itemRate);
+      }
+      const rate = subtotal > 0 ? commissionAmount / subtotal : platformRate;
       const discount = discountByVendor.get(vendorId) ?? 0;
       const total = subtotal - discount + deliveryFee;
 
@@ -283,7 +304,7 @@ async function resolveVariant(tx: Tx, productId: string, variantId: string | nul
   if (variantId) {
     const variant = await tx.productVariant.findUnique({
       where: { id: variantId },
-      include: { product: { include: { vendor: true } } },
+      include: { product: { include: { vendor: true, category: { select: { commissionRate: true } } } } },
     });
     if (!variant || variant.productId !== productId || !variant.isActive) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "خيار المنتج غير صالح" });
@@ -293,7 +314,7 @@ async function resolveVariant(tx: Tx, productId: string, variantId: string | nul
   // بلا متغيّر محدّد: يُقبل فقط إن كان للمنتج متغيّر واحد فعّال
   const variants = await tx.productVariant.findMany({
     where: { productId, isActive: true },
-    include: { product: { include: { vendor: true } } },
+    include: { product: { include: { vendor: true, category: { select: { commissionRate: true } } } } },
   });
   if (variants.length !== 1) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "يجب اختيار أحد خيارات المنتج" });
