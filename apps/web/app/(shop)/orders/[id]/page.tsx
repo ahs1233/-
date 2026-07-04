@@ -52,6 +52,11 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   const ship = o.shipTo as { fullName: string; phone: string; governorate: string; area: string; line: string };
   const isCancelled = o.status === "CANCELLED" || o.status === "RETURNED";
   const currentStep = TRACK_STEPS.indexOf(o.status as (typeof TRACK_STEPS)[number]);
+  // وقت بلوغ كل حالة (من سجلّ الطلب) — للخطّ الزمني.
+  const reachedAt: Record<string, Date> = { PENDING: new Date(o.placedAt) };
+  for (const h of o.history) reachedAt[h.toStatus] = new Date(h.createdAt);
+  const fmtTime = (d: Date) =>
+    d.toLocaleString("ar-IQ", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
   const canCancel = ["PENDING", "CONFIRMED", "PREPARING"].includes(o.status);
   const canConfirm = o.status === "DELIVERED";
 
@@ -62,25 +67,41 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         <OrderStatusBadge status={o.status} />
       </div>
 
-      {/* خط التتبّع */}
+      {/* خطّ تتبّع الطلب — عمودي بالأوقات */}
       {!isCancelled && (
         <Card>
           <CardBody>
-            <ol className="flex items-center justify-between">
-              {TRACK_STEPS.map((s, i) => (
-                <li key={s} className="flex flex-1 flex-col items-center text-center">
-                  <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs ${
-                      i <= currentStep ? "bg-brand-500 text-white" : "bg-neutral-200 text-neutral-400"
-                    }`}
-                  >
-                    {i + 1}
-                  </div>
-                  <span className={`mt-1 text-[10px] ${i <= currentStep ? "text-brand-600" : "text-neutral-400"}`}>
-                    {ORDER_STATUS_LABEL[s]}
-                  </span>
-                </li>
-              ))}
+            <h2 className="mb-3 font-bold">تتبّع الطلب</h2>
+            <ol>
+              {TRACK_STEPS.map((s, i) => {
+                const reached = i <= currentStep;
+                const isCurrent = i === currentStep;
+                const isLast = i === TRACK_STEPS.length - 1;
+                const at = reachedAt[s];
+                return (
+                  <li key={s} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <span
+                        className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full ${
+                          reached ? "bg-brand-500" : "bg-neutral-200"
+                        } ${isCurrent ? "ring-4 ring-brand-100" : ""}`}
+                      >
+                        {reached && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                      </span>
+                      {!isLast && (
+                        <span className={`min-h-[1.75rem] w-0.5 flex-1 ${i < currentStep ? "bg-brand-500" : "bg-neutral-200"}`} />
+                      )}
+                    </div>
+                    <div className={`flex flex-1 items-center justify-between ${isLast ? "" : "pb-4"}`}>
+                      <span className={`text-sm ${reached ? "font-medium" : "text-neutral-400"}`}>
+                        {ORDER_STATUS_LABEL[s]}
+                        {isCurrent && <span className="ms-2 text-xs text-brand-600">• الحالة الآن</span>}
+                      </span>
+                      {reached && at && <span className="text-xs text-neutral-400 nums">{fmtTime(at)}</span>}
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </CardBody>
         </Card>
