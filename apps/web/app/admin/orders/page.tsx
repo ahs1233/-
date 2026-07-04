@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card, CardBody, OrderStatusBadge, Select, Button, Input, useToast } from "@al-souq/ui";
+import { OrderStatusBadge, Select, Button, Input, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { OrderElapsed } from "@/src/components/order-elapsed";
+import { DataTable, type Column } from "@/src/components/data-table";
 
 const FILTERS = ["", "PENDING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"];
 const FORCE_OPTIONS = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as const;
@@ -24,15 +25,58 @@ export default function AdminOrders() {
     onError: (e) => toastError(e.message),
   });
 
+  type Order = NonNullable<typeof orders.data>[number];
+  const columns: Column<Order>[] = [
+    {
+      key: "number",
+      header: "رقم الطلب",
+      sortValue: (o) => o.number,
+      render: (o) => (
+        <Link href={`/admin/orders/${o.id}`} className="font-bold text-brand-600 nums hover:underline">
+          {o.number}
+        </Link>
+      ),
+    },
+    {
+      key: "status",
+      header: "الحالة",
+      sortValue: (o) => o.status,
+      render: (o) => <OrderStatusBadge status={o.status} />,
+    },
+    { key: "vendor", header: "البائع", sortValue: (o) => o.vendor, render: (o) => o.vendor },
+    { key: "customer", header: "الزبون", render: (o) => o.customer },
+    {
+      key: "total",
+      header: "الإجمالي",
+      align: "end",
+      sortValue: (o) => o.total,
+      render: (o) => <span className="font-bold text-brand-600 nums">{formatIQD(o.total)}</span>,
+    },
+    {
+      key: "time",
+      header: "الوقت",
+      sortValue: (o) => new Date(o.placedAt).getTime(),
+      render: (o) => <OrderElapsed placedAt={o.placedAt} status={o.status} />,
+    },
+    {
+      key: "action",
+      header: "إجراء",
+      hideLabelOnMobile: true,
+      render: (o) => (
+        <ForceAction
+          current={o.status}
+          loading={force.isPending}
+          onApply={(to) => force.mutate({ orderId: o.id, status: to, note: "تدخّل إداري" })}
+        />
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">الطلبات والنزاعات</h1>
 
-      <Input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="بحث برقم الطلب أو هاتف الزبون…"
-      />
+      <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث برقم الطلب أو هاتف الزبون…" />
 
       <div className="flex gap-1 overflow-x-auto pb-1">
         {FILTERS.map((f) => (
@@ -51,34 +95,13 @@ export default function AdminOrders() {
       {orders.isLoading ? (
         <p className="text-neutral-500">جارٍ التحميل…</p>
       ) : (
-        <ul className="space-y-3">
-          {orders.data?.map((o) => (
-            <Card key={o.id}>
-              <CardBody className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Link href={`/admin/orders/${o.id}`} className="font-bold text-brand-600 nums hover:underline">
-                    {o.number}
-                  </Link>
-                  <OrderStatusBadge status={o.status} />
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm text-neutral-500">
-                    {o.vendor} ← {o.customer}
-                  </p>
-                  <OrderElapsed placedAt={o.placedAt} status={o.status} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-brand-600 nums">{formatIQD(o.total)}</span>
-                  <ForceAction
-                    current={o.status}
-                    loading={force.isPending}
-                    onApply={(to) => force.mutate({ orderId: o.id, status: to, note: "تدخّل إداري" })}
-                  />
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </ul>
+        <DataTable
+          columns={columns}
+          rows={orders.data ?? []}
+          getRowKey={(o) => o.id}
+          initialSort={{ key: "time", dir: "desc" }}
+          emptyLabel="لا طلبات مطابقة"
+        />
       )}
     </div>
   );
@@ -104,11 +127,7 @@ function ForceAction({
           </option>
         ))}
       </Select>
-      <Button
-        size="sm"
-        disabled={!to || loading}
-        onClick={() => to && onApply(to as (typeof FORCE_OPTIONS)[number])}
-      >
+      <Button size="sm" disabled={!to || loading} onClick={() => to && onApply(to as (typeof FORCE_OPTIONS)[number])}>
         تطبيق
       </Button>
     </div>
