@@ -104,6 +104,8 @@ export const categoryUpdateSchema = z.object({
   icon: z.string().trim().max(40).optional(),
   sortOrder: z.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
+  /** تجاوز عمولة الفئة (0..1)؛ null لإزالته والعودة لعمولة البائع/المنصّة. */
+  commissionRate: z.number().min(0).max(1).nullable().optional(),
 });
 
 export const productReviewSchema = z.object({
@@ -122,6 +124,8 @@ export const platformSettingsSchema = z.object({
   deliveryFee: z.number().int().min(0).max(100_000).optional(),
   /** رسوم توصيل خاصة لكل محافظة (تتجاوز الافتراضية) — المفتاح governorateId. */
   deliveryFeesByGov: z.record(z.string().cuid(), z.number().int().min(0).max(100_000)).optional(),
+  /** حدّ أدنى لقيمة السلة (مجموع البضاعة) لإتمام الطلب. 0 = بلا حدّ. */
+  minOrderValue: z.number().int().min(0).max(10_000_000).optional(),
 });
 
 // ─────────────────────────── Product ───────────────────────────

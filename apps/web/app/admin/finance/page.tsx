@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card, CardBody } from "@al-souq/ui";
+import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { QueryError } from "@/src/components/query-error";
@@ -18,23 +18,50 @@ const PERIODS: { key: Period; label: string }[] = [
 export default function AdminFinance() {
   const [period, setPeriod] = useState<Period>("30d");
   const fin = trpc.admin.financeSummary.useQuery({ period }, { retry: false });
+  const utils = trpc.useUtils();
+  const { success, error } = useToast();
+  const [exporting, setExporting] = useState(false);
+
+  async function exportCsv() {
+    setExporting(true);
+    try {
+      const res = await utils.admin.exportOrdersCsv.fetch({ period });
+      const blob = new Blob([res.csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      success(`تم تصدير ${res.count} طلب`);
+    } catch (e) {
+      error(e instanceof Error ? e.message : "تعذّر التصدير");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">المالية والمحاسبة</h1>
-        <div className="flex rounded-lg border border-neutral-200 bg-white p-0.5 text-sm">
-          {PERIODS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setPeriod(p.key)}
-              className={`rounded-md px-3 py-1 transition ${
-                period === p.key ? "bg-brand-500 text-white" : "text-neutral-600 hover:bg-neutral-100"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-neutral-200 bg-white p-0.5 text-sm">
+            {PERIODS.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => setPeriod(p.key)}
+                className={`rounded-md px-3 py-1 transition ${
+                  period === p.key ? "bg-brand-500 text-white" : "text-neutral-600 hover:bg-neutral-100"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <Button size="sm" variant="outline" loading={exporting} onClick={exportCsv}>
+            تصدير CSV
+          </Button>
         </div>
       </div>
 

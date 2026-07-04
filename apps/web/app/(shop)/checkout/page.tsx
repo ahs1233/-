@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const hydrated = useCartHydrated();
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
   const addresses = trpc.address.list.useQuery(undefined, { enabled: me.isSuccess });
+  const checkoutMeta = trpc.order.checkoutMeta.useQuery(undefined, { enabled: me.isSuccess });
   const [addressId, setAddressId] = useState<string>("");
   const [changingAddress, setChangingAddress] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -72,6 +73,8 @@ export default function CheckoutPage() {
   // الخصم المطبَّق لا يتجاوز المجموع الجزئي (حماية عرضية؛ الخادم هو المرجع).
   const discount = applied ? Math.min(applied.discount, subtotal) : 0;
   const total = subtotal - discount + deliveryTotal;
+  const minOrder = checkoutMeta.data?.minOrderValue ?? 0;
+  const belowMin = minOrder > 0 && subtotal < minOrder;
 
   // إبطال الكوبون المطبَّق إن تغيّرت السلة (يُعاد التحقّق يدوياً).
   useEffect(() => {
@@ -343,6 +346,11 @@ export default function CheckoutPage() {
         </CardBody>
       </Card>
 
+      {belowMin && (
+        <p className="rounded-lg bg-gold-400/10 p-2 text-sm text-gold-700">
+          الحدّ الأدنى للطلب {formatIQD(minOrder)} — أضف منتجات بقيمة {formatIQD(minOrder - subtotal)} إضافية.
+        </p>
+      )}
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {/* الشريط السفلي الثابت — يُرفع فوق شريط التنقّل السفلي على الجوال */}
@@ -356,7 +364,7 @@ export default function CheckoutPage() {
             className="flex-1"
             size="lg"
             loading={place.isPending}
-            disabled={!effectiveAddress}
+            disabled={!effectiveAddress || belowMin}
             onClick={() => {
               setError(null);
               place.mutate({
@@ -367,7 +375,11 @@ export default function CheckoutPage() {
               });
             }}
           >
-            {effectiveAddress ? "إتمام الطلب" : "أضف عنواناً أولاً"}
+            {!effectiveAddress
+              ? "أضف عنواناً أولاً"
+              : belowMin
+                ? `الحدّ الأدنى ${formatIQD(minOrder)}`
+                : "إتمام الطلب"}
           </Button>
         </div>
       </div>

@@ -179,6 +179,8 @@ model Category {
   children  Category[] @relation("CategoryTree")
   sortOrder Int        @default(0)
   isActive  Boolean    @default(true)
+  // تجاوز عمولة المنصّة لهذه الفئة (0..1). null = استخدام عمولة البائع/المنصّة.
+  commissionRate Decimal? @db.Decimal(5, 4)
   createdAt DateTime   @default(now())
 
   products Product[]

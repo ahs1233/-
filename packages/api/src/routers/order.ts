@@ -38,6 +38,14 @@ export const orderRouter = router({
     return result;
   }),
 
+  /** معلومات صفحة الدفع (سياسات المنصّة) — الحدّ الأدنى للطلب حالياً. */
+  checkoutMeta: protectedProcedure
+    .output(z.object({ minOrderValue: z.number() }))
+    .query(async ({ ctx }) => {
+      const s = await ctx.prisma.platformSetting.findUnique({ where: { key: "min_order_value" } });
+      return { minOrderValue: typeof s?.value === "number" ? s.value : 0 };
+    }),
+
   /**
    * معاينة كوبون قبل الطلب: يتحقّق من الصلاحية ويحسب الخصم على مجموع السلة.
    * لا يستهلك الكوبون (الاستهلاك يتمّ فقط عند إتمام الطلب).

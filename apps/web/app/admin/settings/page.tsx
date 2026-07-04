@@ -19,12 +19,14 @@ export default function AdminSettings() {
 
   const [commissionPct, setCommissionPct] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("");
+  const [minOrder, setMinOrder] = useState("");
   const [byGov, setByGov] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (settings.data) {
       setCommissionPct(String(Math.round(settings.data.commissionRate * 100)));
       setDeliveryFee(String(settings.data.deliveryFee));
+      setMinOrder(String(settings.data.minOrderValue));
       setByGov(Object.fromEntries(Object.entries(settings.data.deliveryFeesByGov).map(([k, v]) => [k, String(v)])));
     }
   }, [settings.data]);
@@ -38,6 +40,7 @@ export default function AdminSettings() {
     update.mutate({
       commissionRate: Math.max(0, Math.min(100, Number(commissionPct))) / 100,
       deliveryFee: Number(deliveryFee),
+      minOrderValue: Math.max(0, Math.round(Number(minOrder) || 0)),
       deliveryFeesByGov: feesByGov,
     });
   }
@@ -56,6 +59,11 @@ export default function AdminSettings() {
           <label className="block">
             <span className="mb-1 block text-sm font-medium">رسوم التوصيل الافتراضية لكل بائع (د.ع)</span>
             <Input inputMode="numeric" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)} />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">الحدّ الأدنى لقيمة الطلب (د.ع)</span>
+            <Input inputMode="numeric" value={minOrder} onChange={(e) => setMinOrder(e.target.value)} />
+            <span className="text-xs text-neutral-400">اترك ٠ لإلغاء الحدّ. يُطبَّق على مجموع البضاعة قبل التوصيل.</span>
           </label>
         </CardBody>
       </Card>
