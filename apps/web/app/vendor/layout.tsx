@@ -10,6 +10,7 @@ const NAV = [
   { href: "/vendor", label: "نظرة عامة" },
   { href: "/vendor/products", label: ar.vendor.products },
   { href: "/vendor/orders", label: ar.vendor.orders },
+  { href: "/vendor/statement", label: "كشف الحساب" },
   { href: "/vendor/payouts", label: ar.vendor.payouts },
   { href: "/vendor/settings", label: ar.vendor.settings },
 ];
