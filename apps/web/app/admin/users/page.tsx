@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, CardBody, Badge, Input, useToast } from "@al-souq/ui";
+import { Button, Badge, Input, useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
+import { DataTable, type Column } from "@/src/components/data-table";
 
 const ROLE_LABEL: Record<string, string> = { CUSTOMER: "مشترٍ", VENDOR: "بائع", ADMIN: "مدير" };
 const ROLE_FILTERS = ["", "CUSTOMER", "VENDOR", "ADMIN"];
@@ -21,11 +22,45 @@ export default function AdminUsers() {
     onError: (e) => error(e.message),
   });
 
+  type User = NonNullable<typeof users.data>[number];
+  const columns: Column<User>[] = [
+    { key: "name", header: "الاسم", sortValue: (u) => u.name ?? "", render: (u) => u.name ?? "—" },
+    {
+      key: "role",
+      header: "الدور",
+      sortValue: (u) => u.role,
+      render: (u) => <Badge className="bg-neutral-100 text-neutral-600">{ROLE_LABEL[u.role] ?? u.role}</Badge>,
+    },
+    { key: "phone", header: "الهاتف", render: (u) => <span className="nums text-neutral-600">{u.phone}</span> },
+    {
+      key: "state",
+      header: "الحالة",
+      render: (u) =>
+        u.isBlocked ? <span className="text-danger">محظور</span> : <span className="text-neutral-500">نشط</span>,
+    },
+    {
+      key: "action",
+      header: "إجراء",
+      hideLabelOnMobile: true,
+      render: (u) => (
+        <Button
+          size="sm"
+          variant={u.isBlocked ? "outline" : "danger"}
+          loading={manage.isPending}
+          onClick={() => manage.mutate({ userId: u.id, action: u.isBlocked ? "unblock" : "block" })}
+        >
+          {u.isBlocked ? "رفع الحظر" : "حظر"}
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">المستخدمون</h1>
 
       <Input dir="rtl" placeholder="بحث بالاسم أو الهاتف" value={q} onChange={(e) => setQ(e.target.value)} />
+
       <div className="flex gap-1">
         {ROLE_FILTERS.map((r) => (
           <button
@@ -41,29 +76,7 @@ export default function AdminUsers() {
       {users.isLoading ? (
         <p className="text-neutral-500">جارٍ التحميل…</p>
       ) : (
-        <ul className="space-y-2">
-          {users.data?.map((u) => (
-            <Card key={u.id}>
-              <CardBody className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">
-                    {u.name ?? "—"} <Badge className="ms-1 bg-neutral-100 text-neutral-600">{ROLE_LABEL[u.role]}</Badge>
-                  </p>
-                  <p className="text-sm text-neutral-500 nums">{u.phone}</p>
-                  {u.isBlocked && <span className="text-xs text-danger">محظور</span>}
-                </div>
-                <Button
-                  size="sm"
-                  variant={u.isBlocked ? "outline" : "danger"}
-                  loading={manage.isPending}
-                  onClick={() => manage.mutate({ userId: u.id, action: u.isBlocked ? "unblock" : "block" })}
-                >
-                  {u.isBlocked ? "رفع الحظر" : "حظر"}
-                </Button>
-              </CardBody>
-            </Card>
-          ))}
-        </ul>
+        <DataTable columns={columns} rows={users.data ?? []} getRowKey={(u) => u.id} emptyLabel="لا مستخدمين مطابقين" />
       )}
     </div>
   );

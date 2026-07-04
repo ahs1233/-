@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, CardBody, Badge, Input } from "@al-souq/ui";
+import { Button, Badge, Input } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
+import { DataTable, type Column } from "@/src/components/data-table";
 
 const VSTATUS: Record<string, { label: string; style: string }> = {
   PENDING: { label: "قيد المراجعة", style: "bg-gold-400/20 text-gold-600" },
@@ -29,6 +30,78 @@ export default function AdminVendors() {
     },
   });
 
+  type Vendor = NonNullable<typeof vendors.data>[number];
+  const columns: Column<Vendor>[] = [
+    {
+      key: "storeName",
+      header: "المتجر",
+      sortValue: (v) => v.storeName,
+      render: (v) => (
+        <Link href={`/admin/vendors/${v.id}`} className="font-bold text-brand-600 hover:underline">
+          {v.storeName}
+        </Link>
+      ),
+    },
+    {
+      key: "owner",
+      header: "المالك",
+      render: (v) => (
+        <span className="text-sm">
+          {v.ownerName ?? "—"} · <span className="nums text-neutral-500">{v.phone}</span>
+        </span>
+      ),
+    },
+    { key: "governorate", header: "المحافظة", render: (v) => v.governorate ?? "—" },
+    { key: "products", header: "منتجات", align: "center", sortValue: (v) => v.products, render: (v) => <span className="nums">{v.products}</span> },
+    { key: "orders", header: "طلبات", align: "center", sortValue: (v) => v.orders, render: (v) => <span className="nums">{v.orders}</span> },
+    {
+      key: "status",
+      header: "الحالة",
+      sortValue: (v) => v.status,
+      render: (v) => <Badge className={VSTATUS[v.status]?.style ?? ""}>{VSTATUS[v.status]?.label ?? v.status}</Badge>,
+    },
+    {
+      key: "action",
+      header: "إجراءات",
+      hideLabelOnMobile: true,
+      render: (v) => (
+        <div className="flex flex-wrap gap-1.5">
+          <Link href={`/admin/vendors/${v.id}`}>
+            <Button size="sm" variant="outline">
+              إدارة ←
+            </Button>
+          </Link>
+          {v.status !== "APPROVED" && (
+            <Button size="sm" loading={review.isPending} onClick={() => review.mutate({ vendorId: v.id, decision: "APPROVED" })}>
+              اعتماد
+            </Button>
+          )}
+          {v.status === "APPROVED" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => review.mutate({ vendorId: v.id, decision: "SUSPENDED", note: window.prompt("سبب التعليق (اختياري):") ?? undefined })}
+            >
+              تعليق
+            </Button>
+          )}
+          {v.status === "PENDING" && (
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => {
+                const note = window.prompt("سبب الرفض:");
+                if (note !== null) review.mutate({ vendorId: v.id, decision: "REJECTED", note: note || undefined });
+              }}
+            >
+              رفض
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">البائعون</h1>
@@ -52,76 +125,13 @@ export default function AdminVendors() {
       {vendors.isLoading ? (
         <p className="text-neutral-500">جارٍ التحميل…</p>
       ) : (
-        <ul className="space-y-3">
-          {vendors.data?.map((v) => (
-            <Card key={v.id}>
-              <CardBody className="space-y-2">
-                <Link
-                  href={`/admin/vendors/${v.id}`}
-                  className="-m-1 flex items-start justify-between gap-2 rounded-lg p-1 hover:bg-neutral-50"
-                >
-                  <div>
-                    <p className="font-bold text-brand-600">{v.storeName}</p>
-                    <p className="text-sm text-neutral-500">
-                      {v.ownerName ?? "—"} · <span className="nums">{v.phone}</span>
-                      {v.governorate ? ` · ${v.governorate}` : ""}
-                    </p>
-                    <p className="text-xs text-neutral-400 nums">
-                      {v.products} منتج · {v.orders} طلب
-                    </p>
-                  </div>
-                  <span className="flex items-center gap-1">
-                    <Badge className={VSTATUS[v.status]?.style ?? ""}>{VSTATUS[v.status]?.label ?? v.status}</Badge>
-                    <span className="text-neutral-400" aria-hidden>
-                      ←
-                    </span>
-                  </span>
-                </Link>
-
-                <div className="flex flex-wrap gap-2">
-                  <Link href={`/admin/vendors/${v.id}`}>
-                    <Button size="sm" variant="outline">
-                      إدارة المتجر ←
-                    </Button>
-                  </Link>
-                  {v.status !== "APPROVED" && (
-                    <Button
-                      size="sm"
-                      loading={review.isPending}
-                      onClick={() => review.mutate({ vendorId: v.id, decision: "APPROVED" })}
-                    >
-                      اعتماد
-                    </Button>
-                  )}
-                  {v.status === "APPROVED" && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const note = window.prompt("سبب التعليق (اختياري):") ?? undefined;
-                        review.mutate({ vendorId: v.id, decision: "SUSPENDED", note });
-                      }}
-                    >
-                      تعليق
-                    </Button>
-                  )}
-                  {v.status === "PENDING" && (
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => {
-                        const note = window.prompt("سبب الرفض:") ?? undefined;
-                        review.mutate({ vendorId: v.id, decision: "REJECTED", note });
-                      }}
-                    >
-                      رفض
-                    </Button>
-                  )}
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </ul>
+        <DataTable
+          columns={columns}
+          rows={vendors.data ?? []}
+          getRowKey={(v) => v.id}
+          initialSort={{ key: "orders", dir: "desc" }}
+          emptyLabel="لا بائعين مطابقين"
+        />
       )}
     </div>
   );
