@@ -266,6 +266,76 @@ export const adminRouter = router({
     };
   }),
 
+  // طلبات متجر معيّن: الحالية (قيد التنفيذ) أو السابقة (منتهية)، للوحة الأدمن.
+  vendorOrders: adminProcedure
+    .input(z.object({ vendorId: z.string().cuid(), scope: z.enum(["current", "past"]).default("current") }))
+    .query(async ({ ctx, input }) => {
+      const CURRENT = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED"] as OrderStatus[];
+      const PAST = ["DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as OrderStatus[];
+      const orders = await ctx.prisma.order.findMany({
+        where: { vendorId: input.vendorId, status: { in: input.scope === "current" ? CURRENT : PAST } },
+        orderBy: { placedAt: "desc" },
+        take: 50,
+        select: {
+          id: true,
+          number: true,
+          status: true,
+          subtotal: true,
+          total: true,
+          placedAt: true,
+          _count: { select: { items: true } },
+        },
+      });
+      return orders.map((o) => ({
+        id: o.id,
+        number: o.number,
+        status: o.status,
+        subtotal: Number(o.subtotal),
+        total: Number(o.total),
+        placedAt: o.placedAt,
+        itemCount: o._count.items,
+      }));
+    }),
+
+  // تقرير مالي لمتجر معيّن بفترة زمنية متغيّرة (لصفحة المتجر في الأدمن).
+  vendorFinance: adminProcedure
+    .input(z.object({ vendorId: z.string().cuid(), period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
+    .query(async ({ ctx, input }) => {
+      const since = periodSince(input.period);
+      const realized = { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] };
+      const [agg, pendingAgg] = await Promise.all([
+        ctx.prisma.order.aggregate({
+          where: { vendorId: input.vendorId, status: realized, ...(since ? { placedAt: { gte: since } } : {}) },
+          _sum: { subtotal: true, commissionAmount: true, deliveryFee: true },
+          _count: true,
+        }),
+        ctx.prisma.order.aggregate({
+          where: {
+            vendorId: input.vendorId,
+            status: { in: ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED"] as OrderStatus[] },
+            ...(since ? { placedAt: { gte: since } } : {}),
+          },
+          _sum: { subtotal: true },
+          _count: true,
+        }),
+      ]);
+      const grossSales = Number(agg._sum.subtotal ?? 0);
+      const commission = Number(agg._sum.commissionAmount ?? 0);
+      const deliveryRevenue = Number(agg._sum.deliveryFee ?? 0);
+      const realizedOrders = agg._count;
+      return {
+        period: input.period,
+        grossSales,
+        commission,
+        netToVendor: grossSales - commission,
+        deliveryRevenue,
+        realizedOrders,
+        avgOrderValue: realizedOrders > 0 ? grossSales / realizedOrders : 0,
+        pendingSales: Number(pendingAgg._sum.subtotal ?? 0),
+        pendingOrders: pendingAgg._count,
+      };
+    }),
+
   reviewVendor: adminProcedure.input(vendorReviewSchema).mutation(async ({ ctx, input }) => {
     const vendor = await ctx.prisma.vendorProfile.findUnique({ where: { id: input.vendorId } });
     if (!vendor) throw new TRPCError({ code: "NOT_FOUND", message: "البائع غير موجود" });
@@ -473,26 +543,55 @@ export const adminRouter = router({
     return { ok: true };
   }),
 
-  removeCategory: adminProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const cat = await ctx.prisma.category.findUnique({
-      where: { id: input.id },
-      include: { _count: { select: { products: true, children: true } } },
-    });
-    if (!cat) throw new TRPCError({ code: "NOT_FOUND", message: "الفئة غير موجودة" });
-    if (cat._count.products > 0 || cat._count.children > 0) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف فئة تحتوي منتجات أو فئات فرعية" });
-    }
-    await ctx.prisma.category.delete({ where: { id: input.id } });
-    await writeAudit(ctx.prisma, {
-      actorId: ctx.user.id,
-      action: "category.delete",
-      entityType: "Category",
-      entityId: input.id,
-      before: { nameAr: cat.nameAr },
-      ip: ctx.reqIp,
-    });
-    return { ok: true };
-  }),
+  removeCategory: adminProcedure
+    .input(z.object({ id: z.string().cuid(), reassignToId: z.string().cuid().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const all = await ctx.prisma.category.findMany({ select: { id: true, parentId: true, nameAr: true } });
+      const target = all.find((c) => c.id === input.id);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "الفئة غير موجودة" });
+
+      // اجمع الفئة وكل نسلها بترتيب المستويات (لحذف الأعمق أولاً — قيد المفتاح الأجنبي).
+      const childrenOf = new Map<string, string[]>();
+      for (const c of all) {
+        if (c.parentId) (childrenOf.get(c.parentId) ?? childrenOf.set(c.parentId, []).get(c.parentId)!).push(c.id);
+      }
+      const levels: string[][] = [];
+      let level = [input.id];
+      while (level.length) {
+        levels.push(level);
+        level = level.flatMap((id) => childrenOf.get(id) ?? []);
+      }
+      const subtree = levels.flat();
+      const subtreeSet = new Set(subtree);
+
+      // نقل منتجات الشجرة كلها إلى فئة وجهة قبل الحذف (المنتج يتطلّب فئة).
+      const productCount = await ctx.prisma.product.count({ where: { categoryId: { in: subtree } } });
+      if (productCount > 0) {
+        const dest = input.reassignToId ?? target.parentId ?? undefined;
+        if (!dest || subtreeSet.has(dest) || !all.some((c) => c.id === dest)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `تحتوي هذه الفئة على ${productCount} منتج — اختر فئة لنقلها إليها قبل الحذف`,
+          });
+        }
+        await ctx.prisma.product.updateMany({ where: { categoryId: { in: subtree } }, data: { categoryId: dest } });
+      }
+
+      // حذف من الأعمق إلى الجذر (احترام قيد الفئة الأصل).
+      for (let i = levels.length - 1; i >= 0; i--) {
+        await ctx.prisma.category.deleteMany({ where: { id: { in: levels[i]! } } });
+      }
+
+      await writeAudit(ctx.prisma, {
+        actorId: ctx.user.id,
+        action: "category.delete",
+        entityType: "Category",
+        entityId: input.id,
+        before: { nameAr: target.nameAr, deletedCount: subtree.length, movedProducts: productCount },
+        ip: ctx.reqIp,
+      });
+      return { ok: true, deletedCount: subtree.length, movedProducts: productCount };
+    }),
 
   // ── الكوبونات ──
   coupons: adminProcedure.query(async ({ ctx }) => {
@@ -821,3 +920,12 @@ export const adminRouter = router({
       }));
     }),
 });
+
+/** بداية الفترة الزمنية للتقارير المالية (null = كل الوقت). */
+function periodSince(period: "today" | "7d" | "30d" | "all"): Date | null {
+  const now = new Date();
+  if (period === "today") return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === "7d") return new Date(now.getTime() - 7 * 86_400_000);
+  if (period === "30d") return new Date(now.getTime() - 30 * 86_400_000);
+  return null;
+}

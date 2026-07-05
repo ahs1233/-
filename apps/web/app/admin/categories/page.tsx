@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, CardBody, Input, Select , useToast } from "@al-souq/ui";
+import { Button, Card, CardBody, Input, Select, useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 
+type Cat = { id: string; nameAr: string; parentId: string | null; isActive: boolean; products: number; children: number; commissionRate: number | null };
+
 export default function AdminCategories() {
-  const { error: toastError } = useToast();
+  const { error: toastError, success } = useToast();
   const cats = trpc.admin.categories.useQuery(undefined, { retry: false });
   const utils = trpc.useUtils();
   const invalidate = () => {
@@ -14,12 +16,44 @@ export default function AdminCategories() {
   };
   const create = trpc.admin.createCategory.useMutation({ onSuccess: invalidate });
   const update = trpc.admin.updateCategory.useMutation({ onSuccess: invalidate });
-  const remove = trpc.admin.removeCategory.useMutation({ onSuccess: invalidate, onError: (e) => toastError(e.message) });
+  const remove = trpc.admin.removeCategory.useMutation({
+    onSuccess: (r) => {
+      invalidate();
+      setDelId(null);
+      setMoveTo("");
+      success(r.movedProducts > 0 ? `حُذفت الفئة ونُقل ${r.movedProducts} منتج` : "حُذفت الفئة");
+    },
+    onError: (e) => toastError(e.message),
+  });
 
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
+  const [delId, setDelId] = useState<string | null>(null);
+  const [moveTo, setMoveTo] = useState("");
 
-  const parents = cats.data?.filter((c) => !c.parentId) ?? [];
+  const all: Cat[] = cats.data ?? [];
+  const parents = all.filter((c) => !c.parentId);
+
+  // معرّفات الفئة وكل نسلها (لاستبعادها من وجهات النقل).
+  function subtreeIds(id: string): Set<string> {
+    const set = new Set<string>([id]);
+    let added = true;
+    while (added) {
+      added = false;
+      for (const c of all) {
+        if (c.parentId && set.has(c.parentId) && !set.has(c.id)) {
+          set.add(c.id);
+          added = true;
+        }
+      }
+    }
+    return set;
+  }
+  // وجهات النقل المتاحة لفئة يُراد حذفها: كل الفئات خارج شجرتها.
+  const destinations = (id: string) => {
+    const sub = subtreeIds(id);
+    return all.filter((c) => !sub.has(c.id));
+  };
 
   return (
     <div className="space-y-4">
@@ -52,27 +86,56 @@ export default function AdminCategories() {
       </Card>
 
       {parents.map((parent) => {
-        const children = cats.data?.filter((c) => c.parentId === parent.id) ?? [];
+        const children = all.filter((c) => c.parentId === parent.id);
         return (
           <Card key={parent.id}>
             <CardBody className="space-y-2">
               <Row
                 cat={parent}
                 onToggle={(active) => update.mutate({ id: parent.id, isActive: active })}
-                onDelete={() => remove.mutate({ id: parent.id })}
+                onAskDelete={() => {
+                  setDelId(parent.id);
+                  setMoveTo("");
+                }}
                 onCommission={(rate) => update.mutate({ id: parent.id, commissionRate: rate })}
                 saving={update.isPending}
                 bold
               />
-              {children.map((ch) => (
-                <Row
-                  key={ch.id}
-                  cat={ch}
-                  onToggle={(active) => update.mutate({ id: ch.id, isActive: active })}
-                  onDelete={() => remove.mutate({ id: ch.id })}
-                  onCommission={(rate) => update.mutate({ id: ch.id, commissionRate: rate })}
-                  saving={update.isPending}
+              {delId === parent.id && (
+                <DeletePanel
+                  cat={parent}
+                  destinations={destinations(parent.id)}
+                  moveTo={moveTo}
+                  setMoveTo={setMoveTo}
+                  busy={remove.isPending}
+                  onConfirm={() => remove.mutate({ id: parent.id, reassignToId: moveTo || undefined })}
+                  onCancel={() => setDelId(null)}
                 />
+              )}
+              {children.map((ch) => (
+                <div key={ch.id}>
+                  <Row
+                    cat={ch}
+                    onToggle={(active) => update.mutate({ id: ch.id, isActive: active })}
+                    onAskDelete={() => {
+                      setDelId(ch.id);
+                      setMoveTo("");
+                    }}
+                    onCommission={(rate) => update.mutate({ id: ch.id, commissionRate: rate })}
+                    saving={update.isPending}
+                  />
+                  {delId === ch.id && (
+                    <DeletePanel
+                      cat={ch}
+                      destinations={destinations(ch.id)}
+                      moveTo={moveTo}
+                      setMoveTo={setMoveTo}
+                      busy={remove.isPending}
+                      onConfirm={() => remove.mutate({ id: ch.id, reassignToId: moveTo || undefined })}
+                      onCancel={() => setDelId(null)}
+                    />
+                  )}
+                </div>
               ))}
             </CardBody>
           </Card>
@@ -85,14 +148,14 @@ export default function AdminCategories() {
 function Row({
   cat,
   onToggle,
-  onDelete,
+  onAskDelete,
   onCommission,
   saving,
   bold,
 }: {
-  cat: { id: string; nameAr: string; isActive: boolean; products: number; children: number; commissionRate: number | null };
+  cat: Cat;
   onToggle: (active: boolean) => void;
-  onDelete: () => void;
+  onAskDelete: () => void;
   onCommission: (rate: number | null) => void;
   saving?: boolean;
   bold?: boolean;
@@ -112,7 +175,7 @@ function Row({
           <button className="text-neutral-500" onClick={() => onToggle(!cat.isActive)}>
             {cat.isActive ? "تعطيل" : "تفعيل"}
           </button>
-          <button className="text-danger" onClick={onDelete}>
+          <button className="text-danger" onClick={onAskDelete}>
             حذف
           </button>
         </div>
@@ -138,6 +201,57 @@ function Row({
           </button>
         )}
         {cat.commissionRate !== null && !dirty && <span className="text-brand-600">مطبَّقة</span>}
+      </div>
+    </div>
+  );
+}
+
+/** لوحة تأكيد الحذف — تعرض خيار نقل المنتجات عند وجودها. */
+function DeletePanel({
+  cat,
+  destinations,
+  moveTo,
+  setMoveTo,
+  busy,
+  onConfirm,
+  onCancel,
+}: {
+  cat: Cat;
+  destinations: Cat[];
+  moveTo: string;
+  setMoveTo: (v: string) => void;
+  busy: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const hasProducts = cat.products > 0;
+  const hasChildren = cat.children > 0;
+  return (
+    <div className="mt-1 space-y-2 rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm">
+      <p className="font-medium text-danger">
+        حذف «{cat.nameAr}»؟
+        {hasChildren && " سيُحذف مع كل أقسامه الفرعية."}
+      </p>
+      {(hasProducts || hasChildren) && (
+        <label className="block text-xs text-neutral-600">
+          نقل المنتجات إلى (اختياري — للأقسام التي تحوي منتجات):
+          <Select value={moveTo} onChange={(e) => setMoveTo(e.target.value)} className="mt-1 h-9">
+            <option value="">— بدون نقل (يُرفض إن وُجدت منتجات) —</option>
+            {destinations.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.parentId ? `— ${d.nameAr}` : d.nameAr}
+              </option>
+            ))}
+          </Select>
+        </label>
+      )}
+      <div className="flex gap-2">
+        <Button size="sm" variant="danger" loading={busy} onClick={onConfirm}>
+          تأكيد الحذف
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onCancel}>
+          إلغاء
+        </Button>
       </div>
     </div>
   );
