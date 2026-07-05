@@ -6,19 +6,20 @@ import { LogOut, ArrowRight } from "lucide-react";
 import { ar } from "@al-souq/i18n";
 import { trpc } from "@/src/trpc/react";
 
-// أقسام لوحة الإدارة — تُعرض في شريط علوي عرضي.
-const NAV: { href: string; label: string }[] = [
-  { href: "/admin", label: "المؤشرات" },
-  { href: "/admin/orders", label: "الطلبات" },
-  { href: "/admin/vendors", label: "المتاجر" },
-  { href: "/admin/products", label: "مراجعة المنتجات" },
-  { href: "/admin/finance", label: "المالية" },
-  { href: "/admin/payouts", label: "التسويات" },
-  { href: "/admin/categories", label: "الفئات" },
-  { href: "/admin/coupons", label: "الكوبونات" },
-  { href: "/admin/users", label: "المستخدمون" },
-  { href: "/admin/settings", label: "الإعدادات" },
-  { href: "/admin/audit", label: "التدقيق" },
+// أقسام لوحة الإدارة — تُعرض في شريط علوي عرضي، وتُقيَّد حسب صلاحية الموظف.
+const NAV: { href: string; label: string; perm: string }[] = [
+  { href: "/admin", label: "المؤشرات", perm: "dashboard" },
+  { href: "/admin/orders", label: "الطلبات", perm: "orders" },
+  { href: "/admin/vendors", label: "المتاجر", perm: "vendors" },
+  { href: "/admin/products", label: "مراجعة المنتجات", perm: "products" },
+  { href: "/admin/finance", label: "المالية", perm: "finance" },
+  { href: "/admin/payouts", label: "التسويات", perm: "finance" },
+  { href: "/admin/categories", label: "الفئات", perm: "categories" },
+  { href: "/admin/coupons", label: "الكوبونات", perm: "coupons" },
+  { href: "/admin/users", label: "المستخدمون", perm: "users" },
+  { href: "/admin/staff", label: "الموظفون", perm: "staff" },
+  { href: "/admin/settings", label: "الإعدادات", perm: "settings" },
+  { href: "/admin/audit", label: "التدقيق", perm: "audit" },
 ];
 
 const isActive = (pathname: string, href: string) =>
@@ -27,12 +28,17 @@ const isActive = (pathname: string, href: string) =>
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const me = trpc.admin.me.useQuery(undefined, { retry: false, staleTime: 60_000 });
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
       router.replace("/login");
       router.refresh();
     },
   });
+
+  // تقييد الأقسام حسب صلاحيات الموظف (قبل التحميل نعرض المؤشرات فقط لتفادي وميض).
+  const perms: string[] | null = me.data?.permissions ?? null;
+  const items = perms ? NAV.filter((n) => perms.includes(n.perm)) : NAV.filter((n) => n.href === "/admin");
 
   // عنوان الصفحة الحالية + هل هي صفحة تفاصيل (أعمق من جذر قسم).
   const current = [...NAV].sort((a, b) => b.href.length - a.href.length).find((i) => isActive(pathname, i.href));
@@ -54,6 +60,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {isDetail && current && (
             <span className="truncate text-sm text-neutral-400">/ {current.label}</span>
           )}
+          {me.data?.staffTitle && (
+            <span className="ms-2 hidden rounded-full bg-white/10 px-2 py-0.5 text-xs text-neutral-300 sm:inline">
+              {me.data.staffTitle}
+            </span>
+          )}
           <button
             onClick={() => logout.mutate({})}
             aria-label="تسجيل الخروج"
@@ -67,7 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* شريط الأقسام العرضي (قابل للتمرير أفقياً على الجوال) */}
         <nav className="border-t border-white/10">
           <div className="container-app flex gap-1 overflow-x-auto py-2">
-            {NAV.map((n) => (
+            {items.map((n) => (
               <Link
                 key={n.href}
                 href={n.href}

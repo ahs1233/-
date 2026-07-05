@@ -15,14 +15,18 @@ import {
   platformSettingsSchema,
   couponCreateSchema,
   couponToggleSchema,
+  staffCreateSchema,
+  staffUpdateSchema,
 } from "@al-souq/validators";
-import { router, adminProcedure } from "../trpc";
+import { effectivePermissions, isSuperAdmin, sanitizePermissions } from "@al-souq/auth";
+import { router, adminProcedure, adminPerm } from "../trpc";
+import type { Context } from "../context";
 import { writeAudit, settleVendorPayout } from "../services/admin";
 import { changeOrderStatus } from "../services/order";
 
 export const adminRouter = router({
   // ── لوحة المؤشرات (KPIs) ──
-  dashboard: adminProcedure.query(async ({ ctx }) => {
+  dashboard: adminPerm("dashboard").query(async ({ ctx }) => {
     const [users, vendorsByStatus, productsByStatus, ordersByStatus, gmvAgg, pendingVendors, pendingProducts] =
       await Promise.all([
         ctx.prisma.user.count(),
@@ -53,7 +57,7 @@ export const adminRouter = router({
   }),
 
   // ── ملخّص مالي/محاسبي (بفلتر زمني) ──
-  financeSummary: adminProcedure
+  financeSummary: adminPerm("finance")
     .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
     .query(async ({ ctx, input }) => {
       const now = new Date();
@@ -111,7 +115,7 @@ export const adminRouter = router({
     }),
 
   /** تصدير طلبات الفترة كـ CSV (للمحاسبة). يشمل رأس BOM ليُقرأ العربي في Excel. */
-  exportOrdersCsv: adminProcedure
+  exportOrdersCsv: adminPerm("finance")
     .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
     .query(async ({ ctx, input }) => {
       const now = new Date();
@@ -174,12 +178,13 @@ export const adminRouter = router({
     }),
 
   // ── البائعون ──
-  vendors: adminProcedure
+  vendors: adminPerm("vendors")
     .input(z.object({ status: z.string().optional(), search: z.string().trim().max(60).optional() }).optional())
     .query(async ({ ctx, input }) => {
       const where: Prisma.VendorProfileWhereInput = {};
       if (input?.status) where.status = input.status as Prisma.EnumVendorStatusFilter["equals"];
       if (input?.search) where.storeName = { contains: input.search, mode: "insensitive" };
+      if (ctx.user.scopeGovernorateId) where.governorateId = ctx.user.scopeGovernorateId; // نطاق مدير المحافظة
       const vendors = await ctx.prisma.vendorProfile.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -204,7 +209,7 @@ export const adminRouter = router({
     }),
 
   // تفاصيل بائع مع بياناته المالية (مبيعات، عمولة، رصيد مستحق، مسوّى، وطلبات حديثة).
-  vendorDetail: adminProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+  vendorDetail: adminPerm("vendors").input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
     const v = await ctx.prisma.vendorProfile.findUnique({
       where: { id: input.id },
       include: {
@@ -214,6 +219,7 @@ export const adminRouter = router({
       },
     });
     if (!v) throw new TRPCError({ code: "NOT_FOUND", message: "البائع غير موجود" });
+    assertVendorInScope(ctx.user, v.governorateId);
 
     const realized = { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] };
     const [salesAgg, unsettled, settledAgg, recentOrders] = await Promise.all([
@@ -267,9 +273,10 @@ export const adminRouter = router({
   }),
 
   // طلبات متجر معيّن: الحالية (قيد التنفيذ) أو السابقة (منتهية)، للوحة الأدمن.
-  vendorOrders: adminProcedure
+  vendorOrders: adminPerm("vendors")
     .input(z.object({ vendorId: z.string().cuid(), scope: z.enum(["current", "past"]).default("current") }))
     .query(async ({ ctx, input }) => {
+      await assertVendorIdInScope(ctx.prisma, ctx.user, input.vendorId);
       const CURRENT = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED"] as OrderStatus[];
       const PAST = ["DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as OrderStatus[];
       const orders = await ctx.prisma.order.findMany({
@@ -298,9 +305,10 @@ export const adminRouter = router({
     }),
 
   // تقرير مالي لمتجر معيّن بفترة زمنية متغيّرة (لصفحة المتجر في الأدمن).
-  vendorFinance: adminProcedure
+  vendorFinance: adminPerm("vendors")
     .input(z.object({ vendorId: z.string().cuid(), period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
     .query(async ({ ctx, input }) => {
+      await assertVendorIdInScope(ctx.prisma, ctx.user, input.vendorId);
       const since = periodSince(input.period);
       const realized = { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] };
       const [agg, pendingAgg] = await Promise.all([
@@ -336,7 +344,7 @@ export const adminRouter = router({
       };
     }),
 
-  reviewVendor: adminProcedure.input(vendorReviewSchema).mutation(async ({ ctx, input }) => {
+  reviewVendor: adminPerm("vendors").input(vendorReviewSchema).mutation(async ({ ctx, input }) => {
     const vendor = await ctx.prisma.vendorProfile.findUnique({ where: { id: input.vendorId } });
     if (!vendor) throw new TRPCError({ code: "NOT_FOUND", message: "البائع غير موجود" });
 
@@ -380,7 +388,7 @@ export const adminRouter = router({
   }),
 
   // ── مراجعة المنتجات ──
-  pendingProducts: adminProcedure.query(async ({ ctx }) => {
+  pendingProducts: adminPerm("products").query(async ({ ctx }) => {
     const products = await ctx.prisma.product.findMany({
       where: { status: "PENDING_REVIEW" },
       orderBy: { updatedAt: "asc" },
@@ -400,7 +408,7 @@ export const adminRouter = router({
     }));
   }),
 
-  reviewProduct: adminProcedure.input(productReviewSchema).mutation(async ({ ctx, input }) => {
+  reviewProduct: adminPerm("products").input(productReviewSchema).mutation(async ({ ctx, input }) => {
     const product = await ctx.prisma.product.findUnique({
       where: { id: input.productId },
       include: { vendor: { select: { userId: true } } },
@@ -442,7 +450,7 @@ export const adminRouter = router({
   }),
 
   // منتجات متجر بعينه (لإدارتها من لوحة الأدمن) — كل الحالات.
-  vendorProducts: adminProcedure.input(z.object({ vendorId: z.string().cuid() })).query(async ({ ctx, input }) => {
+  vendorProducts: adminPerm("vendors").input(z.object({ vendorId: z.string().cuid() })).query(async ({ ctx, input }) => {
     const products = await ctx.prisma.product.findMany({
       where: { vendorId: input.vendorId },
       orderBy: { createdAt: "desc" },
@@ -463,7 +471,7 @@ export const adminRouter = router({
   }),
 
   // ضبط نسبة عمولة خاصة بمتجر (null = استخدام النسبة العامة للمنصّة).
-  setVendorCommission: adminProcedure
+  setVendorCommission: adminPerm("vendors")
     .input(z.object({ vendorId: z.string().cuid(), rate: z.number().min(0).max(1).nullable() }))
     .mutation(async ({ ctx, input }) => {
       const before = await ctx.prisma.vendorProfile.findUnique({
@@ -488,7 +496,7 @@ export const adminRouter = router({
     }),
 
   // ── الفئات ──
-  categories: adminProcedure.query(async ({ ctx }) => {
+  categories: adminPerm("categories").query(async ({ ctx }) => {
     const cats = await ctx.prisma.category.findMany({
       orderBy: [{ parentId: "asc" }, { sortOrder: "asc" }],
       include: { _count: { select: { products: true, children: true } } },
@@ -507,7 +515,7 @@ export const adminRouter = router({
     }));
   }),
 
-  createCategory: adminProcedure.input(categoryCreateSchema).mutation(async ({ ctx, input }) => {
+  createCategory: adminPerm("categories").input(categoryCreateSchema).mutation(async ({ ctx, input }) => {
     const slug = `${slugify(input.nameAr)}-${Math.random().toString(36).slice(2, 6)}`;
     const cat = await ctx.prisma.category.create({
       data: {
@@ -529,7 +537,7 @@ export const adminRouter = router({
     return { id: cat.id };
   }),
 
-  updateCategory: adminProcedure.input(categoryUpdateSchema).mutation(async ({ ctx, input }) => {
+  updateCategory: adminPerm("categories").input(categoryUpdateSchema).mutation(async ({ ctx, input }) => {
     const { id, ...data } = input;
     await ctx.prisma.category.update({ where: { id }, data });
     await writeAudit(ctx.prisma, {
@@ -543,7 +551,7 @@ export const adminRouter = router({
     return { ok: true };
   }),
 
-  removeCategory: adminProcedure
+  removeCategory: adminPerm("categories")
     .input(z.object({ id: z.string().cuid(), reassignToId: z.string().cuid().optional() }))
     .mutation(async ({ ctx, input }) => {
       const all = await ctx.prisma.category.findMany({ select: { id: true, parentId: true, nameAr: true } });
@@ -594,7 +602,7 @@ export const adminRouter = router({
     }),
 
   // ── الكوبونات ──
-  coupons: adminProcedure.query(async ({ ctx }) => {
+  coupons: adminPerm("coupons").query(async ({ ctx }) => {
     const list = await ctx.prisma.coupon.findMany({ orderBy: { createdAt: "desc" } });
     return list.map((c) => ({
       id: c.id,
@@ -610,7 +618,7 @@ export const adminRouter = router({
     }));
   }),
 
-  createCoupon: adminProcedure.input(couponCreateSchema).mutation(async ({ ctx, input }) => {
+  createCoupon: adminPerm("coupons").input(couponCreateSchema).mutation(async ({ ctx, input }) => {
     const exists = await ctx.prisma.coupon.findUnique({ where: { code: input.code } });
     if (exists) throw new TRPCError({ code: "BAD_REQUEST", message: "الرمز مستخدم مسبقاً" });
     const coupon = await ctx.prisma.coupon.create({
@@ -635,7 +643,7 @@ export const adminRouter = router({
     return { id: coupon.id };
   }),
 
-  toggleCoupon: adminProcedure.input(couponToggleSchema).mutation(async ({ ctx, input }) => {
+  toggleCoupon: adminPerm("coupons").input(couponToggleSchema).mutation(async ({ ctx, input }) => {
     await ctx.prisma.coupon.update({ where: { id: input.id }, data: { isActive: input.isActive } });
     await writeAudit(ctx.prisma, {
       actorId: ctx.user.id,
@@ -648,7 +656,7 @@ export const adminRouter = router({
   }),
 
   // ── الطلبات والنزاعات ──
-  orders: adminProcedure
+  orders: adminPerm("orders")
     .input(
       z
         .object({
@@ -667,6 +675,7 @@ export const adminRouter = router({
           { customer: { phone: { contains: input.search } } },
         ];
       }
+      if (ctx.user.scopeGovernorateId) where.vendor = { governorateId: ctx.user.scopeGovernorateId }; // نطاق المحافظة
       const orders = await ctx.prisma.order.findMany({
         where,
         orderBy: { placedAt: "desc" },
@@ -685,7 +694,7 @@ export const adminRouter = router({
     }),
 
   // تفاصيل طلب واحد (لوحة الإدارة) — دون قيد ملكية.
-  orderDetail: adminProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+  orderDetail: adminPerm("orders").input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
     const o = await ctx.prisma.order.findUnique({
       where: { id: input.id },
       include: {
@@ -730,7 +739,7 @@ export const adminRouter = router({
   }),
 
   // حلّ النزاعات: الأدمن يفرض حالة (يتقيّد بصحة الانتقال عبر آلة الحالة)
-  forceOrderStatus: adminProcedure
+  forceOrderStatus: adminPerm("orders")
     .input(
       z.object({
         orderId: z.string().cuid(),
@@ -758,7 +767,7 @@ export const adminRouter = router({
     }),
 
   // ── التسويات ──
-  payoutBalances: adminProcedure.query(async ({ ctx }) => {
+  payoutBalances: adminPerm("finance").query(async ({ ctx }) => {
     // العمولات غير المسوّاة لطلبات مسلّمة/مكتملة، مجمّعة حسب البائع
     const rows = await ctx.prisma.commission.findMany({
       where: { payoutId: null, order: { status: { in: ["DELIVERED", "COMPLETED"] } } },
@@ -777,13 +786,13 @@ export const adminRouter = router({
     return vendors.map((v) => ({ vendorId: v.id, storeName: v.storeName, balance: byVendor.get(v.id) ?? 0 }));
   }),
 
-  settlePayout: adminProcedure.input(z.object({ vendorId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  settlePayout: adminPerm("finance").input(z.object({ vendorId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
     const result = await settleVendorPayout(ctx.prisma, { vendorId: input.vendorId, adminId: ctx.user.id, ip: ctx.reqIp });
     if (!result) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يوجد رصيد مستحق للتسوية" });
     return result;
   }),
 
-  payoutHistory: adminProcedure.query(async ({ ctx }) => {
+  payoutHistory: adminPerm("finance").query(async ({ ctx }) => {
     const payouts = await ctx.prisma.payout.findMany({
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -800,7 +809,7 @@ export const adminRouter = router({
   }),
 
   // ── المستخدمون ──
-  users: adminProcedure
+  users: adminPerm("users")
     .input(z.object({ role: z.string().optional(), q: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
       const users = await ctx.prisma.user.findMany({
@@ -815,7 +824,7 @@ export const adminRouter = router({
       return users;
     }),
 
-  manageUser: adminProcedure.input(userManageSchema).mutation(async ({ ctx, input }) => {
+  manageUser: adminPerm("users").input(userManageSchema).mutation(async ({ ctx, input }) => {
     if (input.userId === ctx.user.id) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكنك حظر نفسك" });
     }
@@ -837,7 +846,7 @@ export const adminRouter = router({
   }),
 
   // ── إعدادات المنصة ──
-  getSettings: adminProcedure.query(async ({ ctx }) => {
+  getSettings: adminPerm("settings").query(async ({ ctx }) => {
     const settings = await ctx.prisma.platformSetting.findMany();
     const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
     const byGov = map.delivery_fees_by_gov;
@@ -849,7 +858,7 @@ export const adminRouter = router({
     };
   }),
 
-  updateSettings: adminProcedure.input(platformSettingsSchema).mutation(async ({ ctx, input }) => {
+  updateSettings: adminPerm("settings").input(platformSettingsSchema).mutation(async ({ ctx, input }) => {
     const ops: Promise<unknown>[] = [];
     if (input.commissionRate !== undefined) {
       ops.push(
@@ -900,7 +909,7 @@ export const adminRouter = router({
   }),
 
   // ── سجل التدقيق ──
-  auditLog: adminProcedure
+  auditLog: adminPerm("audit")
     .input(z.object({ limit: z.number().int().min(1).max(100).default(50) }).optional())
     .query(async ({ ctx, input }) => {
       const logs = await ctx.prisma.auditLog.findMany({
@@ -919,6 +928,141 @@ export const adminRouter = router({
         createdAt: l.createdAt,
       }));
     }),
+
+  // ── هويّة الأدمن الحالي (لتقييد التنقّل في الواجهة) ──
+  me: adminProcedure.query(async ({ ctx }) => {
+    const u = await ctx.prisma.user.findUnique({
+      where: { id: ctx.user.id },
+      select: { id: true, name: true, phone: true, permissions: true, staffTitle: true, scopeGovernorateId: true },
+    });
+    return {
+      id: ctx.user.id,
+      name: u?.name ?? null,
+      phone: ctx.user.phone,
+      permissions: effectivePermissions(ctx.user.role, ctx.user.permissions),
+      isSuper: isSuperAdmin(ctx.user.role, ctx.user.permissions),
+      staffTitle: u?.staffTitle ?? null,
+      scopeGovernorateId: u?.scopeGovernorateId ?? null,
+    };
+  }),
+
+  // ── إدارة حسابات الموظفين (المدير العام فقط) ──
+  staffList: adminPerm("staff").query(async ({ ctx }) => {
+    const staff = await ctx.prisma.user.findMany({
+      where: { role: "ADMIN" },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        permissions: true,
+        staffTitle: true,
+        scopeGovernorateId: true,
+        isBlocked: true,
+      },
+    });
+    const govs = await ctx.prisma.governorate.findMany({ select: { id: true, nameAr: true } });
+    const govMap = new Map(govs.map((g) => [g.id, g.nameAr]));
+    return staff.map((s) => ({
+      id: s.id,
+      name: s.name,
+      phone: s.phone,
+      staffTitle: s.staffTitle,
+      isBlocked: s.isBlocked,
+      isSuper: s.permissions === null, // مدير عام قديم/رئيسي
+      permissions: effectivePermissions("ADMIN", s.permissions),
+      scopeGovernorateId: s.scopeGovernorateId,
+      scopeGovernorate: s.scopeGovernorateId ? govMap.get(s.scopeGovernorateId) ?? null : null,
+      isSelf: s.id === ctx.user.id,
+    }));
+  }),
+
+  staffCreate: adminPerm("staff").input(staffCreateSchema).mutation(async ({ ctx, input }) => {
+    const perms = sanitizePermissions(input.permissions);
+    if (perms.length === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "صلاحيات غير صالحة" });
+
+    // مستخدم موجود بنفس الهاتف → ترقيته لموظف؛ وإلا إنشاء حساب جديد.
+    const existing = await ctx.prisma.user.findUnique({ where: { phone: input.phone } });
+    if (existing && existing.role === "VENDOR") {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "هذا الرقم لحساب بائع — لا يمكن تحويله لموظف" });
+    }
+    const data = {
+      role: "ADMIN" as const,
+      name: input.name,
+      staffTitle: input.staffTitle ?? null,
+      permissions: perms,
+      scopeGovernorateId: input.scopeGovernorateId ?? null,
+    };
+    const user = existing
+      ? await ctx.prisma.user.update({ where: { id: existing.id }, data })
+      : await ctx.prisma.user.create({ data: { phone: input.phone, ...data } });
+
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: existing ? "staff.upgrade" : "staff.create",
+      entityType: "User",
+      entityId: user.id,
+      after: { name: input.name, staffTitle: input.staffTitle, permissions: perms },
+      ip: ctx.reqIp,
+    });
+    return { id: user.id };
+  }),
+
+  staffUpdate: adminPerm("staff").input(staffUpdateSchema).mutation(async ({ ctx, input }) => {
+    const target = await ctx.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!target || target.role !== "ADMIN") throw new TRPCError({ code: "NOT_FOUND", message: "الموظف غير موجود" });
+    if (target.permissions === null && target.id !== ctx.user.id) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "لا يمكن تعديل صلاحيات المدير العام الرئيسي" });
+    }
+    const data: { staffTitle?: string | null; permissions?: string[]; scopeGovernorateId?: string | null } = {};
+    if (input.staffTitle !== undefined) data.staffTitle = input.staffTitle;
+    if (input.scopeGovernorateId !== undefined) data.scopeGovernorateId = input.scopeGovernorateId;
+    if (input.permissions !== undefined) {
+      const perms = sanitizePermissions(input.permissions);
+      if (perms.length === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "صلاحيات غير صالحة" });
+      // منع المستخدم من إزالة صلاحية إدارة الموظفين عن نفسه (تفادي القفل خارج النظام).
+      if (input.userId === ctx.user.id && !perms.includes("staff")) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكنك إزالة صلاحية إدارة الموظفين عن نفسك" });
+      }
+      data.permissions = perms;
+    }
+    await ctx.prisma.user.update({ where: { id: input.userId }, data });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "staff.update",
+      entityType: "User",
+      entityId: input.userId,
+      after: data,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // إلغاء صلاحيات موظف (إعادته مستخدماً عادياً) — لا يطال المدير العام الرئيسي أو الذات.
+  staffRevoke: adminPerm("staff").input(z.object({ userId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+    if (input.userId === ctx.user.id) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكنك إلغاء صلاحيات نفسك" });
+    const target = await ctx.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!target || target.role !== "ADMIN") throw new TRPCError({ code: "NOT_FOUND", message: "الموظف غير موجود" });
+    if (target.permissions === null) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "لا يمكن إلغاء المدير العام الرئيسي" });
+    }
+    await ctx.prisma.$transaction([
+      ctx.prisma.user.update({
+        where: { id: input.userId },
+        data: { role: "CUSTOMER", permissions: Prisma.DbNull, staffTitle: null, scopeGovernorateId: null },
+      }),
+      ctx.prisma.session.updateMany({ where: { userId: input.userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+    ]);
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "staff.revoke",
+      entityType: "User",
+      entityId: input.userId,
+      before: { staffTitle: target.staffTitle },
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
 });
 
 /** بداية الفترة الزمنية للتقارير المالية (null = كل الوقت). */
@@ -928,4 +1072,22 @@ function periodSince(period: "today" | "7d" | "30d" | "all"): Date | null {
   if (period === "7d") return new Date(now.getTime() - 7 * 86_400_000);
   if (period === "30d") return new Date(now.getTime() - 30 * 86_400_000);
   return null;
+}
+
+/** يمنع مدير المحافظة من الوصول إلى متجر خارج نطاق محافظته. */
+function assertVendorInScope(user: { scopeGovernorateId: string | null }, vendorGovId: string | null): void {
+  if (user.scopeGovernorateId && vendorGovId !== user.scopeGovernorateId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "هذا المتجر خارج نطاق محافظتك" });
+  }
+}
+
+/** نسخة تجلب محافظة المتجر بالمعرّف ثم تتحقّق من النطاق (للإجراءات التي تستقبل vendorId فقط). */
+async function assertVendorIdInScope(
+  prisma: Context["prisma"],
+  user: { scopeGovernorateId: string | null },
+  vendorId: string,
+): Promise<void> {
+  if (!user.scopeGovernorateId) return;
+  const v = await prisma.vendorProfile.findUnique({ where: { id: vendorId }, select: { governorateId: true } });
+  assertVendorInScope(user, v?.governorateId ?? null);
 }
