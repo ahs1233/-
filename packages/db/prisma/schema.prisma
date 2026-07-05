@@ -89,6 +89,13 @@ model User {
   name          String?
   role          Role     @default(CUSTOMER)
   isBlocked     Boolean  @default(false)
+  // ── حسابات الموظفين (عند role=ADMIN) ──
+  // صلاحيات الموظف الإداري (مصفوفة مفاتيح). null = مدير عام (كل الصلاحيات).
+  permissions       Json?
+  // مسمّى الوظيفة للعرض، مثل «مدير محافظة النجف».
+  staffTitle        String?
+  // نطاق محافظة اختياري (لمدير المحافظة) — يقيّد ما يراه من متاجر وطلبات.
+  scopeGovernorateId String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

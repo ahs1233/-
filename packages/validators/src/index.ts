@@ -119,6 +119,25 @@ export const userManageSchema = z.object({
   action: z.enum(["block", "unblock"]),
 });
 
+// ─────────────────────────── Admin staff ───────────────────────────
+
+/** إنشاء حساب موظف إداري بصلاحيات محدّدة. */
+export const staffCreateSchema = z.object({
+  phone: iraqiPhone,
+  name: z.string().trim().min(2, "الاسم قصير").max(60),
+  staffTitle: z.string().trim().max(60).optional(),
+  permissions: z.array(z.string()).min(1, "اختر صلاحية واحدة على الأقل"),
+  scopeGovernorateId: z.string().cuid().optional().nullable(),
+});
+
+/** تعديل صلاحيات/نطاق/مسمّى موظف. */
+export const staffUpdateSchema = z.object({
+  userId: z.string().cuid(),
+  staffTitle: z.string().trim().max(60).optional(),
+  permissions: z.array(z.string()).min(1).optional(),
+  scopeGovernorateId: z.string().cuid().nullable().optional(),
+});
+
 export const platformSettingsSchema = z.object({
   commissionRate: z.number().min(0).max(1).optional(),
   deliveryFee: z.number().int().min(0).max(100_000).optional(),

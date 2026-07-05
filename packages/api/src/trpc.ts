@@ -6,7 +6,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import type { OpenApiMeta } from "trpc-to-openapi";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { hasRole, type AppRole } from "@al-souq/auth";
+import { hasRole, hasPermission, type AppRole, type AdminPermission } from "@al-souq/auth";
 import type { Context } from "./context";
 
 const t = initTRPC
@@ -54,3 +54,20 @@ function requireRole(required: AppRole | AppRole[]) {
 
 export const vendorProcedure = t.procedure.use(requireRole("VENDOR"));
 export const adminProcedure = t.procedure.use(requireRole("ADMIN"));
+
+/**
+ * إجراء أدمن يتطلّب صلاحية قسم معيّنة. المدير العام (permissions=null) يملك الكل.
+ * الموظف يجب أن تتضمّن صلاحياته المفتاح المطلوب، وإلا FORBIDDEN.
+ */
+export function adminPerm(perm: AdminPermission) {
+  return t.procedure.use(
+    middleware(({ ctx, next }) => {
+      if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED", message: "يجب تسجيل الدخول" });
+      if (ctx.user.role !== "ADMIN") throw new TRPCError({ code: "FORBIDDEN", message: "غير مصرّح لك بهذا الإجراء" });
+      if (!hasPermission(ctx.user.role, ctx.user.permissions, perm)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "ليست لديك صلاحية للوصول إلى هذا القسم" });
+      }
+      return next({ ctx: { ...ctx, user: ctx.user } });
+    }),
+  );
+}

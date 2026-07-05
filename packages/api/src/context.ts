@@ -11,6 +11,10 @@ export interface AuthedUser {
   id: string;
   role: AppRole;
   phone: string;
+  /** صلاحيات الموظف الإداري (null = مدير عام). للأدوار غير ADMIN تبقى null. */
+  permissions: unknown;
+  /** نطاق محافظة اختياري لمدير المحافظة. */
+  scopeGovernorateId: string | null;
 }
 
 export interface Context {
@@ -46,10 +50,23 @@ export async function createContext(opts: {
       // نتحقق أن المستخدم ما زال موجوداً وغير محظور (التوكن قد يسبق الحظر)
       const dbUser = await prisma.user.findUnique({
         where: { id: claims.sub },
-        select: { id: true, role: true, phone: true, isBlocked: true },
+        select: {
+          id: true,
+          role: true,
+          phone: true,
+          isBlocked: true,
+          permissions: true,
+          scopeGovernorateId: true,
+        },
       });
       if (dbUser && !dbUser.isBlocked) {
-        user = { id: dbUser.id, role: dbUser.role as AppRole, phone: dbUser.phone };
+        user = {
+          id: dbUser.id,
+          role: dbUser.role as AppRole,
+          phone: dbUser.phone,
+          permissions: dbUser.permissions,
+          scopeGovernorateId: dbUser.scopeGovernorateId,
+        };
       }
     }
   }

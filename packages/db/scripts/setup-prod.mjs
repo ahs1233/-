@@ -56,6 +56,9 @@ function reconcileSchema() {
     ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "discount" DECIMAL(12,2) NOT NULL DEFAULT 0;
     ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "couponCode" TEXT;
     ALTER TABLE "Category" ADD COLUMN IF NOT EXISTS "commissionRate" DECIMAL(5,4);
+    ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "permissions" JSONB;
+    ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "staffTitle" TEXT;
+    ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "scopeGovernorateId" TEXT;
     CREATE TABLE IF NOT EXISTS "Coupon" (
       "id" TEXT NOT NULL,
       "code" TEXT NOT NULL,
