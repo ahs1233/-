@@ -44,6 +44,43 @@ function clearFailedMigrations() {
   });
 }
 
+/**
+ * شبكة أمان: تضمن وجود المخطّط الذي يعتمده التطبيق حتى لو انحرف سجلّ الهجرات في
+ * الإنتاج (مثلاً هجرة سُجِّلت «مطبَّقة» بينما لم تُنفَّذ فعلياً — فيتخطّاها
+ * `migrate deploy` للأبد). كل الجُمل idempotent (IF NOT EXISTS) فهي لا-عمليّة إن
+ * كان المخطّط سليماً، وتُصلحه إن كان ناقصاً. تُغطّي ميزات: الكوبونات، الخصم على
+ * الطلب، وعمولة الفئة.
+ */
+function reconcileSchema() {
+  const sql = `
+    ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "discount" DECIMAL(12,2) NOT NULL DEFAULT 0;
+    ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "couponCode" TEXT;
+    ALTER TABLE "Category" ADD COLUMN IF NOT EXISTS "commissionRate" DECIMAL(5,4);
+    CREATE TABLE IF NOT EXISTS "Coupon" (
+      "id" TEXT NOT NULL,
+      "code" TEXT NOT NULL,
+      "type" TEXT NOT NULL,
+      "value" DECIMAL(12,2) NOT NULL,
+      "minSubtotal" DECIMAL(12,2) NOT NULL DEFAULT 0,
+      "maxDiscount" DECIMAL(12,2),
+      "usageLimit" INTEGER,
+      "usedCount" INTEGER NOT NULL DEFAULT 0,
+      "expiresAt" TIMESTAMP(3),
+      "isActive" BOOLEAN NOT NULL DEFAULT true,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "Coupon_pkey" PRIMARY KEY ("id")
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS "Coupon_code_key" ON "Coupon"("code");
+    CREATE INDEX IF NOT EXISTS "Coupon_isActive_expiresAt_idx" ON "Coupon"("isActive", "expiresAt");
+  `;
+  execSync("prisma db execute --schema prisma/schema.prisma --stdin", {
+    input: sql,
+    stdio: ["pipe", "inherit", "inherit"],
+    env,
+  });
+}
+
 console.log("[setup-prod] تطبيق الهجرات (اتصال مباشر)…");
 try {
   deploy();
@@ -60,6 +97,15 @@ try {
     console.error("[setup-prod] تعذّر إصلاح الهجرات تلقائياً.");
     throw e2;
   }
+}
+
+// شبكة أمان بعد الهجرات: تضمن توافق المخطّط مع التطبيق (idempotent) حتى لو انحرف
+// سجلّ الهجرات. غير حرجة — نُسجّل الفشل دون إيقاف البناء.
+try {
+  console.log("[setup-prod] تسوية المخطّط (شبكة أمان idempotent)…");
+  reconcileSchema();
+} catch (e) {
+  console.error("[setup-prod] تعذّرت تسوية المخطّط:", e?.message ?? e);
 }
 
 try {
