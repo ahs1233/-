@@ -61,6 +61,10 @@ export default function AdminVendorDetail() {
   });
 
   const [ratePct, setRatePct] = useState<string>("");
+  const [finPeriod, setFinPeriod] = useState<"today" | "7d" | "30d" | "all">("30d");
+  const [ordersTab, setOrdersTab] = useState<"current" | "past">("current");
+  const finance = trpc.admin.vendorFinance.useQuery({ vendorId: id, period: finPeriod }, { retry: false });
+  const storeOrders = trpc.admin.vendorOrders.useQuery({ vendorId: id, scope: ordersTab }, { retry: false });
 
   if (vendor.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
   if (vendor.isError || !vendor.data)
@@ -222,25 +226,117 @@ export default function AdminVendorDetail() {
         </CardBody>
       </Card>
 
-      {/* أحدث الطلبات */}
+      {/* التقرير المالي بفترة متغيّرة */}
       <Card>
-        <CardBody className="space-y-2">
-          <h2 className="font-bold">أحدث الطلبات</h2>
-          {v.recentOrders.length === 0 ? (
-            <p className="text-sm text-neutral-400">لا طلبات بعد.</p>
+        <CardBody className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-bold">التقرير المالي</h2>
+            <div className="flex rounded-lg border border-neutral-200 bg-white p-0.5 text-sm">
+              {PERIODS.map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => setFinPeriod(p.key)}
+                  className={`rounded-md px-3 py-1 transition ${
+                    finPeriod === p.key ? "bg-brand-500 text-white" : "text-neutral-600 hover:bg-neutral-100"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {finance.isLoading ? (
+            <p className="text-sm text-neutral-400">جارٍ التحميل…</p>
+          ) : finance.data ? (
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <MiniStat label="مبيعات البضاعة" value={formatIQD(finance.data.grossSales)} />
+                <MiniStat label="عمولة المنصّة" value={formatIQD(finance.data.commission)} />
+                <MiniStat label="صافي للبائع" value={formatIQD(finance.data.netToVendor)} accent />
+                <MiniStat label="رسوم توصيل" value={formatIQD(finance.data.deliveryRevenue)} />
+                <MiniStat label="طلبات مُنجزة" value={String(finance.data.realizedOrders)} />
+                <MiniStat label="متوسّط الطلب" value={formatIQD(Math.round(finance.data.avgOrderValue))} />
+              </div>
+              {finance.data.pendingOrders > 0 && (
+                <p className="text-xs text-neutral-500 nums">
+                  قيد التنفيذ خلال الفترة: {finance.data.pendingOrders} طلب بقيمة {formatIQD(finance.data.pendingSales)}
+                </p>
+              )}
+            </>
+          ) : null}
+        </CardBody>
+      </Card>
+
+      {/* طلبات المتجر — الحالية/السابقة */}
+      <Card>
+        <CardBody className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold">طلبات المتجر</h2>
+            <div className="flex rounded-lg border border-neutral-200 bg-white p-0.5 text-sm">
+              <button
+                onClick={() => setOrdersTab("current")}
+                className={`rounded-md px-3 py-1 transition ${ordersTab === "current" ? "bg-brand-500 text-white" : "text-neutral-600"}`}
+              >
+                الحالية
+              </button>
+              <button
+                onClick={() => setOrdersTab("past")}
+                className={`rounded-md px-3 py-1 transition ${ordersTab === "past" ? "bg-brand-500 text-white" : "text-neutral-600"}`}
+              >
+                السابقة
+              </button>
+            </div>
+          </div>
+          {storeOrders.isLoading ? (
+            <p className="text-sm text-neutral-400">جارٍ التحميل…</p>
+          ) : !storeOrders.data || storeOrders.data.length === 0 ? (
+            <p className="text-sm text-neutral-400">
+              {ordersTab === "current" ? "لا طلبات قيد التنفيذ." : "لا طلبات سابقة."}
+            </p>
           ) : (
-            v.recentOrders.map((o) => (
-              <Link key={o.id} href={`/admin/orders/${o.id}`} className="flex items-center justify-between py-1 text-sm hover:bg-neutral-50">
-                <span className="font-medium nums">{o.number}</span>
-                <span className="flex items-center gap-2">
-                  <span className="nums text-neutral-500">{formatIQD(o.total)}</span>
-                  <OrderStatusBadge status={o.status} />
-                </span>
-              </Link>
-            ))
+            <ul className="divide-y divide-neutral-100">
+              {storeOrders.data.map((o) => (
+                <li key={o.id}>
+                  <Link href={`/admin/orders/${o.id}`} className="flex items-center justify-between gap-2 py-2 text-sm hover:bg-neutral-50">
+                    <span className="min-w-0">
+                      <span className="font-medium nums">{o.number}</span>
+                      <span className="ms-2 text-xs text-neutral-400 nums">
+                        {new Date(o.placedAt).toLocaleString("ar-IQ", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        · {o.itemCount} عنصر
+                      </span>
+                    </span>
+                    <span className="flex flex-shrink-0 items-center gap-2">
+                      <span className="nums text-neutral-500">{formatIQD(o.total)}</span>
+                      <OrderStatusBadge status={o.status} />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </CardBody>
       </Card>
+    </div>
+  );
+}
+
+const PERIODS: { key: "today" | "7d" | "30d" | "all"; label: string }[] = [
+  { key: "today", label: "اليوم" },
+  { key: "7d", label: "٧ أيام" },
+  { key: "30d", label: "٣٠ يوم" },
+  { key: "all", label: "الكل" },
+];
+
+function MiniStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="rounded-lg bg-neutral-50 p-2">
+      <p className="text-xs text-neutral-500">{label}</p>
+      <p className={`mt-0.5 text-sm font-bold nums ${accent ? "text-brand-600" : ""}`}>{value}</p>
     </div>
   );
 }
