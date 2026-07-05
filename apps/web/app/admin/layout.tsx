@@ -75,9 +75,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
 
-        {/* شريط الأقسام العرضي (قابل للتمرير أفقياً على الجوال) */}
+        {/* شريط الأقسام العرضي — قابل للتمرير أفقياً على الجوال، ويلتفّ على الشاشات الكبيرة */}
         <nav className="border-t border-white/10">
-          <div className="container-app flex gap-1 overflow-x-auto py-2">
+          <div className="container-app flex gap-1 overflow-x-auto py-2 lg:flex-wrap lg:overflow-visible">
             {items.map((n) => (
               <Link
                 key={n.href}

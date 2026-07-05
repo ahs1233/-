@@ -27,22 +27,99 @@ import { changeOrderStatus } from "../services/order";
 export const adminRouter = router({
   // ── لوحة المؤشرات (KPIs) ──
   dashboard: adminPerm("dashboard").query(async ({ ctx }) => {
-    const [users, vendorsByStatus, productsByStatus, ordersByStatus, gmvAgg, pendingVendors, pendingProducts] =
-      await Promise.all([
-        ctx.prisma.user.count(),
-        ctx.prisma.vendorProfile.groupBy({ by: ["status"], _count: true }),
-        ctx.prisma.product.groupBy({ by: ["status"], _count: true }),
-        ctx.prisma.order.groupBy({ by: ["status"], _count: true }),
-        ctx.prisma.order.aggregate({
-          where: { status: { in: ["DELIVERED", "COMPLETED"] } },
-          _sum: { total: true, commissionAmount: true },
-          _count: true,
-        }),
-        ctx.prisma.vendorProfile.count({ where: { status: "PENDING" } }),
-        ctx.prisma.product.count({ where: { status: "PENDING_REVIEW" } }),
-      ]);
+    const now = new Date();
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const todayStart = startOfDay(now).getTime();
+    const DAYS = 14;
+    const since14 = new Date(todayStart - (DAYS - 1) * 86_400_000);
+    const since30 = new Date(now.getTime() - 30 * 86_400_000);
+    const sincePrev30 = new Date(now.getTime() - 60 * 86_400_000);
+    const REALIZED = { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] };
+
+    const [
+      users,
+      vendorsByStatus,
+      productsByStatus,
+      ordersByStatus,
+      gmvAgg,
+      pendingVendors,
+      pendingProducts,
+      pendingReturns,
+      windowOrders,
+      cur30,
+      prev30,
+      topVendorsAgg,
+      recentOrders,
+    ] = await Promise.all([
+      ctx.prisma.user.count(),
+      ctx.prisma.vendorProfile.groupBy({ by: ["status"], _count: true }),
+      ctx.prisma.product.groupBy({ by: ["status"], _count: true }),
+      ctx.prisma.order.groupBy({ by: ["status"], _count: true }),
+      ctx.prisma.order.aggregate({
+        where: { status: REALIZED },
+        _sum: { total: true, commissionAmount: true },
+        _count: true,
+      }),
+      ctx.prisma.vendorProfile.count({ where: { status: "PENDING" } }),
+      ctx.prisma.product.count({ where: { status: "PENDING_REVIEW" } }),
+      ctx.prisma.returnRequest.count({ where: { status: "REQUESTED" } }),
+      ctx.prisma.order.findMany({
+        where: { placedAt: { gte: since14 }, status: REALIZED },
+        select: { placedAt: true, total: true },
+      }),
+      ctx.prisma.order.aggregate({
+        where: { status: REALIZED, placedAt: { gte: since30 } },
+        _sum: { total: true },
+        _count: true,
+      }),
+      ctx.prisma.order.aggregate({
+        where: { status: REALIZED, placedAt: { gte: sincePrev30, lt: since30 } },
+        _sum: { total: true },
+        _count: true,
+      }),
+      ctx.prisma.order.groupBy({
+        by: ["vendorId"],
+        where: { status: REALIZED },
+        _sum: { total: true },
+        orderBy: { _sum: { total: "desc" } },
+        take: 5,
+      }),
+      ctx.prisma.order.findMany({
+        orderBy: { placedAt: "desc" },
+        take: 6,
+        include: { vendor: { select: { storeName: true } } },
+      }),
+    ]);
+
     const toMap = (arr: { status: string; _count: number }[]) =>
       Object.fromEntries(arr.map((g) => [g.status, g._count]));
+
+    // سلسلة مبيعات آخر ١٤ يوماً (مُنجزة)
+    const salesSeries = Array.from({ length: DAYS }, (_, k) => {
+      const dd = new Date(todayStart - (DAYS - 1 - k) * 86_400_000);
+      return { day: `${dd.getMonth() + 1}/${dd.getDate()}`, revenue: 0, orders: 0 };
+    });
+    for (const o of windowOrders) {
+      const diff = Math.floor((todayStart - startOfDay(o.placedAt).getTime()) / 86_400_000);
+      const bucket = salesSeries[DAYS - 1 - diff];
+      if (bucket) {
+        bucket.revenue += Number(o.total);
+        bucket.orders += 1;
+      }
+    }
+
+    // أعلى المتاجر مبيعاً (بأسمائها)
+    const topVendorNames = await ctx.prisma.vendorProfile.findMany({
+      where: { id: { in: topVendorsAgg.map((t) => t.vendorId) } },
+      select: { id: true, storeName: true },
+    });
+    const nameMap = new Map(topVendorNames.map((v) => [v.id, v.storeName]));
+    const topVendors = topVendorsAgg.map((t) => ({
+      id: t.vendorId,
+      storeName: nameMap.get(t.vendorId) ?? "—",
+      sales: Number(t._sum.total ?? 0),
+    }));
+
     return {
       users,
       vendorsByStatus: toMap(vendorsByStatus),
@@ -53,6 +130,22 @@ export const adminRouter = router({
       realizedOrders: gmvAgg._count,
       pendingVendors,
       pendingProducts,
+      pendingReturns,
+      // اتجاه آخر ٣٠ يوماً مقابل الـ ٣٠ السابقة
+      gmv30: Number(cur30._sum.total ?? 0),
+      gmvPrev30: Number(prev30._sum.total ?? 0),
+      orders30: cur30._count,
+      ordersPrev30: prev30._count,
+      salesSeries,
+      topVendors,
+      recentOrders: recentOrders.map((o) => ({
+        id: o.id,
+        number: o.number,
+        status: o.status,
+        total: Number(o.total),
+        vendor: o.vendor.storeName,
+        placedAt: o.placedAt,
+      })),
     };
   }),
 
