@@ -3,6 +3,7 @@
 > **الحالة:** تصميم للاعتماد قبل التنفيذ · **النوع:** تصميم تقني (Technical Design)، لا قائمة مهام.
 > مرجعاها: `domain-map.md` و`home-architecture.md`. الهدف: صياغة **عقد `DiscoveryItem`** بحيث لا نحتاج إعادة تصميم طبقة الاكتشاف مرّةً أخرى.
 > مقاطع الكود أدناه **عقودٌ (contracts)** لا تنفيذ — تُثبِّت الأشكال والحدود.
+> **§9 «الثوابت المعمارية» هي المرجع الحاكم لكل مراجعة كود** — أي PR يخالف ثابتاً يُرفَض.
 
 ---
 
@@ -39,18 +40,32 @@ export interface RankingSignals {
 /** مفاتيح تجميع للتنوّع فقط — ليست تفاصيل كيان. */
 export interface GroupKeys { store?: string; category?: string; market?: string }
 
+/**
+ * القدرات — مفردات مغلقة تصف *ما يمكن فعله* بالعنصر. الواجهة ترسم الأزرار منها،
+ * لا من النوع (فلا `if(type==='restaurant')`). يملؤها المُسقِط من إعداد المصدر
+ * (كيانان من نفس النوع قد يختلفان: أحدهما يبيع ويتّصل، آخر يتّصل فقط).
+ */
+export type Capability =
+  | "order" | "book" | "reserve"          // شراء/حجز/موعد
+  | "follow" | "review" | "question"      // تفاعل
+  | "call" | "navigate" | "share";        // تواصل/مشاركة
+export type Capabilities = ReadonlySet<Capability>; // أو Record<Capability, boolean>
+
 export interface DiscoveryItem<TCard = unknown> {
   type: DiscoveryItemType;
   id: string;
   governorateId: string | null;   // للعزل بالسياق
   createdAt: Date;
-  signals: RankingSignals;         // ← يقرأه Ranker
+  signals: RankingSignals;         // ← يقرأه Ranker فقط
   groupKeys: GroupKeys;            // ← يقرأه التنوّع فقط
+  capabilities: Capabilities;      // ← تقرأه الواجهة (أزرار الإجراءات) — لا النوع
   reasons: ReasonCode[];
   exclusion: ExclusionCode | null;
   card: TCard;                     // ← معتمة على Discovery؛ يرسمها السطح فقط
 }
 ```
+
+> **مفردات القدرات مغلقة** (enum): إضافة قدرة قرارٌ مقصود (كإضافة اسم حدث)، فتبقى الواجهة قادرة على رسم كلٍّ منها بعمومية. **Discovery لا يرتّب على القدرات ولا يفرّع عليها** — يحملها للسطح فقط. هذا يمنع مئات `if(type===…)` مستقبلاً (المطعم `book`، الطبيب `reserve`, الورشة `book`, المتجر `order`, البيج قد لا يملك `order`).
 
 **الحقول الخاصة بكل نوع:** تعيش كلّها داخل `card` (معتمة)، **لا في المحرّك**. أمثلة الـ`card` لكل نوع:
 
@@ -224,7 +239,7 @@ export interface CandidateSource {
 ## 8. حدود المرحلة A (منعاً لـ Scope Creep)
 
 **يدخل A:**
-- أنواع `DiscoveryItem` + `RankingSignals` + `GroupKeys` (في `packages/domain/src/discovery`).
+- أنواع `DiscoveryItem` + `RankingSignals` + `GroupKeys` + `Capabilities` (في `packages/domain/src/discovery`).
 - `scoreItem` محايد النوع + `WEIGHT_PROFILES` (إعادة صياغة `scoreProduct` الحالي بلا تغيير سلوك العرض).
 - Registry المُسقِطات + **مُسقِط الكيان** + **مُسقِط العرض/المنتج**.
 - بوابتا `CandidateSource` و`TrustProvider` + تنفيذهما الحالي (Prisma + دالة ثقة نقية).
@@ -246,3 +261,38 @@ export interface CandidateSource {
 ## معيار القبول لهذه الوثيقة
 
 إذا كان العقد صحيحاً، فإضافة أي نوع محتوى مستقبلاً (Marketplace/Video/Question) = **مُسقِط + مِلَفّ أوزان + (اختياري) قسم**، دون لمس: المُصنِّف، الأسطح، أو أي نوع قائم. إن وُجد سيناريو يكسر ذلك — **العقد ناقص، نصلحه قبل الكود.**
+
+---
+
+## 9. الثوابت المعمارية (Architectural Invariants) — المرجع الحاكم لكل مراجعة كود
+
+هذه المبادئ **لا تُكسَر إطلاقاً**. أي Pull Request يخالف واحداً منها **يُرفَض** بصرف النظر عن جودته:
+
+1. **Discovery لا يكتب بيانات** — قراءة وترتيب فقط. لا `INSERT/UPDATE` في مسار الاكتشاف.
+2. **Discovery لا يعرف Prisma ولا SQL** — كل وصول للبيانات عبر بوابة `CandidateSource`؛ الترتيب لا يستورد `@al-souq/db`.
+3. **لا `switch(type)` داخل Discovery** — الأنواع **تسجّل نفسها** عبر `registerProjector`. لا فرع نوع في المُصنِّف ولا في الأسطح.
+4. **الترتيب دالة نقية وحتمية بلا آثار جانبية** — نفس المدخلات (+`now`) ⇒ نفس المخرجات؛ لا شبكة، لا قاعدة، لا عشوائية غير مُمَرَّرة داخل `scoreItem`/`rank`.
+5. **الإشارات مطبّعة [0..1] ومقارَنة عبر الأنواع** — شرط الخلط والتخزين المستقبلي.
+6. **الواجهة تقرأ `capabilities` لا `type`** — لا `if(type==='restaurant')` لإظهار زرّ.
+7. **كل نوع جديد = Projector + WeightProfile + Card + Capabilities فقط** — بلا لمس المُصنِّف أو الأسطح أو الأنواع القائمة.
+8. **كل Surface يستهلك Discovery فقط** — لا يقرأ Catalog/Trust مباشرةً لأغراض الاكتشاف/الترتيب.
+9. **Commerce لا يستورد Discovery إطلاقاً** — اتجاه واحد، مُنفَّذ بقاعدة استيراد آليّة تُفشِل البناء عند الخرق.
+10. **Trust لا يعرف الواجهة ولا يستورد Discovery** — يُصدِّر `TrustProfile` عبر بوابة `TrustProvider`؛ **قابل للاستبدال الكامل** (دالة → كاش → خدمة → ML → Rule Engine) دون أن يشعر Discovery.
+11. **العزل بالمحافظة لا يُكسر** — كل تحميل مرشّحين ضمن سياق `governorateId` (مع احتياط كل-العراق المقصود).
+12. **الدستور مُراجَع** — تغيير `WEIGHT_PROFILES` أو صيغة النقاط أو مجموعة المرشّحين يستلزم Product Review (نواة منتج، لا Service عادي).
+
+---
+
+## 10. اختبار ذهني — بعد ٥ سنوات (Thought Experiment)
+
+**السؤال:** لو ظهر `LiveStream` أو `Auction` أو `AI Assistant`، هل يكفي **Projector + WeightProfile + Card + Capabilities** دون لمس Discovery؟
+
+| المستقبلي | Projector يُسقِط الإشارات | WeightProfile | Capabilities | Card | Section | لمس نواة Discovery؟ |
+|---|---|---|---|---|---|---|
+| **LiveStream** (بثّ تسوّق) | popularity=مشاهدون · freshness=مباشر الآن · trust=ثقة المضيّف · quality=تفاعل | يرجّح freshness+popularity | `watch, follow, share, order?` | `LiveCard` | «بثّ مباشر الآن» | **لا** |
+| **Auction** (مزاد) | popularity=مزايدات · freshness=إلحاح `endsAt` · trust=ثقة البائع | يرجّح freshness+popularity | `bid, watch, share` | `AuctionCard` | «مزادات تنتهي قريباً» | **لا** |
+| **AI Assistant** | *حالتان:* إن **عرَض** نتائج ⇒ **Surface** يستهلك Discovery؛ إن كان **اقتراحاً معروضاً** ⇒ نوع `collection`/`suggestion` بمُسقِطه | حسب النوع | `open, share` | بطاقة الاقتراح | «مقترح لك» | **لا** |
+
+**الخلاصة:** الثلاثة تدخل عبر «مُسقِط + أوزان + بطاقة + قدرات (+ قسم)» فقط — **صفر تعديل** في المُصنِّف أو الأسطح أو الأنواع القائمة. ✅ العقد ناجح.
+
+> ملاحظة دقيقة كشفها الاختبار: **AI Assistant قد يكون سطحاً لا عنصراً** — وهذا سليم، لأن «كل سطح يستهلك Discovery» (ثابت #8). الفرق: *يعرض* ⇒ Surface، *يُعرَض* ⇒ DiscoveryItem. لا حالة ثالثة تكسر النموذج.
