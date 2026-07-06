@@ -1,0 +1,164 @@
+# خريطة مجال السوگ — الوثيقة المرجعية (Domain Map)
+
+> **الحالة:** معتمدة كمرجع للرؤية الجديدة · **النوع:** خريطة مجال (Domain Map)، وليست ERD ولا مخطّط قاعدة بيانات.
+> كل مرحلة قادمة (A → C) تُبنى على هذه الوثيقة. أي ميزة جديدة تُوضَع على هذه الخريطة **قبل** كتابة سطر كود.
+
+---
+
+## 0. المبدأ الحاكم (الدستور بسطر واحد)
+
+**السوگ = خريطة السوق العراقي الحقيقي: جهاتٌ موثوقة أولاً، ثم ما تعرضه.**
+ترتيب الكيانات في وعي المستخدم: 🏬 متجر فعلي ← 📱 بيج موثّق ← 📦 عرض (منتج) ← ⭐ مجموعة.
+
+> **معيار قبول أي قرار:** هل يجعل السوگ أقرب إلى أن يكون *نقطة البداية لكل عملية شراء في العراق*؟ لا → لا يدخل، مهما كانت جودته التقنية.
+
+**القاعدة المعمارية المصحّحة:** Discovery هو مركز **الاكتشاف والتصفّح**، لا مركز كل شيء.
+> كل سطح *هدفه مساعدة المستخدم على اكتشاف ما يريد* يستهلك Discovery. أمّا نواة الشراء (السلة/الطلب/الدفع) فلا تعتمد عليه. **الغراء بين كل السياقات = Domain Events.**
+
+---
+
+## 1. السياقات المحدودة (Bounded Contexts)
+
+ستة سياقات. لكلٍّ مسؤولية واحدة، وما يملكه، وما **لا** يملكه (الحدّ).
+
+| السياق | مسؤوليته (سؤال واحد) | يملك | لا يملك (الحدّ) |
+|---|---|---|---|
+| **Identity** | مَن المستخدم وما صلاحياته؟ | User, Role, Staff/Permissions, Auth (OTP/Session), Governorate-of-user | لا يعرف شيئاً عن العروض أو الطلبات |
+| **Catalog** | ما هو معروض في السوق؟ | **CommerceEntity** (متجر فعلي/بيج)، **Offer** (منتج+متغيّرات)، Category، Media، الجغرافيا (Governorate/Area) | لا يقرّر مَن يظهر أولاً، ولا يحسب الثقة |
+| **Commerce** | كيف يتمّ التبادل الفعلي؟ | Cart, Order, OrderItem, Stock/Reservation, Commission, Payout, Delivery (COD), آلة الحالة | لا يرتّب، لا يكتشف، لا يقيس الثقة |
+| **Trust** | لماذا نثق بهذه الجهة؟ | **Trust Engine** لكل CommerceEntity ← `{ score, signals, reasons, badges }` | لا يبيع، لا يرتّب مباشرةً — يُصدِّر مَلمحاً (Profile) فقط |
+| **Discovery** | ماذا يرى المستخدم، ومتى، وبأي ترتيب؟ | **DiscoveryItem**، Section، Ranking (الدستور/الأوزان)، الأسطح (Home/Search/Category/Related) | **لا يملك أي كيان** — كله بيانات مُستعارة، قراءة وترتيب فقط، لا يكتب في قاعدة |
+| **Engagement** | كيف يتفاعل الناس ويُبلَّغون؟ | Review, Question, Follow *(لاحقاً)*, Notification (قنوات) | لا منطق أعمال؛ يُنتج إشارات ورسائل فقط |
+
+> **ملاحظة تنفيذية:** هذه السياقات **حدود مجلّدات** داخل `packages/domain` و`packages/api` الآن — **لا حزم منفصلة**. الفصل إلى حزم يُؤجَّل حتى يظهر احتكاك حقيقي (تفادياً لـ Over-Engineering).
+
+---
+
+## 2. الكيانات الجوهرية والمفردات الرسمية
+
+الرؤية الجديدة تُعيد تسمية مركز الثقل. الجدول يربط المفردة الرسمية بما هو مبنيّ اليوم (الهجرة تدريجية، لا إعادة كتابة):
+
+| المفردة الرسمية | المعنى | ما يقابلها اليوم في الكود |
+|---|---|---|
+| **CommerceEntity** | الجهة التي نشتري منها. لها `kind`: **PhysicalStore** \| **OnlinePage**. هي القلب — «مَن». | `VendorProfile` (+ حقل `kind` لاحقاً) |
+| **Offer** | ما تعرضه الجهة (المنتج + متغيّراته). نتيجة، لا هوية. | `Product` + `ProductVariant` |
+| **Governorate** | الجغرافيا التي **تعزل** وتُخصّص كل سطح. عنصر أساسي لا زينة. | `Governorate` / `Area` |
+| **Category** | تصنيف يقطع العرض أفقياً. | `Category` |
+| **DiscoveryItem** | **المُغلّف العام** الذي يرتّبه المحرّك: `{ type: entity\|offer\|collection\|…, id, score, reasons, metadata }`. | *غير موجود بعد — أهمّ إضافة* |
+| **TrustProfile** | ملمح ثقة CommerceEntity: score + signals + reasons + badges. | *مبدئياً `storeTrust` رقم — يصبح Engine* |
+| **Review / Question / Follow** | محتوى المستخدم الذي يُغذّي الثقة والاكتشاف. | `Review` موجود؛ Question/Follow لاحقاً |
+
+> **هوية المتجر قصّة لا حقول:** بطاقة CommerceEntity تكبر لاحقاً لتشمل: منذ متى، عدد الطلبات، سرعة الردّ، المحافظات المخدومة، محل فعلي/صوره، ساعات العمل، مَن يديره، وسائل التواصل. نبدأ بأقلّ ما يلزم (التوثيق/النوع/النشاط) ونُنمّيها.
+
+---
+
+## 3. الخريطة البصرية — مَن يستهلك مَن، ومَن يُطلق الأحداث
+
+```mermaid
+flowchart TB
+  subgraph Surfaces["أسطح التصفّح (تقرأ Discovery)"]
+    Home["الرئيسية"]; Search["البحث"]; Cat["الفئات"]; StorePage["صفحة المتجر"]; ProdPage["صفحة المنتج"]
+  end
+
+  Disc["Discovery Engine<br/>(DiscoveryItem · Ranking · Sections)"]
+  Cat2["Catalog<br/>(CommerceEntity · Offer · Category)"]
+  Trust["Trust Engine<br/>(score · signals · reasons · badges)"]
+  Comm["Commerce<br/>(Cart · Order · Stock · Payout)"]
+  Eng["Engagement<br/>(Review · Question · Follow · Notify)"]
+  Ident["Identity<br/>(User · Roles · Auth)"]
+  Bus(["Domain Event Bus"])
+
+  %% قراءة متزامنة (خطوط صلبة)
+  Surfaces -->|read| Disc
+  Disc -->|reads what exists| Cat2
+  Disc -->|reads trust| Trust
+  Trust -->|reads history| Comm
+  Trust -->|reads reviews| Eng
+
+  %% الأحداث (خطوط متقطّعة) — الغراء
+  Comm -. emits .-> Bus
+  Eng  -. emits .-> Bus
+  Ident -. emits .-> Bus
+  Surfaces -. interaction events .-> Bus
+  Bus -. consumed by .-> Trust
+  Bus -. consumed by .-> Disc
+  Bus -. consumed by .-> Eng
+
+  Gov{{"Governorate — يعزل كل سطح (عنصر شامل)"}}
+  Gov -.-> Surfaces
+```
+
+**كيف تُقرأ الخريطة:**
+- **خطوط صلبة = قراءة متزامنة الآن:** الأسطح تقرأ Discovery؛ Discovery يقرأ Catalog (ما هو موجود) و Trust (بمن نثق)؛ Trust يقرأ تاريخ Commerce والمراجعات.
+- **خطوط متقطّعة = أحداث (الغراء):** Commerce و Engagement و Identity والأسطح **تُطلق** أحداثاً على الناقل؛ Trust و Discovery و Engagement **تستهلك** ما يخصّها. لا استدعاء مباشر متبادل.
+- **الحدّ الأحمر:** Commerce (الشراء) لا يعرف Discovery. أبداً.
+- **Governorate** يعزل كل سطح (ليس صندوقاً في السلسلة، بل بُعد شامل).
+
+---
+
+## 4. سلسلة العلاقات (بلغة المجال، لا قاعدة البيانات)
+
+```
+Governorate  ──يعزل──▶  CommerceEntity  ──يعرض──▶  Offer  ──يُصنَّف──▶  Category
+                             │                        │
+                             ▼                        ▼
+                        TrustProfile            DiscoveryItem  ◀── يلتقط كليهما (Entity | Offer)
+                             ▲                        ▲
+        Review · Question · Follow ──تُغذّي الثقة والاكتشاف──┘
+```
+
+القراءة: **الجهة أولاً** (CommerceEntity داخل محافظة) → لها ثقة (TrustProfile) وتعرض عروضاً (Offer) → كلاهما يدخل الاكتشاف كـ **DiscoveryItem** → محتوى المستخدم (Review/Question/Follow) يرفع الثقة ويؤثّر في الترتيب.
+
+---
+
+## 5. الحدود الصارمة (قائمة الـ«لا»)
+
+1. **Commerce لا يعرف Discovery ولا Trust** — يُطلق أحداثاً فقط (OrderPlaced/Delivered/Cancelled).
+2. **Discovery لا يملك كياناً ولا يكتب في قاعدة** — يقرأ Catalog و Trust ويرتّب. نقطة.
+3. **Trust لا يبيع ولا يرتّب** — يقيس ويُصدّر `TrustProfile`. مَن يعرضه (بطاقة) ومَن يستهلكه (ترتيب) شأنهما.
+4. **Checkout / Cart / Order / Payment لا تستهلك Discovery** — أسطح معاملات لا اكتشاف.
+5. **Search سطحٌ من Discovery، لا نظام مستقل** — يمرّ عبر نفس المُغلّف والترتيب.
+6. **`packages/domain` لا يصبح God Module** — حدوده الداخلية هي السياقات الستّة أعلاه من اليوم.
+
+---
+
+## 6. Domain Events — الغراء (القاعدة: الأسطح تُطلق، السياقات تستهلك)
+
+| الحدث | مَن يُطلقه | مَن يستهلكه |
+|---|---|---|
+| `OrderPlaced` / `OrderDelivered` / `OrderCancelled` | Commerce | Trust (نشاط/إلغاء)، Discovery (شعبية/مبيعات ٧ أيام)، Notification |
+| `ReviewCreated` | Engagement | Trust (جودة)، Discovery (تقييم)، Notification |
+| `StoreFollowed` | Engagement | Trust (نشاط)، Discovery (تفضيل)، Notification |
+| `QuestionCreated` | Engagement | Discovery (محتوى)، Notification |
+| `ProductViewed` / `StoreOpened` / `SearchPerformed` | الأسطح | Discovery (إعادة ترتيب V2)، التحليلات (V2) |
+| `UserRegistered` / `StaffChanged` | Identity | Notification، التدقيق |
+
+> تصنيف الأحداث موجود اليوم (`domain/src/discovery/events.ts`) والسِّنك no-op في V1. القيمة: **الأسماء ثابتة الآن**، فيصير تسجيلها لاحقاً «إضافة تخزين» لا إعادة تصميم.
+
+---
+
+## 7. أين تنتمي أي ميزة جديدة؟ (اختبار الخريطة)
+
+| الميزة | تُبنى في | تُطلق | تُستهلك من |
+|---|---|---|---|
+| شارة توثيق متجر | **Trust** (badge) | — | Discovery (ترتيب)، الواجهة (بطاقة) |
+| متابعة متجر | **Engagement** (Follow) | `StoreFollowed` | Trust، Discovery، Notification |
+| سؤال على منتج | **Engagement** (Question) | `QuestionCreated` | Discovery، Notification |
+| «بيجات موثّقة» في الرئيسية | **Discovery** (Section من DiscoveryItem type=entity) | — | يقرأ Catalog+Trust |
+| فيديو/Reel للمتجر (لاحقاً) | **Catalog/Engagement** (نوع محتوى) | — | Discovery (DiscoveryItem type=video) |
+
+إن لم تجد للميزة مكاناً على هذه الخريطة → الميزة غير مُعرّفة بعد؛ نُعرّفها قبل بنائها.
+
+---
+
+## 8. ما نؤجّله صراحةً (الخريطة تحجز مكانه)
+
+- تقسيم `domain` إلى حزم منفصلة · Read Model / Materialized View لـ Discovery · تخزين الأحداث وخطّ التحليلات · إشارات الثقة الثقيلة (سرعة الرد، معدّل الإلغاء، جودة المراجعات بالـNLP) · الرسم الاجتماعي (أشخاص/متابعة عميقة) · الأسئلة والفيديو (Tiers 4–6).
+- كلها **محجوزة** كأنواع `DiscoveryItem` أو إشارات `TrustProfile` أو أحداث — تُضاف دون إعادة تصميم.
+
+---
+
+## 9. القاعدة الذهبية
+
+> **Catalog يقول ما هو موجود · Trust يقول بمن نثق · Discovery يقرّر ماذا نرى · Commerce ينفّذ الشراء · Events تربطهم · Governorate يعزلهم.**
+> المنتج نتيجة، لا هوية. الجهة الموثوقة هي الهوية.
