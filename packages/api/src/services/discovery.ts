@@ -10,12 +10,23 @@
  */
 import type { PrismaClient } from "@al-souq/db";
 import {
-  rankMixed,
   reasonsFor,
   bayesianRating,
+  exclusionFor,
+  maxPopularity,
+  getProjector,
+  rankItems,
+  weightProfileFor,
+  ZERO_PROFILE,
+  ratingTrustProvider,
   DISCOVERY_WEIGHTS as W,
   type RankableProduct,
   type ReasonCode,
+  type OfferFacts,
+  type TrustProvider,
+  type TrustScores,
+  type CandidateSource,
+  type ProjectionContext,
 } from "@al-souq/domain";
 
 // V1 Optimization — قرار منتجي مقصود، وليس قيداً تقنياً عشوائياً:
@@ -136,6 +147,38 @@ async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<C
 
 const toCard = (c: Candidate, now: Date): DiscoveryProductCard => ({ ...c.card, reasons: reasonsFor(c, now) });
 
+/** يحوّل مرشّح المجموعة إلى حقائق العرض التي يستهلكها مُسقِط Discovery V2. */
+function toOfferFacts(c: Candidate, trust: TrustScores): OfferFacts {
+  return {
+    id: c.id,
+    governorateId: null, // العزل يتم في الاستعلام؛ غير مستخدم في الترتيب
+    createdAt: c.createdAt,
+    vendorId: c.vendorId,
+    categoryId: c.categoryId,
+    soldCount: c.soldCount,
+    sales7: c.sales7,
+    ratingAvg: c.ratingAvg,
+    ratingCount: c.ratingCount,
+    available: c.available,
+    storeApproved: c.storeApproved,
+    storeTrust: trust.get(c.vendorId) ?? 0, // ثقة مطبّعة من TrustProvider (bayesian/5)
+    card: c.card,
+  };
+}
+
+/**
+ * منفذ CandidateSource في الذاكرة فوق المجموعة المُحمَّلة (استعلام واحد) — يُثبت أن
+ * مسار الصفحة الرئيسية يستهلك المنفذ فعلياً، لا Prisma مباشرة داخل Discovery (ثابت #2).
+ */
+function offerSourceFromPool(pool: Candidate[], trust: TrustProvider): CandidateSource {
+  return {
+    async fetch() {
+      const scores = await trust.trustFor(pool.map((c) => c.vendorId));
+      return [{ type: "offer", facts: pool.map((c) => toOfferFacts(c, scores)) }];
+    },
+  };
+}
+
 async function newStores(prisma: PrismaClient, governorateId?: string): Promise<DiscoveryStoreCard[]> {
   const vendors = await prisma.vendorProfile.findMany({
     where: {
@@ -183,8 +226,24 @@ export async function getHomeSections(prisma: PrismaClient, governorateId?: stri
     if (items.length) sections.push({ key, kind: "products", items: items.map((c) => toCard(c, now)) });
   };
 
-  // اليوم: مختلط ومتنوّع (نقاط ثم تنوّع فئات/متاجر)
-  push("today", rankMixed(pool, SECTION_SIZE, now) as Candidate[]);
+  // اليوم — يمرّ الآن عبر مكدّس Discovery V2: منفذ CandidateSource → مُسقِط العرض →
+  // المُصنِّف المحايد للنوع + منفذ الثقة. المخرجات مطابقة لـ rankMixed بايتاً ببايت
+  // (يُثبته اختبار التكافؤ في domain): نفس الأوزان والتطبيع والتنوّع، والبطاقات تُبنى
+  // من نفس toCard القديم (أسباب متطابقة، بما فيها TRUSTED_STORE).
+  const trust = ratingTrustProvider(
+    new Map(pool.map((c) => [c.vendorId, { ratingAvg: c.storeRatingAvg, ratingCount: c.storeRatingCount }])),
+  );
+  const source = offerSourceFromPool(pool, trust);
+  const batches = await source.fetch({ governorateId });
+  const popMax = maxPopularity(pool.filter((c) => exclusionFor(c) === null));
+  const ctx: ProjectionContext = { now, popMax };
+  const todayItems = batches.flatMap((b) => {
+    const projector = getProjector(b.type); // بحث في السجلّ بالنوع — بلا switch(type)
+    return projector ? b.facts.map((f) => projector.project(f, ctx)) : [];
+  });
+  const rankedToday = rankItems(todayItems, (t) => weightProfileFor(t) ?? ZERO_PROFILE, SECTION_SIZE, W.diversity);
+  const byId = new Map(pool.map((c) => [c.id, c]));
+  push("today", rankedToday.map((it) => byId.get(it.id)!));
   // الترند: مبيعات ٧ أيام (≥ حد المشترين)
   push(
     "trending",
