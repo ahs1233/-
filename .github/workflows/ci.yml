@@ -62,6 +62,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Architecture Guard (حدود السياقات المحدودة)
+        run: pnpm arch
+
       - name: Unit + integration tests
         run: pnpm test
 
