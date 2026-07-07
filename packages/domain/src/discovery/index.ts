@@ -5,4 +5,5 @@ export * from "./score";
 export * from "./item";
 export * from "./rank";
 export * from "./registry";
+export * from "./source";
 export * from "./projectors";
