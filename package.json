@@ -12,6 +12,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
+    "arch": "node scripts/check-architecture.mjs",
     "test": "turbo run test",
     "db:generate": "pnpm --filter @al-souq/db generate",
     "db:migrate": "pnpm --filter @al-souq/db migrate",
