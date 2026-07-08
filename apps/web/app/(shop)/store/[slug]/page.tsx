@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Store, MapPin, BadgeCheck } from "lucide-react";
+import { Store, MapPin, BadgeCheck, Star, CalendarDays, Package, Truck } from "lucide-react";
 import { getServerApi } from "@/src/trpc/server";
 import { ProductCard } from "@/src/components/product-card";
+import { AppImage } from "@/src/components/app-image";
 import { decodeSlug } from "@/src/lib/slug";
 
 export const dynamic = "force-dynamic";
@@ -49,40 +50,96 @@ export default async function StorePage({ params }: { params: { slug: string } }
       : {}),
   };
 
+  const year = new Date(vendor.memberSince).getFullYear();
+  const hasRating = vendor.ratingCount > 0;
+
   return (
     <div className="space-y-5">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
-        <div className="h-24 bg-gradient-to-bl from-brand-500 to-brand-700" />
-        <div className="flex items-start gap-3 p-4">
-          <span className="-mt-10 grid h-20 w-20 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-brand-50 text-brand-600 shadow">
-            {vendor.logoUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img loading="lazy" decoding="async" src={vendor.logoUrl} alt={vendor.storeName} className="h-full w-full object-cover" />
+
+      {/* الواجهة — تدخل محلاً، لا تفتح بطاقة. صاحبه حاضرٌ يرحّب بك. */}
+      <section className="overflow-hidden rounded-3xl border border-gold-200 bg-sand-50 shadow-sm">
+        {/* واجهة المحل — لافتته وسِتارته */}
+        <div className="relative h-28 sm:h-32">
+          {vendor.bannerUrl ? (
+            <AppImage src={vendor.bannerUrl} alt={`واجهة ${vendor.storeName}`} sizes="100vw" priority className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(135deg, #b87d4a 0 22px, #9a6638 22px 44px)",
+              }}
+            />
+          )}
+          {/* ظلّ السِتارة — عمقٌ ودفء */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
+        </div>
+
+        <div className="relative px-4 pb-4">
+          {/* ختم صاحب المحل */}
+          <div className="flex items-end gap-3">
+            <span className="-mt-12 grid h-24 w-24 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-sand-50 bg-white text-brand-600 shadow-md ring-1 ring-gold-300">
+              {vendor.logoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img loading="lazy" decoding="async" src={vendor.logoUrl} alt={vendor.storeName} className="h-full w-full object-cover" />
+              ) : (
+                <Store className="h-9 w-9" />
+              )}
+            </span>
+            <div className="flex-1 pb-1">
+              <h1 className="flex items-center gap-1.5 text-xl font-extrabold text-neutral-900">
+                {vendor.storeName}
+                <BadgeCheck className="h-5 w-5 text-brand-500" aria-label="متجر موثّق" />
+              </h1>
+              {vendor.governorate && (
+                <p className="mt-0.5 flex items-center gap-1 text-sm text-neutral-500">
+                  <MapPin className="h-3.5 w-3.5" /> {vendor.governorate.nameAr}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* صوت صاحب المحل */}
+          <p className="mt-3 rounded-2xl border border-gold-200 bg-white/70 px-4 py-3 text-sm leading-relaxed text-neutral-700">
+            {vendor.description ? (
+              <>
+                <span className="font-bold text-gold-700">صاحب المتجر:</span> «{vendor.description}»
+              </>
             ) : (
-              <Store className="h-8 w-8" />
+              <>أهلاً بك في محلّي — تصفّح على راحتك، وما يعجبك يصلك حتى بابك.</>
             )}
-          </span>
-          <div className="flex-1 pt-1">
-            <h1 className="flex items-center gap-1.5 text-xl font-bold text-neutral-900">
-              {vendor.storeName}
-              <BadgeCheck className="h-5 w-5 text-brand-500" />
-            </h1>
-            {vendor.governorate && (
-              <p className="mt-0.5 flex items-center gap-1 text-sm text-neutral-500">
-                <MapPin className="h-3.5 w-3.5" /> {vendor.governorate.nameAr}
-              </p>
-            )}
-            {vendor.description && <p className="mt-1.5 text-sm text-neutral-600">{vendor.description}</p>}
+          </p>
+
+          {/* شارات الثقة — منذ متى، التقييم، الرفوف، التوصيل */}
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <Badge icon={<Star className="h-3.5 w-3.5 fill-gold-400 text-gold-400" />}>
+              {hasRating ? (
+                <span className="nums">{vendor.ratingAvg.toFixed(1)}</span>
+              ) : (
+                "متجر جديد"
+              )}
+              {hasRating && <span className="text-neutral-400"> ({vendor.ratingCount})</span>}
+            </Badge>
+            <Badge icon={<Package className="h-3.5 w-3.5 text-brand-600" />}>
+              <span className="nums">{vendor.productCount}</span> منتج
+            </Badge>
+            <Badge icon={<CalendarDays className="h-3.5 w-3.5 text-brand-600" />}>
+              في السوگ منذ <span className="nums">{year}</span>
+            </Badge>
+            <Badge icon={<Truck className="h-3.5 w-3.5 text-petrol" />}>الدفع عند الاستلام</Badge>
           </div>
         </div>
       </section>
 
+      {/* الرفوف */}
       <section>
-        <h2 className="mb-3 text-lg font-bold">منتجات المتجر ({products.length})</h2>
+        <h2 className="mb-3 text-lg font-bold text-neutral-900">
+          على الرفوف <span className="text-sm font-medium text-neutral-400">· <span className="nums">{vendor.productCount}</span> منتج</span>
+        </h2>
         {products.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
-            لا توجد منتجات في هذا المتجر بعد.
+            الرفوف قيد التجهيز — لا توجد منتجات بعد.
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -93,5 +150,14 @@ export default async function StorePage({ params }: { params: { slug: string } }
         )}
       </section>
     </div>
+  );
+}
+
+function Badge({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 shadow-sm">
+      {icon}
+      {children}
+    </span>
   );
 }

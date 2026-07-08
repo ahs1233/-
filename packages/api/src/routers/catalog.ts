@@ -70,6 +70,10 @@ const storeOut = z
       logoUrl: z.string().nullable(),
       bannerUrl: z.string().nullable(),
       governorate: z.object({ nameAr: z.string() }).nullable(),
+      ratingAvg: z.number(),
+      ratingCount: z.number(),
+      productCount: z.number(),
+      memberSince: z.string(),
     }),
     products: z.array(productCardOut),
   })
@@ -296,6 +300,10 @@ export const catalogRouter = router({
           logoUrl: true,
           bannerUrl: true,
           governorate: { select: { nameAr: true } },
+          ratingAvg: true,
+          ratingCount: true,
+          createdAt: true,
+          _count: { select: { products: { where: { status: "ACTIVE" } } } },
         },
       });
       if (!vendor) return null;
@@ -314,7 +322,16 @@ export const catalogRouter = router({
           vendor: { select: { storeName: true, slug: true } },
         },
       });
-      return { vendor, products: products.map(serializeProduct) };
+      const { createdAt, _count, ratingAvg, ...rest } = vendor;
+      return {
+        vendor: {
+          ...rest,
+          ratingAvg: Number(ratingAvg),
+          productCount: _count.products,
+          memberSince: createdAt.toISOString(),
+        },
+        products: products.map(serializeProduct),
+      };
     }),
 
   // قائمة المتاجر (اختياري حسب المحافظة) — لتصفّح سوق كل محافظة
