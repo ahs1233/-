@@ -28,4 +28,48 @@
   .container-app {
     @apply mx-auto w-full max-w-screen-md px-4;
   }
+
+  /* زرّ نحاسيّ — لمعة معدنٍ لا لونٌ مسطّح (قانون الكانون: الذهب معدن) */
+  .btn-brass {
+    background-image: linear-gradient(
+      160deg,
+      #f3d99b 0%,
+      #d4ad7f 34%,
+      #b87d4a 62%,
+      #9a6638 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -2px 5px rgba(124, 80, 41, 0.5),
+      0 8px 22px -10px rgba(154, 102, 56, 0.9);
+  }
+}
+
+@layer utilities {
+  /* الفانوس لا يضيء بالكامل — الضوء يهتزّ (قانون السلوك) */
+  @keyframes souq-flicker {
+    0%, 100% { opacity: 0.85; }
+    25% { opacity: 1; }
+    50% { opacity: 0.7; }
+    72% { opacity: 0.95; }
+  }
+  .animate-flicker {
+    animation: souq-flicker 4.5s ease-in-out infinite;
+  }
+
+  /* كِن-بيرنز بطيء — المكان يتنفّس، لا صورةٌ جامدة */
+  @keyframes souq-drift {
+    from { transform: scale(1.06) translate3d(0, 0, 0); }
+    to { transform: scale(1.12) translate3d(-1.5%, -1.5%, 0); }
+  }
+  .animate-drift {
+    animation: souq-drift 26s ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-flicker,
+    .animate-drift {
+      animation: none;
+    }
+  }
 }
