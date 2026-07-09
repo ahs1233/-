@@ -5,10 +5,15 @@
  */
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
-import { getHomeSections } from "../services/discovery";
+import { getHomeSections, getHomeExtras } from "../services/discovery";
 
 export const discoveryRouter = router({
   home: publicProcedure
     .input(z.object({ governorateId: z.string().cuid().optional() }).optional())
     .query(({ ctx, input }) => getHomeSections(ctx.prisma, input?.governorateId)),
+
+  // إحصاءات حيّة + جهة موصى بها + نبض السوق — للرأس السينمائيّ للرئيسية
+  homeExtras: publicProcedure
+    .input(z.object({ governorateId: z.string().cuid().optional() }).optional())
+    .query(({ ctx, input }) => getHomeExtras(ctx.prisma, input?.governorateId)),
 });

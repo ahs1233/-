@@ -5,8 +5,10 @@ import { getServerApi } from "@/src/trpc/server";
 import { ProductCard } from "@/src/components/product-card";
 import { CategoryIcon } from "@/src/components/category-icon";
 import { HomeHero } from "@/src/components/home-hero";
+import { StatStrip, FeaturedEntityCard, MarketPulse, SoukTiles } from "@/src/components/home/home-blocks";
 import { AppImage } from "@/src/components/app-image";
 import { getCachedCategories, type CachedCategory } from "@/src/lib/catalog-cache";
+import type { HomeExtras } from "@al-souq/api";
 
 export const dynamic = "force-dynamic";
 
@@ -26,12 +28,14 @@ export default async function HomePage() {
   const gov = getGovernorate();
   let categories: CachedCategory[] = [];
   let sections: HomeSections = [];
+  let extras: HomeExtras | null = null;
   let dbReady = true;
   try {
     const api = await getServerApi();
-    [categories, sections] = await Promise.all([
+    [categories, sections, extras] = await Promise.all([
       getCachedCategories(),
       api.discovery.home({ governorateId: gov?.id }),
+      api.discovery.homeExtras({ governorateId: gov?.id }),
     ]);
   } catch {
     dbReady = false;
@@ -41,6 +45,20 @@ export default async function HomePage() {
     <div className="space-y-7">
       {/* البطل السينمائيّ — بوّابة «دخلتُ بغداد» */}
       <HomeHero governorate={gov?.name} />
+
+      {/* شريط الأرقام الحيّة — نبض السوق رقماً */}
+      {extras && (extras.stats.openStores > 0 || extras.stats.newOffersToday > 0) && (
+        <StatStrip stats={extras.stats} governorate={gov?.name} />
+      )}
+
+      {/* جهة موصى بها لك — أكبر عنصر بعد البطل */}
+      {extras?.featured && <FeaturedEntityCard entity={extras.featured} />}
+
+      {/* السوق الآن — نبض حيّ */}
+      {extras && <MarketPulse events={extras.pulse} />}
+
+      {/* تصفّح الأسواق — بلاطات مصوّرة */}
+      <SoukTiles />
 
       {!dbReady && (
         <div className="rounded-2xl border border-gold-400/40 bg-gold-400/10 p-4 text-sm text-gold-600">

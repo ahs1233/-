@@ -277,3 +277,156 @@ export async function getHomeSections(prisma: PrismaClient, governorateId?: stri
 
   return sections;
 }
+
+// ─── نبض السوق + إحصاءات + جهة موصى بها (بيانات حقيقية، لا أرقام ملفّقة) ───
+
+export interface HomeStats {
+  openStores: number;
+  newStoresToday: number;
+  newOffersToday: number;
+}
+
+export interface FeaturedEntity {
+  storeName: string;
+  slug: string;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+  description: string | null;
+  governorate: string | null;
+  category: string | null;
+  ratingAvg: number;
+  ratingCount: number;
+  productCount: number;
+  memberSinceYear: number;
+}
+
+export type PulseKind = "live" | "trend" | "new_store" | "offer";
+export interface PulseEvent {
+  id: string;
+  kind: PulseKind;
+  text: string;
+  when: string;
+}
+
+export interface HomeExtras {
+  stats: HomeStats;
+  featured: FeaturedEntity | null;
+  pulse: PulseEvent[];
+}
+
+function arRelative(from: Date, now = Date.now()): string {
+  const mins = Math.max(0, Math.round((now - from.getTime()) / 60000));
+  if (mins < 1) return "الآن";
+  if (mins < 60) return `قبل ${mins} د`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `قبل ${hours} س`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return "أمس";
+  return `قبل ${days} يوم`;
+}
+
+/** إضافات الرئيسية: إحصاءات حيّة + جهة موصى بها + نبض السوق — كلّها مشتقّة من DB. */
+export async function getHomeExtras(prisma: PrismaClient, governorateId?: string): Promise<HomeExtras> {
+  const govWhere = governorateId ? { governorateId } : {};
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const weekAgo = new Date(Date.now() - 7 * 86_400_000);
+
+  const [openStores, newStoresToday, newOffersToday, topVendor, newestVendor, newestProduct, ordersThisWeek] =
+    await Promise.all([
+      prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere } }),
+      prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere, createdAt: { gte: startOfDay } } }),
+      prisma.product.count({
+        where: { status: "ACTIVE", createdAt: { gte: startOfDay }, vendor: { status: "APPROVED", ...govWhere } },
+      }),
+      prisma.vendorProfile.findFirst({
+        where: { status: "APPROVED", ...govWhere, products: { some: { status: "ACTIVE" } } },
+        orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }],
+        select: {
+          storeName: true,
+          slug: true,
+          logoUrl: true,
+          bannerUrl: true,
+          description: true,
+          ratingAvg: true,
+          ratingCount: true,
+          createdAt: true,
+          governorate: { select: { nameAr: true } },
+          products: {
+            where: { status: "ACTIVE" },
+            take: 1,
+            orderBy: { createdAt: "desc" },
+            select: { category: { select: { nameAr: true } } },
+          },
+          _count: { select: { products: { where: { status: "ACTIVE" } } } },
+        },
+      }),
+      prisma.vendorProfile.findFirst({
+        where: { status: "APPROVED", ...govWhere },
+        orderBy: { createdAt: "desc" },
+        select: { storeName: true, createdAt: true },
+      }),
+      prisma.product.findFirst({
+        where: { status: "ACTIVE", vendor: { status: "APPROVED", ...govWhere } },
+        orderBy: { createdAt: "desc" },
+        select: { title: true, createdAt: true, vendor: { select: { storeName: true } } },
+      }),
+      prisma.order.count({ where: { placedAt: { gte: weekAgo } } }),
+    ]);
+
+  const featured: FeaturedEntity | null = topVendor
+    ? {
+        storeName: topVendor.storeName,
+        slug: topVendor.slug,
+        logoUrl: topVendor.logoUrl,
+        bannerUrl: topVendor.bannerUrl,
+        description: topVendor.description,
+        governorate: topVendor.governorate?.nameAr ?? null,
+        category: topVendor.products[0]?.category?.nameAr ?? null,
+        ratingAvg: Number(topVendor.ratingAvg),
+        ratingCount: topVendor.ratingCount,
+        productCount: topVendor._count.products,
+        memberSinceYear: topVendor.createdAt.getFullYear(),
+      }
+    : null;
+
+  const pulse: PulseEvent[] = [];
+  if (newestProduct) {
+    pulse.push({
+      id: "new_product",
+      kind: "live",
+      text: `وصل حديثاً: ${newestProduct.title} في ${newestProduct.vendor.storeName}`,
+      when: arRelative(newestProduct.createdAt),
+    });
+  }
+  if (ordersThisWeek > 0) {
+    pulse.push({
+      id: "orders_week",
+      kind: "trend",
+      text: `${ordersThisWeek} طلباً هذا الأسبوع${governorateId ? " في محافظتك" : ""}`,
+      when: "هذا الأسبوع",
+    });
+  }
+  if (newOffersToday > 0) {
+    pulse.push({
+      id: "offers_today",
+      kind: "offer",
+      text: `${newOffersToday} عرضاً جديداً أُضيف اليوم`,
+      when: "اليوم",
+    });
+  }
+  if (newestVendor) {
+    pulse.push({
+      id: "new_store",
+      kind: "new_store",
+      text: `متجر «${newestVendor.storeName}» انضمّ إلى السوق`,
+      when: arRelative(newestVendor.createdAt),
+    });
+  }
+
+  return {
+    stats: { openStores, newStoresToday, newOffersToday },
+    featured,
+    pulse,
+  };
+}
