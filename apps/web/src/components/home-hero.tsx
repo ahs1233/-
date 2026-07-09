@@ -64,7 +64,7 @@ export function HomeHero({ governorate }: { governorate?: string }) {
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Link
               href="/categories"
-              className="btn-brass inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-extrabold text-[#3c2810] transition-transform hover:-translate-y-0.5 active:translate-y-0"
+              className="btn-brass inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-extrabold text-[#16223b] transition-transform hover:-translate-y-0.5 active:translate-y-0"
             >
               ادخل السوق
               <ChevronLeft className="h-4 w-4" />

@@ -197,7 +197,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 
           <Button
             variant="secondary"
-            className="btn-brass mt-4 w-full font-extrabold text-[#3c2810]"
+            className="btn-brass mt-4 w-full font-extrabold text-[#16223b]"
             size="lg"
             disabled={outOfStock}
             onClick={handleAdd}

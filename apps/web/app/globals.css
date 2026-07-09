@@ -33,15 +33,15 @@
   .btn-brass {
     background-image: linear-gradient(
       160deg,
-      #f3d99b 0%,
-      #d4ad7f 34%,
-      #b87d4a 62%,
-      #9a6638 100%
+      #f0d9a0 0%,
+      #dcbd7c 32%,
+      #c1974e 64%,
+      #a2793a 100%
     );
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 0 -2px 5px rgba(124, 80, 41, 0.5),
-      0 8px 22px -10px rgba(154, 102, 56, 0.9);
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -2px 5px rgba(127, 93, 43, 0.45),
+      0 8px 22px -10px rgba(162, 121, 58, 0.9);
   }
 }
 
