@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { useCart } from "@/src/store/cart";
@@ -31,7 +32,10 @@ export default function CartPage() {
 
   return (
     <div className="space-y-4 pb-40 md:pb-24">
-      <h1 className="text-xl font-bold">السلة</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-extrabold text-brand-800">السلة</h1>
+        <span className="text-sm text-neutral-400 nums">{lines.length} منتج</span>
+      </div>
 
       <ul className="space-y-3">
         {lines.map((l) => (
@@ -49,7 +53,7 @@ export default function CartPage() {
                 <p className="text-xs text-neutral-500">{l.vendorName}</p>
                 <div className="mt-1 flex items-center justify-between">
                   <QtyStepper size="sm" value={l.quantity} min={0} max={l.maxAvailable} onChange={(n) => setQty(l.variantId, n)} />
-                  <span className="font-bold text-brand-600 nums">{formatIQD(l.unitPrice * l.quantity)}</span>
+                  <span className="font-extrabold text-brand-800 nums">{formatIQD(l.unitPrice * l.quantity)}</span>
                 </div>
               </div>
               <button
@@ -64,17 +68,22 @@ export default function CartPage() {
         ))}
       </ul>
 
-      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-neutral-200 bg-white p-3 md:bottom-0">
-        <div className="container-app flex items-center justify-between gap-3">
-          <div>
-            <span className="text-sm text-neutral-500">المجموع</span>
-            <div className="font-bold text-brand-600 nums">{formatIQD(subtotal)}</div>
+      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-sand-200 bg-white/95 p-3 backdrop-blur-md md:bottom-0">
+        <div className="container-app">
+          <p className="mb-2 flex items-center justify-center gap-1 text-[11px] font-medium text-petrol">
+            <ShieldCheck className="h-3.5 w-3.5" /> الدفع عند الاستلام — تفحّص طلبك قبل أن تدفع
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="shrink-0">
+              <span className="text-xs text-neutral-500">المجموع</span>
+              <div className="text-lg font-extrabold text-brand-800 nums">{formatIQD(subtotal)}</div>
+            </div>
+            <Link href="/checkout" className="flex-1">
+              <Button className="w-full" size="lg">
+                متابعة للدفع
+              </Button>
+            </Link>
           </div>
-          <Link href="/checkout" className="flex-1">
-            <Button className="w-full" size="lg">
-              متابعة الطلب
-            </Button>
-          </Link>
         </div>
       </div>
     </div>
