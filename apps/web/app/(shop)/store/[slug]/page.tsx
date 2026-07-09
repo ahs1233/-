@@ -134,7 +134,8 @@ export default async function StorePage({ params }: { params: { slug: string } }
 
       {/* الرفوف */}
       <section>
-        <h2 className="mb-3 text-lg font-bold text-neutral-900">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-brand-800">
+          <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
           على الرفوف <span className="text-sm font-medium text-neutral-400">· <span className="nums">{vendor.productCount}</span> منتج</span>
         </h2>
         {products.length === 0 ? (

@@ -49,11 +49,11 @@ export default async function HomePage() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <Link href="/stores" className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 font-medium text-neutral-800 shadow-sm transition hover:border-brand-300">
-          <Store className="h-5 w-5 text-brand-600" /> تصفّح المتاجر
+        <Link href="/stores" className="flex items-center gap-2 rounded-2xl border border-sand-200 bg-white p-4 font-semibold text-brand-700 shadow-sm transition hover:border-gold-300 hover:bg-gold-50">
+          <Store className="h-5 w-5 text-gold-600" /> تصفّح المتاجر
         </Link>
-        <Link href="/categories" className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 font-medium text-neutral-800 shadow-sm transition hover:border-brand-300">
-          <LayoutGrid className="h-5 w-5 text-brand-600" /> كل الفئات
+        <Link href="/categories" className="flex items-center gap-2 rounded-2xl border border-sand-200 bg-white p-4 font-semibold text-brand-700 shadow-sm transition hover:border-gold-300 hover:bg-gold-50">
+          <LayoutGrid className="h-5 w-5 text-gold-600" /> كل الفئات
         </Link>
       </div>
 
@@ -64,10 +64,10 @@ export default async function HomePage() {
           <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
             {categories.slice(0, 12).map((c) => (
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
-                <span className="grid h-16 w-16 place-items-center rounded-2xl border border-neutral-200 bg-white text-brand-600 shadow-sm transition group-hover:border-brand-300 group-hover:bg-brand-50">
+                <span className="grid h-16 w-16 place-items-center rounded-2xl border border-sand-200 bg-gradient-to-b from-white to-sand-50 text-brand-700 shadow-sm transition group-hover:border-gold-300 group-hover:from-gold-50 group-hover:to-gold-100">
                   <CategoryIcon name={c.icon} className="h-6 w-6" />
                 </span>
-                <span className="line-clamp-1 text-center text-[11px] text-neutral-600">{c.nameAr}</span>
+                <span className="line-clamp-1 text-center text-[11px] font-medium text-neutral-700">{c.nameAr}</span>
               </Link>
             ))}
           </div>
@@ -86,8 +86,11 @@ export default async function HomePage() {
         return (
           <section key={section.key}>
             <div className="mb-3">
-              <h2 className="text-lg font-bold text-neutral-900">{meta?.title ?? section.key}</h2>
-              {meta?.purpose && <p className="text-sm text-neutral-500">{meta.purpose}</p>}
+              <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+                <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+                {meta?.title ?? section.key}
+              </h2>
+              {meta?.purpose && <p className="mt-0.5 ps-3 text-sm text-neutral-500">{meta.purpose}</p>}
             </div>
             {section.kind === "stores" ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -150,9 +153,12 @@ function StoreCard({
 function SectionHeader({ title, href }: { title: string; href?: string }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-lg font-bold text-neutral-900">{title}</h2>
+      <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+        <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+        {title}
+      </h2>
       {href && (
-        <Link href={href} className="flex items-center gap-0.5 text-sm text-brand-600 hover:text-brand-700">
+        <Link href={href} className="flex items-center gap-0.5 text-sm font-medium text-gold-700 hover:text-gold-600">
           الكل <ChevronLeft className="h-4 w-4" />
         </Link>
       )}

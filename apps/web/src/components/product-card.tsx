@@ -18,9 +18,9 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   return (
     <Link
       href={`/product/${product.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-sand-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold-300 hover:shadow-md"
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+      <div className="relative aspect-square w-full overflow-hidden bg-sand-100">
         <AppImage
           src={product.image ?? "/placeholder-product.svg"}
           alt={product.title}
@@ -41,7 +41,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           <span className="line-clamp-1">{product.vendor.storeName}</span>
         </p>
         <div className="mt-auto pt-1">
-          <span className="text-base font-bold text-brand-600 nums">{formatIQD(product.price)}</span>
+          <span className="text-base font-extrabold text-brand-700 nums">{formatIQD(product.price)}</span>
         </div>
       </div>
     </Link>

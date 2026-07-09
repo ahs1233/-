@@ -10,7 +10,7 @@
     </linearGradient>
   </defs>
   <rect width="600" height="600" fill="url(#g)"/>
-  <g fill="none" stroke="#0fa3a3" stroke-width="2" opacity="0.35">
+  <g fill="none" stroke="#2f4266" stroke-width="2" opacity="0.35">
     <circle cx="300" cy="265" r="120"/>
     <circle cx="300" cy="265" r="158"/>
   </g>
@@ -23,5 +23,5 @@
     <path d="M2 1 L19 -2 q3 1 2 4 L4 3.5 Z"/>
     <path d="M-3 8 h6 l-1 8 h-4 Z"/>
   </g>
-  <text x="300" y="510" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="30" font-weight="700" fill="#0a6e6e">السوگ<tspan fill="#b87d4a">.</tspan></text>
+  <text x="300" y="510" text-anchor="middle" font-family="Tajawal, Tahoma, sans-serif" font-size="30" font-weight="700" fill="#1a2740">السوگ<tspan fill="#c08f2b">.</tspan></text>
 </svg>
