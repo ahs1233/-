@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ZoomIn, X, MapPin, ShieldCheck } from "lucide-react";
 import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
@@ -43,6 +44,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
   const [selectedId, setSelectedId] = useState(product.variants[0]?.id ?? "");
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
+  const [zoom, setZoom] = useState(false);
   const add = useCart((s) => s.add);
   const { success } = useToast();
 
@@ -85,17 +87,25 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 
   return (
     <div className="space-y-5">
-      {/* الصور */}
+      {/* الصور — سلعةٌ على طاولة، تُقلَّب وتُقرَّب للعين */}
       <Card className="overflow-hidden">
-        <div className="relative aspect-square w-full bg-neutral-100">
+        <button
+          type="button"
+          onClick={() => setZoom(true)}
+          aria-label="قرّب الصورة لعينك"
+          className="group relative block aspect-square w-full overflow-hidden bg-gradient-to-b from-sand-100 to-sand-50"
+        >
           <AppImage
             src={product.images[imgIdx]?.url ?? "/placeholder-product.svg"}
             alt={product.images[imgIdx]?.alt ?? product.title}
             sizes="(max-width: 640px) 100vw, 640px"
             priority
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
-        </div>
+          <span className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">
+            <ZoomIn className="h-3.5 w-3.5" /> قرّبها لعينك
+          </span>
+        </button>
         {product.images.length > 1 && (
           <div className="flex gap-2 overflow-x-auto p-2">
             {product.images.map((im, i) => (
@@ -127,54 +137,77 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           </button>
         </div>
 
-        <Link href={`/store/${product.vendor.slug}`} className="inline-block text-sm text-brand-600">
+        <Link
+          href={`/store/${product.vendor.slug}`}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600"
+        >
+          <ShieldCheck className="h-4 w-4" />
           {product.vendor.storeName}
-          {product.vendor.governorate ? ` — ${product.vendor.governorate.nameAr}` : ""}
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-bold text-brand-600 nums">
-            {selected ? formatIQD(selected.price) : formatIQD(product.basePrice)}
-          </span>
-          {product.ratingCount > 0 && (
-            <span className="text-sm text-gold-600">
-              ★ {product.ratingAvg.toFixed(1)} ({product.ratingCount})
+          {product.vendor.governorate && (
+            <span className="inline-flex items-center gap-0.5 font-normal text-neutral-400">
+              <MapPin className="h-3.5 w-3.5" /> {product.vendor.governorate.nameAr}
             </span>
           )}
-        </div>
+        </Link>
 
-        {/* الخيارات */}
-        {product.variants.length > 1 && (
-          <div>
-            <p className="mb-1 text-sm font-medium">الخيار</p>
-            <div className="flex flex-wrap gap-2">
-              {product.variants.map((v) => (
-                <button
-                  key={v.id}
-                  disabled={v.available <= 0}
-                  onClick={() => setSelectedId(v.id)}
-                  className={`rounded-lg border px-3 py-1.5 text-sm ${
-                    v.id === selected?.id ? "border-brand-500 bg-brand-50" : "border-neutral-300"
-                  } ${v.available <= 0 ? "opacity-40" : ""}`}
-                >
-                  {variantLabel(v.attributes)}
-                </button>
-              ))}
-            </div>
+        {/* طاولة البائع — السعر والخيار والكمية والشراء */}
+        <div className="rounded-3xl border border-gold-200 bg-gradient-to-b from-sand-50 to-white p-4 shadow-sm">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-3xl font-extrabold text-neutral-900 nums">
+              {selected ? formatIQD(selected.price) : formatIQD(product.basePrice)}
+            </span>
+            {product.ratingCount > 0 && (
+              <span className="text-sm font-semibold text-gold-600">
+                ★ {product.ratingAvg.toFixed(1)}{" "}
+                <span className="font-normal text-neutral-400">({product.ratingCount})</span>
+              </span>
+            )}
           </div>
-        )}
 
-        {/* الكمية + الإضافة */}
-        <div className="flex items-center gap-3">
-          <QtyStepper value={qty} onChange={setQty} min={1} max={selected?.available ?? 1} />
-          <span className="text-xs text-neutral-500">
-            {outOfStock ? "غير متوفر" : `متوفر: ${selected?.available}`}
-          </span>
+          {/* الخيارات */}
+          {product.variants.length > 1 && (
+            <div className="mt-4">
+              <p className="mb-1.5 text-sm font-medium text-neutral-700">الخيار</p>
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((v) => (
+                  <button
+                    key={v.id}
+                    disabled={v.available <= 0}
+                    onClick={() => setSelectedId(v.id)}
+                    className={`rounded-xl border px-3 py-1.5 text-sm transition ${
+                      v.id === selected?.id
+                        ? "border-brand-500 bg-brand-50 font-semibold text-brand-700"
+                        : "border-neutral-300 bg-white hover:border-neutral-400"
+                    } ${v.available <= 0 ? "opacity-40" : ""}`}
+                  >
+                    {variantLabel(v.attributes)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* الكمية */}
+          <div className="mt-4 flex items-center gap-3">
+            <QtyStepper value={qty} onChange={setQty} min={1} max={selected?.available ?? 1} />
+            <span className="text-xs text-neutral-500">
+              {outOfStock ? "غير متوفر حالياً" : `متوفر: ${selected?.available}`}
+            </span>
+          </div>
+
+          <Button
+            variant="secondary"
+            className="btn-brass mt-4 w-full font-extrabold text-[#3c2810]"
+            size="lg"
+            disabled={outOfStock}
+            onClick={handleAdd}
+          >
+            {added ? "أُضيف إلى السلة ✓" : outOfStock ? "غير متوفر" : "أضف إلى السلة"}
+          </Button>
+          <p className="mt-2.5 text-center text-xs text-neutral-500">
+            الدفع عند الاستلام — تفحّصه قبل أن تدفع
+          </p>
         </div>
-
-        <Button className="w-full" size="lg" disabled={outOfStock} onClick={handleAdd}>
-          {added ? "أُضيف ✓" : outOfStock ? "غير متوفر" : "أضف إلى السلة"}
-        </Button>
 
         {product.description && (
           <Card>
@@ -187,6 +220,31 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 
         <ReviewsSection productId={product.id} />
       </div>
+
+      {/* تكبير — ارفعها للضوء وقلّبها */}
+      {zoom && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="عرض الصورة مكبّرة"
+          onClick={() => setZoom(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+        >
+          <button
+            type="button"
+            aria-label="إغلاق"
+            className="absolute top-4 left-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white backdrop-blur"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={product.images[imgIdx]?.url ?? "/placeholder-product.svg"}
+            alt={product.images[imgIdx]?.alt ?? product.title}
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      )}
     </div>
   );
 }
