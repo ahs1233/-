@@ -40,7 +40,7 @@ function OrdersList() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">طلباتي</h1>
+      <h1 className="text-xl font-extrabold text-brand-800">طلباتي</h1>
       {justPlaced && (
         <div className="rounded-lg bg-brand-100 p-3 text-sm text-brand-700">
           ✓ تم استلام طلبك بنجاح! ستصلك الإشعارات عند تحديث الحالة.
@@ -67,7 +67,7 @@ function OrdersList() {
                     <span className="text-xs text-neutral-400">
                       {new Date(o.placedAt).toLocaleDateString("ar-IQ")}
                     </span>
-                    <span className="font-bold text-brand-600 nums">{formatIQD(o.total)}</span>
+                    <span className="font-extrabold text-brand-800 nums">{formatIQD(o.total)}</span>
                   </div>
                 </CardBody>
               </Card>

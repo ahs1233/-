@@ -19,7 +19,7 @@ export default async function StoresPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">متاجر {gov ? gov.name : "العراق"}</h1>
+      <h1 className="text-xl font-extrabold text-brand-800">متاجر {gov ? gov.name : "العراق"}</h1>
 
       {fallback && (
         <p className="rounded-2xl border border-gold-200 bg-gold-50 p-3 text-sm text-gold-700">

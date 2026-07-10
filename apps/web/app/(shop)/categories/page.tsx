@@ -10,7 +10,7 @@ export default async function CategoriesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">الفئات</h1>
+      <h1 className="text-xl font-extrabold text-brand-800">الفئات</h1>
       <div className="space-y-3">
         {categories.map((c) => (
           <Card key={c.id}>

@@ -53,7 +53,7 @@ export default function AccountPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">{ar.nav.account}</h1>
+      <h1 className="text-xl font-extrabold text-brand-800">{ar.nav.account}</h1>
       <Card>
         <CardBody className="space-y-2">
           <Row label={ar.auth.nameLabel} value={u.name ?? "—"} />
