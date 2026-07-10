@@ -2,11 +2,31 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Clock, CheckCircle2, Package, Truck, PackageCheck, PartyPopper } from "lucide-react";
 import { Button, Card, CardBody, OrderStatusBadge, ORDER_STATUS_LABEL, Textarea, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 
 const TRACK_STEPS = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED"] as const;
+
+// شعور كل حالة — «أشعر أن طلبي في الطريق». لكل حالةٍ جملةٌ إنسانيّة وأيقونة ولون.
+const STATUS_HERO: Record<
+  string,
+  { icon: typeof Truck; title: string; sub: string; tone: "navy" | "gold" | "green" }
+> = {
+  PENDING: { icon: Clock, title: "استلمنا طلبك", sub: "بانتظار تأكيد البائع — نُعلمك فور تأكيده.", tone: "navy" },
+  CONFIRMED: { icon: CheckCircle2, title: "أكّد البائع طلبك", sub: "يبدأ تجهيزه قريباً.", tone: "navy" },
+  PREPARING: { icon: Package, title: "يُجهّز طلبك الآن", sub: "يُغلَّف ويُحضَّر للشحن إليك.", tone: "gold" },
+  SHIPPED: { icon: Truck, title: "طلبك في الطريق إليك", sub: "المندوب في طريقه — جهّز مبلغ الدفع عند الاستلام.", tone: "gold" },
+  DELIVERED: { icon: PackageCheck, title: "وصل طلبك", sub: "تفحّصه، ثم أكّد الاستلام من الأسفل.", tone: "green" },
+  COMPLETED: { icon: PartyPopper, title: "اكتمل طلبك", sub: "شكراً لتسوّقك من السوگ 🤎", tone: "green" },
+};
+
+const TONE: Record<"navy" | "gold" | "green", { wrap: string; ring: string; icon: string }> = {
+  navy: { wrap: "bg-brand-50", ring: "ring-brand-200", icon: "text-brand-600" },
+  gold: { wrap: "bg-gold-100", ring: "ring-gold-200", icon: "text-gold-600" },
+  green: { wrap: "bg-petrol/10", ring: "ring-petrol/20", icon: "text-petrol" },
+};
 
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
   const order = trpc.order.byId.useQuery({ id: params.id }, { retry: false });
@@ -60,18 +80,36 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   const canCancel = ["PENDING", "CONFIRMED", "PREPARING"].includes(o.status);
   const canConfirm = o.status === "DELIVERED";
 
+  const hero = STATUS_HERO[o.status];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold nums">{o.number}</h1>
+        <h1 className="text-lg font-extrabold text-brand-800 nums">{o.number}</h1>
         <OrderStatusBadge status={o.status} />
       </div>
+
+      {/* شعور الطلب — «أشعر أن طلبي في الطريق» */}
+      {!isCancelled && hero && (
+        <div className={`flex items-center gap-4 rounded-2xl border border-sand-200 p-4 ${TONE[hero.tone].wrap}`}>
+          <span className={`grid h-14 w-14 flex-shrink-0 place-items-center rounded-2xl bg-white/70 ring-1 ${TONE[hero.tone].ring}`}>
+            <hero.icon className={`h-7 w-7 ${TONE[hero.tone].icon}`} />
+          </span>
+          <div>
+            <p className="text-lg font-extrabold text-neutral-900">{hero.title}</p>
+            <p className="mt-0.5 text-sm leading-relaxed text-neutral-600">{hero.sub}</p>
+          </div>
+        </div>
+      )}
 
       {/* خطّ تتبّع الطلب — عمودي بالأوقات */}
       {!isCancelled && (
         <Card>
           <CardBody>
-            <h2 className="mb-3 font-bold">تتبّع الطلب</h2>
+            <h2 className="mb-3 flex items-center gap-2 font-extrabold text-brand-800">
+              <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+              تتبّع الطلب
+            </h2>
             <ol>
               {TRACK_STEPS.map((s, i) => {
                 const reached = i <= currentStep;
@@ -83,8 +121,8 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                     <div className="flex flex-col items-center">
                       <span
                         className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full ${
-                          reached ? "bg-brand-500" : "bg-neutral-200"
-                        } ${isCurrent ? "ring-4 ring-brand-100" : ""}`}
+                          isCurrent ? "bg-gold-500 ring-4 ring-gold-200" : reached ? "bg-brand-500" : "bg-neutral-200"
+                        }`}
                       >
                         {reached && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
                       </span>
@@ -93,9 +131,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                       )}
                     </div>
                     <div className={`flex flex-1 items-center justify-between ${isLast ? "" : "pb-4"}`}>
-                      <span className={`text-sm ${reached ? "font-medium" : "text-neutral-400"}`}>
+                      <span className={`text-sm ${reached ? "font-medium text-neutral-900" : "text-neutral-400"}`}>
                         {ORDER_STATUS_LABEL[s]}
-                        {isCurrent && <span className="ms-2 text-xs text-brand-600">• الحالة الآن</span>}
+                        {isCurrent && <span className="ms-2 text-xs font-semibold text-gold-600">• الحالة الآن</span>}
                       </span>
                       {reached && at && <span className="text-xs text-neutral-400 nums">{fmtTime(at)}</span>}
                     </div>
@@ -227,7 +265,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div className={`flex justify-between ${bold ? "font-bold" : "text-sm"}`}>
+    <div className={`flex justify-between ${bold ? "pt-1 text-base font-extrabold text-brand-800" : "text-sm"}`}>
       <span className={bold ? "" : "text-neutral-500"}>{label}</span>
       <span className="nums">{value}</span>
     </div>
