@@ -171,6 +171,120 @@ async function main() {
         { title: "تمر زهدي معبأ 5 كغم", price: 30000, stock: 80, variants: [] },
       ],
     },
+    // ── توسعةٌ عبر المحافظات — سوقٌ عراقيّ حيّ ──
+    {
+      phone: "+9647705555555",
+      name: "أبو كرّار",
+      storeName: "عطّار بغداد",
+      gov: "بغداد",
+      catSlug: slugify("عطور"),
+      products: [
+        { title: "دهن عود هندي أصيل 12مل", price: 25000, stock: 60, variants: [] },
+        { title: "مسك أبيض معتّق", price: 15000, stock: 90, variants: [] },
+        { title: "بخور عود كمبودي فاخر", price: 30000, stock: 40, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647706666666",
+      name: "أبو حسين",
+      storeName: "بيت النحاس البغدادي",
+      gov: "بغداد",
+      catSlug: slugify("أواني طبخ"),
+      products: [
+        { title: "دلّة قهوة نحاسية مشغولة يدوياً", price: 45000, stock: 25, variants: [] },
+        { title: "طقم استكانات شاي ٦ قطع", price: 20000, stock: 70, variants: [] },
+        { title: "صينية نحاس مزخرفة كبيرة", price: 35000, stock: 30, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647707777777",
+      name: "دار العباءة",
+      storeName: "دار العباءة البغدادية",
+      gov: "بغداد",
+      catSlug: slugify("عبايات"),
+      products: [
+        { title: "عباية كلوش سوداء كريستال", price: 55000, stock: 35, variants: [["54", 55000, 12], ["56", 56000, 12], ["58", 57000, 11]] },
+        { title: "عباية مطرّزة يدوياً", price: 90000, stock: 14, variants: [["وسط", 90000, 7], ["كبير", 92000, 7]] },
+      ],
+    },
+    {
+      phone: "+9647708111111",
+      name: "أبو زهراء",
+      storeName: "عطور النجف",
+      gov: "النجف",
+      catSlug: slugify("عطور"),
+      products: [
+        { title: "ماء ورد نجفيّ مقطّر", price: 8000, stock: 120, variants: [] },
+        { title: "دهن عنبر معتّق", price: 40000, stock: 30, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647708222222",
+      name: "خيّاط النجف",
+      storeName: "خيّاط النجف للدشاديش",
+      gov: "النجف",
+      catSlug: slugify("دشاديش"),
+      products: [
+        { title: "دشداشة نجفيّة شتويّة صوف", price: 40000, stock: 45, variants: [["L", 40000, 15], ["XL", 41000, 15], ["XXL", 42000, 15]] },
+        { title: "غترة وعقال فاخر", price: 25000, stock: 60, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647708333333",
+      name: "حلويات أربيل",
+      storeName: "حلويات أربيل التقليديّة",
+      gov: "أربيل",
+      catSlug: slugify("حلويات"),
+      products: [
+        { title: "بقلاوة بالجوز علبة كيلو", price: 12000, stock: 100, variants: [] },
+        { title: "كليجة عيديّة بالتمر", price: 10000, stock: 80, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647708444444",
+      name: "عطّارية الموصل",
+      storeName: "عطّارية الموصل للبهارات",
+      gov: "نينوى",
+      catSlug: slugify("بهارات"),
+      products: [
+        { title: "بهار موصليّ مشكّل 250غم", price: 6000, stock: 150, variants: [] },
+        { title: "سمّاق أحمر فاخر", price: 4000, stock: 200, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647708555555",
+      name: "مكسرات الخليج",
+      storeName: "مكسّرات الخليج البصريّة",
+      gov: "البصرة",
+      catSlug: slugify("مكسرات"),
+      products: [
+        { title: "فستق حلبيّ محمّص 500غم", price: 25000, stock: 90, variants: [] },
+        { title: "لوز مقشّر نيّئ 500غم", price: 20000, stock: 90, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647708666666",
+      name: "سجّاد كربلاء",
+      storeName: "سجّاد كربلاء اليدويّ",
+      gov: "كربلاء",
+      catSlug: slugify("مفروشات"),
+      products: [
+        { title: "سجّادة صلاة مخمل فاخرة", price: 15000, stock: 70, variants: [] },
+        { title: "سجّادة عجميّة يدويّة", price: 120000, stock: 10, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647708777777",
+      name: "موبايل مول",
+      storeName: "موبايل مول الكرادة",
+      gov: "بغداد",
+      catSlug: slugify("هواتف"),
+      products: [
+        { title: "باور بانك 20000 مللي أمبير", price: 18000, stock: 80, variants: [] },
+        { title: "حامل موبايل للسيارة مغناطيسي", price: 7000, stock: 120, variants: [] },
+        { title: "سماعة سلكية بميكروفون", price: 8000, stock: 100, variants: [] },
+      ],
+    },
   ];
 
   for (const v of vendorsSeed) {
