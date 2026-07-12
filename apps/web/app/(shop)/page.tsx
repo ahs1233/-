@@ -20,6 +20,7 @@ export default async function HomePage() {
   let sections: HomeSections = [];
   let extras: HomeExtras | null = null;
   let homeOrder: string[] = ["services", "souks", "pulse", "banner", "best_selling", "new", "stores", "featured", "categories"];
+  let servicesCfg: { key: string; visible: boolean; soon: boolean }[] | undefined;
   let dbReady = true;
   try {
     const api = await getServerApi();
@@ -32,7 +33,8 @@ export default async function HomePage() {
     categories = cats;
     sections = secs;
     extras = ex;
-    if (appearance.homeOrder?.length) homeOrder = appearance.homeOrder;
+    if (appearance.sections?.length) homeOrder = appearance.sections.filter((s) => s.visible).map((s) => s.key);
+    servicesCfg = appearance.services;
   } catch {
     dbReady = false;
   }
@@ -49,7 +51,7 @@ export default async function HomePage() {
 
   // كتلُ الرئيسية القابلة لإعادة الترتيب من لوحة «المظهر».
   const blocks: Record<string, React.ReactNode> = {
-    services: <ServicesGrid key="services" />,
+    services: <ServicesGrid key="services" config={servicesCfg} />,
     souks: <SoukTiles key="souks" governorate={gov?.name} />,
     pulse: extras ? <MarketPulse key="pulse" events={extras.pulse} governorate={gov?.name} /> : null,
     banner: <DailyBanner key="banner" governorate={gov?.name} />,

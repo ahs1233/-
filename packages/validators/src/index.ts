@@ -149,9 +149,11 @@ export const platformSettingsSchema = z.object({
 
 // ─────────────────────── Appearance (المظهر) ───────────────────────
 const hexColor = z.string().regex(/^#?[0-9a-fA-F]{6}$/, "لونٌ سداسيّ غير صحيح");
+const sectionKey = z.string().min(1).max(40);
 export const appearanceSchema = z.object({
-  colors: z.object({ primary: hexColor, accent: hexColor, surface: hexColor }),
-  homeOrder: z.array(z.string().max(40)).max(24),
+  colors: z.object({ primary: hexColor, accent: hexColor, surface: hexColor, live: hexColor }),
+  sections: z.array(z.object({ key: sectionKey, visible: z.boolean() })).max(24),
+  services: z.array(z.object({ key: sectionKey, visible: z.boolean(), soon: z.boolean() })).max(24),
 });
 export type AppearanceInput = z.infer<typeof appearanceSchema>;
 

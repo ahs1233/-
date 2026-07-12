@@ -1,24 +1,67 @@
 /**
- * راوتر المظهر — قراءةٌ عامّة لثيم التطبيق (ألوان + ترتيب أقسام الرئيسية)
- * التي يضبطها الأدمن من لوحة «المظهر». التعديل في راوتر admin (صلاحية settings).
+ * راوتر المظهر — قراءةٌ عامّة لثيم التطبيق (ألوان + أقسام + خدمات) التي يضبطها
+ * الأدمن من لوحة «المظهر». التعديل في راوتر admin (صلاحية settings).
  */
 import { router, publicProcedure } from "../trpc";
 
-const DEFAULTS = {
-  colors: { primary: "#1a2740", accent: "#c1974e", surface: "#f4ecd9" },
-  homeOrder: ["services", "souks", "pulse", "banner", "best_selling", "new", "stores", "featured", "categories"],
-};
+export interface SectionCfg {
+  key: string;
+  visible: boolean;
+}
+export interface ServiceCfg {
+  key: string;
+  visible: boolean;
+  soon: boolean;
+}
+export interface Appearance {
+  colors: { primary: string; accent: string; surface: string; live: string };
+  sections: SectionCfg[];
+  services: ServiceCfg[];
+}
 
-export type Appearance = typeof DEFAULTS;
+const DEFAULTS: Appearance = {
+  colors: { primary: "#1a2740", accent: "#c1974e", surface: "#f4ecd9", live: "#2e7d5b" },
+  sections: ["services", "souks", "pulse", "banner", "best_selling", "new", "stores", "featured", "categories"].map(
+    (key) => ({ key, visible: true }),
+  ),
+  services: [
+    { key: "stores", soon: false },
+    { key: "offers", soon: false },
+    { key: "mutanabbi", soon: false },
+    { key: "restaurants", soon: true },
+    { key: "veg", soon: true },
+    { key: "butchers", soon: true },
+    { key: "pharmacy", soon: true },
+    { key: "cafes", soon: true },
+    { key: "oud", soon: true },
+    { key: "delivery", soon: true },
+    { key: "realestate", soon: true },
+    { key: "cars", soon: true },
+  ].map((s) => ({ ...s, visible: true })),
+};
 
 export const appearanceRouter = router({
   get: publicProcedure.query(async ({ ctx }): Promise<Appearance> => {
     const row = await ctx.prisma.platformSetting.findUnique({ where: { key: "appearance" } });
-    const v = row?.value as Partial<Appearance> | undefined;
+    const v = row?.value as Record<string, unknown> | undefined;
     if (!v || typeof v !== "object") return DEFAULTS;
-    return {
-      colors: { ...DEFAULTS.colors, ...(v.colors ?? {}) },
-      homeOrder: Array.isArray(v.homeOrder) && v.homeOrder.length ? v.homeOrder : DEFAULTS.homeOrder,
-    };
+
+    // ترحيل توافقيّ: صيغة قديمة كانت تحمل homeOrder + ألوان بلا live.
+    const colors =
+      v.colors && typeof v.colors === "object"
+        ? { ...DEFAULTS.colors, ...(v.colors as object) }
+        : DEFAULTS.colors;
+
+    let sections = DEFAULTS.sections;
+    if (Array.isArray(v.sections) && v.sections.length) {
+      sections = v.sections as SectionCfg[];
+    } else if (Array.isArray(v.homeOrder) && v.homeOrder.length) {
+      sections = (v.homeOrder as string[]).map((key) => ({ key, visible: true }));
+    }
+
+    const services =
+      Array.isArray(v.services) && v.services.length ? (v.services as ServiceCfg[]) : DEFAULTS.services;
+
+    return { colors, sections, services };
   }),
 });

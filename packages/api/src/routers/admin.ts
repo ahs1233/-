@@ -1008,13 +1008,16 @@ export const adminRouter = router({
     return (row?.value ?? null) as unknown;
   }),
   updateAppearance: adminPerm("settings").input(appearanceSchema).mutation(async ({ ctx, input }) => {
+    const hex = (c: string) => (c.startsWith("#") ? c : `#${c}`);
     const value = {
       colors: {
-        primary: input.colors.primary.startsWith("#") ? input.colors.primary : `#${input.colors.primary}`,
-        accent: input.colors.accent.startsWith("#") ? input.colors.accent : `#${input.colors.accent}`,
-        surface: input.colors.surface.startsWith("#") ? input.colors.surface : `#${input.colors.surface}`,
+        primary: hex(input.colors.primary),
+        accent: hex(input.colors.accent),
+        surface: hex(input.colors.surface),
+        live: hex(input.colors.live),
       },
-      homeOrder: input.homeOrder,
+      sections: input.sections,
+      services: input.services,
     };
     await ctx.prisma.platformSetting.upsert({
       where: { key: "appearance" },

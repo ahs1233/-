@@ -22,7 +22,7 @@ module.exports = {
         gold: cssVarScale("gold", tokens.colors.gold),
         sand: cssVarScale("sand", tokens.colors.sand),
         clay: tokens.colors.clay,
-        petrol: tokens.colors.petrol,
+        petrol: "rgb(var(--c-petrol) / <alpha-value>)",
         neutral: tokens.colors.neutral,
         status: tokens.colors.status,
         danger: tokens.colors.danger,
