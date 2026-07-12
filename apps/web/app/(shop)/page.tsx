@@ -6,7 +6,7 @@ import { CategoryIcon } from "@/src/components/category-icon";
 import { HomeHero } from "@/src/components/home-hero";
 import { ServicesGrid } from "@/src/components/home/services-grid";
 import { ProductRail, StoreRail } from "@/src/components/home/section-rail";
-import { FeaturedEntityCard, MarketPulse, SoukTiles } from "@/src/components/home/home-blocks";
+import { FeaturedEntityCard, MarketPulse, SoukTiles, DailyBanner } from "@/src/components/home/home-blocks";
 import { getCachedCategories, type CachedCategory } from "@/src/lib/catalog-cache";
 import type { HomeExtras } from "@al-souq/api";
 
@@ -45,7 +45,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-7">
       {/* بوّابة المحافظة — الإحساس يتغيّر بالمحافظة، والتخطيط ثابت */}
-      <HomeHero governorate={gov?.name} storeCount={extras?.stats.openStores} />
+      <HomeHero governorate={gov?.name} storeCount={extras?.stats.openStores} stats={extras?.stats} />
 
       {/* خدمات السوگ — «مدنٌ صغيرة» داخل المحافظة (نسق Super-App) */}
       <ServicesGrid />
@@ -62,7 +62,10 @@ export default async function HomePage() {
       {/* أقسامٌ متتالية بنسق Snapp — كلٌّ شريطٌ أفقيّ */}
       <ProductRail emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />
 
-      {/* أسواق المحافظة — بلاطات سينمائيّة */}
+      {/* لافتةٌ نيليّة كاملة — إيقاعٌ بصريّ يكسر الرتابة */}
+      <DailyBanner governorate={gov?.name} />
+
+      {/* أسواق المحافظة — بلاطات سينمائيّة تتغيّر بالمحافظة */}
       <SoukTiles governorate={gov?.name} />
 
       <StoreRail emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />

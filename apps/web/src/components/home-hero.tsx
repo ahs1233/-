@@ -1,21 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ShieldCheck, Truck, BadgeCheck, ChevronLeft } from "lucide-react";
+import { ShieldCheck, Truck, BadgeCheck, ChevronLeft, Store, Sparkles, Percent } from "lucide-react";
+import { govIdentity } from "@/src/lib/governorate-identity";
+import type { HomeStats } from "@al-souq/api";
 
 /**
- * بوّابة المحافظة — «أشعر أنني دخلتُ محافظةً عراقيّة حيّة».
- * التخطيط ثابت، لكن الإحساس يتغيّر بالمحافظة: صورةٌ بانوراميّة وشعورٌ خاصّ لكلٍّ
- * (بغداد: قباب وأزقّة وفوانيس؛ النجف/البصرة/الموصل/أربيل لاحقاً بأصولها).
- * يطبّق الكانون: فوانيسُ تهتزّ، كِن-بيرنز، ذهبٌ معدنيّ، ونبضٌ حيّ.
+ * بوّابة المحافظة — «أشعر أنني دخلتُ محافظةً عراقيّة حيّة تتنفّس».
+ * التخطيط ثابت، لكن الإحساس يتغيّر بالمحافظة (الشعور والأسواق، لا الصورة فقط).
+ * البطل «يتنفّس»: طبقةٌ حيّة فوق الصورة (مفتوح الآن · جهة اليوم · عروض اليوم).
+ * يطبّق الكانون: فوانيسُ تهتزّ، كِن-بيرنز، ذهبٌ معدنيّ.
+ * الصورة لبغداد الآن؛ تُضاف أصولٌ حصريّة لكلّ محافظة لاحقاً.
  */
-
-// خريطة المحافظة → صورة + شعور. تعود لبغداد حتى تُضاف أصولٌ حصريّة لكلّ محافظة.
-const GOV: Record<string, { img: string; feel: string }> = {
-  بغداد: { img: "/hero-souk.jpg", feel: "قباب وأزقّة وفوانيس عند المغرب" },
-};
-function govArt(name?: string) {
-  return (name && GOV[name]) || { img: "/hero-souk.jpg", feel: "أزقّةٌ وفوانيسُ وبضاعةٌ تمدّ يدها إليك" };
-}
 
 // صياغة عربية للعدد التقريبيّ (٣٤٢ → «٣٠٠+»، ١٢٤٠٠ → «١٢ ألف+»).
 function approxStores(n: number): string {
@@ -24,15 +19,23 @@ function approxStores(n: number): string {
   return `${n}`;
 }
 
-export function HomeHero({ governorate, storeCount }: { governorate?: string; storeCount?: number }) {
-  const art = govArt(governorate);
+export function HomeHero({
+  governorate,
+  storeCount,
+  stats,
+}: {
+  governorate?: string;
+  storeCount?: number;
+  stats?: HomeStats;
+}) {
+  const feel = govIdentity(governorate).feel;
   return (
     <section className="relative overflow-hidden rounded-3xl shadow-xl ring-1 ring-gold-500/30">
       {/* الكادر الحقيقيّ للمحافظة */}
-      <div className="relative h-[430px] w-full sm:h-[470px]">
+      <div className="relative h-[470px] w-full sm:h-[510px]">
         <Image
-          src={art.img}
-          alt={`سوگ ${governorate ?? "العراق"} — ${art.feel}`}
+          src="/hero-souk.jpg"
+          alt={`سوگ ${governorate ?? "العراق"} — ${feel}`}
           fill
           priority
           sizes="(max-width: 768px) 100vw, 768px"
@@ -80,6 +83,19 @@ export function HomeHero({ governorate, storeCount }: { governorate?: string; st
             </p>
           )}
 
+          {/* البطل يتنفّس — طبقةٌ حيّة فوق الصورة */}
+          {stats && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <LiveStat icon={<Store className="h-3.5 w-3.5" />} n={stats.openStores} label="مفتوح الآن" />
+              {stats.newStoresToday > 0 && (
+                <LiveStat icon={<Sparkles className="h-3.5 w-3.5" />} n={stats.newStoresToday} label="جهة اليوم" />
+              )}
+              {stats.newOffersToday > 0 && (
+                <LiveStat icon={<Percent className="h-3.5 w-3.5" />} n={stats.newOffersToday} label="عرض اليوم" />
+              )}
+            </div>
+          )}
+
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Link
               href="/categories"
@@ -112,6 +128,16 @@ function Chip({ icon, text }: { icon: React.ReactNode; text: string }) {
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 font-medium text-white/90 backdrop-blur">
       {icon}
       {text}
+    </span>
+  );
+}
+
+function LiveStat({ icon, n, label }: { icon: React.ReactNode; n: number; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-xl border border-gold-300/30 bg-black/30 px-3 py-1.5 text-xs text-white/90 backdrop-blur">
+      <span className="text-gold-300">{icon}</span>
+      <span className="font-extrabold text-gold-100 nums">{n}</span>
+      <span className="text-white/70">{label}</span>
     </span>
   );
 }

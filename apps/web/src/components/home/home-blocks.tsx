@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Radio, TrendingUp, Tag, Store, ChevronLeft, BadgeCheck, Star } from "lucide-react";
 import { AppImage } from "@/src/components/app-image";
+import { govIdentity } from "@/src/lib/governorate-identity";
 import type { HomeStats, FeaturedEntity, PulseEvent, PulseKind } from "@al-souq/api";
 
 /* ── شريط الأرقام الحيّة (نبض السوق رقماً) ── */
@@ -96,6 +97,33 @@ const PULSE_ICON: Record<PulseKind, { icon: typeof Radio; wrap: string; color: s
   new_store: { icon: Store, wrap: "bg-brand-100 ring-brand-200", color: "text-brand-600" },
 };
 
+/* ── لافتةٌ نيليّة كاملة العرض — تكسر رتابة العاجيّ وتصنع إيقاعاً بصريّاً ── */
+export function DailyBanner({ governorate }: { governorate?: string }) {
+  return (
+    <Link
+      href="/search"
+      className="relative block overflow-hidden rounded-3xl ring-1 ring-brand-800/30"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/hero-souk.jpg" alt="" aria-hidden loading="lazy" className="h-40 w-full object-cover object-center sm:h-48" />
+      <div className="absolute inset-0 bg-gradient-to-l from-brand-900/95 via-brand-900/70 to-brand-900/30" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{ backgroundImage: "radial-gradient(120px 80px at 18% 60%, rgba(255,196,96,.5), transparent 70%)" }}
+      />
+      <div className="absolute inset-0 flex flex-col justify-center p-5 sm:p-7">
+        <span className="text-xs font-bold tracking-wide text-gold-300">عروض اليوم</span>
+        <p className="mt-1 max-w-[16rem] text-xl font-extrabold leading-snug text-white drop-shadow sm:text-2xl">
+          من قلب {governorate ?? "العراق"} — تشكيلةٌ مختارة اليوم
+        </p>
+        <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-2xl bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur">
+          اكتشف العروض <ChevronLeft className="h-4 w-4" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export function MarketPulse({ events }: { events: PulseEvent[] }) {
   if (!events.length) return null;
   return (
@@ -128,17 +156,9 @@ export function MarketPulse({ events }: { events: PulseEvent[] }) {
   );
 }
 
-/* ── تصفّح الأسواق (بلاطات مصوّرة) ── */
-const SOUKS = [
-  { label: "الشورجة", img: "/souks/souk-shorja.jpg", q: "الشورجة" },
-  { label: "الحرفيّون", img: "/souks/souk-craft.jpg", q: "حرفي" },
-  { label: "النحاسيّات", img: "/souks/souk-lantern.jpg", q: "نحاس" },
-  { label: "العطور والبخور", img: "/souks/souk-spice.jpg", q: "عطور" },
-  { label: "المكتبات", img: "/souks/souk-books.jpg", q: "كتب" },
-  { label: "العبايات", img: "/souks/souk-abaya.jpg", q: "عباية" },
-];
-
+/* ── أسواق المحافظة — كلّ محافظةٍ أسواقها الخاصّة (لا مجرّد صورةٍ مختلفة) ── */
 export function SoukTiles({ governorate }: { governorate?: string }) {
+  const souks = govIdentity(governorate).souks;
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
@@ -149,21 +169,38 @@ export function SoukTiles({ governorate }: { governorate?: string }) {
         </h2>
       </div>
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {SOUKS.map((s) => (
+        {souks.map((s) => (
           <Link
             key={s.label}
             href={`/search?q=${encodeURIComponent(s.q)}`}
             className="group relative h-36 w-32 flex-shrink-0 overflow-hidden rounded-2xl ring-1 ring-brand-800/20"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={s.img}
-              alt={s.label}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/85 via-brand-900/20 to-transparent" />
+            {s.img ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={s.img}
+                  alt={s.label}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-900/85 via-brand-900/20 to-transparent" />
+              </>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-700 to-brand-900">
+                <span className="text-4xl opacity-90 drop-shadow" aria-hidden>
+                  {s.emoji}
+                </span>
+                <span
+                  className="pointer-events-none absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(40px 40px at 30% 25%, rgba(255,196,96,.7), transparent 70%)",
+                  }}
+                />
+              </div>
+            )}
             <span className="absolute inset-x-0 bottom-0 p-2.5 text-sm font-bold text-white drop-shadow">
               {s.label}
             </span>

@@ -1,0 +1,86 @@
+/**
+ * هويّة المحافظة — كلّ محافظةٍ تُغيّر التجربة نفسها، لا الصورة فقط.
+ * الشعور والأسواق يختلفان: بغداد (الشورجة/المتنبّي/الكاظميّة/النحاسيّات) تختلف
+ * عن البصرة (التمور/الأسماك/شطّ العرب) عن النجف (الكتب/العطور/السجّاد/الذهب).
+ *
+ * البلاطة إمّا صورةٌ حقيقيّة (متوفّرة لبغداد الآن) أو بلاطةٌ مضيئة برمزٍ حِرفيّ
+ * (لبقيّة المحافظات حتى تُلتقَط أصولها) — فيبقى التمييز صادقاً بلا صورٍ مضلّلة.
+ */
+export interface SoukTile {
+  label: string;
+  q: string;
+  img?: string;
+  emoji?: string;
+}
+
+export interface GovIdentity {
+  feel: string;
+  souks: SoukTile[];
+}
+
+const BAGHDAD: GovIdentity = {
+  feel: "قباب وأزقّة وفوانيس عند المغرب",
+  souks: [
+    { label: "الشورجة", q: "الشورجة", img: "/souks/souk-shorja.jpg" },
+    { label: "المتنبّي", q: "كتب", img: "/souks/souk-books.jpg" },
+    { label: "النحاسيّات", q: "نحاس", img: "/souks/souk-lantern.jpg" },
+    { label: "الحرفيّون", q: "حرفي", img: "/souks/souk-craft.jpg" },
+    { label: "العطور والبخور", q: "عطور", img: "/souks/souk-spice.jpg" },
+    { label: "العبايات", q: "عباية", img: "/souks/souk-abaya.jpg" },
+  ],
+};
+
+const GENERIC: GovIdentity = {
+  feel: "أزقّةٌ وفوانيسُ وبضاعةٌ تمدّ يدها إليك",
+  souks: [
+    { label: "المتاجر", q: "متجر", img: "/souks/souk-shorja.jpg" },
+    { label: "الحرفيّون", q: "حرفي", img: "/souks/souk-craft.jpg" },
+    { label: "النحاسيّات", q: "نحاس", img: "/souks/souk-lantern.jpg" },
+    { label: "العطور", q: "عطور", img: "/souks/souk-spice.jpg" },
+  ],
+};
+
+// المحافظات الأخرى — أسواقها الخاصّة كبلاطاتٍ مضيئة برموزٍ حِرفيّة (أصولٌ مصوّرة لاحقاً).
+export const GOV_IDENTITY: Record<string, GovIdentity> = {
+  بغداد: BAGHDAD,
+  البصرة: {
+    feel: "شطّ العرب والنخيل والموانئ",
+    souks: [
+      { label: "التمور", q: "تمر", emoji: "🌴" },
+      { label: "الأسماك", q: "سمك", emoji: "🐟" },
+      { label: "العطّارون", q: "عطار", emoji: "🧴" },
+      { label: "الأقمشة", q: "قماش", emoji: "🧵" },
+    ],
+  },
+  النجف: {
+    feel: "الكتب والعطور والسجّاد والذهب",
+    souks: [
+      { label: "المكتبات", q: "كتب", emoji: "📚" },
+      { label: "العطور", q: "عطور", emoji: "🫧" },
+      { label: "السجّاد", q: "سجاد", emoji: "🧶" },
+      { label: "الذهب", q: "ذهب", emoji: "💍" },
+    ],
+  },
+  أربيل: {
+    feel: "القلعة والبازار والأسواق التقليديّة",
+    souks: [
+      { label: "القلعة", q: "تراث", emoji: "🏯" },
+      { label: "الأقمشة", q: "قماش", emoji: "🧵" },
+      { label: "الحلويّات", q: "حلويات", emoji: "🍬" },
+      { label: "البازار", q: "بازار", emoji: "🛍️" },
+    ],
+  },
+  الموصل: {
+    feel: "الحجر التراثيّ والأسواق القديمة",
+    souks: [
+      { label: "النسيج", q: "نسيج", emoji: "🧵" },
+      { label: "الحبوب", q: "حبوب", emoji: "🌾" },
+      { label: "الصاغة", q: "ذهب", emoji: "💍" },
+      { label: "العطّارون", q: "عطار", emoji: "🧴" },
+    ],
+  },
+};
+
+export function govIdentity(name?: string): GovIdentity {
+  return (name && GOV_IDENTITY[name]) || GENERIC;
+}
