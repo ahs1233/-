@@ -20,13 +20,14 @@ export interface GovIdentity {
 
 const BAGHDAD: GovIdentity = {
   feel: "قباب وأزقّة وفوانيس عند المغرب",
+  // أماكنُ حقيقيّة تولّد فضولاً — لا مجرّد فئات.
   souks: [
     { label: "الشورجة", q: "الشورجة", img: "/souks/souk-shorja.jpg" },
-    { label: "المتنبّي", q: "كتب", img: "/souks/souk-books.jpg" },
-    { label: "النحاسيّات", q: "نحاس", img: "/souks/souk-lantern.jpg" },
-    { label: "الحرفيّون", q: "حرفي", img: "/souks/souk-craft.jpg" },
-    { label: "العطور والبخور", q: "عطور", img: "/souks/souk-spice.jpg" },
-    { label: "العبايات", q: "عباية", img: "/souks/souk-abaya.jpg" },
+    { label: "شارع المتنبّي", q: "كتب", img: "/souks/souk-books.jpg" },
+    { label: "سوق الصفافير", q: "نحاس", img: "/souks/souk-lantern.jpg" },
+    { label: "خان مرجان", q: "حرفي", img: "/souks/souk-craft.jpg" },
+    { label: "سوق العطّارين", q: "عطور", img: "/souks/souk-spice.jpg" },
+    { label: "سوق العبايات", q: "عباية", img: "/souks/souk-abaya.jpg" },
   ],
 };
 

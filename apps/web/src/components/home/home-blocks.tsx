@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Radio, TrendingUp, Tag, Store, ChevronLeft, BadgeCheck, Star } from "lucide-react";
+import { Radio, TrendingUp, Tag, Store, ChevronLeft, BadgeCheck, Star, Package, DoorOpen, Award } from "lucide-react";
 import { AppImage } from "@/src/components/app-image";
 import { govIdentity } from "@/src/lib/governorate-identity";
 import type { HomeStats, FeaturedEntity, PulseEvent, PulseKind } from "@al-souq/api";
@@ -89,12 +89,13 @@ function Stat({ n, label }: { n: string | number; label: string }) {
   );
 }
 
-/* ── السوق الآن (نبض حيّ) ── */
-const PULSE_ICON: Record<PulseKind, { icon: typeof Radio; wrap: string; color: string }> = {
-  live: { icon: Radio, wrap: "bg-gold-100 ring-gold-200", color: "text-gold-600" },
-  trend: { icon: TrendingUp, wrap: "bg-petrol/10 ring-petrol/20", color: "text-petrol" },
-  offer: { icon: Tag, wrap: "bg-clay/10 ring-clay/20", color: "text-clay" },
-  new_store: { icon: Store, wrap: "bg-brand-100 ring-brand-200", color: "text-brand-600" },
+/* ── نبض السوق (حياةٌ لا منتجات) ── */
+const PULSE_ICON: Record<PulseKind, { icon: typeof Radio; wrap: string; color: string; dot: string }> = {
+  live: { icon: Package, wrap: "bg-gold-100 ring-gold-200", color: "text-gold-600", dot: "bg-gold-500" },
+  trend: { icon: TrendingUp, wrap: "bg-clay/10 ring-clay/20", color: "text-clay", dot: "bg-clay" },
+  offer: { icon: Tag, wrap: "bg-gold-100 ring-gold-200", color: "text-gold-600", dot: "bg-gold-500" },
+  new_store: { icon: DoorOpen, wrap: "bg-petrol/10 ring-petrol/20", color: "text-petrol", dot: "bg-petrol" },
+  milestone: { icon: Award, wrap: "bg-brand-100 ring-brand-200", color: "text-brand-600", dot: "bg-brand-500" },
 };
 
 /* ── لافتةٌ نيليّة كاملة العرض — تكسر رتابة العاجيّ وتصنع إيقاعاً بصريّاً ── */
@@ -124,30 +125,39 @@ export function DailyBanner({ governorate }: { governorate?: string }) {
   );
 }
 
-export function MarketPulse({ events }: { events: PulseEvent[] }) {
+export function MarketPulse({ events, governorate }: { events: PulseEvent[]; governorate?: string }) {
   if (!events.length) return null;
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
         <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-          السوق الآن
+          نبض {governorate ?? "السوق"}
         </h2>
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-petrol">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-petrol" /> مباشر
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-petrol/70" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-petrol" />
+          </span>
+          مباشر
         </span>
       </div>
-      <div className="divide-y divide-sand-200 overflow-hidden rounded-2xl border border-sand-200 bg-white/70">
+      <p className="mb-3 -mt-1 ps-3 text-xs text-neutral-500">ليست منتجات — بل حياةُ السوق اليوم</p>
+      <div className="grid gap-2.5 sm:grid-cols-2">
         {events.map((e) => {
           const cfg = PULSE_ICON[e.kind];
           const Icon = cfg.icon;
           return (
-            <div key={e.id} className="flex items-center gap-3 px-4 py-3">
-              <span className={`grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl ring-1 ${cfg.wrap}`}>
-                <Icon className={`h-4 w-4 ${cfg.color}`} />
+            <div
+              key={e.id}
+              className="flex items-center gap-3 rounded-2xl border border-sand-200 bg-white/80 px-3.5 py-3 shadow-sm"
+            >
+              <span className={`relative grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl ring-1 ${cfg.wrap}`}>
+                <Icon className={`h-5 w-5 ${cfg.color}`} />
+                <span className={`absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${cfg.dot}`} />
               </span>
-              <p className="min-w-0 flex-1 text-sm font-medium text-neutral-800">{e.text}</p>
-              <span className="flex-shrink-0 text-[11px] text-neutral-400">{e.when}</span>
+              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-neutral-800">{e.text}</p>
+              <span className="flex-shrink-0 self-start text-[10px] text-neutral-400">{e.when}</span>
             </div>
           );
         })}

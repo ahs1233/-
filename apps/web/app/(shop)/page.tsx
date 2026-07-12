@@ -56,25 +56,26 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* جهة موصى بها لك — البطاقة الكبرى */}
-      {extras?.featured && <FeaturedEntityCard entity={extras.featured} />}
+      {/* القصّة: المدينة ← الأسواق ← الناس/الحياة ← المنتجات ← التاجر */}
 
-      {/* أقسامٌ متتالية بنسق Snapp — كلٌّ شريطٌ أفقيّ */}
-      <ProductRail emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />
-
-      {/* لافتةٌ نيليّة كاملة — إيقاعٌ بصريّ يكسر الرتابة */}
-      <DailyBanner governorate={gov?.name} />
-
-      {/* أسواق المحافظة — بلاطات سينمائيّة تتغيّر بالمحافظة */}
+      {/* الأسواق كأماكن — تولّد فضولاً، لا مجرّد فئات */}
       <SoukTiles governorate={gov?.name} />
 
-      <StoreRail emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />
+      {/* نبض المحافظة — حياةُ السوق، لا منتجات */}
+      {extras && <MarketPulse events={extras.pulse} governorate={gov?.name} />}
+
+      {/* إيقاعٌ بصريّ — لافتةٌ نيليّة غامرة */}
+      <DailyBanner governorate={gov?.name} />
+
+      {/* المنتجات — شرائط أفقيّة */}
+      <ProductRail emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />
       <ProductRail emoji="🆕" title="وصل حديثاً" href="/search" items={productItems("new")} />
       <ProductRail emoji="⭐" title="الأعلى تقييماً" items={productItems("top_rated")} />
       <ProductRail emoji="🛒" title="اليوم في السوگ" items={productItems("today")} />
 
-      {/* السوق الآن — نبض حيّ */}
-      {extras && <MarketPulse events={extras.pulse} />}
+      {/* المتاجر ثمّ التاجر — خِتام القصّة */}
+      <StoreRail emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />
+      {extras?.featured && <FeaturedEntityCard entity={extras.featured} />}
 
       {dbReady && sections.length === 0 && !extras?.featured && (
         <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
