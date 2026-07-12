@@ -67,13 +67,11 @@ export default async function HomePage() {
       {/* إيقاعٌ بصريّ — لافتةٌ نيليّة غامرة */}
       <DailyBanner governorate={gov?.name} />
 
-      {/* المنتجات — شرائط أفقيّة */}
+      {/* المنتجات — شريطان فقط (لا لوحة إعلانات) */}
       <ProductRail emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />
       <ProductRail emoji="🆕" title="وصل حديثاً" href="/search" items={productItems("new")} />
-      <ProductRail emoji="⭐" title="الأعلى تقييماً" items={productItems("top_rated")} />
-      <ProductRail emoji="🛒" title="اليوم في السوگ" items={productItems("today")} />
 
-      {/* المتاجر ثمّ التاجر — خِتام القصّة */}
+      {/* التاجر — خِتام القصّة */}
       <StoreRail emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />
       {extras?.featured && <FeaturedEntityCard entity={extras.featured} />}
 

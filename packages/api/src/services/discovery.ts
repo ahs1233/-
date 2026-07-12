@@ -55,7 +55,7 @@ export interface DiscoveryProductCard {
   ratingAvg: number;
   ratingCount: number;
   image: string | null;
-  vendor: { storeName: string; slug: string };
+  vendor: { storeName: string; slug: string; governorate: string | null };
   reasons: ReasonCode[];
 }
 
@@ -111,7 +111,9 @@ async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<C
       vendorId: true,
       images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
       variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
-      vendor: { select: { storeName: true, slug: true, ratingAvg: true, ratingCount: true } },
+      vendor: {
+        select: { storeName: true, slug: true, ratingAvg: true, ratingCount: true, governorate: { select: { nameAr: true } } },
+      },
     },
   });
   const sales7 = await distinctBuyerSales7(prisma);
@@ -139,7 +141,7 @@ async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<C
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
         image: p.images[0]?.url ?? null,
-        vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug },
+        vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },
       },
     };
   });

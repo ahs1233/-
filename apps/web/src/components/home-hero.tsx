@@ -19,6 +19,18 @@ function approxStores(n: number): string {
   return `${n}`;
 }
 
+// الوقت يغيّر البطل — بغداد صباحاً غير بغداد ليلاً (بتوقيت بغداد UTC+3).
+function timeMood(): { filter: string; eyebrow: string } {
+  const now = new Date();
+  const h = (now.getUTCHours() + 3) % 24;
+  const friday = (now.getUTCDay() + (now.getUTCHours() + 3 >= 24 ? 1 : 0)) % 7 === 5;
+  if (friday && h >= 7 && h < 16) return { filter: "brightness(1.05) saturate(1.02) sepia(.06)", eyebrow: "جمعةٌ في السوق — أبوابٌ تُفتح على مهل" };
+  if (h >= 5 && h < 11) return { filter: "brightness(1.1) saturate(.88) hue-rotate(-7deg)", eyebrow: "صباح الخير — السوق يفتح أبوابه" };
+  if (h >= 11 && h < 16) return { filter: "brightness(1.06) saturate(.94)", eyebrow: "ظهيرةُ السوق — الحركة في ذروتها" };
+  if (h >= 16 && h < 19) return { filter: "brightness(.98) saturate(1.12) sepia(.08)", eyebrow: "المغرب — ساعة السوق الذهبيّة" };
+  return { filter: "brightness(.62) saturate(.95) sepia(.12)", eyebrow: "أضواء السوق تشتعل ليلاً" };
+}
+
 export function HomeHero({
   governorate,
   storeCount,
@@ -28,18 +40,20 @@ export function HomeHero({
   storeCount?: number;
   stats?: HomeStats;
 }) {
-  const feel = govIdentity(governorate).feel;
+  const id = govIdentity(governorate);
+  const mood = timeMood();
   return (
     <section className="relative overflow-hidden rounded-3xl shadow-xl ring-1 ring-gold-500/30">
-      {/* الكادر الحقيقيّ للمحافظة */}
+      {/* الكادر الحقيقيّ للمحافظة — يتغيّر بالمحافظة والوقت */}
       <div className="relative h-[470px] w-full sm:h-[510px]">
         <Image
-          src="/hero-souk.jpg"
-          alt={`سوگ ${governorate ?? "العراق"} — ${feel}`}
+          src={id.hero}
+          alt={`سوگ ${governorate ?? "العراق"} — ${id.feel}`}
           fill
           priority
           sizes="(max-width: 768px) 100vw, 768px"
-          className="animate-drift object-cover object-center"
+          style={{ filter: mood.filter }}
+          className="animate-drift object-cover object-center transition-[filter] duration-700"
         />
 
         {/* وهج الفوانيس — لا تنير بالتساوي */}
@@ -66,7 +80,7 @@ export function HomeHero({
               <span className="relative inline-flex h-2 w-2 rounded-full bg-gold-300" />
             </span>
             <span className="text-xs font-semibold tracking-wide text-gold-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)]">
-              السوق يعمل الآن — الدفع عند الاستلام
+              {mood.eyebrow}
             </span>
           </div>
 

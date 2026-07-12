@@ -15,11 +15,13 @@ export interface SoukTile {
 
 export interface GovIdentity {
   feel: string;
+  hero: string;
   souks: SoukTile[];
 }
 
 const BAGHDAD: GovIdentity = {
   feel: "قباب وأزقّة وفوانيس عند المغرب",
+  hero: "/hero-souk.jpg",
   // أماكنُ حقيقيّة تولّد فضولاً — لا مجرّد فئات.
   souks: [
     { label: "الشورجة", q: "الشورجة", img: "/souks/souk-shorja.jpg" },
@@ -33,6 +35,7 @@ const BAGHDAD: GovIdentity = {
 
 const GENERIC: GovIdentity = {
   feel: "أزقّةٌ وفوانيسُ وبضاعةٌ تمدّ يدها إليك",
+  hero: "/hero-souk.jpg",
   souks: [
     { label: "المتاجر", q: "متجر", img: "/souks/souk-shorja.jpg" },
     { label: "الحرفيّون", q: "حرفي", img: "/souks/souk-craft.jpg" },
@@ -46,6 +49,7 @@ export const GOV_IDENTITY: Record<string, GovIdentity> = {
   بغداد: BAGHDAD,
   البصرة: {
     feel: "شطّ العرب والنخيل والموانئ",
+    hero: "/gov/basra.jpg",
     souks: [
       { label: "التمور", q: "تمر", emoji: "🌴" },
       { label: "الأسماك", q: "سمك", emoji: "🐟" },
@@ -55,6 +59,7 @@ export const GOV_IDENTITY: Record<string, GovIdentity> = {
   },
   النجف: {
     feel: "الكتب والعطور والسجّاد والذهب",
+    hero: "/gov/najaf.jpg",
     souks: [
       { label: "المكتبات", q: "كتب", emoji: "📚" },
       { label: "العطور", q: "عطور", emoji: "🫧" },
@@ -64,6 +69,7 @@ export const GOV_IDENTITY: Record<string, GovIdentity> = {
   },
   أربيل: {
     feel: "القلعة والبازار والأسواق التقليديّة",
+    hero: "/gov/erbil.jpg",
     souks: [
       { label: "القلعة", q: "تراث", emoji: "🏯" },
       { label: "الأقمشة", q: "قماش", emoji: "🧵" },
@@ -73,6 +79,7 @@ export const GOV_IDENTITY: Record<string, GovIdentity> = {
   },
   الموصل: {
     feel: "الحجر التراثيّ والأسواق القديمة",
+    hero: "/gov/mosul.jpg",
     souks: [
       { label: "النسيج", q: "نسيج", emoji: "🧵" },
       { label: "الحبوب", q: "حبوب", emoji: "🌾" },

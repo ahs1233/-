@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, Store } from "lucide-react";
+import { Star, MapPin } from "lucide-react";
 import { formatIQD } from "@al-souq/utils";
 import { AppImage } from "@/src/components/app-image";
 
@@ -11,10 +11,11 @@ export interface ProductCardData {
   ratingAvg: number;
   ratingCount: number;
   image: string | null;
-  vendor: { storeName: string; slug: string };
+  vendor: { storeName: string; slug: string; governorate?: string | null };
 }
 
 export function ProductCard({ product }: { product: ProductCardData }) {
+  const place = product.vendor.governorate;
   return (
     <Link
       href={`/product/${product.slug}`}
@@ -26,6 +27,13 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           alt={product.title}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
+        {/* هويّة السوق — «من {المكان}» فوراً على الصورة */}
+        {place && (
+          <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand-900/75 px-2 py-0.5 text-[10px] font-bold text-gold-100 backdrop-blur">
+            <MapPin className="h-2.5 w-2.5" />
+            {place}
+          </span>
+        )}
         {product.ratingCount > 0 && (
           <span className="absolute end-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-gold-600 shadow-sm backdrop-blur">
             <Star className="h-3 w-3 fill-gold-500 text-gold-500" />
@@ -35,11 +43,8 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3">
-        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">{product.title}</h3>
-        <p className="flex items-center gap-1 text-xs text-neutral-400">
-          <Store className="h-3 w-3" />
-          <span className="line-clamp-1">{product.vendor.storeName}</span>
-        </p>
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-900">{product.title}</h3>
+        <p className="line-clamp-1 text-xs text-neutral-400">{product.vendor.storeName}</p>
         <div className="mt-auto pt-1">
           <span className="text-base font-extrabold text-brand-700 nums">{formatIQD(product.price)}</span>
         </div>
