@@ -13,6 +13,7 @@ import {
   categoryUpdateSchema,
   userManageSchema,
   platformSettingsSchema,
+  appearanceSchema,
   couponCreateSchema,
   couponToggleSchema,
   staffCreateSchema,
@@ -996,6 +997,36 @@ export const adminRouter = router({
       entityType: "PlatformSetting",
       entityId: "platform",
       after: input,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // مظهر التطبيق — ألوان الثيم وترتيب أقسام الرئيسية (لوحة «المظهر»).
+  getAppearance: adminPerm("settings").query(async ({ ctx }) => {
+    const row = await ctx.prisma.platformSetting.findUnique({ where: { key: "appearance" } });
+    return (row?.value ?? null) as unknown;
+  }),
+  updateAppearance: adminPerm("settings").input(appearanceSchema).mutation(async ({ ctx, input }) => {
+    const value = {
+      colors: {
+        primary: input.colors.primary.startsWith("#") ? input.colors.primary : `#${input.colors.primary}`,
+        accent: input.colors.accent.startsWith("#") ? input.colors.accent : `#${input.colors.accent}`,
+        surface: input.colors.surface.startsWith("#") ? input.colors.surface : `#${input.colors.surface}`,
+      },
+      homeOrder: input.homeOrder,
+    };
+    await ctx.prisma.platformSetting.upsert({
+      where: { key: "appearance" },
+      update: { value },
+      create: { key: "appearance", value },
+    });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "appearance.update",
+      entityType: "PlatformSetting",
+      entityId: "appearance",
+      after: value,
       ip: ctx.reqIp,
     });
     return { ok: true };

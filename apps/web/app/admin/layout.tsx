@@ -19,6 +19,7 @@ const NAV: { href: string; label: string; perm: string }[] = [
   { href: "/admin/users", label: "المستخدمون", perm: "users" },
   { href: "/admin/staff", label: "الموظفون", perm: "staff" },
   { href: "/admin/settings", label: "الإعدادات", perm: "settings" },
+  { href: "/admin/appearance", label: "المظهر", perm: "settings" },
   { href: "/admin/audit", label: "التدقيق", perm: "audit" },
 ];
 

@@ -19,19 +19,24 @@ export default async function HomePage() {
   let categories: CachedCategory[] = [];
   let sections: HomeSections = [];
   let extras: HomeExtras | null = null;
+  let homeOrder: string[] = ["services", "souks", "pulse", "banner", "best_selling", "new", "stores", "featured", "categories"];
   let dbReady = true;
   try {
     const api = await getServerApi();
-    [categories, sections, extras] = await Promise.all([
+    const [cats, secs, ex, appearance] = await Promise.all([
       getCachedCategories(),
       api.discovery.home({ governorateId: gov?.id }),
       api.discovery.homeExtras({ governorateId: gov?.id }),
+      api.appearance.get(),
     ]);
+    categories = cats;
+    sections = secs;
+    extras = ex;
+    if (appearance.homeOrder?.length) homeOrder = appearance.homeOrder;
   } catch {
     dbReady = false;
   }
 
-  // وصول سريع لأقسام الاكتشاف بالمفتاح (لتحويلها إلى شرائط أفقيّة بنسق Snapp).
   const byKey = new Map<string, HomeSections[number]>(sections.map((s) => [s.key, s]));
   const productItems = (key: string) => {
     const s = byKey.get(key);
@@ -42,48 +47,19 @@ export default async function HomePage() {
     return s && s.kind === "stores" ? s.items : [];
   };
 
-  return (
-    <div className="space-y-7">
-      {/* بوّابة المحافظة — الإحساس يتغيّر بالمحافظة، والتخطيط ثابت */}
-      <HomeHero governorate={gov?.name} storeCount={extras?.stats.openStores} stats={extras?.stats} />
-
-      {/* خدمات السوگ — «مدنٌ صغيرة» داخل المحافظة (نسق Super-App) */}
-      <ServicesGrid />
-
-      {!dbReady && (
-        <div className="rounded-2xl border border-gold-400/40 bg-gold-400/10 p-4 text-sm text-gold-600">
-          المتجر قيد التجهيز — لم تُربط قاعدة البيانات بعد.
-        </div>
-      )}
-
-      {/* القصّة: المدينة ← الأسواق ← الناس/الحياة ← المنتجات ← التاجر */}
-
-      {/* الأسواق كأماكن — تولّد فضولاً، لا مجرّد فئات */}
-      <SoukTiles governorate={gov?.name} />
-
-      {/* نبض المحافظة — حياةُ السوق، لا منتجات */}
-      {extras && <MarketPulse events={extras.pulse} governorate={gov?.name} />}
-
-      {/* إيقاعٌ بصريّ — لافتةٌ نيليّة غامرة */}
-      <DailyBanner governorate={gov?.name} />
-
-      {/* المنتجات — شريطان فقط (لا لوحة إعلانات) */}
-      <ProductRail emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />
-      <ProductRail emoji="🆕" title="وصل حديثاً" href="/search" items={productItems("new")} />
-
-      {/* التاجر — خِتام القصّة */}
-      <StoreRail emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />
-      {extras?.featured && <FeaturedEntityCard entity={extras.featured} />}
-
-      {dbReady && sections.length === 0 && !extras?.featured && (
-        <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
-          لا توجد منتجات بعد.
-        </div>
-      )}
-
-      {/* تسوّق حسب الفئة */}
-      {categories.length > 0 && (
-        <section>
+  // كتلُ الرئيسية القابلة لإعادة الترتيب من لوحة «المظهر».
+  const blocks: Record<string, React.ReactNode> = {
+    services: <ServicesGrid key="services" />,
+    souks: <SoukTiles key="souks" governorate={gov?.name} />,
+    pulse: extras ? <MarketPulse key="pulse" events={extras.pulse} governorate={gov?.name} /> : null,
+    banner: <DailyBanner key="banner" governorate={gov?.name} />,
+    best_selling: <ProductRail key="best_selling" emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />,
+    new: <ProductRail key="new" emoji="🆕" title="وصل حديثاً" href="/search" items={productItems("new")} />,
+    stores: <StoreRail key="stores" emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />,
+    featured: extras?.featured ? <FeaturedEntityCard key="featured" entity={extras.featured} /> : null,
+    categories:
+      categories.length > 0 ? (
+        <section key="categories">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
               <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
@@ -104,6 +80,27 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+      ) : null,
+  };
+
+  return (
+    <div className="space-y-7">
+      {/* بوّابة المحافظة — دائماً أوّلاً (لا تُعاد ترتيبها) */}
+      <HomeHero governorate={gov?.name} storeCount={extras?.stats.openStores} stats={extras?.stats} />
+
+      {!dbReady && (
+        <div className="rounded-2xl border border-gold-400/40 bg-gold-400/10 p-4 text-sm text-gold-600">
+          المتجر قيد التجهيز — لم تُربط قاعدة البيانات بعد.
+        </div>
+      )}
+
+      {/* بقيّة الأقسام بترتيب الأدمن */}
+      {homeOrder.map((k) => blocks[k]).filter(Boolean)}
+
+      {dbReady && sections.length === 0 && !extras?.featured && (
+        <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
+          لا توجد منتجات بعد.
+        </div>
       )}
 
       {/* دعوة أصحاب المتاجر للتسجيل */}

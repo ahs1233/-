@@ -4,15 +4,23 @@
  */
 const tokens = require("./design-tokens");
 
+// يحوّل مقياس ألوانٍ إلى متغيّرات CSS (قنوات RGB) ليصبح قابلاً للتغيير وقت التشغيل
+// من لوحة الإدارة، مع الحفاظ على دعم الشفافية (bg-brand-500/40).
+function cssVarScale(name, scale) {
+  return Object.fromEntries(
+    Object.keys(scale).map((k) => [k, `rgb(var(--c-${name}-${k}) / <alpha-value>)`]),
+  );
+}
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: "class",
   theme: {
     extend: {
       colors: {
-        brand: tokens.colors.brand,
-        gold: tokens.colors.gold,
-        sand: tokens.colors.sand,
+        brand: cssVarScale("brand", tokens.colors.brand),
+        gold: cssVarScale("gold", tokens.colors.gold),
+        sand: cssVarScale("sand", tokens.colors.sand),
         clay: tokens.colors.clay,
         petrol: tokens.colors.petrol,
         neutral: tokens.colors.neutral,

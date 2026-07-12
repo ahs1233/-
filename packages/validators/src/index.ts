@@ -147,6 +147,14 @@ export const platformSettingsSchema = z.object({
   minOrderValue: z.number().int().min(0).max(10_000_000).optional(),
 });
 
+// ─────────────────────── Appearance (المظهر) ───────────────────────
+const hexColor = z.string().regex(/^#?[0-9a-fA-F]{6}$/, "لونٌ سداسيّ غير صحيح");
+export const appearanceSchema = z.object({
+  colors: z.object({ primary: hexColor, accent: hexColor, surface: hexColor }),
+  homeOrder: z.array(z.string().max(40)).max(24),
+});
+export type AppearanceInput = z.infer<typeof appearanceSchema>;
+
 // ─────────────────────────── Product ───────────────────────────
 
 const priceIQD = z

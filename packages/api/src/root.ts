@@ -11,6 +11,7 @@ import { vendorRouter } from "./routers/vendor";
 import { uploadRouter } from "./routers/upload";
 import { adminRouter } from "./routers/admin";
 import { discoveryRouter } from "./routers/discovery";
+import { appearanceRouter } from "./routers/appearance";
 
 /**
  * الراوتر الجذر — العقد الكامل للـ API.
@@ -29,6 +30,7 @@ export const appRouter = router({
   upload: uploadRouter,
   admin: adminRouter,
   discovery: discoveryRouter,
+  appearance: appearanceRouter,
 });
 
 export type AppRouter = typeof appRouter;
