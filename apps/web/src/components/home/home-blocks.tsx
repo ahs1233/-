@@ -138,13 +138,14 @@ const SOUKS = [
   { label: "العبايات", img: "/souks/souk-abaya.jpg", q: "عباية" },
 ];
 
-export function SoukTiles() {
+export function SoukTiles({ governorate }: { governorate?: string }) {
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-          تصفّح الأسواق
+          <span aria-hidden>🕌</span>
+          أسواق {governorate ?? "العراق"}
         </h2>
       </div>
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

@@ -3,20 +3,36 @@ import Link from "next/link";
 import { ShieldCheck, Truck, BadgeCheck, ChevronLeft } from "lucide-react";
 
 /**
- * البطل السينمائيّ — بوّابة الشعور «أشعر أنني دخلتُ بغداد».
- * يطبّق قوانين الكانون: سماءٌ ≤ ٢٥٪ وممرٌّ يقود العين (في الصورة نفسها)،
- * فوانيسُ لا تضيء بالتساوي (وهجٌ يهتزّ)، مكانٌ يتنفّس (كِن-بيرنز بطيء)،
- * ذهبٌ معدنيّ لا مسطّح (زرّ نحاسيّ)، ونبضٌ حيّ يوحي أنّ السوق يعمل الآن.
- * الصورة أصلٌ فنّيّ مؤقّت للإطلاق (يمكن استبداله بصورةٍ حصريّة لاحقاً).
+ * بوّابة المحافظة — «أشعر أنني دخلتُ محافظةً عراقيّة حيّة».
+ * التخطيط ثابت، لكن الإحساس يتغيّر بالمحافظة: صورةٌ بانوراميّة وشعورٌ خاصّ لكلٍّ
+ * (بغداد: قباب وأزقّة وفوانيس؛ النجف/البصرة/الموصل/أربيل لاحقاً بأصولها).
+ * يطبّق الكانون: فوانيسُ تهتزّ، كِن-بيرنز، ذهبٌ معدنيّ، ونبضٌ حيّ.
  */
-export function HomeHero({ governorate }: { governorate?: string }) {
+
+// خريطة المحافظة → صورة + شعور. تعود لبغداد حتى تُضاف أصولٌ حصريّة لكلّ محافظة.
+const GOV: Record<string, { img: string; feel: string }> = {
+  بغداد: { img: "/hero-souk.jpg", feel: "قباب وأزقّة وفوانيس عند المغرب" },
+};
+function govArt(name?: string) {
+  return (name && GOV[name]) || { img: "/hero-souk.jpg", feel: "أزقّةٌ وفوانيسُ وبضاعةٌ تمدّ يدها إليك" };
+}
+
+// صياغة عربية للعدد التقريبيّ (٣٤٢ → «٣٠٠+»، ١٢٤٠٠ → «١٢ ألف+»).
+function approxStores(n: number): string {
+  if (n >= 1000) return `${Math.floor(n / 1000)} ألف+`;
+  if (n >= 100) return `${Math.floor(n / 100) * 100}+`;
+  return `${n}`;
+}
+
+export function HomeHero({ governorate, storeCount }: { governorate?: string; storeCount?: number }) {
+  const art = govArt(governorate);
   return (
     <section className="relative overflow-hidden rounded-3xl shadow-xl ring-1 ring-gold-500/30">
-      {/* الكادر الحقيقيّ */}
+      {/* الكادر الحقيقيّ للمحافظة */}
       <div className="relative h-[430px] w-full sm:h-[470px]">
         <Image
-          src="/hero-souk.jpg"
-          alt="سوق بغداد عند المغرب — أزقّةٌ وفوانيسُ وقباب"
+          src={art.img}
+          alt={`سوگ ${governorate ?? "العراق"} — ${art.feel}`}
           fill
           priority
           sizes="(max-width: 768px) 100vw, 768px"
@@ -51,15 +67,18 @@ export function HomeHero({ governorate }: { governorate?: string }) {
             </span>
           </div>
 
-          <h1
-            className="mt-3 text-3xl font-extrabold leading-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-4xl"
-          >
-            {governorate ? `سوق ${governorate}` : "سوق العراق"}
-            <span className="block text-gold-200">بين يديك</span>
+          <h1 className="mt-3 text-4xl font-extrabold leading-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-5xl">
+            سو<span className="text-gold-300">گ</span> {governorate ?? "العراق"}
           </h1>
-          <p className="mt-2 max-w-md text-sm leading-relaxed text-white/85 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)]">
-            أزقّةٌ من التجّار الموثوقين، بضاعةٌ تمدّ يدها إليك، وتوصيلٌ يصل حتى بابك.
-          </p>
+          {storeCount && storeCount > 0 ? (
+            <p className="mt-2 text-base font-bold text-gold-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
+              أكثر من <span className="nums">{approxStores(storeCount)}</span> متجر محلّي
+            </p>
+          ) : (
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-white/85 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)]">
+              أزقّةٌ من التجّار الموثوقين، بضاعةٌ تمدّ يدها إليك.
+            </p>
+          )}
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Link

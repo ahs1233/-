@@ -1,26 +1,16 @@
 import Link from "next/link";
-import { ChevronLeft, Store, LayoutGrid } from "lucide-react";
+import { ChevronLeft, Store } from "lucide-react";
 import { getGovernorate } from "@/src/lib/governorate";
 import { getServerApi } from "@/src/trpc/server";
-import { ProductCard } from "@/src/components/product-card";
 import { CategoryIcon } from "@/src/components/category-icon";
 import { HomeHero } from "@/src/components/home-hero";
-import { StatStrip, FeaturedEntityCard, MarketPulse, SoukTiles } from "@/src/components/home/home-blocks";
-import { AppImage } from "@/src/components/app-image";
+import { ServicesGrid } from "@/src/components/home/services-grid";
+import { ProductRail, StoreRail } from "@/src/components/home/section-rail";
+import { FeaturedEntityCard, MarketPulse, SoukTiles } from "@/src/components/home/home-blocks";
 import { getCachedCategories, type CachedCategory } from "@/src/lib/catalog-cache";
 import type { HomeExtras } from "@al-souq/api";
 
 export const dynamic = "force-dynamic";
-
-// هوية كل قسم: عنوان + هدف (Δ1). المصدر الوحيد للأقسام هو محرّك الاكتشاف.
-const SECTION_META: Record<string, { title: string; purpose: string }> = {
-  today: { title: "اليوم في السوگ", purpose: "مختارات متنوّعة تبدأ منها رحلة تسوّقك" },
-  trending: { title: "الأكثر رواجاً هذا الأسبوع", purpose: "ما يشتريه الناس فعلاً حولك" },
-  new: { title: "جديد هذا الأسبوع", purpose: "أحدث ما وصل من التجّار" },
-  top_rated: { title: "الأعلى تقييماً", purpose: "منتجات نالت رضا المشترين" },
-  best_selling: { title: "الأكثر مبيعاً", purpose: "الأكثر طلباً عبر الوقت" },
-  new_stores: { title: "متاجر جديدة", purpose: "تجّار انضموا حديثاً إلى السوگ" },
-};
 
 type HomeSections = Awaited<ReturnType<Awaited<ReturnType<typeof getServerApi>>["discovery"]["home"]>>;
 
@@ -41,24 +31,24 @@ export default async function HomePage() {
     dbReady = false;
   }
 
+  // وصول سريع لأقسام الاكتشاف بالمفتاح (لتحويلها إلى شرائط أفقيّة بنسق Snapp).
+  const byKey = new Map<string, HomeSections[number]>(sections.map((s) => [s.key, s]));
+  const productItems = (key: string) => {
+    const s = byKey.get(key);
+    return s && s.kind === "products" ? s.items : [];
+  };
+  const storeItems = () => {
+    const s = byKey.get("new_stores");
+    return s && s.kind === "stores" ? s.items : [];
+  };
+
   return (
     <div className="space-y-7">
-      {/* البطل السينمائيّ — بوّابة «دخلتُ بغداد» */}
-      <HomeHero governorate={gov?.name} />
+      {/* بوّابة المحافظة — الإحساس يتغيّر بالمحافظة، والتخطيط ثابت */}
+      <HomeHero governorate={gov?.name} storeCount={extras?.stats.openStores} />
 
-      {/* شريط الأرقام الحيّة — نبض السوق رقماً */}
-      {extras && (extras.stats.openStores > 0 || extras.stats.newOffersToday > 0) && (
-        <StatStrip stats={extras.stats} governorate={gov?.name} />
-      )}
-
-      {/* جهة موصى بها لك — أكبر عنصر بعد البطل */}
-      {extras?.featured && <FeaturedEntityCard entity={extras.featured} />}
-
-      {/* السوق الآن — نبض حيّ */}
-      {extras && <MarketPulse events={extras.pulse} />}
-
-      {/* تصفّح الأسواق — بلاطات مصوّرة */}
-      <SoukTiles />
+      {/* خدمات السوگ — «مدنٌ صغيرة» داخل المحافظة (نسق Super-App) */}
+      <ServicesGrid />
 
       {!dbReady && (
         <div className="rounded-2xl border border-gold-400/40 bg-gold-400/10 p-4 text-sm text-gold-600">
@@ -66,19 +56,41 @@ export default async function HomePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link href="/stores" className="flex items-center gap-2 rounded-2xl border border-sand-200 bg-white p-4 font-semibold text-brand-700 shadow-sm transition hover:border-gold-300 hover:bg-gold-50">
-          <Store className="h-5 w-5 text-gold-600" /> تصفّح المتاجر
-        </Link>
-        <Link href="/categories" className="flex items-center gap-2 rounded-2xl border border-sand-200 bg-white p-4 font-semibold text-brand-700 shadow-sm transition hover:border-gold-300 hover:bg-gold-50">
-          <LayoutGrid className="h-5 w-5 text-gold-600" /> كل الفئات
-        </Link>
-      </div>
+      {/* جهة موصى بها لك — البطاقة الكبرى */}
+      {extras?.featured && <FeaturedEntityCard entity={extras.featured} />}
 
-      {/* الفئات — تصنيف تنقّل (ليس اكتشافاً) */}
+      {/* أقسامٌ متتالية بنسق Snapp — كلٌّ شريطٌ أفقيّ */}
+      <ProductRail emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />
+
+      {/* أسواق المحافظة — بلاطات سينمائيّة */}
+      <SoukTiles governorate={gov?.name} />
+
+      <StoreRail emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />
+      <ProductRail emoji="🆕" title="وصل حديثاً" href="/search" items={productItems("new")} />
+      <ProductRail emoji="⭐" title="الأعلى تقييماً" items={productItems("top_rated")} />
+      <ProductRail emoji="🛒" title="اليوم في السوگ" items={productItems("today")} />
+
+      {/* السوق الآن — نبض حيّ */}
+      {extras && <MarketPulse events={extras.pulse} />}
+
+      {dbReady && sections.length === 0 && !extras?.featured && (
+        <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
+          لا توجد منتجات بعد.
+        </div>
+      )}
+
+      {/* تسوّق حسب الفئة */}
       {categories.length > 0 && (
         <section>
-          <SectionHeader title="تسوّق حسب الفئة" href="/categories" />
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+              <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+              تسوّق حسب الفئة
+            </h2>
+            <Link href="/categories" className="flex items-center gap-0.5 text-sm font-medium text-gold-700 hover:text-gold-600">
+              الكل <ChevronLeft className="h-4 w-4" />
+            </Link>
+          </div>
           <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
             {categories.slice(0, 12).map((c) => (
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
@@ -91,41 +103,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* أقسام الاكتشاف — المصدر الوحيد: DiscoveryService */}
-      {dbReady && sections.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
-          لا توجد منتجات بعد.
-        </div>
-      )}
-
-      {sections.map((section) => {
-        const meta = SECTION_META[section.key];
-        return (
-          <section key={section.key}>
-            <div className="mb-3">
-              <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
-                <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-                {meta?.title ?? section.key}
-              </h2>
-              {meta?.purpose && <p className="mt-0.5 ps-3 text-sm text-neutral-500">{meta.purpose}</p>}
-            </div>
-            {section.kind === "stores" ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {section.items.map((s) => (
-                  <StoreCard key={s.id} store={s} />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {section.items.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            )}
-          </section>
-        );
-      })}
 
       {/* دعوة أصحاب المتاجر للتسجيل */}
       <Link
@@ -141,45 +118,6 @@ export default async function HomePage() {
         </span>
         <ChevronLeft className="h-5 w-5 flex-shrink-0 text-gold-600" />
       </Link>
-    </div>
-  );
-}
-
-function StoreCard({
-  store,
-}: {
-  store: { slug: string; storeName: string; logoUrl: string | null; productCount: number };
-}) {
-  return (
-    <Link
-      href={`/store/${store.slug}`}
-      className="group flex flex-col items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
-    >
-      <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
-        {store.logoUrl ? (
-          <AppImage src={store.logoUrl} alt={store.storeName} className="h-full w-full object-cover" />
-        ) : (
-          <Store className="h-7 w-7 text-brand-600" />
-        )}
-      </span>
-      <span className="line-clamp-1 text-sm font-semibold text-neutral-900">{store.storeName}</span>
-      <span className="text-xs text-neutral-400">{store.productCount} منتج</span>
-    </Link>
-  );
-}
-
-function SectionHeader({ title, href }: { title: string; href?: string }) {
-  return (
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
-        <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-        {title}
-      </h2>
-      {href && (
-        <Link href={href} className="flex items-center gap-0.5 text-sm font-medium text-gold-700 hover:text-gold-600">
-          الكل <ChevronLeft className="h-4 w-4" />
-        </Link>
-      )}
     </div>
   );
 }
