@@ -30,15 +30,33 @@ async function fileToCanvas(file: File, maxSize: number): Promise<HTMLCanvasElem
   canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas;
 }
+// عند تهيئة S3 لا يوجد سقفٌ عمليّ — نرفع بدقّةٍ عالية.
 async function fileToJpegBlob(file: File): Promise<Blob> {
-  const canvas = await fileToCanvas(file, 1400);
+  const canvas = await fileToCanvas(file, 2400);
   return new Promise((res, rej) =>
-    canvas.toBlob((b) => (b ? res(b) : rej(new Error("تعذّر ضغط الصورة"))), "image/jpeg", 0.82),
+    canvas.toBlob((b) => (b ? res(b) : rej(new Error("تعذّر ضغط الصورة"))), "image/jpeg", 0.9),
   );
 }
-async function fileToDataUrl(file: File): Promise<string> {
-  const canvas = await fileToCanvas(file, 1000);
-  return canvas.toDataURL("image/jpeg", 0.75);
+
+// حدّ طول data URL (بالأحرف) — دون سقف المدقّق (3,000,000) بهامشٍ أمان.
+const DATA_URL_MAX = 2_850_000;
+
+/**
+ * ترميزٌ متكيّف: يُبقي أكبر بُعدٍ عالياً (حتى ٢٠٠٠px) ويخفض الجودة تدريجيّاً
+ * فقط عند اللزوم للبقاء تحت سقف التخزين — فلا تخرج الصورة منخفضة الدقّة بلا داعٍ.
+ */
+async function fileToDataUrlAdaptive(file: File): Promise<string> {
+  let maxSize = 2000;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const canvas = await fileToCanvas(file, maxSize);
+    for (const q of [0.9, 0.84, 0.78, 0.7]) {
+      const url = canvas.toDataURL("image/jpeg", q);
+      if (url.length <= DATA_URL_MAX) return url;
+    }
+    maxSize = Math.round(maxSize * 0.8); // ما زالت كبيرة → قلّل الأبعاد ثم أعد المحاولة
+  }
+  const canvas = await fileToCanvas(file, 1100);
+  return canvas.toDataURL("image/jpeg", 0.6);
 }
 
 export function ImageField({
@@ -71,7 +89,7 @@ export function ImageField({
         if (!res.ok) throw new Error("فشل رفع الصورة");
         onChange(publicUrl);
       } else {
-        onChange(await fileToDataUrl(file));
+        onChange(await fileToDataUrlAdaptive(file));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "خطأ في معالجة الصورة");
