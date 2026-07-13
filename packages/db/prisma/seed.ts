@@ -523,22 +523,43 @@ async function main() {
       });
     }
   }
-  // تجميع تقييم كل بائع من منتجاته
+  // تقييمُ المتجر (تجربة الشراء) — تقييمٌ مستقلٌّ عن تقييم المنتجات.
+  const storeReviewTexts = ["تعامل ممتاز والتوصيل سريع", "بائع أمين وبضاعته مطابقة", "خدمة طيّبة، أنصح بالشراء منه", "رائع والردّ سريع"];
   const vendorsAll = await prisma.vendorProfile.findMany({ select: { id: true } });
-  for (const v of vendorsAll) {
-    const agg = await prisma.product.aggregate({
-      where: { vendorId: v.id, ratingCount: { gt: 0 } },
-      _avg: { ratingAvg: true },
-      _sum: { ratingCount: true },
-    });
+  let storeReviewCount = 0;
+  for (let i = 0; i < vendorsAll.length; i++) {
+    const v = vendorsAll[i]!;
+    const numReviews = Math.min((i % 3) + 1, customers.length);
+    let sum = 0;
+    let count = 0;
+    for (let r = 0; r < numReviews; r++) {
+      const customer = customers[r % customers.length];
+      if (!customer) continue;
+      const rating = 3 + ((i + r) % 3); // 3..5
+      await prisma.storeReview.upsert({
+        where: { userId_vendorId: { userId: customer.id, vendorId: v.id } },
+        update: {},
+        create: {
+          userId: customer.id,
+          vendorId: v.id,
+          rating,
+          comment: storeReviewTexts[(i + r) % storeReviewTexts.length],
+          status: ReviewStatus.PUBLISHED,
+        },
+      });
+      sum += rating;
+      count += 1;
+      storeReviewCount += 1;
+    }
     await prisma.vendorProfile.update({
       where: { id: v.id },
       data: {
-        ratingAvg: agg._avg.ratingAvg ?? new Prisma.Decimal(0),
-        ratingCount: agg._sum.ratingCount ?? 0,
+        ratingAvg: count > 0 ? new Prisma.Decimal((sum / count).toFixed(2)) : new Prisma.Decimal(0),
+        ratingCount: count,
       },
     });
   }
+  console.log(`✅ ${storeReviewCount} تقييم متجر`);
   console.log(`✅ ${reviewCount} مراجعة + تحديث التقييمات`);
 
   // ── مفضلة ──

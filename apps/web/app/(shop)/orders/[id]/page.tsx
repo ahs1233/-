@@ -6,6 +6,7 @@ import { Clock, CheckCircle2, Package, Truck, PackageCheck, PartyPopper } from "
 import { Button, Card, CardBody, OrderStatusBadge, ORDER_STATUS_LABEL, Textarea, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
+import { RateOrderItems } from "@/src/components/order/rate-items";
 
 const TRACK_STEPS = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED"] as const;
 
@@ -174,6 +175,11 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           <p className="pt-1 text-xs text-neutral-500">الدفع عند الاستلام</p>
         </CardBody>
       </Card>
+
+      {/* قيّم مشترياتك — بعد الاستلام */}
+      {(o.status === "DELIVERED" || o.status === "COMPLETED") && (
+        <RateOrderItems items={o.items.map((it) => ({ productId: it.productId, title: it.title }))} />
+      )}
 
       {/* العنوان */}
       <Card>

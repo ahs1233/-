@@ -345,6 +345,12 @@ export const reviewCreateSchema = z.object({
   comment: z.string().trim().max(500).optional(),
 });
 
+export const storeReviewCreateSchema = z.object({
+  vendorId: z.string().cuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(500).optional(),
+});
+
 // ─────────────────────────── Search / List ───────────────────────────
 
 export const productListQuerySchema = z.object({

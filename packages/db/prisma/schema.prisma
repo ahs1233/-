@@ -103,6 +103,7 @@ model User {
   addresses     Address[]
   orders        Order[]
   reviews       Review[]
+  storeReviews  StoreReview[]
   notifications Notification[]
   sessions      Session[]
   favorites      Favorite[]
@@ -169,6 +170,7 @@ model VendorProfile {
   products Product[]
   orders   Order[]
   payouts  Payout[]
+  reviews  StoreReview[]
 
   @@index([status])
   @@index([governorateId])
@@ -462,6 +464,25 @@ model Review {
 
   @@unique([userId, productId, orderId])
   @@index([productId, status])
+}
+
+/// تقييمُ المتجر (تجربة الشراء منه) — موثّقٌ بطلبٍ مكتمل من هذا المتجر.
+/// منفصلٌ عن تقييم المنتج: هذا لخدمة المتجر، وذاك لجودة المنتج.
+model StoreReview {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  orderId   String? // موثّقٌ بطلب فعليّ من المتجر
+  rating    Int // 1..5 (يُتحقّق في طبقة التطبيق)
+  comment   String?
+  status    ReviewStatus  @default(PUBLISHED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([userId, vendorId])
+  @@index([vendorId, status])
 }
 
 model Favorite {

@@ -4,6 +4,7 @@ import { Store, MapPin, BadgeCheck, Star, CalendarDays, Package, Truck } from "l
 import { getServerApi } from "@/src/trpc/server";
 import { ProductCard } from "@/src/components/product-card";
 import { AppImage } from "@/src/components/app-image";
+import { StoreReviews } from "@/src/components/store/store-reviews";
 import { decodeSlug } from "@/src/lib/slug";
 
 export const dynamic = "force-dynamic";
@@ -150,6 +151,9 @@ export default async function StorePage({ params }: { params: { slug: string } }
           </div>
         )}
       </section>
+
+      {/* تقييمات المتجر — رأيُ من اشترى منه */}
+      <StoreReviews vendorId={vendor.id} />
     </div>
   );
 }
