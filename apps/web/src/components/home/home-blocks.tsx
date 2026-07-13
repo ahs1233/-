@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Radio, TrendingUp, Tag, Store, ChevronLeft, BadgeCheck, Star, Package, DoorOpen, Award } from "lucide-react";
 import { AppImage } from "@/src/components/app-image";
 import { govIdentity } from "@/src/lib/governorate-identity";
-import type { HomeStats, FeaturedEntity, PulseEvent, PulseKind } from "@al-souq/api";
+import type { HomeStats, FeaturedEntity, PulseEvent, PulseKind, AdItem } from "@al-souq/api";
 
 /* ── شريط الأرقام الحيّة (نبض السوق رقماً) ── */
 export function StatStrip({ stats, governorate }: { stats: HomeStats; governorate?: string }) {
@@ -125,6 +125,47 @@ export function DailyBanner({ governorate }: { governorate?: string }) {
   );
 }
 
+/* ── الإعلانات — لافتات ترويجيّة يديرها الأدمن (تبويب الإعلانات) ── */
+function AdBanner({ ad }: { ad: AdItem }) {
+  return (
+    <Link
+      href={ad.linkUrl}
+      className="relative block h-40 w-full flex-shrink-0 snap-start overflow-hidden rounded-3xl ring-1 ring-brand-800/30 sm:h-48"
+    >
+      <AppImage src={ad.imageUrl} alt={ad.title} sizes="(max-width: 768px) 100vw, 768px" className="h-full w-full object-cover object-center" />
+      <div className="absolute inset-0 bg-gradient-to-l from-brand-900/95 via-brand-900/70 to-brand-900/25" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{ backgroundImage: "radial-gradient(120px 80px at 18% 60%, rgba(255,196,96,.5), transparent 70%)" }}
+      />
+      <div className="absolute inset-0 flex flex-col justify-center p-5 sm:p-7">
+        <span className="text-xs font-bold tracking-wide text-gold-300">عروض اليوم</span>
+        <p className="mt-1 max-w-[18rem] text-xl font-extrabold leading-snug text-white drop-shadow sm:text-2xl">{ad.title}</p>
+        {ad.subtitle && <p className="mt-1 max-w-[18rem] text-sm text-white/85 drop-shadow">{ad.subtitle}</p>}
+        <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-2xl bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur">
+          اكتشف <ChevronLeft className="h-4 w-4" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+/** لافتات الإعلانات — واحدةٌ ثابتة أو شريطٌ أفقيّ متعدّد؛ يرجع للّافتة الافتراضيّة عند غياب الإعلانات. */
+export function AdsCarousel({ ads, governorate }: { ads: AdItem[]; governorate?: string }) {
+  const banners = ads.filter((a) => a.placement === "home_banner");
+  if (banners.length === 0) return <DailyBanner governorate={governorate} />;
+  if (banners.length === 1) return <AdBanner ad={banners[0]!} />;
+  return (
+    <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {banners.map((ad) => (
+        <div key={ad.id} className="w-[88%] flex-shrink-0 sm:w-[70%]">
+          <AdBanner ad={ad} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function MarketPulse({ events, governorate }: { events: PulseEvent[]; governorate?: string }) {
   if (!events.length) return null;
   return (
@@ -167,15 +208,23 @@ export function MarketPulse({ events, governorate }: { events: PulseEvent[]; gov
 }
 
 /* ── أسواق المحافظة — كلّ محافظةٍ أسواقها الخاصّة (لا مجرّد صورةٍ مختلفة) ── */
-export function SoukTiles({ governorate }: { governorate?: string }) {
-  const souks = govIdentity(governorate).souks;
+export function SoukTiles({
+  governorate,
+  souks: souksOverride,
+  title,
+}: {
+  governorate?: string;
+  souks?: { label: string; q: string; img?: string; emoji?: string }[];
+  title?: string;
+}) {
+  const souks = souksOverride && souksOverride.length ? souksOverride : govIdentity(governorate).souks;
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
           <span aria-hidden>🕌</span>
-          أسواق {governorate ?? "العراق"}
+          {title ?? `أسواق ${governorate ?? "العراق"}`}
         </h2>
       </div>
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

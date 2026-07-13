@@ -46,6 +46,64 @@ const GOVERNORATES: { nameAr: string; code: string; areas: string[] }[] = [
   { nameAr: "دهوك", code: "DHK", areas: ["مركز دهوك", "زاخو", "العمادية"] },
 ];
 
+// ── عرض المحافظات: الشعور + صورة البطل + الأسواق (كلّ محافظةٍ تجربةٌ مختلفة) ──
+// مفتاحُها الكود المستقرّ (لا الاسم) كي يبقى البذر متينَ التوافق.
+type SoukTile = { label: string; q: string; img?: string; emoji?: string };
+const PRESENTATION: Record<string, { tagline: string; heroImageUrl: string; souks: SoukTile[] }> = {
+  BGD: {
+    tagline: "قباب وأزقّة وفوانيس عند المغرب",
+    heroImageUrl: "/hero-souk.jpg",
+    souks: [
+      { label: "الشورجة", q: "الشورجة", img: "/souks/souk-shorja.jpg" },
+      { label: "شارع المتنبّي", q: "كتب", img: "/souks/souk-books.jpg" },
+      { label: "سوق الصفافير", q: "نحاس", img: "/souks/souk-lantern.jpg" },
+      { label: "خان مرجان", q: "حرفي", img: "/souks/souk-craft.jpg" },
+      { label: "سوق العطّارين", q: "عطور", img: "/souks/souk-spice.jpg" },
+      { label: "سوق العبايات", q: "عباية", img: "/souks/souk-abaya.jpg" },
+    ],
+  },
+  BSR: {
+    tagline: "شطّ العرب والنخيل والموانئ",
+    heroImageUrl: "/gov/basra.jpg",
+    souks: [
+      { label: "التمور", q: "تمر", emoji: "🌴" },
+      { label: "الأسماك", q: "سمك", emoji: "🐟" },
+      { label: "العطّارون", q: "عطار", emoji: "🧴" },
+      { label: "الأقمشة", q: "قماش", emoji: "🧵" },
+    ],
+  },
+  NJF: {
+    tagline: "الكتب والعطور والسجّاد والذهب",
+    heroImageUrl: "/gov/najaf.jpg",
+    souks: [
+      { label: "المكتبات", q: "كتب", emoji: "📚" },
+      { label: "العطور", q: "عطور", emoji: "🫧" },
+      { label: "السجّاد", q: "سجاد", emoji: "🧶" },
+      { label: "الذهب", q: "ذهب", emoji: "💍" },
+    ],
+  },
+  ARB: {
+    tagline: "القلعة والبازار والأسواق التقليديّة",
+    heroImageUrl: "/gov/erbil.jpg",
+    souks: [
+      { label: "القلعة", q: "تراث", emoji: "🏯" },
+      { label: "الأقمشة", q: "قماش", emoji: "🧵" },
+      { label: "الحلويّات", q: "حلويات", emoji: "🍬" },
+      { label: "البازار", q: "بازار", emoji: "🛍️" },
+    ],
+  },
+  NNW: {
+    tagline: "الحجر التراثيّ والأسواق القديمة",
+    heroImageUrl: "/gov/mosul.jpg",
+    souks: [
+      { label: "النسيج", q: "نسيج", emoji: "🧵" },
+      { label: "الحبوب", q: "حبوب", emoji: "🌾" },
+      { label: "الصاغة", q: "ذهب", emoji: "💍" },
+      { label: "العطّارون", q: "عطار", emoji: "🧴" },
+    ],
+  },
+};
+
 // ── الفئات ──
 const CATEGORIES: { nameAr: string; icon: string; children: string[] }[] = [
   { nameAr: "أزياء رجالية", icon: "shirt", children: ["دشاديش", "قمصان", "أحذية رجالية", "عبايات رجالية"] },
@@ -64,10 +122,17 @@ async function main() {
   const govByName: Record<string, string> = {};
   for (let i = 0; i < GOVERNORATES.length; i++) {
     const g = GOVERNORATES[i]!;
+    const pres = PRESENTATION[g.code];
     const gov = await prisma.governorate.upsert({
       where: { code: g.code },
+      // لا نلمس العرض في التحديث كي تبقى تعديلات الأدمن (تبويب المحافظات) محفوظة.
       update: { sortOrder: i },
-      create: { nameAr: g.nameAr, code: g.code, sortOrder: i },
+      create: {
+        nameAr: g.nameAr,
+        code: g.code,
+        sortOrder: i,
+        ...(pres ? { tagline: pres.tagline, heroImageUrl: pres.heroImageUrl, souks: pres.souks } : {}),
+      },
     });
     govByName[g.nameAr] = gov.id;
     for (const areaName of g.areas) {
@@ -632,6 +697,31 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
   if (variants[1] && customers[0]) await makeOrder(variants[1], customers[0], 1, OrderStatus.PENDING);
   if (variants[2] && customers[1]) await makeOrder(variants[2], customers[1], 1, OrderStatus.SHIPPED);
   console.log("✅ طلبات نموذجية (مكتمل + قيد الانتظار + قيد الشحن) مع عمولات وتسوية");
+
+  // ── إعلاناتٌ نموذجيّة (لافتات الرئيسية) — تُدار من لوحة «المظهر» ← الإعلانات ──
+  const ADS: { title: string; subtitle: string; imageUrl: string; linkUrl: string; gov?: string; sortOrder: number }[] = [
+    { title: "أسبوع النحاسيّات البغداديّة", subtitle: "دلال وصواني من قلب سوق الصفافير", imageUrl: "/souks/souk-lantern.jpg", linkUrl: "/search?q=نحاس", gov: "بغداد", sortOrder: 0 },
+    { title: "موسم التمور البصريّة", subtitle: "من نخيل شطّ العرب إلى بابك", imageUrl: "/gov/basra.jpg", linkUrl: "/search?q=تمر", gov: "البصرة", sortOrder: 1 },
+    { title: "عروض السوگ لكلّ العراق", subtitle: "تشكيلةٌ مختارة والدفع عند الاستلام", imageUrl: "/hero-souk.jpg", linkUrl: "/search", sortOrder: 2 },
+  ];
+  // idempotent: نمسح الإعلانات النموذجيّة السابقة (بعناوينها) ثم نعيد إنشاءها.
+  await prisma.ad.deleteMany({ where: { title: { in: ADS.map((a) => a.title) } } });
+  for (const a of ADS) {
+    const gov = a.gov ? await prisma.governorate.findUnique({ where: { nameAr: a.gov }, select: { id: true } }) : null;
+    await prisma.ad.create({
+      data: {
+        title: a.title,
+        subtitle: a.subtitle,
+        imageUrl: a.imageUrl,
+        linkUrl: a.linkUrl,
+        placement: "home_banner",
+        active: true,
+        sortOrder: a.sortOrder,
+        governorateId: gov?.id ?? null,
+      },
+    });
+  }
+  console.log(`✅ ${ADS.length} إعلان نموذجيّ (لافتات الرئيسية)`);
 }
 
 main()

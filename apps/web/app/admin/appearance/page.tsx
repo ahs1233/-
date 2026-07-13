@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUp, ArrowDown, RotateCcw, Eye, EyeOff, Check, AlertTriangle, Palette, LayoutList, Grid3x3 } from "lucide-react";
+import { ArrowUp, ArrowDown, RotateCcw, Eye, EyeOff, Check, AlertTriangle, Palette, LayoutList, Grid3x3, MapPin, Megaphone, Copy, ClipboardPaste, Undo2 } from "lucide-react";
 import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import {
@@ -9,6 +9,7 @@ import {
   contrastRatio,
   isValidHex,
   PRESETS,
+  DEFAULT_COLORS,
   SECTION_LABELS,
   SERVICE_LABELS,
   DEFAULT_APPEARANCE,
@@ -16,6 +17,8 @@ import {
   type SectionCfg,
   type ServiceCfg,
 } from "@/src/lib/theme";
+import { GovernoratesTab } from "./_governorates";
+import { AdsTab } from "./_ads";
 
 const COLOR_FIELDS: { key: keyof AppearanceColors; label: string; hint: string }[] = [
   { key: "primary", label: "الأساسيّ (نيليّ)", hint: "الشريط، العناوين، البطاقات" },
@@ -24,12 +27,32 @@ const COLOR_FIELDS: { key: keyof AppearanceColors; label: string; hint: string }
   { key: "live", label: "الأخضر الحيّ", hint: "النبض، «موثوق»، التوصيل" },
 ];
 
-type Tab = "colors" | "sections" | "services";
+type Tab = "colors" | "sections" | "services" | "governorates" | "ads";
 const TABS: { id: Tab; label: string; icon: typeof Palette }[] = [
   { id: "colors", label: "الألوان", icon: Palette },
   { id: "sections", label: "الأقسام", icon: LayoutList },
   { id: "services", label: "الخدمات", icon: Grid3x3 },
+  { id: "governorates", label: "المحافظات", icon: MapPin },
+  { id: "ads", label: "الإعلانات", icon: Megaphone },
 ];
+// التبويبات التي يديرها شريط حفظ «المظهر» (JSON). المحافظات والإعلانات تحفظ ذاتيّاً.
+const APPEARANCE_TABS: Tab[] = ["colors", "sections", "services"];
+// الأقسام التي تحمل عنواناً قابلاً للتخصيص في الرئيسية.
+const TITLED_SECTIONS = new Set(["souks", "best_selling", "new", "stores", "categories"]);
+
+// شريط مقياس لونٍ مولّد — يقرأ متغيّرات CSS مباشرةً (يُعرَض داخل .theme-preview).
+function RampStrip({ label, varName, steps }: { label: string; varName: string; steps: number[] }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-10 flex-shrink-0 text-[10px] font-semibold text-neutral-500">{label}</span>
+      <div className="flex flex-1 overflow-hidden rounded-lg ring-1 ring-black/5">
+        {steps.map((s) => (
+          <span key={s} className="h-6 flex-1" style={{ backgroundColor: `rgb(var(--c-${varName}-${s}))` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   const j = i + dir;
@@ -48,7 +71,7 @@ export default function AdminAppearance() {
   const save = trpc.admin.updateAppearance.useMutation({
     onSuccess: () => {
       utils.admin.getAppearance.invalidate();
-      setBaseline(JSON.stringify({ colors, sections, services }));
+      setBaseline(snapshot());
       success("تم حفظ المظهر — يظهر على التطبيق فوراً");
     },
     onError: (e) => error(e.message),
@@ -58,22 +81,39 @@ export default function AdminAppearance() {
   const [colors, setColors] = useState<AppearanceColors>(DEFAULT_APPEARANCE.colors);
   const [sections, setSections] = useState<SectionCfg[]>(DEFAULT_APPEARANCE.sections);
   const [services, setServices] = useState<ServiceCfg[]>(DEFAULT_APPEARANCE.services);
+  const [sectionTitles, setSectionTitles] = useState<Record<string, string>>({});
+  const [serviceLabels, setServiceLabels] = useState<Record<string, string>>({});
   const [baseline, setBaseline] = useState<string>("");
 
+  const snapshot = () => JSON.stringify({ colors, sections, services, sectionTitles, serviceLabels });
+
   useEffect(() => {
-    const v = current.data as { colors?: AppearanceColors; sections?: SectionCfg[]; services?: ServiceCfg[] } | null;
+    const v = current.data as
+      | {
+          colors?: AppearanceColors;
+          sections?: SectionCfg[];
+          services?: ServiceCfg[];
+          sectionTitles?: Record<string, string>;
+          serviceLabels?: Record<string, string>;
+        }
+      | null;
     const c = v?.colors ? { ...DEFAULT_APPEARANCE.colors, ...v.colors } : DEFAULT_APPEARANCE.colors;
     const s = v?.sections?.length ? v.sections : DEFAULT_APPEARANCE.sections;
     const sv = v?.services?.length ? v.services : DEFAULT_APPEARANCE.services;
+    const st = v?.sectionTitles ?? {};
+    const sl = v?.serviceLabels ?? {};
     setColors(c);
     setSections(s);
     setServices(sv);
-    setBaseline(JSON.stringify({ colors: c, sections: s, services: sv }));
+    setSectionTitles(st);
+    setServiceLabels(sl);
+    setBaseline(JSON.stringify({ colors: c, sections: s, services: sv, sectionTitles: st, serviceLabels: sl }));
   }, [current.data]);
 
   const previewCss = useMemo(() => buildThemeCss(colors, ".theme-preview"), [colors]);
   const allValid = COLOR_FIELDS.every((f) => isValidHex(colors[f.key]));
-  const dirty = baseline !== "" && baseline !== JSON.stringify({ colors, sections, services });
+  const dirty = baseline !== "" && baseline !== snapshot();
+  const showSaveBar = APPEARANCE_TABS.includes(tab);
 
   const checks = useMemo(
     () => [
@@ -92,12 +132,56 @@ export default function AdminAppearance() {
     setColors(DEFAULT_APPEARANCE.colors);
     setSections(DEFAULT_APPEARANCE.sections);
     setServices(DEFAULT_APPEARANCE.services);
+    setSectionTitles({});
+    setServiceLabels({});
   }
   function discard() {
-    const b = JSON.parse(baseline) as { colors: AppearanceColors; sections: SectionCfg[]; services: ServiceCfg[] };
+    const b = JSON.parse(baseline) as {
+      colors: AppearanceColors;
+      sections: SectionCfg[];
+      services: ServiceCfg[];
+      sectionTitles: Record<string, string>;
+      serviceLabels: Record<string, string>;
+    };
     setColors(b.colors);
     setSections(b.sections);
     setServices(b.services);
+    setSectionTitles(b.sectionTitles ?? {});
+    setServiceLabels(b.serviceLabels ?? {});
+  }
+  // تعديل تجاوزٍ نصّيّ (عنوان قسم أو تسمية خدمة): فراغٌ = حذف التجاوز.
+  function setOverride(setter: React.Dispatch<React.SetStateAction<Record<string, string>>>, key: string, val: string) {
+    setter((m) => {
+      const next = { ...m };
+      if (val.trim()) next[key] = val;
+      else delete next[key];
+      return next;
+    });
+  }
+  function exportTheme() {
+    void navigator.clipboard.writeText(JSON.stringify({ colors, sections, services, sectionTitles, serviceLabels }, null, 2));
+    success("نُسخ رمز الثيم إلى الحافظة");
+  }
+  function importTheme() {
+    const raw = prompt("ألصق رمز الثيم (JSON):");
+    if (!raw) return;
+    try {
+      const p = JSON.parse(raw) as Partial<{
+        colors: AppearanceColors;
+        sections: SectionCfg[];
+        services: ServiceCfg[];
+        sectionTitles: Record<string, string>;
+        serviceLabels: Record<string, string>;
+      }>;
+      if (p.colors) setColors({ ...DEFAULT_COLORS, ...p.colors });
+      if (p.sections?.length) setSections(p.sections);
+      if (p.services?.length) setServices(p.services);
+      if (p.sectionTitles) setSectionTitles(p.sectionTitles);
+      if (p.serviceLabels) setServiceLabels(p.serviceLabels);
+      success("طُبّق الثيم — راجِعه ثم احفظ");
+    } catch {
+      error("رمز غير صالح");
+    }
   }
 
   return (
@@ -107,11 +191,13 @@ export default function AdminAppearance() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-extrabold text-brand-800">المظهر</h1>
-          <p className="text-sm text-neutral-500">تحكّم بألوان التطبيق وأقسام الرئيسية والخدمات — لكلّ المستخدمين.</p>
+          <p className="text-sm text-neutral-500">الألوان، أقسام الرئيسية، الخدمات، المحافظات، والإعلانات — لكلّ المستخدمين.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={resetAll}>
-          <RotateCcw className="h-4 w-4" /> الافتراضيّ
-        </Button>
+        {tab === "colors" && (
+          <Button variant="outline" size="sm" onClick={resetAll}>
+            <RotateCcw className="h-4 w-4" /> الافتراضيّ
+          </Button>
+        )}
       </div>
 
       {/* تبويبات */}
@@ -243,9 +329,26 @@ export default function AdminAppearance() {
                     </div>
                   </div>
                 </div>
+
+                {/* مقاييس الألوان المولّدة (من اللون المرساة) */}
+                <div className="mt-4 space-y-1.5">
+                  <RampStrip label="نيليّ" varName="brand" steps={[50, 100, 200, 300, 400, 500, 600, 700, 800, 900]} />
+                  <RampStrip label="ذهب" varName="gold" steps={[50, 100, 200, 300, 400, 500, 600, 700]} />
+                  <RampStrip label="عاجيّ" varName="sand" steps={[50, 100, 200, 300]} />
+                </div>
               </div>
             </CardBody>
           </Card>
+
+          {/* تصدير/استيراد الثيم */}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={exportTheme}>
+              <Copy className="h-4 w-4" /> نسخ رمز الثيم
+            </Button>
+            <Button variant="outline" size="sm" onClick={importTheme}>
+              <ClipboardPaste className="h-4 w-4" /> لصق رمز ثيم
+            </Button>
+          </div>
         </div>
       )}
 
@@ -253,30 +356,41 @@ export default function AdminAppearance() {
         <Card>
           <CardBody className="space-y-3">
             <h2 className="font-bold text-brand-800">أقسام الرئيسية</h2>
-            <p className="text-xs text-neutral-400">رتّب الأقسام وأظهِرها أو أخفِها. البطل (بوّابة المحافظة) يبقى أوّلاً دائماً.</p>
+            <p className="text-xs text-neutral-400">رتّب الأقسام، أظهِرها/أخفِها، وخصّص عناوينها. البطل (بوّابة المحافظة) يبقى أوّلاً دائماً.</p>
             <ul className="space-y-2">
               {sections.map((s, i) => (
                 <li
                   key={s.key}
-                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${s.visible ? "border-neutral-200 bg-white" : "border-dashed border-neutral-200 bg-neutral-50"}`}
+                  className={`rounded-xl border px-3 py-2.5 ${s.visible ? "border-neutral-200 bg-white" : "border-dashed border-neutral-200 bg-neutral-50"}`}
                 >
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 nums">{i + 1}</span>
-                  <span className={`flex-1 text-sm font-medium ${s.visible ? "text-neutral-800" : "text-neutral-400"}`}>
-                    {SECTION_LABELS[s.key] ?? s.key}
-                  </span>
-                  <button
-                    onClick={() => setSections((a) => a.map((x, k) => (k === i ? { ...x, visible: !x.visible } : x)))}
-                    aria-label={s.visible ? "إخفاء" : "إظهار"}
-                    className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
-                  >
-                    {s.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  </button>
-                  <button onClick={() => setSections((a) => move(a, i, -1))} disabled={i === 0} aria-label="لأعلى" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                    <ArrowUp className="h-4 w-4" />
-                  </button>
-                  <button onClick={() => setSections((a) => move(a, i, 1))} disabled={i === sections.length - 1} aria-label="لأسفل" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                    <ArrowDown className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 nums">{i + 1}</span>
+                    <span className={`flex-1 text-sm font-medium ${s.visible ? "text-neutral-800" : "text-neutral-400"}`}>
+                      {SECTION_LABELS[s.key] ?? s.key}
+                    </span>
+                    <button
+                      onClick={() => setSections((a) => a.map((x, k) => (k === i ? { ...x, visible: !x.visible } : x)))}
+                      aria-label={s.visible ? "إخفاء" : "إظهار"}
+                      className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
+                    >
+                      {s.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </button>
+                    <button onClick={() => setSections((a) => move(a, i, -1))} disabled={i === 0} aria-label="لأعلى" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => setSections((a) => move(a, i, 1))} disabled={i === sections.length - 1} aria-label="لأسفل" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {TITLED_SECTIONS.has(s.key) && (
+                    <input
+                      value={sectionTitles[s.key] ?? ""}
+                      onChange={(e) => setOverride(setSectionTitles, s.key, e.target.value)}
+                      placeholder={`عنوان مخصّص — الافتراضيّ: ${SECTION_LABELS[s.key] ?? s.key}`}
+                      maxLength={40}
+                      className="mt-2 h-8 w-full rounded-lg border border-neutral-200 px-2.5 text-xs"
+                    />
+                  )}
                 </li>
               ))}
             </ul>
@@ -288,36 +402,45 @@ export default function AdminAppearance() {
         <Card>
           <CardBody className="space-y-3">
             <h2 className="font-bold text-brand-800">خدمات السوگ</h2>
-            <p className="text-xs text-neutral-400">رتّب الخدمات، أظهِرها/أخفِها، وحدّد أيّها «قريباً» (غير مُفعّل بعد).</p>
+            <p className="text-xs text-neutral-400">رتّب الخدمات، أظهِرها/أخفِها، خصّص تسمياتها، وحدّد أيّها «قريباً».</p>
             <ul className="space-y-2">
               {services.map((s, i) => (
                 <li
                   key={s.key}
-                  className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${s.visible ? "border-neutral-200 bg-white" : "border-dashed border-neutral-200 bg-neutral-50"}`}
+                  className={`rounded-xl border px-3 py-2.5 ${s.visible ? "border-neutral-200 bg-white" : "border-dashed border-neutral-200 bg-neutral-50"}`}
                 >
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 nums">{i + 1}</span>
-                  <span className={`flex-1 text-sm font-medium ${s.visible ? "text-neutral-800" : "text-neutral-400"}`}>
-                    {SERVICE_LABELS[s.key] ?? s.key}
-                  </span>
-                  <button
-                    onClick={() => setServices((a) => a.map((x, k) => (k === i ? { ...x, soon: !x.soon } : x)))}
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition ${s.soon ? "bg-gold-100 text-gold-700" : "bg-petrol/10 text-petrol"}`}
-                  >
-                    {s.soon ? "قريباً" : "مُفعّل"}
-                  </button>
-                  <button
-                    onClick={() => setServices((a) => a.map((x, k) => (k === i ? { ...x, visible: !x.visible } : x)))}
-                    aria-label={s.visible ? "إخفاء" : "إظهار"}
-                    className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
-                  >
-                    {s.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  </button>
-                  <button onClick={() => setServices((a) => move(a, i, -1))} disabled={i === 0} aria-label="لأعلى" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                    <ArrowUp className="h-4 w-4" />
-                  </button>
-                  <button onClick={() => setServices((a) => move(a, i, 1))} disabled={i === services.length - 1} aria-label="لأسفل" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                    <ArrowDown className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 nums">{i + 1}</span>
+                    <span className={`flex-1 text-sm font-medium ${s.visible ? "text-neutral-800" : "text-neutral-400"}`}>
+                      {SERVICE_LABELS[s.key] ?? s.key}
+                    </span>
+                    <button
+                      onClick={() => setServices((a) => a.map((x, k) => (k === i ? { ...x, soon: !x.soon } : x)))}
+                      className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition ${s.soon ? "bg-gold-100 text-gold-700" : "bg-petrol/10 text-petrol"}`}
+                    >
+                      {s.soon ? "قريباً" : "مُفعّل"}
+                    </button>
+                    <button
+                      onClick={() => setServices((a) => a.map((x, k) => (k === i ? { ...x, visible: !x.visible } : x)))}
+                      aria-label={s.visible ? "إخفاء" : "إظهار"}
+                      className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
+                    >
+                      {s.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </button>
+                    <button onClick={() => setServices((a) => move(a, i, -1))} disabled={i === 0} aria-label="لأعلى" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => setServices((a) => move(a, i, 1))} disabled={i === services.length - 1} aria-label="لأسفل" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <input
+                    value={serviceLabels[s.key] ?? ""}
+                    onChange={(e) => setOverride(setServiceLabels, s.key, e.target.value)}
+                    placeholder={`تسمية مخصّصة — الافتراضيّ: ${SERVICE_LABELS[s.key] ?? s.key}`}
+                    maxLength={40}
+                    className="mt-2 h-8 w-full rounded-lg border border-neutral-200 px-2.5 text-xs"
+                  />
                 </li>
               ))}
             </ul>
@@ -325,27 +448,32 @@ export default function AdminAppearance() {
         </Card>
       )}
 
-      {/* شريط الحفظ الثابت */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-3 backdrop-blur md:mr-56">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-2">
-          <span className={`flex-1 text-xs font-medium ${dirty ? "text-warning" : "text-neutral-400"}`}>
-            {dirty ? "● تغييرات غير محفوظة" : "كل التغييرات محفوظة"}
-          </span>
-          {dirty && (
-            <Button variant="outline" size="sm" onClick={discard}>
-              تراجع
+      {tab === "governorates" && <GovernoratesTab />}
+      {tab === "ads" && <AdsTab />}
+
+      {/* شريط الحفظ الثابت — لتبويبات المظهر (JSON) فقط */}
+      {showSaveBar && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-3 backdrop-blur md:mr-56">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-2">
+            <span className={`flex-1 text-xs font-medium ${dirty ? "text-warning" : "text-neutral-400"}`}>
+              {dirty ? "● تغييرات غير محفوظة" : "كل التغييرات محفوظة"}
+            </span>
+            {dirty && (
+              <Button variant="outline" size="sm" onClick={discard}>
+                <Undo2 className="h-4 w-4" /> تراجع
+              </Button>
+            )}
+            <Button
+              size="lg"
+              loading={save.isPending}
+              disabled={!allValid || !dirty}
+              onClick={() => save.mutate({ colors, sections, services, sectionTitles, serviceLabels })}
+            >
+              {allValid ? "حفظ المظهر" : "أدخِل ألواناً صحيحة"}
             </Button>
-          )}
-          <Button
-            size="lg"
-            loading={save.isPending}
-            disabled={!allValid || !dirty}
-            onClick={() => save.mutate({ colors, sections, services })}
-          >
-            {allValid ? "حفظ المظهر" : "أدخِل ألواناً صحيحة"}
-          </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

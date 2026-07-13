@@ -86,12 +86,16 @@ export interface Appearance {
   colors: AppearanceColors;
   sections: SectionCfg[];
   services: ServiceCfg[];
+  sectionTitles: Record<string, string>;
+  serviceLabels: Record<string, string>;
 }
 
 export const DEFAULT_APPEARANCE: Appearance = {
   colors: DEFAULT_COLORS,
   sections: DEFAULT_SECTIONS,
   services: DEFAULT_SERVICES,
+  sectionTitles: {},
+  serviceLabels: {},
 };
 
 /* ── أدوات اللون ── */

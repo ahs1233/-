@@ -14,11 +14,17 @@ import {
   userManageSchema,
   platformSettingsSchema,
   appearanceSchema,
+  governoratePresentationSchema,
+  adCreateSchema,
+  adUpdateSchema,
+  adDeleteSchema,
+  presignUploadSchema,
   couponCreateSchema,
   couponToggleSchema,
   staffCreateSchema,
   staffUpdateSchema,
 } from "@al-souq/validators";
+import { getStorage } from "@al-souq/storage";
 import { effectivePermissions, isSuperAdmin, sanitizePermissions } from "@al-souq/auth";
 import { router, adminProcedure, adminPerm } from "../trpc";
 import type { Context } from "../context";
@@ -1018,6 +1024,8 @@ export const adminRouter = router({
       },
       sections: input.sections,
       services: input.services,
+      sectionTitles: input.sectionTitles ?? {},
+      serviceLabels: input.serviceLabels ?? {},
     };
     await ctx.prisma.platformSetting.upsert({
       where: { key: "appearance" },
@@ -1034,6 +1042,155 @@ export const adminRouter = router({
     });
     return { ok: true };
   }),
+
+  // ── المحافظات: العرض والتحكّم (لوحة «المظهر» ← تبويب المحافظات) ──
+  govList: adminPerm("settings").query(async ({ ctx }) => {
+    const rows = await ctx.prisma.governorate.findMany({
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        nameAr: true,
+        code: true,
+        sortOrder: true,
+        enabled: true,
+        tagline: true,
+        heroImageUrl: true,
+        souks: true,
+        _count: { select: { vendors: true, ads: true } },
+      },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      nameAr: r.nameAr,
+      code: r.code,
+      sortOrder: r.sortOrder,
+      enabled: r.enabled,
+      tagline: r.tagline,
+      heroImageUrl: r.heroImageUrl,
+      souks: (r.souks as { label: string; q: string; img?: string; emoji?: string }[] | null) ?? [],
+      vendorCount: r._count.vendors,
+      adCount: r._count.ads,
+    }));
+  }),
+
+  updateGovernorate: adminPerm("settings").input(governoratePresentationSchema).mutation(async ({ ctx, input }) => {
+    const data: Prisma.GovernorateUpdateInput = {};
+    if (input.enabled !== undefined) data.enabled = input.enabled;
+    if (input.tagline !== undefined) data.tagline = input.tagline;
+    if (input.heroImageUrl !== undefined) data.heroImageUrl = input.heroImageUrl;
+    if (input.souks !== undefined) data.souks = input.souks ?? Prisma.DbNull;
+    if (input.sortOrder !== undefined) data.sortOrder = input.sortOrder;
+    const gov = await ctx.prisma.governorate.update({ where: { id: input.id }, data });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "governorate.update",
+      entityType: "Governorate",
+      entityId: gov.id,
+      after: input,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // ── الإعلانات: CRUD (لوحة «المظهر» ← تبويب الإعلانات) ──
+  adList: adminPerm("settings").query(async ({ ctx }) => {
+    const rows = await ctx.prisma.ad.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      include: { governorate: { select: { nameAr: true } } },
+    });
+    return rows.map((a) => ({
+      id: a.id,
+      title: a.title,
+      subtitle: a.subtitle,
+      imageUrl: a.imageUrl,
+      linkUrl: a.linkUrl,
+      placement: a.placement,
+      active: a.active,
+      sortOrder: a.sortOrder,
+      governorateId: a.governorateId,
+      governorateName: a.governorate?.nameAr ?? null,
+      startsAt: a.startsAt,
+      endsAt: a.endsAt,
+    }));
+  }),
+
+  createAd: adminPerm("settings").input(adCreateSchema).mutation(async ({ ctx, input }) => {
+    const ad = await ctx.prisma.ad.create({
+      data: {
+        title: input.title,
+        subtitle: input.subtitle ?? null,
+        imageUrl: input.imageUrl,
+        linkUrl: input.linkUrl,
+        placement: input.placement,
+        active: input.active,
+        sortOrder: input.sortOrder,
+        governorateId: input.governorateId ?? null,
+        startsAt: input.startsAt ?? null,
+        endsAt: input.endsAt ?? null,
+      },
+    });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "ad.create",
+      entityType: "Ad",
+      entityId: ad.id,
+      after: input,
+      ip: ctx.reqIp,
+    });
+    return { id: ad.id };
+  }),
+
+  updateAd: adminPerm("settings").input(adUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const data: Prisma.AdUpdateInput = {};
+    if (rest.title !== undefined) data.title = rest.title;
+    if (rest.subtitle !== undefined) data.subtitle = rest.subtitle ?? null;
+    if (rest.imageUrl !== undefined) data.imageUrl = rest.imageUrl;
+    if (rest.linkUrl !== undefined) data.linkUrl = rest.linkUrl;
+    if (rest.placement !== undefined) data.placement = rest.placement;
+    if (rest.active !== undefined) data.active = rest.active;
+    if (rest.sortOrder !== undefined) data.sortOrder = rest.sortOrder;
+    if (rest.startsAt !== undefined) data.startsAt = rest.startsAt ?? null;
+    if (rest.endsAt !== undefined) data.endsAt = rest.endsAt ?? null;
+    if (rest.governorateId !== undefined) {
+      data.governorate = rest.governorateId
+        ? { connect: { id: rest.governorateId } }
+        : { disconnect: true };
+    }
+    await ctx.prisma.ad.update({ where: { id }, data });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "ad.update",
+      entityType: "Ad",
+      entityId: id,
+      after: input,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  deleteAd: adminPerm("settings").input(adDeleteSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.ad.delete({ where: { id: input.id } });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "ad.delete",
+      entityType: "Ad",
+      entityId: input.id,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // رابط رفعٍ موقّع للأدمن (صور المحافظات/الإعلانات) — يعمل عند تهيئة التخزين الكائنيّ.
+  presignImage: adminPerm("settings").input(presignUploadSchema).mutation(async ({ ctx, input }) => {
+    const storage = getStorage();
+    if (!storage.configured) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "خدمة رفع الصور غير مهيّأة على الخادم" });
+    }
+    const prefix = `${input.purpose}/${ctx.user.id}`;
+    return storage.presignUpload({ prefix, contentType: input.contentType });
+  }),
+  storageStatus: adminPerm("settings").query(() => ({ configured: getStorage().configured })),
 
   // ── سجل التدقيق ──
   auditLog: adminPerm("audit")

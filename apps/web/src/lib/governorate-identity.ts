@@ -92,3 +92,24 @@ export const GOV_IDENTITY: Record<string, GovIdentity> = {
 export function govIdentity(name?: string): GovIdentity {
   return (name && GOV_IDENTITY[name]) || GENERIC;
 }
+
+/** عرضٌ قادمٌ من قاعدة البيانات (تبويب المحافظات) — أيّ حقلٍ فارغٍ يرجع للافتراضيّ. */
+export interface GovPresentationLike {
+  tagline: string | null;
+  heroImageUrl: string | null;
+  souks: SoukTile[] | null;
+}
+
+/**
+ * يدمج عرض المحافظة القادم من القاعدة فوق الهويّة الافتراضيّة في الكود.
+ * فيتحكّم الأدمن بالشعور/البطل/الأسواق دون أن تنكسر المحافظات غير المضبوطة.
+ */
+export function resolveGovIdentity(name: string | undefined, pres: GovPresentationLike | null): GovIdentity {
+  const base = govIdentity(name);
+  if (!pres) return base;
+  return {
+    feel: pres.tagline ?? base.feel,
+    hero: pres.heroImageUrl ?? base.hero,
+    souks: pres.souks && pres.souks.length ? pres.souks : base.souks,
+  };
+}

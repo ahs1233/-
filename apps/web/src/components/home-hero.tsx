@@ -35,12 +35,19 @@ export function HomeHero({
   governorate,
   storeCount,
   stats,
+  heroImage,
+  feel,
 }: {
   governorate?: string;
   storeCount?: number;
   stats?: HomeStats;
+  /** صورة البطل (تتجاوز الافتراضيّة) — من تبويب المحافظات. */
+  heroImage?: string;
+  /** «الشعور» — يُستخدم في النصّ البديل. */
+  feel?: string;
 }) {
-  const id = govIdentity(governorate);
+  const base = govIdentity(governorate);
+  const id = { ...base, hero: heroImage ?? base.hero, feel: feel ?? base.feel };
   const mood = timeMood();
   return (
     <section className="relative overflow-hidden rounded-3xl shadow-xl ring-1 ring-gold-500/30">

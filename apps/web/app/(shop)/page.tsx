@@ -6,9 +6,10 @@ import { CategoryIcon } from "@/src/components/category-icon";
 import { HomeHero } from "@/src/components/home-hero";
 import { ServicesGrid } from "@/src/components/home/services-grid";
 import { ProductRail, StoreRail } from "@/src/components/home/section-rail";
-import { FeaturedEntityCard, MarketPulse, SoukTiles, DailyBanner } from "@/src/components/home/home-blocks";
+import { FeaturedEntityCard, MarketPulse, SoukTiles, AdsCarousel } from "@/src/components/home/home-blocks";
+import { resolveGovIdentity } from "@/src/lib/governorate-identity";
 import { getCachedCategories, type CachedCategory } from "@/src/lib/catalog-cache";
-import type { HomeExtras } from "@al-souq/api";
+import type { HomeExtras, AppContent } from "@al-souq/api";
 
 export const dynamic = "force-dynamic";
 
@@ -21,23 +22,34 @@ export default async function HomePage() {
   let extras: HomeExtras | null = null;
   let homeOrder: string[] = ["services", "souks", "pulse", "banner", "best_selling", "new", "stores", "featured", "categories"];
   let servicesCfg: { key: string; visible: boolean; soon: boolean }[] | undefined;
+  let serviceLabels: Record<string, string> = {};
+  let sectionTitles: Record<string, string> = {};
+  let content: AppContent = { governorate: null, ads: [] };
   let dbReady = true;
   try {
     const api = await getServerApi();
-    const [cats, secs, ex, appearance] = await Promise.all([
+    const [cats, secs, ex, appearance, cont] = await Promise.all([
       getCachedCategories(),
       api.discovery.home({ governorateId: gov?.id }),
       api.discovery.homeExtras({ governorateId: gov?.id }),
       api.appearance.get(),
+      api.appearance.content({ governorateId: gov?.id }),
     ]);
     categories = cats;
     sections = secs;
     extras = ex;
+    content = cont;
     if (appearance.sections?.length) homeOrder = appearance.sections.filter((s) => s.visible).map((s) => s.key);
     servicesCfg = appearance.services;
+    serviceLabels = appearance.serviceLabels ?? {};
+    sectionTitles = appearance.sectionTitles ?? {};
   } catch {
     dbReady = false;
   }
+
+  // هويّة المحافظة: عرضُ القاعدة (تبويب المحافظات) فوق الافتراضيّ في الكود.
+  const identity = resolveGovIdentity(gov?.name, content.governorate);
+  const t = (key: string, fallback: string) => sectionTitles[key] ?? fallback;
 
   const byKey = new Map<string, HomeSections[number]>(sections.map((s) => [s.key, s]));
   const productItems = (key: string) => {
@@ -51,13 +63,13 @@ export default async function HomePage() {
 
   // كتلُ الرئيسية القابلة لإعادة الترتيب من لوحة «المظهر».
   const blocks: Record<string, React.ReactNode> = {
-    services: <ServicesGrid key="services" config={servicesCfg} />,
-    souks: <SoukTiles key="souks" governorate={gov?.name} />,
+    services: <ServicesGrid key="services" config={servicesCfg} labels={serviceLabels} />,
+    souks: <SoukTiles key="souks" governorate={gov?.name} souks={identity.souks} title={sectionTitles.souks} />,
     pulse: extras ? <MarketPulse key="pulse" events={extras.pulse} governorate={gov?.name} /> : null,
-    banner: <DailyBanner key="banner" governorate={gov?.name} />,
-    best_selling: <ProductRail key="best_selling" emoji="🔥" title="الأكثر شراءً اليوم" href="/search" items={productItems("best_selling")} />,
-    new: <ProductRail key="new" emoji="🆕" title="وصل حديثاً" href="/search" items={productItems("new")} />,
-    stores: <StoreRail key="stores" emoji="🛍️" title="متاجر موصى بها" href="/stores" items={storeItems()} />,
+    banner: <AdsCarousel key="banner" ads={content.ads} governorate={gov?.name} />,
+    best_selling: <ProductRail key="best_selling" emoji="🔥" title={t("best_selling", "الأكثر شراءً اليوم")} href="/search" items={productItems("best_selling")} />,
+    new: <ProductRail key="new" emoji="🆕" title={t("new", "وصل حديثاً")} href="/search" items={productItems("new")} />,
+    stores: <StoreRail key="stores" emoji="🛍️" title={t("stores", "متاجر موصى بها")} href="/stores" items={storeItems()} />,
     featured: extras?.featured ? <FeaturedEntityCard key="featured" entity={extras.featured} /> : null,
     categories:
       categories.length > 0 ? (
@@ -65,7 +77,7 @@ export default async function HomePage() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
               <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-              تسوّق حسب الفئة
+              {t("categories", "تسوّق حسب الفئة")}
             </h2>
             <Link href="/categories" className="flex items-center gap-0.5 text-sm font-medium text-gold-700 hover:text-gold-600">
               الكل <ChevronLeft className="h-4 w-4" />
@@ -88,7 +100,13 @@ export default async function HomePage() {
   return (
     <div className="space-y-7">
       {/* بوّابة المحافظة — دائماً أوّلاً (لا تُعاد ترتيبها) */}
-      <HomeHero governorate={gov?.name} storeCount={extras?.stats.openStores} stats={extras?.stats} />
+      <HomeHero
+        governorate={gov?.name}
+        storeCount={extras?.stats.openStores}
+        stats={extras?.stats}
+        heroImage={identity.hero}
+        feel={identity.feel}
+      />
 
       {!dbReady && (
         <div className="rounded-2xl border border-gold-400/40 bg-gold-400/10 p-4 text-sm text-gold-600">

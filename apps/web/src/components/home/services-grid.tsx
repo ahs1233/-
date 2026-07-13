@@ -50,13 +50,14 @@ const DEFAULT_CFG: ServiceCfg[] = [
   { key: "cars", visible: true, soon: true },
 ];
 
-export function ServicesGrid({ config }: { config?: ServiceCfg[] }) {
+export function ServicesGrid({ config, labels }: { config?: ServiceCfg[]; labels?: Record<string, string> }) {
   const items = (config?.length ? config : DEFAULT_CFG).filter((c) => c.visible && REGISTRY[c.key]);
   return (
     <section>
       <div className="grid grid-cols-4 gap-x-2 gap-y-4 sm:grid-cols-6">
         {items.map((c) => {
           const def = REGISTRY[c.key]!;
+          const label = labels?.[c.key] ?? def.label;
           const Icon = def.icon;
           const inner = (
             <>
@@ -75,7 +76,7 @@ export function ServicesGrid({ config }: { config?: ServiceCfg[] }) {
                 )}
               </span>
               <span className={`line-clamp-1 text-center text-[11px] font-semibold ${c.soon ? "text-neutral-400" : "text-brand-800"}`}>
-                {def.label}
+                {label}
               </span>
             </>
           );

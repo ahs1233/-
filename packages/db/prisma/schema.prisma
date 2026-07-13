@@ -265,9 +265,17 @@ model Governorate {
   code      String @unique // كود مختصر، مثل BGD
   sortOrder Int    @default(0)
 
+  // ── عرض المحافظة (لوحة «المظهر» ← تبويب المحافظات) ──
+  // كلّ محافظةٍ تُغيّر التجربة: شعورٌ، صورةُ بطلٍ، وأسواقٌ خاصّة بها.
+  enabled      Boolean @default(true) // هل تظهر للاختيار وفي الواجهة؟
+  tagline      String? // «الشعور»: قباب وأزقّة وفوانيس عند المغرب
+  heroImageUrl String? // صورة بطل المحافظة (تتجاوز الافتراضيّة في الكود)
+  souks        Json? // بلاطات الأسواق: [{ label, q, img?, emoji? }]
+
   areas     Area[]
   addresses Address[]
   vendors   VendorProfile[]
+  ads       Ad[]
 }
 
 model Area {
@@ -518,6 +526,34 @@ model PlatformSetting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────── Advertisements ───────────────────────────
+
+/// إعلانٌ/لافتةٌ ترويجيّة تُدار من لوحة «المظهر» ← تبويب الإعلانات.
+/// الموضع (placement) يحدّد مكان الظهور في الرئيسية؛ المحافظة اختياريّة
+/// (null = كلّ العراق). الجدولة عبر startsAt/endsAt، والفعّال عبر active.
+model Ad {
+  id        String  @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  linkUrl   String  @default("/search") // وجهة النقر (مسار داخليّ أو رابط)
+  placement String  @default("home_banner") // home_banner | hero_strip
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  governorateId String?
+  governorate   Governorate? @relation(fields: [governorateId], references: [id], onDelete: SetNull)
+
+  startsAt DateTime? // بداية العرض (null = فوراً)
+  endsAt   DateTime? // نهاية العرض (null = بلا انتهاء)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, placement, sortOrder])
+  @@index([governorateId])
 }
 
 // ─────────────────────────── Coupons ───────────────────────────

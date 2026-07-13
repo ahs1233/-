@@ -86,7 +86,7 @@ export const orderStatusUpdateSchema = z.object({
 
 export const presignUploadSchema = z.object({
   contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/avif"]),
-  purpose: z.enum(["product", "logo", "banner"]).default("product"),
+  purpose: z.enum(["product", "logo", "banner", "gov", "ad"]).default("product"),
 });
 
 // ─────────────────────────── Admin ───────────────────────────
@@ -150,12 +150,77 @@ export const platformSettingsSchema = z.object({
 // ─────────────────────── Appearance (المظهر) ───────────────────────
 const hexColor = z.string().regex(/^#?[0-9a-fA-F]{6}$/, "لونٌ سداسيّ غير صحيح");
 const sectionKey = z.string().min(1).max(40);
+
+/**
+ * مرجع صورة: مسارٌ داخليّ (/…)، أو https، أو data URL (للرفع بلا تخزين كائنيّ).
+ * السقف يسمح بـ data URL مُصغَّر (~2MB base64) كما يفعل رافع صور المنتجات.
+ */
+export const imageRef = z
+  .string()
+  .trim()
+  .min(1)
+  .max(3_000_000)
+  .refine(
+    (s) => s.startsWith("/") || s.startsWith("https://") || s.startsWith("data:image/"),
+    "رابط صورة غير صالح",
+  );
+
+/** رابط وجهة النقر: مسارٌ داخليّ أو https. */
+const linkRef = z
+  .string()
+  .trim()
+  .min(1)
+  .max(500)
+  .refine((s) => s.startsWith("/") || s.startsWith("https://"), "رابط غير صالح");
+
+const labelOverride = z.record(sectionKey, z.string().trim().max(40));
+
 export const appearanceSchema = z.object({
   colors: z.object({ primary: hexColor, accent: hexColor, surface: hexColor, live: hexColor }),
   sections: z.array(z.object({ key: sectionKey, visible: z.boolean() })).max(24),
   services: z.array(z.object({ key: sectionKey, visible: z.boolean(), soon: z.boolean() })).max(24),
+  /** تجاوزات عناوين الأقسام (المفتاح = مفتاح القسم). */
+  sectionTitles: labelOverride.optional(),
+  /** تجاوزات تسميات الخدمات (المفتاح = مفتاح الخدمة). */
+  serviceLabels: labelOverride.optional(),
 });
 export type AppearanceInput = z.infer<typeof appearanceSchema>;
+
+// ─────────────────── Governorate presentation (تبويب المحافظات) ───────────────────
+const soukTile = z.object({
+  label: z.string().trim().min(1).max(40),
+  q: z.string().trim().min(1).max(60),
+  img: imageRef.optional(),
+  emoji: z.string().trim().max(8).optional(),
+});
+
+export const governoratePresentationSchema = z.object({
+  id: z.string().cuid(),
+  enabled: z.boolean().optional(),
+  tagline: z.string().trim().max(120).nullable().optional(),
+  heroImageUrl: imageRef.nullable().optional(),
+  souks: z.array(soukTile).max(12).nullable().optional(),
+  sortOrder: z.number().int().min(0).max(200).optional(),
+});
+export type GovernoratePresentationInput = z.infer<typeof governoratePresentationSchema>;
+
+// ─────────────────────── Ads (تبويب الإعلانات) ───────────────────────
+export const adCreateSchema = z.object({
+  title: z.string().trim().min(2, "العنوان قصير").max(80),
+  subtitle: z.string().trim().max(120).nullable().optional(),
+  imageUrl: imageRef,
+  linkUrl: linkRef.default("/search"),
+  placement: z.enum(["home_banner", "hero_strip"]).default("home_banner"),
+  governorateId: z.string().cuid().nullable().optional(),
+  active: z.boolean().default(true),
+  sortOrder: z.number().int().min(0).max(1000).default(0),
+  startsAt: z.coerce.date().nullable().optional(),
+  endsAt: z.coerce.date().nullable().optional(),
+});
+export const adUpdateSchema = adCreateSchema.partial().extend({ id: z.string().cuid() });
+export const adDeleteSchema = z.object({ id: z.string().cuid() });
+export type AdCreateInput = z.infer<typeof adCreateSchema>;
+export type AdUpdateInput = z.infer<typeof adUpdateSchema>;
 
 // ─────────────────────────── Product ───────────────────────────
 

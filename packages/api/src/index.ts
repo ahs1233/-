@@ -9,3 +9,4 @@ export type {
   PulseEvent,
   PulseKind,
 } from "./services/discovery";
+export type { AppContent, AdItem, GovPresentation, Appearance } from "./routers/appearance";

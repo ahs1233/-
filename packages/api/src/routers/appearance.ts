@@ -1,7 +1,11 @@
 /**
- * راوتر المظهر — قراءةٌ عامّة لثيم التطبيق (ألوان + أقسام + خدمات) التي يضبطها
- * الأدمن من لوحة «المظهر». التعديل في راوتر admin (صلاحية settings).
+ * راوتر المظهر — قراءةٌ عامّة لثيم التطبيق ومحتواه الذي يضبطه الأدمن من لوحة
+ * «المظهر»:
+ *   • get       → ألوان + أقسام + خدمات + تجاوزات العناوين/التسميات (للثيم والترتيب).
+ *   • content   → عرض المحافظة الحاليّة (شعور/بطل/أسواق) + الإعلانات الفعّالة.
+ * التعديل كلّه في راوتر admin (صلاحية settings).
  */
+import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
 
 export interface SectionCfg {
@@ -17,6 +21,8 @@ export interface Appearance {
   colors: { primary: string; accent: string; surface: string; live: string };
   sections: SectionCfg[];
   services: ServiceCfg[];
+  sectionTitles: Record<string, string>;
+  serviceLabels: Record<string, string>;
 }
 
 const DEFAULTS: Appearance = {
@@ -38,7 +44,35 @@ const DEFAULTS: Appearance = {
     { key: "realestate", soon: true },
     { key: "cars", soon: true },
   ].map((s) => ({ ...s, visible: true })),
+  sectionTitles: {},
+  serviceLabels: {},
 };
+
+/* ── أنواع محتوى المحافظة والإعلانات (تُستهلَك في الرئيسية) ── */
+export interface SoukTile {
+  label: string;
+  q: string;
+  img?: string;
+  emoji?: string;
+}
+export interface GovPresentation {
+  tagline: string | null;
+  heroImageUrl: string | null;
+  souks: SoukTile[] | null;
+  enabled: boolean;
+}
+export interface AdItem {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  imageUrl: string;
+  linkUrl: string;
+  placement: string;
+}
+export interface AppContent {
+  governorate: GovPresentation | null;
+  ads: AdItem[];
+}
 
 export const appearanceRouter = router({
   get: publicProcedure.query(async ({ ctx }): Promise<Appearance> => {
@@ -62,6 +96,54 @@ export const appearanceRouter = router({
     const services =
       Array.isArray(v.services) && v.services.length ? (v.services as ServiceCfg[]) : DEFAULTS.services;
 
-    return { colors, sections, services };
+    const sectionTitles =
+      v.sectionTitles && typeof v.sectionTitles === "object" ? (v.sectionTitles as Record<string, string>) : {};
+    const serviceLabels =
+      v.serviceLabels && typeof v.serviceLabels === "object" ? (v.serviceLabels as Record<string, string>) : {};
+
+    return { colors, sections, services, sectionTitles, serviceLabels };
   }),
+
+  /** عرض المحافظة الحاليّة + الإعلانات الفعّالة لها (وللعراق كلّه). */
+  content: publicProcedure
+    .input(z.object({ governorateId: z.string().optional() }).optional())
+    .query(async ({ ctx, input }): Promise<AppContent> => {
+      const govId = input?.governorateId;
+      const now = new Date();
+
+      const [gov, ads] = await Promise.all([
+        govId
+          ? ctx.prisma.governorate.findUnique({
+              where: { id: govId },
+              select: { tagline: true, heroImageUrl: true, souks: true, enabled: true },
+            })
+          : Promise.resolve(null),
+        ctx.prisma.ad.findMany({
+          where: {
+            active: true,
+            // إعلانات هذه المحافظة + الإعلانات العامّة (كلّ العراق).
+            OR: [{ governorateId: govId ?? undefined }, { governorateId: null }],
+            AND: [
+              { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
+              { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
+            ],
+          },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+          take: 8,
+          select: { id: true, title: true, subtitle: true, imageUrl: true, linkUrl: true, placement: true },
+        }),
+      ]);
+
+      return {
+        governorate: gov
+          ? {
+              tagline: gov.tagline,
+              heroImageUrl: gov.heroImageUrl,
+              souks: (gov.souks as SoukTile[] | null) ?? null,
+              enabled: gov.enabled,
+            }
+          : null,
+        ads,
+      };
+    }),
 });
