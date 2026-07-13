@@ -51,8 +51,10 @@ export function HomeHero({
   const mood = timeMood();
   return (
     <section className="relative overflow-hidden rounded-3xl shadow-xl ring-1 ring-gold-500/30">
-      {/* الكادر الحقيقيّ للمحافظة — يتغيّر بالمحافظة والوقت */}
-      <div className="relative h-[470px] w-full sm:h-[510px]">
+      {/* الكادر الحقيقيّ للمحافظة — يتغيّر بالمحافظة والوقت.
+          ارتفاعٌ نسبيّ للنافذة (svh) ليملأ الشاشة ويكون غامراً على كلّ الهواتف،
+          مع حدٍّ أدنى ثابت كي لا يقصر على الشاشات القصيرة. */}
+      <div className="relative h-[68svh] min-h-[500px] w-full sm:h-[62svh] sm:min-h-[540px]">
         <Image
           src={id.hero}
           alt={`سوگ ${governorate ?? "العراق"} — ${id.feel}`}

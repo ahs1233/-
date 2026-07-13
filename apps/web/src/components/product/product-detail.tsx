@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ZoomIn, X, MapPin, ShieldCheck } from "lucide-react";
+import { ZoomIn, X, MapPin, ShieldCheck, ShoppingCart, ChevronLeft } from "lucide-react";
 import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
@@ -46,6 +46,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
   const [imgIdx, setImgIdx] = useState(0);
   const [zoom, setZoom] = useState(false);
   const add = useCart((s) => s.add);
+  const cartCount = useCart((s) => s.count());
   const { success } = useToast();
 
   const favIds = trpc.favorite.ids.useQuery(undefined, { retry: false });
@@ -204,6 +205,19 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           >
             {added ? "أُضيف إلى السلة ✓" : outOfStock ? "غير متوفر" : "أضف إلى السلة"}
           </Button>
+
+          {/* بعد الإضافة (أو متى امتلأت السلة): طريقٌ واضحٌ لإكمال الطلب من صفحة المنتج */}
+          {cartCount > 0 && (
+            <Link
+              href="/cart"
+              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-brand-600 bg-white py-3 text-sm font-bold text-brand-700 transition hover:bg-brand-50"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              السلة ({cartCount}) — إكمال الطلب
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
+          )}
+
           <p className="mt-2.5 text-center text-xs text-neutral-500">
             الدفع عند الاستلام — تفحّصه قبل أن تدفع
           </p>
