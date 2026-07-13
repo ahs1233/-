@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Radio, TrendingUp, Tag, Store, ChevronLeft, BadgeCheck, Star, Package, DoorOpen, Award } from "lucide-react";
+import { Radio, TrendingUp, Tag, Store, ChevronLeft, BadgeCheck, Star, Package, DoorOpen, Award, MapPin } from "lucide-react";
 import { AppImage } from "@/src/components/app-image";
 import { govIdentity } from "@/src/lib/governorate-identity";
 import type { HomeStats, FeaturedEntity, PulseEvent, PulseKind, AdItem } from "@al-souq/api";
@@ -232,7 +232,7 @@ export function SoukTiles({
           <Link
             key={s.label}
             href={`/search?q=${encodeURIComponent(s.q)}`}
-            className="group relative h-36 w-32 flex-shrink-0 overflow-hidden rounded-2xl ring-1 ring-brand-800/20"
+            className="group relative h-44 w-40 flex-shrink-0 overflow-hidden rounded-2xl shadow-sm ring-1 ring-brand-800/20"
           >
             {s.img ? (
               <>
@@ -263,8 +263,9 @@ export function SoukTiles({
                 />
               </div>
             )}
-            <span className="absolute inset-x-0 bottom-0 p-2.5 text-sm font-bold text-white drop-shadow">
-              {s.label}
+            <span className="absolute inset-x-0 bottom-0 flex items-center gap-1 p-2.5 text-sm font-bold text-white drop-shadow">
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-gold-300" aria-hidden />
+              <span className="line-clamp-1">{s.label}</span>
             </span>
           </Link>
         ))}

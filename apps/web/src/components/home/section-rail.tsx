@@ -41,7 +41,7 @@ export function ProductRail({
       <RailHead emoji={emoji} title={title} href={href} />
       <div className={RAIL}>
         {items.map((p) => (
-          <div key={p.id} className="w-40 flex-shrink-0">
+          <div key={p.id} className="w-44 flex-shrink-0">
             <ProductCard product={p} />
           </div>
         ))}

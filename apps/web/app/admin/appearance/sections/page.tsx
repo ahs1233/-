@@ -8,7 +8,7 @@ import { useAppearanceDraft } from "../_appearance-draft";
 import { SaveBar } from "../_save-bar";
 
 // الأقسام التي تحمل عنواناً قابلاً للتخصيص في الرئيسية.
-const TITLED = new Set(["souks", "best_selling", "new", "stores", "categories"]);
+const TITLED = new Set(["souks", "products", "stores", "categories"]);
 
 function reorder<T>(arr: T[], from: number, to: number): T[] {
   if (from === to || to < 0 || to >= arr.length) return arr;

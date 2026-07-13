@@ -35,11 +35,14 @@ export interface Appearance {
   serviceLabels: Record<string, string>;
 }
 
+// الترتيب الافتراضيّ الجديد = رحلةٌ في المدينة (أسواق ← نبض ← عروض ← منتجات ← متاجر ← فئات).
+const DEFAULT_SECTION_KEYS = ["souks", "pulse", "banner", "products", "stores", "categories"];
+// مفاتيح التخطيط القديم — وجودها يعني أنّ الإعداد المحفوظ سابقٌ للرحلة الجديدة.
+const LEGACY_SECTION_KEYS = new Set(["services", "best_selling", "new", "featured"]);
+
 const DEFAULTS: Appearance = {
   colors: { primary: "#1a2740", accent: "#c1974e", surface: "#f4ecd9", live: "#2e7d5b" },
-  sections: ["services", "souks", "pulse", "banner", "best_selling", "new", "stores", "featured", "categories"].map(
-    (key) => ({ key, visible: true }),
-  ),
+  sections: DEFAULT_SECTION_KEYS.map((key) => ({ key, visible: true })),
   services: [
     { key: "stores", soon: false },
     { key: "offers", soon: false },
@@ -100,7 +103,10 @@ export const appearanceRouter = router({
 
     let sections = DEFAULTS.sections;
     if (Array.isArray(v.sections) && v.sections.length) {
-      sections = v.sections as SectionCfg[];
+      const stored = v.sections as SectionCfg[];
+      // ترحيلٌ تلقائيّ: إعدادٌ محفوظٌ بمفاتيح التخطيط القديم يُرقَّى إلى رحلة المدينة الجديدة.
+      const isLegacy = stored.some((s) => LEGACY_SECTION_KEYS.has(s.key));
+      sections = isLegacy ? DEFAULTS.sections : stored;
     } else if (Array.isArray(v.homeOrder) && v.homeOrder.length) {
       sections = (v.homeOrder as string[]).map((key) => ({ key, visible: true }));
     }
