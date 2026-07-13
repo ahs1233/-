@@ -743,6 +743,49 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
     });
   }
   console.log(`✅ ${ADS.length} إعلان نموذجيّ (لافتات الرئيسية)`);
+
+  // ── الأسواق: كلّ سوقٍ عالمٌ مستقلّ داخل «السوگ» (الرئيسية = «أيّ سوقٍ تدخل؟») ──
+  const MARKETS: {
+    slug: string;
+    nameAr: string;
+    tagline: string;
+    icon: string;
+    kind: "stores" | "category" | "external";
+    categoryName?: string;
+    status: "live" | "soon";
+    imageUrl?: string;
+  }[] = [
+    { slug: "stores", nameAr: "متاجر بغداد", tagline: "كل ما تحتاجه في السوق المحلّي", icon: "🏪", kind: "stores", status: "live", imageUrl: "/souks/souk-shorja.jpg" },
+    { slug: "electronics", nameAr: "بغداد الإلكترونية", tagline: "أجهزة إلكترونية وإكسسوارات أصلية", icon: "📱", kind: "category", categoryName: "إلكترونيات", status: "live" },
+    { slug: "food", nameAr: "الطعام", tagline: "بقالة ومأكولات ومنتجات محليّة", icon: "🍔", kind: "category", categoryName: "بقالة وأطعمة", status: "live", imageUrl: "/souks/souk-spice.jpg" },
+    { slug: "travel", nameAr: "السفر", tagline: "طيران، فنادق ورحلات", icon: "✈️", kind: "category", status: "soon" },
+    { slug: "realestate", nameAr: "العقارات", tagline: "بيع، شراء، إيجار", icon: "🏠", kind: "category", status: "soon" },
+    { slug: "jobs", nameAr: "الوظائف", tagline: "فرص عمل في العراق", icon: "💼", kind: "category", status: "soon" },
+    { slug: "health", nameAr: "الصحة", tagline: "صيدليات، أطباء، مختبرات", icon: "🏥", kind: "category", status: "soon" },
+    { slug: "education", nameAr: "التعليم", tagline: "دورات، مدارس، جامعات", icon: "🎓", kind: "category", status: "soon" },
+    { slug: "cars", nameAr: "السيارات", tagline: "بيع وشراء المركبات", icon: "🚗", kind: "category", status: "soon" },
+  ];
+  for (let i = 0; i < MARKETS.length; i++) {
+    const m = MARKETS[i]!;
+    const cat = m.categoryName ? await prisma.category.findFirst({ where: { nameAr: m.categoryName }, select: { slug: true } }) : null;
+    await prisma.market.upsert({
+      where: { slug: m.slug },
+      update: { sortOrder: i }, // لا نلمس بقيّة الحقول كي تبقى تعديلات الأدمن
+      create: {
+        slug: m.slug,
+        nameAr: m.nameAr,
+        tagline: m.tagline,
+        icon: m.icon,
+        kind: m.kind,
+        categorySlug: cat?.slug ?? null,
+        status: m.status,
+        enabled: true,
+        sortOrder: i,
+        imageUrl: m.imageUrl ?? null,
+      },
+    });
+  }
+  console.log(`✅ ${MARKETS.length} سوق`);
 }
 
 main()

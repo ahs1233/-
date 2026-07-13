@@ -67,7 +67,7 @@ export function ImageField({
 }: {
   value: string;
   onChange: (url: string) => void;
-  purpose: "gov" | "ad";
+  purpose: "gov" | "ad" | "market";
   aspect?: string;
 }) {
   const status = trpc.admin.storageStatus.useQuery();

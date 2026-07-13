@@ -18,6 +18,9 @@ import {
   adCreateSchema,
   adUpdateSchema,
   adDeleteSchema,
+  marketCreateSchema,
+  marketUpdateSchema,
+  marketDeleteSchema,
   presignUploadSchema,
   couponCreateSchema,
   couponToggleSchema,
@@ -1178,6 +1181,53 @@ export const adminRouter = router({
       entityId: input.id,
       ip: ctx.reqIp,
     });
+    return { ok: true };
+  }),
+
+  // ── الأسواق: CRUD (لوحة «المظهر» ← تبويب الأسواق) ──
+  marketList: adminPerm("settings").query(async ({ ctx }) => {
+    return ctx.prisma.market.findMany({ orderBy: { sortOrder: "asc" } });
+  }),
+  createMarket: adminPerm("settings").input(marketCreateSchema).mutation(async ({ ctx, input }) => {
+    const m = await ctx.prisma.market.create({
+      data: {
+        slug: input.slug,
+        nameAr: input.nameAr,
+        tagline: input.tagline ?? null,
+        imageUrl: input.imageUrl ?? null,
+        icon: input.icon ?? null,
+        kind: input.kind,
+        categorySlug: input.categorySlug ?? null,
+        href: input.href ?? null,
+        status: input.status,
+        enabled: input.enabled,
+        sortOrder: input.sortOrder,
+      },
+    });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.create", entityType: "Market", entityId: m.id, after: input, ip: ctx.reqIp });
+    return { id: m.id };
+  }),
+  updateMarket: adminPerm("settings").input(marketUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const data: Prisma.MarketUpdateInput = {};
+    if (rest.slug !== undefined) data.slug = rest.slug;
+    if (rest.nameAr !== undefined) data.nameAr = rest.nameAr;
+    if (rest.tagline !== undefined) data.tagline = rest.tagline ?? null;
+    if (rest.imageUrl !== undefined) data.imageUrl = rest.imageUrl ?? null;
+    if (rest.icon !== undefined) data.icon = rest.icon ?? null;
+    if (rest.kind !== undefined) data.kind = rest.kind;
+    if (rest.categorySlug !== undefined) data.categorySlug = rest.categorySlug ?? null;
+    if (rest.href !== undefined) data.href = rest.href ?? null;
+    if (rest.status !== undefined) data.status = rest.status;
+    if (rest.enabled !== undefined) data.enabled = rest.enabled;
+    if (rest.sortOrder !== undefined) data.sortOrder = rest.sortOrder;
+    await ctx.prisma.market.update({ where: { id }, data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.update", entityType: "Market", entityId: id, after: input, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  deleteMarket: adminPerm("settings").input(marketDeleteSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.market.delete({ where: { id: input.id } });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.delete", entityType: "Market", entityId: input.id, ip: ctx.reqIp });
     return { ok: true };
   }),
 

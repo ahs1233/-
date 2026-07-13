@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Palette, LayoutList, Grid3x3, MapPin, Megaphone, ChevronLeft } from "lucide-react";
+import { Palette, LayoutList, Grid3x3, MapPin, Megaphone, ChevronLeft, LayoutGrid } from "lucide-react";
 import { Card } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { DEFAULT_APPEARANCE, serviceStatusOf, type AppearanceColors, type SectionCfg, type ServiceCfg } from "@/src/lib/theme";
@@ -10,6 +10,7 @@ export default function AppearanceHub() {
   const appearance = trpc.admin.getAppearance.useQuery(undefined, { retry: false });
   const govs = trpc.admin.govList.useQuery(undefined, { retry: false });
   const ads = trpc.admin.adList.useQuery(undefined, { retry: false });
+  const markets = trpc.admin.marketList.useQuery(undefined, { retry: false });
 
   const v = (appearance.data ?? null) as
     | { colors?: AppearanceColors; sections?: SectionCfg[]; services?: ServiceCfg[] }
@@ -21,8 +22,16 @@ export default function AppearanceHub() {
   const activeServices = services.filter((s) => serviceStatusOf(s) !== "hidden").length;
   const enabledGovs = govs.data?.filter((g) => g.enabled).length ?? 0;
   const activeAds = ads.data?.filter((a) => a.active).length ?? 0;
+  const enabledMarkets = markets.data?.filter((m) => m.enabled).length ?? 0;
 
   const cards = [
+    {
+      href: "/admin/appearance/markets",
+      icon: LayoutGrid,
+      title: "الأسواق",
+      desc: "أسواق الرئيسية (متاجر، إلكترونية، سفر…) — كلٌّ عالمٌ مستقلّ",
+      accent: <Stat n={enabledMarkets} unit="سوق مفعّل" loading={markets.isLoading} />,
+    },
     {
       href: "/admin/appearance/theme",
       icon: Palette,

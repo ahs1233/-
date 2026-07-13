@@ -549,6 +549,31 @@ model PlatformSetting {
   updatedAt DateTime @updatedAt
 }
 
+// ─────────────────────────── Markets (الأسواق) ───────────────────────────
+
+/// سوقٌ داخل «السوگ» — كلّ سوقٍ عالمٌ مستقلّ (متاجر بغداد، الإلكترونية، الطعام،
+/// السفر، العقارات، الوظائف، الصحة، التعليم، السيارات…). الرئيسية تعرضها ليختار
+/// المستخدم «أيّ سوقٍ يدخل»، ولكلّ سوقٍ صفحته المستقلّة.
+model Market {
+  id           String  @id @default(cuid())
+  slug         String  @unique // stores | electronics | food | travel | realestate | jobs | health | education | cars
+  nameAr       String
+  tagline      String?
+  imageUrl     String? // خلفية بطاقة السوق
+  icon         String? // مفتاح أيقونة/إيموجي
+  kind         String  @default("category") // stores | category | external
+  categorySlug String? // لـ kind=category: فئة المنتجات المرتبطة
+  href         String? // لـ kind=external: وجهة خارجيّة
+  status       String  @default("live") // live | soon
+  enabled      Boolean @default(true)
+  sortOrder    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled, sortOrder])
+}
+
 // ─────────────────────────── Advertisements ───────────────────────────
 
 /// إعلانٌ/لافتةٌ ترويجيّة تُدار من لوحة «المظهر» ← تبويب الإعلانات.

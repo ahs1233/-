@@ -86,7 +86,7 @@ export const orderStatusUpdateSchema = z.object({
 
 export const presignUploadSchema = z.object({
   contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/avif"]),
-  purpose: z.enum(["product", "logo", "banner", "gov", "ad"]).default("product"),
+  purpose: z.enum(["product", "logo", "banner", "gov", "ad", "market"]).default("product"),
 });
 
 // ─────────────────────────── Admin ───────────────────────────
@@ -236,6 +236,32 @@ export const adUpdateSchema = adCreateSchema.partial().extend({ id: z.string().c
 export const adDeleteSchema = z.object({ id: z.string().cuid() });
 export type AdCreateInput = z.infer<typeof adCreateSchema>;
 export type AdUpdateInput = z.infer<typeof adUpdateSchema>;
+
+// ─────────────────────── Markets (الأسواق) ───────────────────────
+const marketSlug = z
+  .string()
+  .trim()
+  .min(2)
+  .max(40)
+  .regex(/^[a-z0-9-]+$/, "المعرّف بأحرفٍ لاتينيّة صغيرة وأرقامٍ وشرطات فقط");
+
+export const marketCreateSchema = z.object({
+  slug: marketSlug,
+  nameAr: z.string().trim().min(2, "الاسم قصير").max(60),
+  tagline: z.string().trim().max(120).nullable().optional(),
+  imageUrl: imageRef.nullable().optional(),
+  icon: z.string().trim().max(8).nullable().optional(),
+  kind: z.enum(["stores", "category", "external"]).default("category"),
+  categorySlug: z.string().trim().max(60).nullable().optional(),
+  href: linkRef.nullable().optional(),
+  status: z.enum(["live", "soon"]).default("live"),
+  enabled: z.boolean().default(true),
+  sortOrder: z.number().int().min(0).max(1000).default(0),
+});
+export const marketUpdateSchema = marketCreateSchema.partial().extend({ id: z.string().cuid() });
+export const marketDeleteSchema = z.object({ id: z.string().cuid() });
+export type MarketCreateInput = z.infer<typeof marketCreateSchema>;
+export type MarketUpdateInput = z.infer<typeof marketUpdateSchema>;
 
 // ─────────────────────────── Product ───────────────────────────
 

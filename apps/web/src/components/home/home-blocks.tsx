@@ -166,14 +166,14 @@ export function AdsCarousel({ ads, governorate }: { ads: AdItem[]; governorate?:
   );
 }
 
-export function MarketPulse({ events, governorate }: { events: PulseEvent[]; governorate?: string }) {
+export function MarketPulse({ events, governorate, title }: { events: PulseEvent[]; governorate?: string; title?: string }) {
   if (!events.length) return null;
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
         <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-          نبض {governorate ?? "السوق"}
+          {title ?? `نبض ${governorate ?? "السوق"}`}
         </h2>
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-petrol">
           <span className="relative flex h-2 w-2">
