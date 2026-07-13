@@ -4,7 +4,13 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
+
+    /* ── أسطح الثيم الداكن (نيليّ ليليّ + ذهب) ── */
+    --c-bg: 8 12 22; /* خلفية الصفحة — نيليّ شبه أسود */
+    --c-card: 19 27 47; /* البطاقات */
+    --c-card-2: 27 37 61; /* بطاقةٌ أفتح قليلاً */
+    --c-line: 40 52 82; /* الحدود */
 
     /* لوحة السوگ — قنوات RGB قابلة للتغيير وقت التشغيل من لوحة الإدارة (المظهر) */
     --c-brand-50: 238 241 247;
@@ -38,7 +44,8 @@
   }
 
   body {
-    @apply bg-sand-50 text-neutral-900 antialiased;
+    @apply text-neutral-100 antialiased;
+    background-color: rgb(var(--c-bg));
     font-family: var(--font-sans), "Tajawal", "Cairo", system-ui, sans-serif;
   }
 
@@ -53,6 +60,12 @@
   .container-app {
     @apply mx-auto w-full max-w-screen-md px-4;
   }
+
+  /* ── أسطح الثيم الداكن ── */
+  .bg-page { background-color: rgb(var(--c-bg)); }
+  .bg-card { background-color: rgb(var(--c-card)); }
+  .bg-card2 { background-color: rgb(var(--c-card-2)); }
+  .border-line { border-color: rgb(var(--c-line)); }
 
   /* زرّ نحاسيّ — لمعة معدنٍ لا لونٌ مسطّح (قانون الكانون: الذهب معدن) */
   .btn-brass {
