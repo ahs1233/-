@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ShieldCheck, Truck, BadgeCheck, ChevronLeft, Store, Sparkles, Percent } from "lucide-react";
+import { ShieldCheck, Truck, BadgeCheck, ChevronLeft } from "lucide-react";
 import { govIdentity } from "@/src/lib/governorate-identity";
 import type { HomeStats } from "@al-souq/api";
 
@@ -51,10 +51,9 @@ export function HomeHero({
   const mood = timeMood();
   return (
     <section className="relative overflow-hidden rounded-3xl shadow-xl ring-1 ring-gold-500/30">
-      {/* الكادر الحقيقيّ للمحافظة — يتغيّر بالمحافظة والوقت.
-          ارتفاعٌ نسبيّ للنافذة (svh) ليملأ الشاشة ويكون غامراً على كلّ الهواتف،
-          مع حدٍّ أدنى ثابت كي لا يقصر على الشاشات القصيرة. */}
-      <div className="relative h-[68svh] min-h-[500px] w-full sm:h-[62svh] sm:min-h-[540px]">
+      {/* الكادر الحقيقيّ للمحافظة — لافتةٌ مستطيلة أفقيّة (٣:٢) بحدٍّ أعلى معتدل،
+          لا كتلةٌ طوليّة كبيرة. */}
+      <div className="relative w-full" style={{ aspectRatio: "3 / 2", maxHeight: 420 }}>
         <Image
           src={id.hero}
           alt={`سوگ ${governorate ?? "العراق"} — ${id.feel}`}
@@ -82,7 +81,7 @@ export function HomeHero({
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/50 to-transparent" />
 
         {/* المحتوى — محاذاةٌ سفليّة، كما تدخل السوق من الأرض لا من السماء */}
-        <div className="absolute inset-0 flex flex-col justify-end p-5 sm:p-7">
+        <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold-300 opacity-75" />
@@ -93,33 +92,21 @@ export function HomeHero({
             </span>
           </div>
 
-          <h1 className="mt-3 text-4xl font-extrabold leading-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-5xl">
+          <h1 className="mt-1.5 text-3xl font-extrabold leading-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-4xl">
             سو<span className="text-gold-300">گ</span> {governorate ?? "العراق"}
           </h1>
           {storeCount && storeCount > 0 ? (
-            <p className="mt-2 text-base font-bold text-gold-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
+            <p className="mt-1 text-sm font-bold text-gold-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
               أكثر من <span className="nums">{approxStores(storeCount)}</span> متجر محلّي
+              {stats && stats.openStores > 0 && <span className="text-gold-200/80"> · {stats.openStores} مفتوح الآن</span>}
             </p>
           ) : (
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-white/85 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)]">
+            <p className="mt-1 max-w-md text-sm leading-relaxed text-white/85 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)]">
               أزقّةٌ من التجّار الموثوقين، بضاعةٌ تمدّ يدها إليك.
             </p>
           )}
 
-          {/* البطل يتنفّس — طبقةٌ حيّة فوق الصورة */}
-          {stats && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              <LiveStat icon={<Store className="h-3.5 w-3.5" />} n={stats.openStores} label="مفتوح الآن" />
-              {stats.newStoresToday > 0 && (
-                <LiveStat icon={<Sparkles className="h-3.5 w-3.5" />} n={stats.newStoresToday} label="جهة اليوم" />
-              )}
-              {stats.newOffersToday > 0 && (
-                <LiveStat icon={<Percent className="h-3.5 w-3.5" />} n={stats.newOffersToday} label="عرض اليوم" />
-              )}
-            </div>
-          )}
-
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <Link
               href="/categories"
               className="btn-brass inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-extrabold text-[#16223b] transition-transform hover:-translate-y-0.5 active:translate-y-0"
@@ -135,7 +122,7 @@ export function HomeHero({
             </Link>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+          <div className="mt-2.5 flex flex-wrap gap-2 text-[11px]">
             <Chip icon={<Truck className="h-3.5 w-3.5" />} text="دفع عند الاستلام" />
             <Chip icon={<ShieldCheck className="h-3.5 w-3.5" />} text="تجّار موثوقون" />
             <Chip icon={<BadgeCheck className="h-3.5 w-3.5" />} text="منتجات عراقية" />
@@ -151,16 +138,6 @@ function Chip({ icon, text }: { icon: React.ReactNode; text: string }) {
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 font-medium text-white/90 backdrop-blur">
       {icon}
       {text}
-    </span>
-  );
-}
-
-function LiveStat({ icon, n, label }: { icon: React.ReactNode; n: number; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-xl border border-gold-300/30 bg-black/30 px-3 py-1.5 text-xs text-white/90 backdrop-blur">
-      <span className="text-gold-300">{icon}</span>
-      <span className="font-extrabold text-gold-100 nums">{n}</span>
-      <span className="text-white/70">{label}</span>
     </span>
   );
 }
