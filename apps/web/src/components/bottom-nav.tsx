@@ -19,7 +19,7 @@ export function BottomNav() {
   const count = useCart((s) => s.count());
 
   return (
-    <nav className="sticky bottom-0 z-20 bg-brand-700 pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.6)] md:hidden">
+    <nav className="sticky bottom-0 z-20 bg-brand-700 pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.6)]">
       <ul className="container-app flex items-center justify-between py-1.5">
         {ITEMS.map((it) => {
           const active = it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);
