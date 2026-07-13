@@ -11,6 +11,8 @@ export interface SoukTile {
   q: string;
   img?: string;
   emoji?: string;
+  color?: string;
+  status?: "active" | "hidden";
 }
 
 export interface GovIdentity {

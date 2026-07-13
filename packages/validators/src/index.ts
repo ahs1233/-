@@ -175,10 +175,23 @@ const linkRef = z
 
 const labelOverride = z.record(sectionKey, z.string().trim().max(40));
 
+/** حالة الخدمة الرباعيّة: مُفعّل/تجريبيّ/قريباً/مخفيّ. */
+export const serviceStatus = z.enum(["active", "beta", "soon", "hidden"]);
+
 export const appearanceSchema = z.object({
   colors: z.object({ primary: hexColor, accent: hexColor, surface: hexColor, live: hexColor }),
   sections: z.array(z.object({ key: sectionKey, visible: z.boolean() })).max(24),
-  services: z.array(z.object({ key: sectionKey, visible: z.boolean(), soon: z.boolean() })).max(24),
+  // visible/soon تبقى للتوافق الخلفيّ؛ status هو المصدر الرسميّ للحالة الرباعيّة.
+  services: z
+    .array(
+      z.object({
+        key: sectionKey,
+        visible: z.boolean().optional(),
+        soon: z.boolean().optional(),
+        status: serviceStatus.optional(),
+      }),
+    )
+    .max(24),
   /** تجاوزات عناوين الأقسام (المفتاح = مفتاح القسم). */
   sectionTitles: labelOverride.optional(),
   /** تجاوزات تسميات الخدمات (المفتاح = مفتاح الخدمة). */
@@ -192,6 +205,8 @@ const soukTile = z.object({
   q: z.string().trim().min(1).max(60),
   img: imageRef.optional(),
   emoji: z.string().trim().max(8).optional(),
+  color: hexColor.optional(),
+  status: z.enum(["active", "hidden"]).optional(),
 });
 
 export const governoratePresentationSchema = z.object({

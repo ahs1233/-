@@ -1,479 +1,113 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowUp, ArrowDown, RotateCcw, Eye, EyeOff, Check, AlertTriangle, Palette, LayoutList, Grid3x3, MapPin, Megaphone, Copy, ClipboardPaste, Undo2 } from "lucide-react";
-import { Button, Card, CardBody, useToast } from "@al-souq/ui";
+import Link from "next/link";
+import { Palette, LayoutList, Grid3x3, MapPin, Megaphone, ChevronLeft } from "lucide-react";
+import { Card } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
-import {
-  buildThemeCss,
-  contrastRatio,
-  isValidHex,
-  PRESETS,
-  DEFAULT_COLORS,
-  SECTION_LABELS,
-  SERVICE_LABELS,
-  DEFAULT_APPEARANCE,
-  type AppearanceColors,
-  type SectionCfg,
-  type ServiceCfg,
-} from "@/src/lib/theme";
-import { GovernoratesTab } from "./_governorates";
-import { AdsTab } from "./_ads";
+import { DEFAULT_APPEARANCE, serviceStatusOf, type AppearanceColors, type SectionCfg, type ServiceCfg } from "@/src/lib/theme";
 
-const COLOR_FIELDS: { key: keyof AppearanceColors; label: string; hint: string }[] = [
-  { key: "primary", label: "الأساسيّ (نيليّ)", hint: "الشريط، العناوين، البطاقات" },
-  { key: "accent", label: "لمسة الذهب", hint: "الأزرار، الأسعار، العلامات" },
-  { key: "surface", label: "سطح العاجيّ", hint: "خلفية التطبيق" },
-  { key: "live", label: "الأخضر الحيّ", hint: "النبض، «موثوق»، التوصيل" },
-];
+export default function AppearanceHub() {
+  const appearance = trpc.admin.getAppearance.useQuery(undefined, { retry: false });
+  const govs = trpc.admin.govList.useQuery(undefined, { retry: false });
+  const ads = trpc.admin.adList.useQuery(undefined, { retry: false });
 
-type Tab = "colors" | "sections" | "services" | "governorates" | "ads";
-const TABS: { id: Tab; label: string; icon: typeof Palette }[] = [
-  { id: "colors", label: "الألوان", icon: Palette },
-  { id: "sections", label: "الأقسام", icon: LayoutList },
-  { id: "services", label: "الخدمات", icon: Grid3x3 },
-  { id: "governorates", label: "المحافظات", icon: MapPin },
-  { id: "ads", label: "الإعلانات", icon: Megaphone },
-];
-// التبويبات التي يديرها شريط حفظ «المظهر» (JSON). المحافظات والإعلانات تحفظ ذاتيّاً.
-const APPEARANCE_TABS: Tab[] = ["colors", "sections", "services"];
-// الأقسام التي تحمل عنواناً قابلاً للتخصيص في الرئيسية.
-const TITLED_SECTIONS = new Set(["souks", "best_selling", "new", "stores", "categories"]);
+  const v = (appearance.data ?? null) as
+    | { colors?: AppearanceColors; sections?: SectionCfg[]; services?: ServiceCfg[] }
+    | null;
+  const colors = v?.colors ?? DEFAULT_APPEARANCE.colors;
+  const sections = v?.sections ?? DEFAULT_APPEARANCE.sections;
+  const services = v?.services ?? DEFAULT_APPEARANCE.services;
+  const visibleSections = sections.filter((s) => s.visible).length;
+  const activeServices = services.filter((s) => serviceStatusOf(s) !== "hidden").length;
+  const enabledGovs = govs.data?.filter((g) => g.enabled).length ?? 0;
+  const activeAds = ads.data?.filter((a) => a.active).length ?? 0;
 
-// شريط مقياس لونٍ مولّد — يقرأ متغيّرات CSS مباشرةً (يُعرَض داخل .theme-preview).
-function RampStrip({ label, varName, steps }: { label: string; varName: string; steps: number[] }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-10 flex-shrink-0 text-[10px] font-semibold text-neutral-500">{label}</span>
-      <div className="flex flex-1 overflow-hidden rounded-lg ring-1 ring-black/5">
-        {steps.map((s) => (
-          <span key={s} className="h-6 flex-1" style={{ backgroundColor: `rgb(var(--c-${varName}-${s}))` }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
-  const j = i + dir;
-  if (j < 0 || j >= arr.length) return arr;
-  const next = [...arr];
-  const tmp = next[i]!;
-  next[i] = next[j]!;
-  next[j] = tmp;
-  return next;
-}
-
-export default function AdminAppearance() {
-  const { success, error } = useToast();
-  const current = trpc.admin.getAppearance.useQuery(undefined, { retry: false });
-  const utils = trpc.useUtils();
-  const save = trpc.admin.updateAppearance.useMutation({
-    onSuccess: () => {
-      utils.admin.getAppearance.invalidate();
-      setBaseline(snapshot());
-      success("تم حفظ المظهر — يظهر على التطبيق فوراً");
+  const cards = [
+    {
+      href: "/admin/appearance/theme",
+      icon: Palette,
+      title: "الألوان والهويّة",
+      desc: "لون التطبيق، القوالب الجاهزة، والمعاينة الحيّة",
+      accent: (
+        <span className="flex -space-x-1.5">
+          {[colors.primary, colors.accent, colors.surface, colors.live].map((c, i) => (
+            <span key={i} className="h-6 w-6 rounded-full ring-2 ring-white" style={{ backgroundColor: c }} />
+          ))}
+        </span>
+      ),
     },
-    onError: (e) => error(e.message),
-  });
-
-  const [tab, setTab] = useState<Tab>("colors");
-  const [colors, setColors] = useState<AppearanceColors>(DEFAULT_APPEARANCE.colors);
-  const [sections, setSections] = useState<SectionCfg[]>(DEFAULT_APPEARANCE.sections);
-  const [services, setServices] = useState<ServiceCfg[]>(DEFAULT_APPEARANCE.services);
-  const [sectionTitles, setSectionTitles] = useState<Record<string, string>>({});
-  const [serviceLabels, setServiceLabels] = useState<Record<string, string>>({});
-  const [baseline, setBaseline] = useState<string>("");
-
-  const snapshot = () => JSON.stringify({ colors, sections, services, sectionTitles, serviceLabels });
-
-  useEffect(() => {
-    const v = current.data as
-      | {
-          colors?: AppearanceColors;
-          sections?: SectionCfg[];
-          services?: ServiceCfg[];
-          sectionTitles?: Record<string, string>;
-          serviceLabels?: Record<string, string>;
-        }
-      | null;
-    const c = v?.colors ? { ...DEFAULT_APPEARANCE.colors, ...v.colors } : DEFAULT_APPEARANCE.colors;
-    const s = v?.sections?.length ? v.sections : DEFAULT_APPEARANCE.sections;
-    const sv = v?.services?.length ? v.services : DEFAULT_APPEARANCE.services;
-    const st = v?.sectionTitles ?? {};
-    const sl = v?.serviceLabels ?? {};
-    setColors(c);
-    setSections(s);
-    setServices(sv);
-    setSectionTitles(st);
-    setServiceLabels(sl);
-    setBaseline(JSON.stringify({ colors: c, sections: s, services: sv, sectionTitles: st, serviceLabels: sl }));
-  }, [current.data]);
-
-  const previewCss = useMemo(() => buildThemeCss(colors, ".theme-preview"), [colors]);
-  const allValid = COLOR_FIELDS.every((f) => isValidHex(colors[f.key]));
-  const dirty = baseline !== "" && baseline !== snapshot();
-  const showSaveBar = APPEARANCE_TABS.includes(tab);
-
-  const checks = useMemo(
-    () => [
-      { label: "نصٌّ أبيض على النيليّ", ratio: contrastRatio(colors.primary, "#ffffff"), min: 4.5 },
-      { label: "نصّ الزرّ على الذهبيّ", ratio: contrastRatio(colors.accent, "#16223b"), min: 3 },
-      { label: "نصٌّ داكن على العاجيّ", ratio: contrastRatio(colors.surface, "#1a1813"), min: 4.5 },
-    ],
-    [colors],
-  );
-
-  function applyPreset(id: string) {
-    const p = PRESETS.find((x) => x.id === id);
-    if (p) setColors(p.colors);
-  }
-  function resetAll() {
-    setColors(DEFAULT_APPEARANCE.colors);
-    setSections(DEFAULT_APPEARANCE.sections);
-    setServices(DEFAULT_APPEARANCE.services);
-    setSectionTitles({});
-    setServiceLabels({});
-  }
-  function discard() {
-    const b = JSON.parse(baseline) as {
-      colors: AppearanceColors;
-      sections: SectionCfg[];
-      services: ServiceCfg[];
-      sectionTitles: Record<string, string>;
-      serviceLabels: Record<string, string>;
-    };
-    setColors(b.colors);
-    setSections(b.sections);
-    setServices(b.services);
-    setSectionTitles(b.sectionTitles ?? {});
-    setServiceLabels(b.serviceLabels ?? {});
-  }
-  // تعديل تجاوزٍ نصّيّ (عنوان قسم أو تسمية خدمة): فراغٌ = حذف التجاوز.
-  function setOverride(setter: React.Dispatch<React.SetStateAction<Record<string, string>>>, key: string, val: string) {
-    setter((m) => {
-      const next = { ...m };
-      if (val.trim()) next[key] = val;
-      else delete next[key];
-      return next;
-    });
-  }
-  function exportTheme() {
-    void navigator.clipboard.writeText(JSON.stringify({ colors, sections, services, sectionTitles, serviceLabels }, null, 2));
-    success("نُسخ رمز الثيم إلى الحافظة");
-  }
-  function importTheme() {
-    const raw = prompt("ألصق رمز الثيم (JSON):");
-    if (!raw) return;
-    try {
-      const p = JSON.parse(raw) as Partial<{
-        colors: AppearanceColors;
-        sections: SectionCfg[];
-        services: ServiceCfg[];
-        sectionTitles: Record<string, string>;
-        serviceLabels: Record<string, string>;
-      }>;
-      if (p.colors) setColors({ ...DEFAULT_COLORS, ...p.colors });
-      if (p.sections?.length) setSections(p.sections);
-      if (p.services?.length) setServices(p.services);
-      if (p.sectionTitles) setSectionTitles(p.sectionTitles);
-      if (p.serviceLabels) setServiceLabels(p.serviceLabels);
-      success("طُبّق الثيم — راجِعه ثم احفظ");
-    } catch {
-      error("رمز غير صالح");
-    }
-  }
+    {
+      href: "/admin/appearance/sections",
+      icon: LayoutList,
+      title: "أقسام الرئيسية",
+      desc: "الترتيب، الإظهار، والعناوين المخصّصة",
+      accent: <Stat n={visibleSections} unit="قسم ظاهر" />,
+    },
+    {
+      href: "/admin/appearance/services",
+      icon: Grid3x3,
+      title: "خدمات السوگ",
+      desc: "الترتيب، الحالة الرباعيّة، والتسميات",
+      accent: <Stat n={activeServices} unit="خدمة" />,
+    },
+    {
+      href: "/admin/appearance/governorates",
+      icon: MapPin,
+      title: "المحافظات",
+      desc: "صورة البطل، الشعور، والأسواق لكلّ محافظة",
+      accent: <Stat n={enabledGovs} unit="محافظة مفعّلة" loading={govs.isLoading} />,
+    },
+    {
+      href: "/admin/appearance/ads",
+      icon: Megaphone,
+      title: "الإعلانات",
+      desc: "لافتات ترويجيّة مجدولة لكلّ محافظة",
+      accent: <Stat n={activeAds} unit="إعلان فعّال" loading={ads.isLoading} />,
+    },
+  ];
 
   return (
-    <div className="space-y-5 pb-24">
-      <style dangerouslySetInnerHTML={{ __html: previewCss }} />
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-extrabold text-brand-800">المظهر</h1>
-          <p className="text-sm text-neutral-500">الألوان، أقسام الرئيسية، الخدمات، المحافظات، والإعلانات — لكلّ المستخدمين.</p>
-        </div>
-        {tab === "colors" && (
-          <Button variant="outline" size="sm" onClick={resetAll}>
-            <RotateCcw className="h-4 w-4" /> الافتراضيّ
-          </Button>
-        )}
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-xl font-extrabold text-brand-800">المظهر</h1>
+        <p className="text-sm text-neutral-500">
+          تحكّمٌ كاملٌ بتجربة التطبيق — كلّ بطاقةٍ محرّرٌ مستقلّ. لكلّ المستخدمين.
+        </p>
       </div>
 
-      {/* تبويبات */}
-      <div className="flex gap-1 rounded-xl border border-neutral-200 bg-neutral-50 p-1">
-        {TABS.map((t) => {
-          const Icon = t.icon;
+      <div className="grid gap-3 sm:grid-cols-2">
+        {cards.map((c) => {
+          const Icon = c.icon;
           return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                tab === t.id ? "bg-brand-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-100"
-              }`}
-            >
-              <Icon className="h-4 w-4" /> {t.label}
-            </button>
+            <Link key={c.href} href={c.href}>
+              <Card className="group h-full transition hover:border-gold-300 hover:shadow-md">
+                <div className="flex items-start gap-3 p-4">
+                  <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-gold-300">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <h2 className="font-bold text-brand-800">{c.title}</h2>
+                      <ChevronLeft className="h-4 w-4 text-neutral-300 transition group-hover:text-gold-500" />
+                    </div>
+                    <p className="mt-0.5 text-xs text-neutral-500">{c.desc}</p>
+                    <div className="mt-2.5">{c.accent}</div>
+                  </div>
+                </div>
+              </Card>
+            </Link>
           );
         })}
       </div>
-
-      {tab === "colors" && (
-        <div className="space-y-5">
-          {/* قوالب جاهزة */}
-          <Card>
-            <CardBody className="space-y-3">
-              <h2 className="font-bold text-brand-800">قوالب جاهزة</h2>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {PRESETS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => applyPreset(p.id)}
-                    className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white p-2 text-start transition hover:border-gold-300"
-                  >
-                    <span className="flex -space-x-1">
-                      {[p.colors.primary, p.colors.accent, p.colors.surface, p.colors.live].map((c, i) => (
-                        <span key={i} className="h-6 w-6 rounded-full ring-2 ring-white" style={{ backgroundColor: c }} />
-                      ))}
-                    </span>
-                    <span className="text-xs font-semibold text-neutral-700">{p.name}</span>
-                  </button>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* الألوان */}
-          <Card>
-            <CardBody className="space-y-4">
-              <h2 className="font-bold text-brand-800">الألوان</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {COLOR_FIELDS.map((f) => (
-                  <div key={f.key}>
-                    <label className="mb-1 block text-sm font-medium text-neutral-700">{f.label}</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={isValidHex(colors[f.key]) ? colors[f.key] : "#000000"}
-                        onChange={(e) => setColors((c) => ({ ...c, [f.key]: e.target.value }))}
-                        className="h-10 w-12 cursor-pointer rounded-lg border border-neutral-200 bg-white p-1"
-                        aria-label={f.label}
-                      />
-                      <input
-                        value={colors[f.key]}
-                        onChange={(e) => setColors((c) => ({ ...c, [f.key]: e.target.value }))}
-                        dir="ltr"
-                        className={`h-10 flex-1 rounded-lg border px-3 text-sm nums ${isValidHex(colors[f.key]) ? "border-neutral-300" : "border-danger"}`}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-neutral-400">{f.hint}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* فحص التباين (الوصول) */}
-              <div className="space-y-1.5 rounded-xl bg-neutral-50 p-3">
-                <p className="text-xs font-semibold text-neutral-600">فحص التباين (سهولة القراءة)</p>
-                {checks.map((c) => {
-                  const ok = c.ratio >= c.min;
-                  return (
-                    <div key={c.label} className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1.5 text-neutral-600">
-                        {ok ? <Check className="h-3.5 w-3.5 text-petrol" /> : <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
-                        {c.label}
-                      </span>
-                      <span className={`nums font-semibold ${ok ? "text-petrol" : "text-warning"}`}>{c.ratio.toFixed(1)}:1</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* معاينة حيّة غنيّة */}
-          <Card>
-            <CardBody>
-              <h2 className="mb-3 font-bold text-brand-800">معاينة حيّة</h2>
-              <div className="theme-preview overflow-hidden rounded-2xl border border-sand-200 bg-sand-50 p-4">
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white">
-                  <div className="flex items-center gap-2 text-xs text-gold-100">
-                    <span className="h-2 w-2 rounded-full bg-gold-300" /> السوق يعمل الآن
-                  </div>
-                  <p className="mt-1 text-2xl font-extrabold">
-                    سو<span className="text-gold-300">گ</span> بغداد
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <span className="rounded-xl bg-gold-500 px-4 py-2 text-sm font-extrabold text-brand-900">ادخل السوق</span>
-                    <span className="rounded-xl border border-white/30 px-4 py-2 text-sm">تصفّح</span>
-                  </div>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div className="overflow-hidden rounded-2xl border border-sand-200 bg-white">
-                    <div className="relative aspect-square bg-sand-100">
-                      <span className="absolute start-2 top-2 rounded-full bg-brand-900/75 px-2 py-0.5 text-[10px] font-bold text-gold-100">📍 بغداد</span>
-                      <span className="absolute end-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-gold-600">★ 4.8</span>
-                    </div>
-                    <div className="p-2">
-                      <p className="text-sm font-semibold text-neutral-900">دلّة نحاسية</p>
-                      <p className="text-base font-extrabold text-brand-700 nums">45,000 د.ع</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 rounded-xl border border-sand-200 bg-white p-2.5">
-                      <span className="grid h-8 w-8 place-items-center rounded-lg bg-petrol/10 text-petrol">✓</span>
-                      <span className="text-xs font-semibold text-neutral-700">افتتح متجرٌ أبوابه</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-gold-300">﷼</span>
-                      <span className="rounded-full bg-gold-100 px-3 py-1.5 text-xs font-bold text-gold-700">عرض اليوم</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* مقاييس الألوان المولّدة (من اللون المرساة) */}
-                <div className="mt-4 space-y-1.5">
-                  <RampStrip label="نيليّ" varName="brand" steps={[50, 100, 200, 300, 400, 500, 600, 700, 800, 900]} />
-                  <RampStrip label="ذهب" varName="gold" steps={[50, 100, 200, 300, 400, 500, 600, 700]} />
-                  <RampStrip label="عاجيّ" varName="sand" steps={[50, 100, 200, 300]} />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* تصدير/استيراد الثيم */}
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={exportTheme}>
-              <Copy className="h-4 w-4" /> نسخ رمز الثيم
-            </Button>
-            <Button variant="outline" size="sm" onClick={importTheme}>
-              <ClipboardPaste className="h-4 w-4" /> لصق رمز ثيم
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {tab === "sections" && (
-        <Card>
-          <CardBody className="space-y-3">
-            <h2 className="font-bold text-brand-800">أقسام الرئيسية</h2>
-            <p className="text-xs text-neutral-400">رتّب الأقسام، أظهِرها/أخفِها، وخصّص عناوينها. البطل (بوّابة المحافظة) يبقى أوّلاً دائماً.</p>
-            <ul className="space-y-2">
-              {sections.map((s, i) => (
-                <li
-                  key={s.key}
-                  className={`rounded-xl border px-3 py-2.5 ${s.visible ? "border-neutral-200 bg-white" : "border-dashed border-neutral-200 bg-neutral-50"}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 nums">{i + 1}</span>
-                    <span className={`flex-1 text-sm font-medium ${s.visible ? "text-neutral-800" : "text-neutral-400"}`}>
-                      {SECTION_LABELS[s.key] ?? s.key}
-                    </span>
-                    <button
-                      onClick={() => setSections((a) => a.map((x, k) => (k === i ? { ...x, visible: !x.visible } : x)))}
-                      aria-label={s.visible ? "إخفاء" : "إظهار"}
-                      className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
-                    >
-                      {s.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                    </button>
-                    <button onClick={() => setSections((a) => move(a, i, -1))} disabled={i === 0} aria-label="لأعلى" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                      <ArrowUp className="h-4 w-4" />
-                    </button>
-                    <button onClick={() => setSections((a) => move(a, i, 1))} disabled={i === sections.length - 1} aria-label="لأسفل" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                      <ArrowDown className="h-4 w-4" />
-                    </button>
-                  </div>
-                  {TITLED_SECTIONS.has(s.key) && (
-                    <input
-                      value={sectionTitles[s.key] ?? ""}
-                      onChange={(e) => setOverride(setSectionTitles, s.key, e.target.value)}
-                      placeholder={`عنوان مخصّص — الافتراضيّ: ${SECTION_LABELS[s.key] ?? s.key}`}
-                      maxLength={40}
-                      className="mt-2 h-8 w-full rounded-lg border border-neutral-200 px-2.5 text-xs"
-                    />
-                  )}
-                </li>
-              ))}
-            </ul>
-          </CardBody>
-        </Card>
-      )}
-
-      {tab === "services" && (
-        <Card>
-          <CardBody className="space-y-3">
-            <h2 className="font-bold text-brand-800">خدمات السوگ</h2>
-            <p className="text-xs text-neutral-400">رتّب الخدمات، أظهِرها/أخفِها، خصّص تسمياتها، وحدّد أيّها «قريباً».</p>
-            <ul className="space-y-2">
-              {services.map((s, i) => (
-                <li
-                  key={s.key}
-                  className={`rounded-xl border px-3 py-2.5 ${s.visible ? "border-neutral-200 bg-white" : "border-dashed border-neutral-200 bg-neutral-50"}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 nums">{i + 1}</span>
-                    <span className={`flex-1 text-sm font-medium ${s.visible ? "text-neutral-800" : "text-neutral-400"}`}>
-                      {SERVICE_LABELS[s.key] ?? s.key}
-                    </span>
-                    <button
-                      onClick={() => setServices((a) => a.map((x, k) => (k === i ? { ...x, soon: !x.soon } : x)))}
-                      className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition ${s.soon ? "bg-gold-100 text-gold-700" : "bg-petrol/10 text-petrol"}`}
-                    >
-                      {s.soon ? "قريباً" : "مُفعّل"}
-                    </button>
-                    <button
-                      onClick={() => setServices((a) => a.map((x, k) => (k === i ? { ...x, visible: !x.visible } : x)))}
-                      aria-label={s.visible ? "إخفاء" : "إظهار"}
-                      className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
-                    >
-                      {s.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                    </button>
-                    <button onClick={() => setServices((a) => move(a, i, -1))} disabled={i === 0} aria-label="لأعلى" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                      <ArrowUp className="h-4 w-4" />
-                    </button>
-                    <button onClick={() => setServices((a) => move(a, i, 1))} disabled={i === services.length - 1} aria-label="لأسفل" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
-                      <ArrowDown className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <input
-                    value={serviceLabels[s.key] ?? ""}
-                    onChange={(e) => setOverride(setServiceLabels, s.key, e.target.value)}
-                    placeholder={`تسمية مخصّصة — الافتراضيّ: ${SERVICE_LABELS[s.key] ?? s.key}`}
-                    maxLength={40}
-                    className="mt-2 h-8 w-full rounded-lg border border-neutral-200 px-2.5 text-xs"
-                  />
-                </li>
-              ))}
-            </ul>
-          </CardBody>
-        </Card>
-      )}
-
-      {tab === "governorates" && <GovernoratesTab />}
-      {tab === "ads" && <AdsTab />}
-
-      {/* شريط الحفظ الثابت — لتبويبات المظهر (JSON) فقط */}
-      {showSaveBar && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-3 backdrop-blur md:mr-56">
-          <div className="mx-auto flex max-w-3xl items-center gap-3 px-2">
-            <span className={`flex-1 text-xs font-medium ${dirty ? "text-warning" : "text-neutral-400"}`}>
-              {dirty ? "● تغييرات غير محفوظة" : "كل التغييرات محفوظة"}
-            </span>
-            {dirty && (
-              <Button variant="outline" size="sm" onClick={discard}>
-                <Undo2 className="h-4 w-4" /> تراجع
-              </Button>
-            )}
-            <Button
-              size="lg"
-              loading={save.isPending}
-              disabled={!allValid || !dirty}
-              onClick={() => save.mutate({ colors, sections, services, sectionTitles, serviceLabels })}
-            >
-              {allValid ? "حفظ المظهر" : "أدخِل ألواناً صحيحة"}
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
+  );
+}
+
+function Stat({ n, unit, loading }: { n: number; unit: string; loading?: boolean }) {
+  return (
+    <span className="inline-flex items-baseline gap-1 rounded-lg bg-neutral-50 px-2.5 py-1">
+      <span className="text-lg font-extrabold text-brand-700 nums">{loading ? "…" : n}</span>
+      <span className="text-[11px] text-neutral-500">{unit}</span>
+    </span>
   );
 }

@@ -1067,7 +1067,7 @@ export const adminRouter = router({
       enabled: r.enabled,
       tagline: r.tagline,
       heroImageUrl: r.heroImageUrl,
-      souks: (r.souks as { label: string; q: string; img?: string; emoji?: string }[] | null) ?? [],
+      souks: (r.souks as { label: string; q: string; img?: string; emoji?: string; color?: string; status?: "active" | "hidden" }[] | null) ?? [],
       vendorCount: r._count.vendors,
       adCount: r._count.ads,
     }));

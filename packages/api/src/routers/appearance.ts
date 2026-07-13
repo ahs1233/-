@@ -12,10 +12,20 @@ export interface SectionCfg {
   key: string;
   visible: boolean;
 }
+export type ServiceStatus = "active" | "beta" | "soon" | "hidden";
 export interface ServiceCfg {
   key: string;
   visible: boolean;
   soon: boolean;
+  status: ServiceStatus;
+}
+
+/** يستنبط الحالة الرباعيّة الرسميّة من status أو من رايتَي visible/soon القديمتَين. */
+export function normalizeServiceStatus(s: { visible?: boolean; soon?: boolean; status?: string }): ServiceStatus {
+  if (s.status === "active" || s.status === "beta" || s.status === "soon" || s.status === "hidden") return s.status;
+  if (s.visible === false) return "hidden";
+  if (s.soon) return "soon";
+  return "active";
 }
 export interface Appearance {
   colors: { primary: string; accent: string; surface: string; live: string };
@@ -43,7 +53,7 @@ const DEFAULTS: Appearance = {
     { key: "delivery", soon: true },
     { key: "realestate", soon: true },
     { key: "cars", soon: true },
-  ].map((s) => ({ ...s, visible: true })),
+  ].map((s) => ({ ...s, visible: true, status: (s.soon ? "soon" : "active") as ServiceStatus })),
   sectionTitles: {},
   serviceLabels: {},
 };
@@ -54,6 +64,8 @@ export interface SoukTile {
   q: string;
   img?: string;
   emoji?: string;
+  color?: string;
+  status?: "active" | "hidden";
 }
 export interface GovPresentation {
   tagline: string | null;
@@ -93,8 +105,15 @@ export const appearanceRouter = router({
       sections = (v.homeOrder as string[]).map((key) => ({ key, visible: true }));
     }
 
-    const services =
-      Array.isArray(v.services) && v.services.length ? (v.services as ServiceCfg[]) : DEFAULTS.services;
+    // تطبيع الخدمات إلى الحالة الرباعيّة الرسميّة (مع الحفاظ على visible/soon للتوافق).
+    const rawServices =
+      Array.isArray(v.services) && v.services.length
+        ? (v.services as { key: string; visible?: boolean; soon?: boolean; status?: string }[])
+        : DEFAULTS.services;
+    const services: ServiceCfg[] = rawServices.map((s) => {
+      const status = normalizeServiceStatus(s);
+      return { key: s.key, status, visible: status !== "hidden", soon: status === "soon" };
+    });
 
     const sectionTitles =
       v.sectionTitles && typeof v.sectionTitles === "object" ? (v.sectionTitles as Record<string, string>) : {};
@@ -134,12 +153,14 @@ export const appearanceRouter = router({
         }),
       ]);
 
+      const souks = (gov?.souks as SoukTile[] | null) ?? null;
       return {
         governorate: gov
           ? {
               tagline: gov.tagline,
               heroImageUrl: gov.heroImageUrl,
-              souks: (gov.souks as SoukTile[] | null) ?? null,
+              // نُخفي الأسواق ذات الحالة "hidden" عن الواجهة.
+              souks: souks ? souks.filter((s) => s.status !== "hidden") : null,
               enabled: gov.enabled,
             }
           : null,

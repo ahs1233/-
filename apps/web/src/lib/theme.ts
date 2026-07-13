@@ -34,7 +34,25 @@ export const PRESETS: ThemePreset[] = [
 
 /* ── الأقسام والخدمات: مفاتيحُها المرجعيّة وتراتيبها الافتراضيّة ── */
 export interface SectionCfg { key: string; visible: boolean; }
-export interface ServiceCfg { key: string; visible: boolean; soon: boolean; }
+export type ServiceStatus = "active" | "beta" | "soon" | "hidden";
+export interface ServiceCfg { key: string; status: ServiceStatus; visible?: boolean; soon?: boolean; }
+
+/** حالات الخدمة الأربع بتسمياتها وألوانها (للوحة الإدارة). */
+export const SERVICE_STATUS_META: Record<ServiceStatus, { label: string; dot: string; chip: string }> = {
+  active: { label: "مُفعّل", dot: "bg-petrol", chip: "bg-petrol/10 text-petrol" },
+  beta: { label: "تجريبيّ", dot: "bg-amber-400", chip: "bg-amber-100 text-amber-700" },
+  soon: { label: "قريباً", dot: "bg-gold-500", chip: "bg-gold-100 text-gold-700" },
+  hidden: { label: "مخفيّ", dot: "bg-neutral-400", chip: "bg-neutral-200 text-neutral-500" },
+};
+export const SERVICE_STATUS_ORDER: ServiceStatus[] = ["active", "beta", "soon", "hidden"];
+
+/** يستنبط الحالة الرباعيّة من status أو رايتَي visible/soon القديمتَين. */
+export function serviceStatusOf(s: { status?: ServiceStatus; visible?: boolean; soon?: boolean }): ServiceStatus {
+  if (s.status) return s.status;
+  if (s.visible === false) return "hidden";
+  if (s.soon) return "soon";
+  return "active";
+}
 
 export const SECTION_LABELS: Record<string, string> = {
   services: "شبكة الخدمات",
@@ -68,18 +86,18 @@ export const SERVICE_LABELS: Record<string, string> = {
 };
 
 export const DEFAULT_SERVICES: ServiceCfg[] = [
-  { key: "stores", visible: true, soon: false },
-  { key: "offers", visible: true, soon: false },
-  { key: "mutanabbi", visible: true, soon: false },
-  { key: "restaurants", visible: true, soon: true },
-  { key: "veg", visible: true, soon: true },
-  { key: "butchers", visible: true, soon: true },
-  { key: "pharmacy", visible: true, soon: true },
-  { key: "cafes", visible: true, soon: true },
-  { key: "oud", visible: true, soon: true },
-  { key: "delivery", visible: true, soon: true },
-  { key: "realestate", visible: true, soon: true },
-  { key: "cars", visible: true, soon: true },
+  { key: "stores", status: "active" },
+  { key: "offers", status: "active" },
+  { key: "mutanabbi", status: "active" },
+  { key: "restaurants", status: "soon" },
+  { key: "veg", status: "soon" },
+  { key: "butchers", status: "soon" },
+  { key: "pharmacy", status: "soon" },
+  { key: "cafes", status: "soon" },
+  { key: "oud", status: "soon" },
+  { key: "delivery", status: "soon" },
+  { key: "realestate", status: "soon" },
+  { key: "cars", status: "soon" },
 ];
 
 export interface Appearance {

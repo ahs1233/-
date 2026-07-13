@@ -214,7 +214,7 @@ export function SoukTiles({
   title,
 }: {
   governorate?: string;
-  souks?: { label: string; q: string; img?: string; emoji?: string }[];
+  souks?: { label: string; q: string; img?: string; emoji?: string; color?: string; status?: "active" | "hidden" }[];
   title?: string;
 }) {
   const souks = souksOverride && souksOverride.length ? souksOverride : govIdentity(governorate).souks;
@@ -247,7 +247,10 @@ export function SoukTiles({
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-900/85 via-brand-900/20 to-transparent" />
               </>
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-700 to-brand-900">
+              <div
+                className={`flex h-full w-full items-center justify-center ${s.color ? "" : "bg-gradient-to-br from-brand-700 to-brand-900"}`}
+                style={s.color ? { backgroundImage: `linear-gradient(to bottom right, ${s.color}, #16223b)` } : undefined}
+              >
                 <span className="text-4xl opacity-90 drop-shadow" aria-hidden>
                   {s.emoji}
                 </span>
