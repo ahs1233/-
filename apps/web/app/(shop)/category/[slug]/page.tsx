@@ -30,9 +30,9 @@ export default async function CategoryPage({ params }: { params: { slug: string 
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-extrabold text-brand-800">{category.nameAr}</h1>
+      <h1 className="text-xl font-extrabold text-neutral-100">{category.nameAr}</h1>
       {products.items.length === 0 ? (
-        <p className="text-neutral-500">لا توجد منتجات في هذه الفئة.</p>
+        <p className="text-neutral-400">لا توجد منتجات في هذه الفئة.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {products.items.map((p) => (

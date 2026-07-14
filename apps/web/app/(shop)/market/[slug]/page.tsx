@@ -17,7 +17,8 @@ import { marketDisplayName } from "@/src/lib/market";
 export const dynamic = "force-dynamic";
 
 function Band({ surface, children }: { surface: "ivory" | "white"; children: React.ReactNode }) {
-  return <div className={`-mx-4 px-4 py-6 ${surface === "white" ? "bg-white" : "bg-sand-50"}`}>{children}</div>;
+  // إيقاعٌ بصريّ داكن: نتبادل بين خلفيّة الصفحة والبطاقة بدل العاجيّ/الأبيض.
+  return <div className={`-mx-4 px-4 py-6 ${surface === "white" ? "bg-card/40" : "bg-page"}`}>{children}</div>;
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -64,7 +65,7 @@ export default async function MarketPage({ params }: { params: { slug: string } 
       </div>
 
       <div className="-mx-4 px-4 py-6">
-        <Link href="/" className="flex items-center justify-center gap-1 text-sm font-medium text-gold-700 hover:text-gold-600">
+        <Link href="/" className="flex items-center justify-center gap-1 text-sm font-medium text-gold-400 hover:text-gold-300">
           <ChevronLeft className="h-4 w-4 rotate-180" /> عُد لاختيار سوقٍ آخر
         </Link>
       </div>
@@ -111,16 +112,16 @@ async function StoresMarket({ govName, govId }: { govName?: string; govId?: stri
       )}
       {categories.length > 0 && (
         <Band surface="ivory">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-brand-800">
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
             <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> تسوّق حسب الفئة
           </h2>
           <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
             {categories.slice(0, 12).map((c) => (
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
-                <span className="grid h-16 w-16 place-items-center rounded-2xl border border-sand-200 bg-gradient-to-b from-white to-sand-50 text-brand-700 shadow-sm transition group-hover:border-gold-300 group-hover:from-gold-50 group-hover:to-gold-100">
+                <span className="bg-card2 grid h-16 w-16 place-items-center rounded-2xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
                   <CategoryIcon name={c.icon} className="h-6 w-6" />
                 </span>
-                <span className="line-clamp-1 text-center text-[11px] font-medium text-neutral-700">{c.nameAr}</span>
+                <span className="line-clamp-1 text-center text-[11px] font-medium text-neutral-300">{c.nameAr}</span>
               </Link>
             ))}
           </div>
@@ -145,12 +146,12 @@ async function CategoryMarket({ slug, name, govId }: { slug: string; name: strin
     <>
       {subs.length > 0 && (
         <Band surface="white">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-brand-800">
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
             <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> أقسام {name}
           </h2>
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {subs.map((s) => (
-              <Link key={s.id} href={`/category/${s.slug}`} className="flex-shrink-0 rounded-full border border-sand-200 bg-white px-4 py-2 text-sm font-medium text-brand-700 shadow-sm transition hover:border-gold-300">
+              <Link key={s.id} href={`/category/${s.slug}`} className="bg-card2 flex-shrink-0 rounded-full border border-line px-4 py-2 text-sm font-medium text-neutral-200 shadow-sm transition hover:border-gold-500/50">
                 {s.nameAr}
               </Link>
             ))}
@@ -159,10 +160,10 @@ async function CategoryMarket({ slug, name, govId }: { slug: string; name: strin
       )}
       <Band surface="ivory">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+          <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
             <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> منتجات {name}
           </h2>
-          <Link href={`/category/${slug}`} className="flex items-center gap-0.5 text-sm font-medium text-gold-700 hover:text-gold-600">
+          <Link href={`/category/${slug}`} className="flex items-center gap-0.5 text-sm font-medium text-gold-400 hover:text-gold-300">
             الكل <ChevronLeft className="h-4 w-4" />
           </Link>
         </div>
@@ -173,7 +174,7 @@ async function CategoryMarket({ slug, name, govId }: { slug: string; name: strin
             ))}
           </div>
         ) : (
-          <p className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
+          <p className="rounded-2xl border border-dashed border-line p-10 text-center text-neutral-500">
             لا توجد منتجات في هذا السوق بعد.
           </p>
         )}
@@ -186,13 +187,13 @@ async function CategoryMarket({ slug, name, govId }: { slug: string; name: strin
 function ComingSoon({ name }: { name: string }) {
   return (
     <Band surface="white">
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-gold-200 bg-gradient-to-b from-sand-50 to-white py-14 text-center">
-        <span className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-gold-300">
+      <div className="bg-card flex flex-col items-center gap-3 rounded-3xl border border-gold-500/25 py-14 text-center">
+        <span className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-gold-300 ring-1 ring-gold-500/30">
           <Clock className="h-8 w-8" />
         </span>
-        <p className="text-xl font-extrabold text-brand-800">سوق {name} يفتح أبوابه قريباً</p>
-        <p className="max-w-xs text-sm text-neutral-500">نُجهّز لك هذا السوق ليكون عالماً كاملاً — تجّاره، عروضه، وخدماته. ترقّبه.</p>
-        <Link href="/" className="mt-1 rounded-xl bg-gold-500 px-5 py-2.5 text-sm font-extrabold text-brand-900">تصفّح الأسواق المتاحة</Link>
+        <p className="text-xl font-extrabold text-neutral-100">{name} يفتح أبوابه قريباً</p>
+        <p className="max-w-xs text-sm text-neutral-400">نُجهّز لك هذا السوق ليكون عالماً كاملاً — تجّاره، عروضه، وخدماته. ترقّبه.</p>
+        <Link href="/" className="mt-1 rounded-xl bg-gold-500 px-5 py-2.5 text-sm font-extrabold text-brand-900 hover:bg-gold-400">تصفّح الأسواق المتاحة</Link>
       </div>
     </Band>
   );

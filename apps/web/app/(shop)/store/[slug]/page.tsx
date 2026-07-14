@@ -59,7 +59,7 @@ export default async function StorePage({ params }: { params: { slug: string } }
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* الواجهة — تدخل محلاً، لا تفتح بطاقة. صاحبه حاضرٌ يرحّب بك. */}
-      <section className="overflow-hidden rounded-3xl border border-gold-200 bg-sand-50 shadow-sm">
+      <section className="bg-card overflow-hidden rounded-3xl border border-line shadow-sm">
         {/* واجهة المحل — لافتته وسِتارته */}
         <div className="relative h-28 sm:h-32">
           {vendor.bannerUrl ? (
@@ -80,7 +80,7 @@ export default async function StorePage({ params }: { params: { slug: string } }
         <div className="relative px-4 pb-4">
           {/* ختم صاحب المحل */}
           <div className="flex items-end gap-3">
-            <span className="-mt-12 grid h-24 w-24 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-sand-50 bg-white text-brand-600 shadow-md ring-1 ring-gold-300">
+            <span className="bg-card2 -mt-12 grid h-24 w-24 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-[rgb(var(--c-card))] text-gold-300 shadow-md ring-1 ring-gold-500/40">
               {vendor.logoUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img loading="lazy" decoding="async" src={vendor.logoUrl} alt={vendor.storeName} className="h-full w-full object-cover" />
@@ -89,12 +89,12 @@ export default async function StorePage({ params }: { params: { slug: string } }
               )}
             </span>
             <div className="flex-1 pb-1">
-              <h1 className="flex items-center gap-1.5 text-xl font-extrabold text-neutral-900">
+              <h1 className="flex items-center gap-1.5 text-xl font-extrabold text-neutral-100">
                 {vendor.storeName}
-                <BadgeCheck className="h-5 w-5 text-brand-500" aria-label="متجر موثّق" />
+                <BadgeCheck className="h-5 w-5 text-gold-400" aria-label="متجر موثّق" />
               </h1>
               {vendor.governorate && (
-                <p className="mt-0.5 flex items-center gap-1 text-sm text-neutral-500">
+                <p className="mt-0.5 flex items-center gap-1 text-sm text-neutral-400">
                   <MapPin className="h-3.5 w-3.5" /> {vendor.governorate.nameAr}
                 </p>
               )}
@@ -102,10 +102,10 @@ export default async function StorePage({ params }: { params: { slug: string } }
           </div>
 
           {/* صوت صاحب المحل */}
-          <p className="mt-3 rounded-2xl border border-gold-200 bg-white/70 px-4 py-3 text-sm leading-relaxed text-neutral-700">
+          <p className="bg-card2 mt-3 rounded-2xl border border-line px-4 py-3 text-sm leading-relaxed text-neutral-300">
             {vendor.description ? (
               <>
-                <span className="font-bold text-gold-700">صاحب المتجر:</span> «{vendor.description}»
+                <span className="font-bold text-gold-300">صاحب المتجر:</span> «{vendor.description}»
               </>
             ) : (
               <>أهلاً بك في محلّي — تصفّح على راحتك، وما يعجبك يصلك حتى بابك.</>
@@ -122,10 +122,10 @@ export default async function StorePage({ params }: { params: { slug: string } }
               )}
               {hasRating && <span className="text-neutral-400"> ({vendor.ratingCount})</span>}
             </Badge>
-            <Badge icon={<Package className="h-3.5 w-3.5 text-brand-600" />}>
+            <Badge icon={<Package className="h-3.5 w-3.5 text-gold-400" />}>
               <span className="nums">{vendor.productCount}</span> منتج
             </Badge>
-            <Badge icon={<CalendarDays className="h-3.5 w-3.5 text-brand-600" />}>
+            <Badge icon={<CalendarDays className="h-3.5 w-3.5 text-gold-400" />}>
               في السوگ منذ <span className="nums">{year}</span>
             </Badge>
             <Badge icon={<Truck className="h-3.5 w-3.5 text-petrol" />}>الدفع عند الاستلام</Badge>
@@ -135,12 +135,12 @@ export default async function StorePage({ params }: { params: { slug: string } }
 
       {/* الرفوف */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-brand-800">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
           على الرفوف <span className="text-sm font-medium text-neutral-400">· <span className="nums">{vendor.productCount}</span> منتج</span>
         </h2>
         {products.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
+          <div className="rounded-2xl border border-dashed border-line p-10 text-center text-neutral-400">
             الرفوف قيد التجهيز — لا توجد منتجات بعد.
           </div>
         ) : (
@@ -160,7 +160,7 @@ export default async function StorePage({ params }: { params: { slug: string } }
 
 function Badge({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 shadow-sm">
+    <span className="bg-card2 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-medium text-neutral-300 shadow-sm">
       {icon}
       {children}
     </span>

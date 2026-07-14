@@ -86,6 +86,32 @@
   }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   قشرة السوق الداكنة (souq-dark): شبكةُ أمانٍ تُحوّل الأسطح البيضاء
+   المشتركة (بطاقات UI، الحقول، الحدود الفاتحة) إلى أسطحٍ ليليّة داخل
+   واجهة المشتري فقط — دون لمس لوحتي الإدارة/التاجر. قواعدُ غير مُطبَّقة
+   ضمن @layer كي تتفوّق في الأولويّة على أدوات Tailwind أحاديّة الصنف.
+   النصوص الداكنة الافتراضيّة تُرفع إلى فاتحة كي تُقرأ على الليل.
+   ───────────────────────────────────────────────────────────── */
+.souq-dark .bg-white { background-color: rgb(var(--c-card)); }
+.souq-dark .bg-neutral-50,
+.souq-dark .bg-neutral-100,
+.souq-dark .bg-sand-50,
+.souq-dark .bg-sand-100,
+.souq-dark .bg-brand-50,
+.souq-dark .bg-gold-50 { background-color: rgb(var(--c-card-2)); }
+.souq-dark .border-neutral-100,
+.souq-dark .border-neutral-200,
+.souq-dark .border-neutral-300,
+.souq-dark .border-sand-200 { border-color: rgb(var(--c-line)); }
+.souq-dark .text-neutral-900,
+.souq-dark .text-neutral-800,
+.souq-dark .text-neutral-700,
+.souq-dark .text-neutral-600 { color: rgb(212 212 212); } /* neutral-300 */
+.souq-dark .text-brand-800,
+.souq-dark .text-brand-700,
+.souq-dark .text-brand-600 { color: rgb(var(--c-gold-300)); }
+
 @layer utilities {
   /* الفانوس لا يضيء بالكامل — الضوء يهتزّ (قانون السلوك) */
   @keyframes souq-flicker {

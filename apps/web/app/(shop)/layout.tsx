@@ -13,7 +13,9 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
 
   const gov = getGovernorate();
   return (
-    <div className="bg-page flex min-h-screen flex-col">
+    // السوق داكنٌ بالكامل: النصّ الافتراضيّ فاتحٌ كي يُقرأ على الخلفيّة الليليّة.
+    // (login/admin/vendor خارج هذه المجموعة ويضبطون نصّهم الخاصّ.)
+    <div className="souq-dark bg-page flex min-h-screen flex-col text-neutral-100">
       <Header gov={gov} />
       <main className="container-app flex-1 py-4">{children}</main>
       <Footer />

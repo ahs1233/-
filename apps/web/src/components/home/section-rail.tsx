@@ -7,13 +7,13 @@ import { StoreRailCard, type StoreRailData } from "@/src/components/home/store-r
 function RailHead({ emoji, title, href }: { emoji?: string; title: string; href?: string }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+      <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
         <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
         {emoji && <span aria-hidden>{emoji}</span>}
         {title}
       </h2>
       {href && (
-        <Link href={href} className="flex items-center gap-0.5 text-sm font-medium text-gold-700 hover:text-gold-600">
+        <Link href={href} className="flex items-center gap-0.5 text-sm font-medium text-gold-400 hover:text-gold-300">
           الكل <ChevronLeft className="h-4 w-4" />
         </Link>
       )}

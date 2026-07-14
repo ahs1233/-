@@ -17,7 +17,7 @@ export function QtyStepper({
   const btn = size === "sm" ? "px-2.5 py-1" : "px-3 py-2";
   const box = size === "sm" ? "text-sm" : "";
   return (
-    <div className={`flex items-center rounded-lg border border-neutral-300 ${box}`}>
+    <div className={`bg-card2 flex items-center rounded-lg border border-line ${box}`}>
       <button
         type="button"
         aria-label="إنقاص الكمية"

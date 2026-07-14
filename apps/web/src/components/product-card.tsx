@@ -19,9 +19,9 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   return (
     <Link
       href={`/product/${product.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gold-200 bg-white shadow-md ring-1 ring-gold-100/70 transition-all hover:-translate-y-0.5 hover:border-gold-300 hover:shadow-lg hover:ring-gold-200"
+      className="bg-card group flex h-full flex-col overflow-hidden rounded-2xl border border-line shadow-md ring-1 ring-gold-500/10 transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-lg hover:ring-gold-500/25"
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-sand-100">
+      <div className="bg-card2 relative aspect-square w-full overflow-hidden">
         <AppImage
           src={product.image ?? "/placeholder-product.svg"}
           alt={product.title}
@@ -35,7 +35,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </span>
         )}
         {product.ratingCount > 0 && (
-          <span className="absolute end-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-xs font-bold text-gold-600 shadow-sm backdrop-blur">
+          <span className="absolute end-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand-900/90 px-2 py-0.5 text-xs font-bold text-gold-300 shadow-sm ring-1 ring-gold-500/30 backdrop-blur">
             <Star className="h-3 w-3 fill-gold-500 text-gold-500" />
             {product.ratingAvg.toFixed(1)}
           </span>
@@ -45,10 +45,10 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-0.5 p-3">
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-neutral-900">{product.title}</h3>
-        <p className="line-clamp-1 text-xs font-medium text-brand-600">{product.vendor.storeName}</p>
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-neutral-100">{product.title}</h3>
+        <p className="line-clamp-1 text-xs font-medium text-neutral-400">{product.vendor.storeName}</p>
         <div className="mt-auto pt-1.5">
-          <span className="text-lg font-extrabold text-brand-800 nums">{formatIQD(product.price)}</span>
+          <span className="text-lg font-extrabold text-gold-300 nums">{formatIQD(product.price)}</span>
         </div>
       </div>
     </Link>

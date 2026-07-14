@@ -20,11 +20,11 @@ export function ProductsTabs({ title = "المنتجات", tabs }: { title?: str
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+        <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
           {title}
         </h2>
-        <Link href="/search" className="flex items-center gap-0.5 text-sm font-medium text-gold-700 hover:text-gold-600">
+        <Link href="/search" className="flex items-center gap-0.5 text-sm font-medium text-gold-400 hover:text-gold-300">
           الكل <ChevronLeft className="h-4 w-4" />
         </Link>
       </div>
@@ -37,7 +37,7 @@ export function ProductsTabs({ title = "المنتجات", tabs }: { title?: str
             <button
               key={t.key}
               onClick={() => setActive(t.key)}
-              className={`relative whitespace-nowrap pb-2 text-sm font-bold transition ${on ? "text-brand-800" : "text-neutral-400 hover:text-neutral-600"}`}
+              className={`relative whitespace-nowrap pb-2 text-sm font-bold transition ${on ? "text-gold-300" : "text-neutral-400 hover:text-neutral-200"}`}
             >
               {t.label}
               {on && <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-gold-500" />}

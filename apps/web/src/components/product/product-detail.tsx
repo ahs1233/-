@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ZoomIn, X, MapPin, ShieldCheck, ShoppingCart, ChevronLeft } from "lucide-react";
-import { Button, Card, CardBody, useToast } from "@al-souq/ui";
+import { Button, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { useCart } from "@/src/store/cart";
@@ -89,12 +89,12 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
   return (
     <div className="space-y-5">
       {/* الصور — سلعةٌ على طاولة، تُقلَّب وتُقرَّب للعين */}
-      <Card className="overflow-hidden">
+      <div className="bg-card overflow-hidden rounded-2xl border border-line">
         <button
           type="button"
           onClick={() => setZoom(true)}
           aria-label="قرّب الصورة لعينك"
-          className="group relative block aspect-square w-full overflow-hidden bg-gradient-to-b from-sand-100 to-sand-50"
+          className="bg-card2 group relative block aspect-square w-full overflow-hidden"
         >
           <AppImage
             src={product.images[imgIdx]?.url ?? "/placeholder-product.svg"}
@@ -115,7 +115,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                 onClick={() => setImgIdx(i)}
                 aria-label={`عرض الصورة ${i + 1}`}
                 aria-current={i === imgIdx}
-                className={`h-14 w-14 flex-shrink-0 overflow-hidden rounded border-2 ${i === imgIdx ? "border-brand-500" : "border-transparent"}`}
+                className={`h-14 w-14 flex-shrink-0 overflow-hidden rounded border-2 ${i === imgIdx ? "border-gold-500" : "border-transparent"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img loading="lazy" decoding="async" src={im.url} alt="" className="h-full w-full object-cover" />
@@ -123,7 +123,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* المعلومات */}
       <div className="space-y-3">
@@ -140,7 +140,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 
         <Link
           href={`/store/${product.vendor.slug}`}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-300"
         >
           <ShieldCheck className="h-4 w-4" />
           {product.vendor.storeName}
@@ -152,13 +152,13 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
         </Link>
 
         {/* طاولة البائع — السعر والخيار والكمية والشراء */}
-        <div className="rounded-3xl border border-gold-200 bg-gradient-to-b from-sand-50 to-white p-4 shadow-sm">
+        <div className="bg-card rounded-3xl border border-gold-500/25 p-4 shadow-sm">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-3xl font-extrabold text-neutral-900 nums">
+            <span className="text-3xl font-extrabold text-gold-300 nums">
               {selected ? formatIQD(selected.price) : formatIQD(product.basePrice)}
             </span>
             {product.ratingCount > 0 && (
-              <span className="text-sm font-semibold text-gold-600">
+              <span className="text-sm font-semibold text-gold-300">
                 ★ {product.ratingAvg.toFixed(1)}{" "}
                 <span className="font-normal text-neutral-400">({product.ratingCount})</span>
               </span>
@@ -168,7 +168,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           {/* الخيارات */}
           {product.variants.length > 1 && (
             <div className="mt-4">
-              <p className="mb-1.5 text-sm font-medium text-neutral-700">الخيار</p>
+              <p className="mb-1.5 text-sm font-medium text-neutral-300">الخيار</p>
               <div className="flex flex-wrap gap-2">
                 {product.variants.map((v) => (
                   <button
@@ -177,8 +177,8 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                     onClick={() => setSelectedId(v.id)}
                     className={`rounded-xl border px-3 py-1.5 text-sm transition ${
                       v.id === selected?.id
-                        ? "border-brand-500 bg-brand-50 font-semibold text-brand-700"
-                        : "border-neutral-300 bg-white hover:border-neutral-400"
+                        ? "border-gold-500 bg-gold-500/15 font-semibold text-gold-200"
+                        : "bg-card2 border-line hover:border-gold-500/40"
                     } ${v.available <= 0 ? "opacity-40" : ""}`}
                   >
                     {variantLabel(v.attributes)}
@@ -210,7 +210,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           {cartCount > 0 && (
             <Link
               href="/cart"
-              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-brand-600 bg-white py-3 text-sm font-bold text-brand-700 transition hover:bg-brand-50"
+              className="bg-card2 mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-gold-500/40 py-3 text-sm font-bold text-gold-200 transition hover:border-gold-500/70"
             >
               <ShoppingCart className="h-4 w-4" />
               السلة ({cartCount}) — إكمال الطلب
@@ -224,12 +224,10 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
         </div>
 
         {product.description && (
-          <Card>
-            <CardBody>
-              <h2 className="mb-1 font-bold">الوصف</h2>
-              <p className="whitespace-pre-line text-sm text-neutral-700">{product.description}</p>
-            </CardBody>
-          </Card>
+          <div className="bg-card rounded-2xl border border-line p-4">
+            <h2 className="mb-1 font-bold text-neutral-100">الوصف</h2>
+            <p className="whitespace-pre-line text-sm text-neutral-300">{product.description}</p>
+          </div>
         )}
 
         <ReviewsSection productId={product.id} />

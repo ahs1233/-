@@ -171,7 +171,7 @@ export function MarketPulse({ events, governorate, title }: { events: PulseEvent
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
-        <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+        <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
           {title ?? `نبض ${governorate ?? "السوق"}`}
         </h2>
@@ -183,7 +183,7 @@ export function MarketPulse({ events, governorate, title }: { events: PulseEvent
           مباشر
         </span>
       </div>
-      <p className="mb-3 -mt-1 ps-3 text-xs text-neutral-500">ليست منتجات — بل حياةُ السوق اليوم</p>
+      <p className="mb-3 -mt-1 ps-3 text-xs text-neutral-400">ليست منتجات — بل حياةُ السوق اليوم</p>
       <div className="grid gap-2.5 sm:grid-cols-2">
         {events.map((e) => {
           const cfg = PULSE_ICON[e.kind];
@@ -191,14 +191,14 @@ export function MarketPulse({ events, governorate, title }: { events: PulseEvent
           return (
             <div
               key={e.id}
-              className="flex items-center gap-3 rounded-2xl border border-sand-200 bg-white/80 px-3.5 py-3 shadow-sm"
+              className="bg-card flex items-center gap-3 rounded-2xl border border-line px-3.5 py-3 shadow-sm"
             >
               <span className={`relative grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl ring-1 ${cfg.wrap}`}>
                 <Icon className={`h-5 w-5 ${cfg.color}`} />
-                <span className={`absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${cfg.dot}`} />
+                <span className={`absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-[rgb(var(--c-card))] ${cfg.dot}`} />
               </span>
-              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-neutral-800">{e.text}</p>
-              <span className="flex-shrink-0 self-start text-[10px] text-neutral-400">{e.when}</span>
+              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-neutral-200">{e.text}</p>
+              <span className="flex-shrink-0 self-start text-[10px] text-neutral-500">{e.when}</span>
             </div>
           );
         })}
@@ -221,7 +221,7 @@ export function SoukTiles({
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-extrabold text-brand-800">
+        <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
           <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
           <span aria-hidden>🕌</span>
           {title ?? `أسواق ${governorate ?? "العراق"}`}
