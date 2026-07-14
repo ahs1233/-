@@ -4,12 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import type { MarketItem } from "@al-souq/api";
+import { marketDisplayName } from "@/src/lib/market";
 
 /**
  * «اختر السوق الذي يناسبك» — شبكةُ أيقوناتٍ بأربعة أعمدة (لا بطاقات صور). كلّ سوقٍ
- * عالمٌ مستقلّ. تُعرض ثمانية، والباقي خلف «المزيد».
+ * عالمٌ مستقلّ. تُعرض ثمانية، والباقي خلف «المزيد». يتكيّف اسم السوق مع المحافظة:
+ * «سوگ {gov}» ← «سوگ بغداد».
  */
-export function MarketGrid({ markets }: { markets: MarketItem[] }) {
+export function MarketGrid({ markets, govName }: { markets: MarketItem[]; govName?: string }) {
   const [expanded, setExpanded] = useState(false);
   if (!markets.length) return null;
   const INITIAL = 8;
@@ -28,7 +30,7 @@ export function MarketGrid({ markets }: { markets: MarketItem[] }) {
                 <span className="absolute -top-1.5 -start-1.5 rounded-full bg-gold-500 px-1.5 py-0.5 text-[8px] font-extrabold text-brand-900">قريباً</span>
               )}
             </span>
-            <span className="line-clamp-1 text-center text-[11px] font-semibold text-neutral-200">{m.nameAr}</span>
+            <span className="line-clamp-1 text-center text-[11px] font-semibold text-neutral-200">{marketDisplayName(m.nameAr, govName)}</span>
           </Link>
         ))}
       </div>

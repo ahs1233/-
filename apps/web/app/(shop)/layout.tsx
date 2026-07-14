@@ -13,7 +13,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
 
   const gov = getGovernorate();
   return (
-    <div className="bg-page flex min-h-screen flex-col text-neutral-100">
+    <div className="bg-page flex min-h-screen flex-col">
       <Header gov={gov} />
       <main className="container-app flex-1 py-4">{children}</main>
       <Footer />

@@ -12,6 +12,7 @@ import { ProductsTabs } from "@/src/components/home/products-tabs";
 import { StoreRail } from "@/src/components/home/section-rail";
 import { ProductCard } from "@/src/components/product-card";
 import { resolveGovIdentity } from "@/src/lib/governorate-identity";
+import { marketDisplayName } from "@/src/lib/market";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export default async function MarketPage({ params }: { params: { slug: string } 
   const market = await api.market.bySlug({ slug: params.slug }).catch(() => null);
   if (!market) notFound();
 
+  const displayName = marketDisplayName(market.nameAr, gov?.name);
   const extras = await api.discovery.homeExtras({ governorateId: gov?.id }).catch(() => null);
 
   return (
@@ -46,18 +48,18 @@ export default async function MarketPage({ params }: { params: { slug: string } 
         {/* نبض السوق — مشترَكٌ في كلّ سوق */}
         {extras && extras.pulse.length > 0 && (
           <Band surface="ivory">
-            <MarketPulse events={extras.pulse} title={`نبض ${market.nameAr}`} />
+            <MarketPulse events={extras.pulse} title={`نبض ${displayName}`} />
           </Band>
         )}
 
         {market.status === "soon" ? (
-          <ComingSoon name={market.nameAr} />
+          <ComingSoon name={displayName} />
         ) : market.kind === "stores" ? (
           <StoresMarket govName={gov?.name} govId={gov?.id} />
         ) : market.categorySlug ? (
-          <CategoryMarket slug={market.categorySlug} name={market.nameAr} govId={gov?.id} />
+          <CategoryMarket slug={market.categorySlug} name={displayName} govId={gov?.id} />
         ) : (
-          <ComingSoon name={market.nameAr} />
+          <ComingSoon name={displayName} />
         )}
       </div>
 

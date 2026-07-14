@@ -45,7 +45,7 @@ export default async function HomePage() {
       )}
 
       {/* ② اختر السوق الذي يناسبك */}
-      <MarketGrid markets={markets} />
+      <MarketGrid markets={markets} govName={gov?.name} />
 
       {/* ③ نبض السوگ */}
       {extras && extras.pulse.length > 0 && <PulseGrid events={extras.pulse} />}

@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
 
     /* ── أسطح الثيم الداكن (نيليّ ليليّ + ذهب) ── */
     --c-bg: 8 12 22; /* خلفية الصفحة — نيليّ شبه أسود */
@@ -44,7 +44,10 @@
   }
 
   body {
-    @apply text-neutral-100 antialiased;
+    /* خلفيّةٌ داكنة عامّة؛ النصّ الافتراضيّ داكنٌ كي تبقى صفحات البطاقات البيضاء
+       (تسجيل الدخول، السلّة…) مقروءةً أثناء التحويل التدريجيّ للثيم الداكن.
+       الرئيسية والقشرة يضبطان نصّهما الفاتح صراحةً. */
+    @apply text-neutral-900 antialiased;
     background-color: rgb(var(--c-bg));
     font-family: var(--font-sans), "Tajawal", "Cairo", system-ui, sans-serif;
   }
