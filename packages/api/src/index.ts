@@ -10,4 +10,4 @@ export type {
   PulseKind,
 } from "./services/discovery";
 export type { AppContent, AdItem, GovPresentation, Appearance } from "./routers/appearance";
-export type { MarketItem } from "./routers/market";
+export type { MarketItem, MarketDisplayConfig } from "./routers/market";

@@ -570,6 +570,9 @@ model Market {
   kind         String  @default("category") // stores | category | external
   categorySlug String? // لـ kind=category: فئة المنتجات المرتبطة
   channel      String? // لـ kind=stores: physical | online — يعرض بائعي هذه القناة فقط
+  // تخصيصُ عرض هذا السوق تحديداً: { sections: [{key,visible}], sectionTitles: {} }
+  // فارغٌ = يرث الإعداد العامّ. يمنح الأدمن تحكّماً كاملاً بكلّ سوقٍ على حدة.
+  config       Json?
   href         String? // لـ kind=external: وجهة خارجيّة
   status       String  @default("live") // live | soon
   enabled      Boolean @default(true)

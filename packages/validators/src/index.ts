@@ -266,6 +266,14 @@ export const marketUpdateSchema = marketCreateSchema.partial().extend({ id: mark
 export const marketDeleteSchema = z.object({ id: marketId });
 // إعادة ترتيب الأسواق: قائمة معرّفاتٍ بالترتيب المرغوب، يُسند sortOrder = الموضع.
 export const marketReorderSchema = z.object({ ids: z.array(marketId).min(1).max(100) });
+// تخصيصُ عرض سوقٍ بعينه: ترتيب الأقسام وظهورها + تجاوزات العناوين. null = يرث العامّ.
+const marketSectionCfg = z.object({ key: z.string().trim().min(1).max(40), visible: z.boolean() });
+export const marketDisplayUpdateSchema = z.object({
+  id: marketId,
+  sections: z.array(marketSectionCfg).max(20).nullable().optional(),
+  sectionTitles: z.record(z.string().max(40)).nullable().optional(),
+});
+export type MarketDisplayUpdateInput = z.infer<typeof marketDisplayUpdateSchema>;
 export type MarketCreateInput = z.infer<typeof marketCreateSchema>;
 export type MarketUpdateInput = z.infer<typeof marketUpdateSchema>;
 export type MarketReorderInput = z.infer<typeof marketReorderSchema>;

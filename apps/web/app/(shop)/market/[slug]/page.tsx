@@ -48,7 +48,7 @@ export default async function MarketPage({ params }: { params: { slug: string } 
         {market.status === "soon" ? (
           <ComingSoon name={displayName} />
         ) : market.kind === "stores" ? (
-          <StoresMarket channel={market.channel} govName={gov?.name} govId={gov?.id} displayName={displayName} />
+          <StoresMarket channel={market.channel} config={market.config} govName={gov?.name} govId={gov?.id} displayName={displayName} />
         ) : market.categorySlug ? (
           <CategoryMarket slug={market.categorySlug} name={displayName} govId={gov?.id} />
         ) : (
@@ -69,11 +69,13 @@ export default async function MarketPage({ params }: { params: { slug: string } 
    channel يفصل العالم الواقعيّ (physical) عن الإلكترونيّ (online) فيعرض بائعي قناته فقط. ── */
 async function StoresMarket({
   channel,
+  config,
   govName,
   govId,
   displayName,
 }: {
   channel?: string | null;
+  config?: import("@al-souq/api").MarketDisplayConfig | null;
   govName?: string;
   govId?: string;
   displayName: string;
@@ -89,7 +91,9 @@ async function StoresMarket({
     getCachedCategories(),
   ]);
   const identity = resolveGovIdentity(govName, content.governorate);
-  const titles = appearance.sectionTitles ?? {};
+  // إعدادُ هذا السوق تحديداً يتقدّم على الإعداد العامّ (تحكّمٌ كاملٌ لكلّ سوق).
+  const cfgSections = config?.sections && config.sections.length ? config.sections : appearance.sections;
+  const titles = { ...(appearance.sectionTitles ?? {}), ...(config?.sectionTitles ?? {}) };
   const productItems = (key: string) => {
     const s = sections.find((x) => x.key === key);
     return s && s.kind === "products" ? s.items : [];
@@ -141,8 +145,8 @@ async function StoresMarket({
     }
   }
 
-  // الأقسام المرئيّة بالترتيب المحفوظ، مع إيقاعٍ بصريّ متبادل بين السطحين.
-  const rendered = appearance.sections
+  // الأقسام المرئيّة بالترتيب المحفوظ (إعداد السوق أوّلاً، ثمّ العامّ)، بإيقاعٍ متبادل.
+  const rendered = cfgSections
     .filter((s) => s.visible)
     .map((s) => ({ key: s.key, node: band(s.key) }))
     .filter((x) => x.node !== null);

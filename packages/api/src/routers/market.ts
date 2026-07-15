@@ -5,6 +5,10 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
 
+export interface MarketDisplayConfig {
+  sections?: { key: string; visible: boolean }[];
+  sectionTitles?: Record<string, string>;
+}
 export interface MarketItem {
   id: string;
   slug: string;
@@ -17,6 +21,7 @@ export interface MarketItem {
   channel: string | null;
   href: string | null;
   status: string;
+  config?: MarketDisplayConfig | null;
 }
 
 export const marketRouter = router({
@@ -39,11 +44,11 @@ export const marketRouter = router({
         where: { slug: input.slug },
         select: {
           id: true, slug: true, nameAr: true, tagline: true, imageUrl: true,
-          icon: true, kind: true, categorySlug: true, channel: true, href: true, status: true, enabled: true,
+          icon: true, kind: true, categorySlug: true, channel: true, href: true, status: true, enabled: true, config: true,
         },
       });
       if (!m || !m.enabled) return null;
-      const { enabled: _enabled, ...rest } = m;
-      return rest;
+      const { enabled: _enabled, config, ...rest } = m;
+      return { ...rest, config: (config as MarketDisplayConfig | null) ?? null };
     }),
 });

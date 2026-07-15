@@ -22,6 +22,7 @@ import {
   marketUpdateSchema,
   marketDeleteSchema,
   marketReorderSchema,
+  marketDisplayUpdateSchema,
   presignUploadSchema,
   couponCreateSchema,
   couponToggleSchema,
@@ -1231,6 +1232,26 @@ export const adminRouter = router({
   deleteMarket: adminPerm("settings").input(marketDeleteSchema).mutation(async ({ ctx, input }) => {
     await ctx.prisma.market.delete({ where: { id: input.id } });
     await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.delete", entityType: "Market", entityId: input.id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  // تخصيصُ عرض سوقٍ بعينه (ترتيب الأقسام/ظهورها/عناوينها) — تحكّمٌ كاملٌ لكلّ سوق.
+  updateMarketDisplay: adminPerm("settings").input(marketDisplayUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    // نُخزّن الأقسام والعناوين معاً في config؛ null على أيٍّ منهما = مسحه (يرث العامّ).
+    const existing = await ctx.prisma.market.findUnique({ where: { id }, select: { config: true } });
+    const cur = (existing?.config ?? {}) as { sections?: unknown; sectionTitles?: unknown };
+    const next: Record<string, unknown> = { ...cur };
+    if (rest.sections !== undefined) {
+      if (rest.sections === null) delete next.sections;
+      else next.sections = rest.sections;
+    }
+    if (rest.sectionTitles !== undefined) {
+      if (rest.sectionTitles === null) delete next.sectionTitles;
+      else next.sectionTitles = rest.sectionTitles;
+    }
+    const isEmpty = !next.sections && !next.sectionTitles;
+    await ctx.prisma.market.update({ where: { id }, data: { config: isEmpty ? Prisma.DbNull : (next as Prisma.InputJsonValue) } });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.display", entityType: "Market", entityId: id, after: input, ip: ctx.reqIp });
     return { ok: true };
   }),
   // إعادة ترتيب الأسواق دفعةً واحدة: sortOrder = موضع المعرّف في القائمة.

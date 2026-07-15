@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@al-souq/api";
-import { Plus, Trash2, Pencil, Eye, EyeOff, Store, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Pencil, Eye, EyeOff, Store, ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { ImageField } from "../_image-field";
@@ -216,6 +217,7 @@ export default function MarketsManager() {
               <button onClick={() => toggle.mutate({ id: m.id, enabled: !m.enabled })} aria-label={m.enabled ? "إخفاء" : "إظهار"} className="grid h-9 w-9 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100">
                 {m.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
               </button>
+              <Link href={`/admin/appearance/markets/${m.id}`} aria-label="ضبط العرض" title="ضبط عرض هذا السوق" className="grid h-9 w-9 place-items-center rounded-lg text-brand-600 hover:bg-brand-50"><SlidersHorizontal className="h-4 w-4" /></Link>
               <button onClick={() => setEditing(m.id)} aria-label="تعديل" className="grid h-9 w-9 place-items-center rounded-lg text-brand-600 hover:bg-brand-50"><Pencil className="h-4 w-4" /></button>
               <button onClick={() => { if (confirm(`حذف سوق «${m.nameAr}»؟`)) remove.mutate({ id: m.id }); }} aria-label="حذف" className="grid h-9 w-9 place-items-center rounded-lg text-danger hover:bg-danger/10"><Trash2 className="h-4 w-4" /></button>
             </div>
