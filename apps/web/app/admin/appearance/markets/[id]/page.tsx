@@ -9,7 +9,7 @@ import { SECTION_LABELS, DEFAULT_SECTIONS, type SectionCfg } from "@/src/lib/the
 import { trpc } from "@/src/trpc/react";
 
 // الأقسام التي تحمل عنواناً قابلاً للتخصيص داخل السوق.
-const TITLED = new Set(["souks", "products", "stores", "categories"]);
+const TITLED = new Set(["categories", "products", "stores", "top_stores"]);
 
 function reorder<T>(arr: T[], from: number, to: number): T[] {
   if (from === to || to < 0 || to >= arr.length) return arr;

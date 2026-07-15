@@ -55,22 +55,23 @@ export function serviceStatusOf(s: { status?: ServiceStatus; visible?: boolean; 
 }
 
 export const SECTION_LABELS: Record<string, string> = {
-  souks: "أسواق المحافظة",
+  categories: "الأقسام",
+  banner: "الإعلانات",
+  stores: "المتاجر",
+  products: "أفضل المنتجات",
+  top_stores: "أفضل المتاجر",
   pulse: "نبض السوق",
-  banner: "لافتة العروض",
-  products: "المنتجات (تبويبات)",
-  stores: "متاجر مميّزة",
-  categories: "تسوّق حسب الفئة",
-  // مفاتيح قديمة (تبقى مدعومة إن كانت محفوظة)
+  // مفاتيح قديمة (تبقى مدعومة إن كانت محفوظة، لكنها لم تعد تُعرض)
+  souks: "أسواق المحافظة (ملغى)",
   services: "شبكة الخدمات",
   best_selling: "الأكثر شراءً",
   new: "وصل حديثاً",
   featured: "جهة موصى بها",
 };
 
-// عند دخول سوقٍ تُتصدَّر أقسامه (كبوّاباتٍ مستقلّة)، ثمّ بقيّة تفاصيله.
+// التخطيط الموحّد لأيّ سوق: الأقسام ← الإعلانات ← المتاجر ← أفضل المنتجات ← أفضل المتاجر ← النبض.
 export const DEFAULT_SECTIONS: SectionCfg[] = [
-  "categories", "souks", "pulse", "banner", "products", "stores",
+  "categories", "banner", "stores", "products", "top_stores", "pulse",
 ].map((key) => ({ key, visible: true }));
 
 export const SERVICE_LABELS: Record<string, string> = {

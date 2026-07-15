@@ -35,10 +35,10 @@ export interface Appearance {
   serviceLabels: Record<string, string>;
 }
 
-// عند دخول سوقٍ تُتصدَّر أقسامه (كبوّاباتٍ مستقلّة)، ثمّ بقيّة تفاصيله.
-const DEFAULT_SECTION_KEYS = ["categories", "souks", "pulse", "banner", "products", "stores"];
-// مفاتيح التخطيط القديم — وجودها يعني أنّ الإعداد المحفوظ سابقٌ للرحلة الجديدة.
-const LEGACY_SECTION_KEYS = new Set(["services", "best_selling", "new", "featured"]);
+// التخطيط الموحّد لأيّ سوق: الأقسام ← الإعلانات ← المتاجر ← أفضل المنتجات ← أفضل المتاجر ← النبض.
+const DEFAULT_SECTION_KEYS = ["categories", "banner", "stores", "products", "top_stores", "pulse"];
+// مفاتيح تخطيطاتٍ قديمة — وجودها يعني أنّ الإعداد المحفوظ سابقٌ للتخطيط الجديد (يُرقَّى تلقائياً).
+const LEGACY_SECTION_KEYS = new Set(["services", "best_selling", "new", "featured", "souks"]);
 
 const DEFAULTS: Appearance = {
   colors: { primary: "#1a2740", accent: "#c1974e", surface: "#f4ecd9", live: "#2e7d5b" },

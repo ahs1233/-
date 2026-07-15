@@ -7,8 +7,8 @@ import { SECTION_LABELS, type SectionCfg } from "@/src/lib/theme";
 import { useAppearanceDraft } from "../_appearance-draft";
 import { SaveBar } from "../_save-bar";
 
-// الأقسام التي تحمل عنواناً قابلاً للتخصيص في الرئيسية.
-const TITLED = new Set(["souks", "products", "stores", "categories"]);
+// الأقسام التي تحمل عنواناً قابلاً للتخصيص.
+const TITLED = new Set(["categories", "products", "stores", "top_stores"]);
 
 function reorder<T>(arr: T[], from: number, to: number): T[] {
   if (from === to || to < 0 || to >= arr.length) return arr;

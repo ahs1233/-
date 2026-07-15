@@ -788,7 +788,7 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
     { slug: "stores", nameAr: "{gov}", tagline: "قلب المدينة — كلّ متاجرها في مكانٍ واحد", icon: "🏙️", kind: "stores", channel: "physical", status: "live", imageUrl: "/souks/souk-shorja.jpg" },
     // «بغداد الإلكتروني» عالمُ متاجرٍ إلكترونيّة (صفحات إنستغرام/فيسبوك/تيك توك)، لا فئةُ منتجاتٍ واقعيّة.
     { slug: "electronics", nameAr: "{gov} الإلكتروني", tagline: "مشاريعُ وصفحاتٌ على إنستغرام وفيسبوك وتيك توك", icon: "💻", kind: "stores", channel: "online", status: "live" },
-    { slug: "food", nameAr: "الطعام", tagline: "بقالة ومأكولات ومنتجات محليّة", icon: "🍔", kind: "category", categoryName: "بقالة وأطعمة", status: "live", imageUrl: "/souks/souk-spice.jpg" },
+    { slug: "food", nameAr: "المطاعم", tagline: "مطاعم ومأكولات ومنتجات محليّة", icon: "🍽️", kind: "category", categoryName: "بقالة وأطعمة", status: "live", imageUrl: "/souks/souk-spice.jpg" },
     { slug: "realestate", nameAr: "العقار", tagline: "بيع، شراء، إيجار", icon: "🏠", kind: "category", status: "soon" },
     { slug: "cars", nameAr: "السيارات", tagline: "بيع وشراء المركبات", icon: "🚗", kind: "category", status: "soon" },
     { slug: "jobs", nameAr: "الوظائف", tagline: "فرص عمل في العراق", icon: "💼", kind: "category", status: "soon" },

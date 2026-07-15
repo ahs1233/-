@@ -93,9 +93,13 @@ async function distinctBuyerSales7(prisma: PrismaClient): Promise<Map<string, nu
   return new Map(rows.map((r) => [r.productId, Number(r.buyers)]));
 }
 
-async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<Candidate[]> {
+async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: string, categoryIds?: string[]): Promise<Candidate[]> {
   const products = await prisma.product.findMany({
-    where: { status: "ACTIVE", vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) } },
+    where: {
+      status: "ACTIVE",
+      ...(categoryIds && categoryIds.length ? { categoryId: { in: categoryIds } } : {}),
+      vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) },
+    },
     take: POOL_SIZE,
     orderBy: { createdAt: "desc" },
     select: {
@@ -181,21 +185,29 @@ function offerSourceFromPool(pool: Candidate[], trust: TrustProvider): Candidate
   };
 }
 
-/** كلّ متاجر السوق (محافظة + قناة) — المعتمدة التي لديها منتجٌ نشط، مرتّبةً بالأعلى تقييماً.
- *  هذه هي «متاجر السوق» الحقيقيّة (لا «الجديدة» فقط) — تُعرض في صفحة كلّ سوق متاجر. */
-export async function getMarketStores(prisma: PrismaClient, governorateId?: string, channel?: string, limit = 12): Promise<DiscoveryStoreCard[]> {
+/** كلّ متاجر السوق (محافظة + قناة [+ أقسام السوق]) — المعتمدة التي لديها منتجٌ نشط.
+ *  هذه هي «متاجر السوق» الحقيقيّة (لا «الجديدة» فقط). categoryIds تحصر متاجر أسواق الفئات
+ *  (كالمطاعم) بالبائعين الذين لديهم منتجٌ ضمن أقسام السوق — «متاجره الخاصّة تلقائياً». */
+export async function getMarketStores(
+  prisma: PrismaClient,
+  governorateId?: string,
+  channel?: string,
+  categoryIds?: string[],
+  limit = 24,
+): Promise<DiscoveryStoreCard[]> {
+  const productWhere = { status: "ACTIVE" as const, ...(categoryIds && categoryIds.length ? { categoryId: { in: categoryIds } } : {}) };
   const vendors = await prisma.vendorProfile.findMany({
     where: {
       status: "APPROVED",
       ...(governorateId ? { governorateId } : {}),
       ...(channel ? { channel } : {}),
-      products: { some: { status: "ACTIVE" } },
+      products: { some: productWhere },
     },
     orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }, { createdAt: "desc" }],
     take: limit,
     select: {
       id: true, storeName: true, slug: true, logoUrl: true, ratingAvg: true, ratingCount: true,
-      _count: { select: { products: { where: { status: "ACTIVE" } } } },
+      _count: { select: { products: { where: productWhere } } },
     },
   });
   return vendors.map((v) => ({
@@ -243,11 +255,11 @@ async function newStores(prisma: PrismaClient, governorateId?: string, channel?:
 }
 
 /** يبني كل أقسام الصفحة الرئيسية من مجموعة مرشّحين واحدة (استعلام أدنى). */
-export async function getHomeSections(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<DiscoverySection[]> {
-  let pool = await loadPool(prisma, governorateId, channel);
-  // احتياط كل-العراق عند شحّ عرض المحافظة (يحافظ على العزل والقناة أولاً).
+export async function getHomeSections(prisma: PrismaClient, governorateId?: string, channel?: string, categoryIds?: string[]): Promise<DiscoverySection[]> {
+  let pool = await loadPool(prisma, governorateId, channel, categoryIds);
+  // احتياط كل-العراق عند شحّ عرض المحافظة (يحافظ على العزل والقناة والأقسام أولاً).
   if (pool.length < MIN_POOL_BEFORE_FALLBACK && governorateId) {
-    pool = await loadPool(prisma, undefined, channel);
+    pool = await loadPool(prisma, undefined, channel, categoryIds);
   }
   const now = new Date();
   const inStock = pool.filter((p) => p.available > 0);
