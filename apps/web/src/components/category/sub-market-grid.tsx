@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { CategoryIcon } from "@/src/components/category-icon";
+import { AppImage } from "@/src/components/app-image";
 
 export interface SubMarketItem {
   id: string;
   nameAr: string;
   slug: string;
   icon: string | null;
+  imageUrl?: string | null;
 }
 
 /**
- * شبكةُ «أسواقٍ فرعيّة» — كلّ فئةٍ داخل السوق تُعرض كبوّابةٍ مستقلّة (أيقونة + اسم).
+ * شبكةُ «أسواقٍ فرعيّة» — كلّ فئةٍ داخل السوق تُعرض كبوّابةٍ مستقلّة (صورة/أيقونة + اسم).
  * تُستعمل عند دخول أيّ سوق/فئة: تُظهر أقسامه كأنّ كلّاً منها سوقٌ قائمٌ بذاته.
  */
 export function SubMarketGrid({ title, items }: { title: string; items: SubMarketItem[] }) {
@@ -23,8 +25,12 @@ export function SubMarketGrid({ title, items }: { title: string; items: SubMarke
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
         {items.map((c) => (
           <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
-            <span className="bg-card2 grid aspect-square w-full place-items-center rounded-2xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
-              <CategoryIcon name={c.icon} className="h-7 w-7" />
+            <span className="bg-card2 relative grid aspect-square w-full place-items-center overflow-hidden rounded-2xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
+              {c.imageUrl ? (
+                <AppImage src={c.imageUrl} alt={c.nameAr} sizes="120px" className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <CategoryIcon name={c.icon} className="h-7 w-7" />
+              )}
             </span>
             <span className="line-clamp-1 text-center text-[12px] font-semibold text-neutral-200">{c.nameAr}</span>
           </Link>

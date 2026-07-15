@@ -11,6 +11,7 @@ import {
   productReviewSchema,
   categoryCreateSchema,
   categoryUpdateSchema,
+  categoryReorderSchema,
   userManageSchema,
   platformSettingsSchema,
   appearanceSchema,
@@ -611,6 +612,7 @@ export const adminRouter = router({
       nameAr: c.nameAr,
       slug: c.slug,
       icon: c.icon,
+      imageUrl: c.imageUrl,
       parentId: c.parentId,
       sortOrder: c.sortOrder,
       isActive: c.isActive,
@@ -627,6 +629,7 @@ export const adminRouter = router({
         nameAr: input.nameAr,
         slug,
         icon: input.icon,
+        imageUrl: input.imageUrl ?? null,
         parentId: input.parentId ?? null,
         sortOrder: input.sortOrder ?? 0,
       },
@@ -653,6 +656,15 @@ export const adminRouter = router({
       after: data,
       ip: ctx.reqIp,
     });
+    return { ok: true };
+  }),
+
+  // إعادة ترتيب فئاتٍ ضمن نفس المستوى: sortOrder = موضع المعرّف في القائمة.
+  reorderCategories: adminPerm("categories").input(categoryReorderSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.$transaction(
+      input.ids.map((id, i) => ctx.prisma.category.update({ where: { id }, data: { sortOrder: i } })),
+    );
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "category.reorder", entityType: "Category", entityId: input.ids[0] ?? "", after: { ids: input.ids }, ip: ctx.reqIp });
     return { ok: true };
   }),
 

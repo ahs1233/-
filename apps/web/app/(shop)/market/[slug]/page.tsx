@@ -83,14 +83,19 @@ async function StoresMarket({
   const api = await getServerApi();
   const ch = channel === "online" || channel === "physical" ? channel : undefined;
   const online = ch === "online";
-  const [sections, content, appearance, extras, categories] = await Promise.all([
+  const [sections, content, appearance, extras, allCategories, marketStores, markets] = await Promise.all([
     api.discovery.home({ governorateId: govId, channel: ch }),
     api.appearance.content({ governorateId: govId }),
     api.appearance.get(),
     api.discovery.homeExtras({ governorateId: govId, channel: ch }),
     getCachedCategories(),
+    api.discovery.marketStores({ governorateId: govId, channel: ch }),
+    api.market.list(),
   ]);
   const identity = resolveGovIdentity(govName, content.governorate);
+  // أقسام هذا السوق = الفئات التي ليست لها بوّابةٌ خاصّة (فالطعام مثلاً سوقٌ مستقلّ لا قسمٌ هنا).
+  const gatewaySlugs = new Set(markets.map((m) => m.categorySlug).filter(Boolean) as string[]);
+  const categories = allCategories.filter((c) => !gatewaySlugs.has(c.slug));
   // إعدادُ هذا السوق تحديداً يتقدّم على الإعداد العامّ (تحكّمٌ كاملٌ لكلّ سوق).
   const cfgSections = config?.sections && config.sections.length ? config.sections : appearance.sections;
   const titles = { ...(appearance.sectionTitles ?? {}), ...(config?.sectionTitles ?? {}) };
@@ -98,10 +103,8 @@ async function StoresMarket({
     const s = sections.find((x) => x.key === key);
     return s && s.kind === "products" ? s.items : [];
   };
-  const storeItems = () => {
-    const s = sections.find((x) => x.key === "new_stores");
-    return s && s.kind === "stores" ? s.items : [];
-  };
+  // متاجر السوق الحقيقيّة (كلّ متاجر المحافظة/القناة) — لا «الجديدة» فقط.
+  const storeItems = () => marketStores;
   const tabs = [
     { key: "best_selling", label: "الأكثر شراءً", items: productItems("best_selling") },
     { key: "new", label: "وصل حديثاً", items: productItems("new") },
@@ -130,7 +133,7 @@ async function StoresMarket({
         ) : null;
       case "stores":
         return storeItems().length ? (
-          <StoreRail emoji={online ? "📱" : "🏪"} title={titles.stores ?? (online ? "صفحاتٌ مميّزة" : "متاجر مميّزة")} href="/stores" items={storeItems()} />
+          <StoreRail emoji={online ? "📱" : "🏪"} title={titles.stores ?? (online ? "المتاجر الإلكترونيّة" : `متاجر ${displayName}`)} href="/stores" items={storeItems()} />
         ) : null;
       case "categories":
         // أقسام السوق كبوّاباتٍ مستقلّة — «كأنّ كلّاً منها سوق» (الإلكترونيات/الملابس/المنزلية…).

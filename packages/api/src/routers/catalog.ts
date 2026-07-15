@@ -173,10 +173,11 @@ export const catalogRouter = router({
           nameAr: z.string(),
           slug: z.string(),
           icon: z.string().nullable(),
+          imageUrl: z.string().nullable(),
           parent: z.object({ nameAr: z.string(), slug: z.string() }).nullable(),
           childIds: z.array(z.string()),
           // الفئات الفرعيّة (أقسام هذا «السوق») — لعرضها كبوّاباتٍ مستقلّة.
-          children: z.array(z.object({ id: z.string(), nameAr: z.string(), slug: z.string(), icon: z.string().nullable() })),
+          children: z.array(z.object({ id: z.string(), nameAr: z.string(), slug: z.string(), icon: z.string().nullable(), imageUrl: z.string().nullable() })),
         })
         .nullable(),
     )
@@ -188,11 +189,12 @@ export const catalogRouter = router({
           nameAr: true,
           slug: true,
           icon: true,
+          imageUrl: true,
           parent: { select: { nameAr: true, slug: true } },
           children: {
             where: { isActive: true },
             orderBy: { sortOrder: "asc" },
-            select: { id: true, nameAr: true, slug: true, icon: true },
+            select: { id: true, nameAr: true, slug: true, icon: true, imageUrl: true },
           },
         },
       });
@@ -202,9 +204,10 @@ export const catalogRouter = router({
         nameAr: cat.nameAr,
         slug: cat.slug,
         icon: cat.icon,
+        imageUrl: cat.imageUrl,
         parent: cat.parent ? { nameAr: cat.parent.nameAr, slug: cat.parent.slug } : null,
         childIds: cat.children.map((c) => c.id),
-        children: cat.children.map((c) => ({ id: c.id, nameAr: c.nameAr, slug: c.slug, icon: c.icon })),
+        children: cat.children.map((c) => ({ id: c.id, nameAr: c.nameAr, slug: c.slug, icon: c.icon, imageUrl: c.imageUrl })),
       };
     }),
 

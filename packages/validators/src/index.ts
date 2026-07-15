@@ -86,27 +86,43 @@ export const orderStatusUpdateSchema = z.object({
 
 export const presignUploadSchema = z.object({
   contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/avif"]),
-  purpose: z.enum(["product", "logo", "banner", "gov", "ad", "market"]).default("product"),
+  purpose: z.enum(["product", "logo", "banner", "gov", "ad", "market", "category"]).default("product"),
 });
 
 // ─────────────────────────── Admin ───────────────────────────
+
+/** رابط صورة: مسارٌ داخليّ أو https أو data:image. */
+export const imageRef = z
+  .string()
+  .trim()
+  .min(1)
+  .max(3_000_000)
+  .refine(
+    (s) => s.startsWith("/") || s.startsWith("https://") || s.startsWith("data:image/"),
+    "رابط صورة غير صالح",
+  );
 
 export const categoryCreateSchema = z.object({
   nameAr: z.string().trim().min(2).max(60),
   parentId: z.string().cuid().optional().nullable(),
   icon: z.string().trim().max(40).optional(),
+  imageUrl: imageRef.nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),
 });
 
 export const categoryUpdateSchema = z.object({
   id: z.string().cuid(),
   nameAr: z.string().trim().min(2).max(60).optional(),
-  icon: z.string().trim().max(40).optional(),
+  icon: z.string().trim().max(40).nullable().optional(),
+  imageUrl: imageRef.nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
   /** تجاوز عمولة الفئة (0..1)؛ null لإزالته والعودة لعمولة البائع/المنصّة. */
   commissionRate: z.number().min(0).max(1).nullable().optional(),
 });
+
+// إعادة ترتيب فئاتٍ ضمن نفس المستوى (نفس الأب): معرّفاتٌ بالترتيب المرغوب.
+export const categoryReorderSchema = z.object({ ids: z.array(z.string().cuid()).min(1).max(200) });
 
 export const productReviewSchema = z.object({
   productId: z.string().cuid(),
@@ -155,16 +171,6 @@ const sectionKey = z.string().min(1).max(40);
  * مرجع صورة: مسارٌ داخليّ (/…)، أو https، أو data URL (للرفع بلا تخزين كائنيّ).
  * السقف يسمح بـ data URL مُصغَّر (~2MB base64) كما يفعل رافع صور المنتجات.
  */
-export const imageRef = z
-  .string()
-  .trim()
-  .min(1)
-  .max(3_000_000)
-  .refine(
-    (s) => s.startsWith("/") || s.startsWith("https://") || s.startsWith("data:image/"),
-    "رابط صورة غير صالح",
-  );
-
 /** رابط وجهة النقر: مسارٌ داخليّ أو https. */
 const linkRef = z
   .string()

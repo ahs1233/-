@@ -181,6 +181,34 @@ function offerSourceFromPool(pool: Candidate[], trust: TrustProvider): Candidate
   };
 }
 
+/** كلّ متاجر السوق (محافظة + قناة) — المعتمدة التي لديها منتجٌ نشط، مرتّبةً بالأعلى تقييماً.
+ *  هذه هي «متاجر السوق» الحقيقيّة (لا «الجديدة» فقط) — تُعرض في صفحة كلّ سوق متاجر. */
+export async function getMarketStores(prisma: PrismaClient, governorateId?: string, channel?: string, limit = 12): Promise<DiscoveryStoreCard[]> {
+  const vendors = await prisma.vendorProfile.findMany({
+    where: {
+      status: "APPROVED",
+      ...(governorateId ? { governorateId } : {}),
+      ...(channel ? { channel } : {}),
+      products: { some: { status: "ACTIVE" } },
+    },
+    orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }, { createdAt: "desc" }],
+    take: limit,
+    select: {
+      id: true, storeName: true, slug: true, logoUrl: true, ratingAvg: true, ratingCount: true,
+      _count: { select: { products: { where: { status: "ACTIVE" } } } },
+    },
+  });
+  return vendors.map((v) => ({
+    id: v.id,
+    storeName: v.storeName,
+    slug: v.slug,
+    logoUrl: v.logoUrl,
+    productCount: v._count.products,
+    ratingAvg: Number(v.ratingAvg),
+    ratingCount: v.ratingCount,
+  }));
+}
+
 async function newStores(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<DiscoveryStoreCard[]> {
   const vendors = await prisma.vendorProfile.findMany({
     where: {

@@ -189,6 +189,7 @@ model Category {
   nameAr    String
   slug      String     @unique
   icon      String?
+  imageUrl  String? // صورةُ القسم (بوّابة السوق الفرعيّة) — تُفضَّل على الأيقونة إن وُجدت
   parentId  String?
   parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children  Category[] @relation("CategoryTree")

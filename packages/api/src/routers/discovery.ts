@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
-import { getHomeSections, getHomeExtras } from "../services/discovery";
+import { getHomeSections, getHomeExtras, getMarketStores } from "../services/discovery";
 
 export const discoveryRouter = router({
   home: publicProcedure
@@ -16,4 +16,9 @@ export const discoveryRouter = router({
   homeExtras: publicProcedure
     .input(z.object({ governorateId: z.string().cuid().optional(), channel: z.enum(["physical", "online"]).optional() }).optional())
     .query(({ ctx, input }) => getHomeExtras(ctx.prisma, input?.governorateId, input?.channel)),
+
+  // كلّ متاجر السوق (محافظة + قناة) — لعرضها في صفحة كلّ سوق متاجر.
+  marketStores: publicProcedure
+    .input(z.object({ governorateId: z.string().cuid().optional(), channel: z.enum(["physical", "online"]).optional() }).optional())
+    .query(({ ctx, input }) => getMarketStores(ctx.prisma, input?.governorateId, input?.channel)),
 });
