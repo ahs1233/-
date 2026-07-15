@@ -68,9 +68,9 @@ export const SECTION_LABELS: Record<string, string> = {
   featured: "جهة موصى بها",
 };
 
-// الترتيب الافتراضيّ = رحلةٌ في المدينة (أسواق ← نبض ← عروض ← منتجات ← متاجر ← فئات).
+// عند دخول سوقٍ تُتصدَّر أقسامه (كبوّاباتٍ مستقلّة)، ثمّ بقيّة تفاصيله.
 export const DEFAULT_SECTIONS: SectionCfg[] = [
-  "souks", "pulse", "banner", "products", "stores", "categories",
+  "categories", "souks", "pulse", "banner", "products", "stores",
 ].map((key) => ({ key, visible: true }));
 
 export const SERVICE_LABELS: Record<string, string> = {

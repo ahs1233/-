@@ -35,8 +35,8 @@ export interface Appearance {
   serviceLabels: Record<string, string>;
 }
 
-// الترتيب الافتراضيّ الجديد = رحلةٌ في المدينة (أسواق ← نبض ← عروض ← منتجات ← متاجر ← فئات).
-const DEFAULT_SECTION_KEYS = ["souks", "pulse", "banner", "products", "stores", "categories"];
+// عند دخول سوقٍ تُتصدَّر أقسامه (كبوّاباتٍ مستقلّة)، ثمّ بقيّة تفاصيله.
+const DEFAULT_SECTION_KEYS = ["categories", "souks", "pulse", "banner", "products", "stores"];
 // مفاتيح التخطيط القديم — وجودها يعني أنّ الإعداد المحفوظ سابقٌ للرحلة الجديدة.
 const LEGACY_SECTION_KEYS = new Set(["services", "best_selling", "new", "featured"]);
 

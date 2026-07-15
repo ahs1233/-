@@ -5,12 +5,12 @@ import { ChevronLeft, Clock } from "lucide-react";
 import { getGovernorate } from "@/src/lib/governorate";
 import { getServerApi } from "@/src/trpc/server";
 import { getCachedCategories } from "@/src/lib/catalog-cache";
-import { CategoryIcon } from "@/src/components/category-icon";
 import { MarketHeader } from "@/src/components/market/market-header";
 import { MarketPulse, SoukTiles, AdsCarousel } from "@/src/components/home/home-blocks";
 import { ProductsTabs } from "@/src/components/home/products-tabs";
 import { StoreRail } from "@/src/components/home/section-rail";
 import { ProductCard } from "@/src/components/product-card";
+import { SubMarketGrid } from "@/src/components/category/sub-market-grid";
 import { resolveGovIdentity } from "@/src/lib/governorate-identity";
 import { marketDisplayName } from "@/src/lib/market";
 
@@ -129,22 +129,12 @@ async function StoresMarket({
           <StoreRail emoji={online ? "📱" : "🏪"} title={titles.stores ?? (online ? "صفحاتٌ مميّزة" : "متاجر مميّزة")} href="/stores" items={storeItems()} />
         ) : null;
       case "categories":
+        // أقسام السوق كبوّاباتٍ مستقلّة — «كأنّ كلّاً منها سوق» (الإلكترونيات/الملابس/المنزلية…).
         return categories.length ? (
-          <>
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
-              <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> {titles.categories ?? "تسوّق حسب الفئة"}
-            </h2>
-            <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
-              {categories.slice(0, 12).map((c) => (
-                <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
-                  <span className="bg-card2 grid h-16 w-16 place-items-center rounded-2xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
-                    <CategoryIcon name={c.icon} className="h-6 w-6" />
-                  </span>
-                  <span className="line-clamp-1 text-center text-[11px] font-medium text-neutral-300">{c.nameAr}</span>
-                </Link>
-              ))}
-            </div>
-          </>
+          <SubMarketGrid
+            title={titles.categories ?? (online ? "أقسام المتاجر الإلكترونيّة" : `أقسام سوق ${displayName}`)}
+            items={categories.slice(0, 12)}
+          />
         ) : null;
       default:
         return null;
@@ -183,38 +173,30 @@ async function CategoryMarket({ slug, name, govId }: { slug: string; name: strin
   const api = await getServerApi();
   const cat = await api.catalog.categoryBySlug({ slug }).catch(() => null);
   if (!cat) return <ComingSoon name={name} />;
-  const [{ items }, allCats, extras] = await Promise.all([
+  const [{ items }, extras] = await Promise.all([
     api.catalog.products({ categoryId: cat.id, governorateId: govId, limit: 12 }),
-    getCachedCategories(),
     api.discovery.homeExtras({ governorateId: govId }).catch(() => null),
   ]);
-  const subs = allCats.find((c) => c.slug === slug)?.children ?? [];
+  const hasChildren = cat.children.length > 0;
 
   return (
     <>
+      {/* أقسام هذا السوق كبوّاباتٍ مستقلّة (فطور/غداء/عشاء/مشروبات…) — «كأنّ كلّاً منها سوق». تُتصدَّر. */}
+      {hasChildren && (
+        <Band surface="white">
+          <SubMarketGrid title={`أقسام ${name}`} items={cat.children} />
+        </Band>
+      )}
       {extras && extras.pulse.length > 0 && (
         <Band surface="ivory">
           <MarketPulse events={extras.pulse} title={`نبض ${name}`} />
         </Band>
       )}
-      {subs.length > 0 && (
-        <Band surface="white">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
-            <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> أقسام {name}
-          </h2>
-          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {subs.map((s) => (
-              <Link key={s.id} href={`/category/${s.slug}`} className="bg-card2 flex-shrink-0 rounded-full border border-line px-4 py-2 text-sm font-medium text-neutral-200 shadow-sm transition hover:border-gold-500/50">
-                {s.nameAr}
-              </Link>
-            ))}
-          </div>
-        </Band>
-      )}
       <Band surface="ivory">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
-            <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> منتجات {name}
+            <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+            {hasChildren ? `كلّ منتجات ${name}` : `منتجات ${name}`}
           </h2>
           <Link href={`/category/${slug}`} className="flex items-center gap-0.5 text-sm font-medium text-gold-400 hover:text-gold-300">
             الكل <ChevronLeft className="h-4 w-4" />

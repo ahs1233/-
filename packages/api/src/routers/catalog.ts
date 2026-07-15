@@ -172,17 +172,40 @@ export const catalogRouter = router({
           id: z.string(),
           nameAr: z.string(),
           slug: z.string(),
+          icon: z.string().nullable(),
+          parent: z.object({ nameAr: z.string(), slug: z.string() }).nullable(),
           childIds: z.array(z.string()),
+          // الفئات الفرعيّة (أقسام هذا «السوق») — لعرضها كبوّاباتٍ مستقلّة.
+          children: z.array(z.object({ id: z.string(), nameAr: z.string(), slug: z.string(), icon: z.string().nullable() })),
         })
         .nullable(),
     )
     .query(async ({ ctx, input }) => {
       const cat = await ctx.prisma.category.findUnique({
         where: { slug: input.slug },
-        select: { id: true, nameAr: true, slug: true, children: { select: { id: true } } },
+        select: {
+          id: true,
+          nameAr: true,
+          slug: true,
+          icon: true,
+          parent: { select: { nameAr: true, slug: true } },
+          children: {
+            where: { isActive: true },
+            orderBy: { sortOrder: "asc" },
+            select: { id: true, nameAr: true, slug: true, icon: true },
+          },
+        },
       });
       if (!cat) return null;
-      return { id: cat.id, nameAr: cat.nameAr, slug: cat.slug, childIds: cat.children.map((c) => c.id) };
+      return {
+        id: cat.id,
+        nameAr: cat.nameAr,
+        slug: cat.slug,
+        icon: cat.icon,
+        parent: cat.parent ? { nameAr: cat.parent.nameAr, slug: cat.parent.slug } : null,
+        childIds: cat.children.map((c) => c.id),
+        children: cat.children.map((c) => ({ id: c.id, nameAr: c.nameAr, slug: c.slug, icon: c.icon })),
+      };
     }),
 
   products: publicProcedure
