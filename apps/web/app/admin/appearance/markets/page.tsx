@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@al-souq/api";
-import { Plus, Trash2, Pencil, Eye, EyeOff, Store } from "lucide-react";
+import { Plus, Trash2, Pencil, Eye, EyeOff, Store, ChevronUp, ChevronDown } from "lucide-react";
 import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { ImageField } from "../_image-field";
@@ -102,6 +102,30 @@ export default function MarketsManager() {
   const update = trpc.admin.updateMarket.useMutation({ onSuccess: () => { done("تم حفظ السوق"); setEditing(null); }, onError: (e) => error(e.message) });
   const remove = trpc.admin.deleteMarket.useMutation({ onSuccess: () => done("تم حذف السوق"), onError: (e) => error(e.message) });
   const toggle = trpc.admin.updateMarket.useMutation({ onSuccess: () => utils.admin.marketList.invalidate(), onError: (e) => error(e.message) });
+  const reorder = trpc.admin.reorderMarkets.useMutation({
+    // تحديثٌ تفاؤليّ: يُظهر الترتيب الجديد فوراً ثم يثبّته الخادم.
+    onMutate: async (vars) => {
+      await utils.admin.marketList.cancel();
+      const prev = utils.admin.marketList.getData();
+      if (prev) {
+        const byId = new Map(prev.map((m) => [m.id, m]));
+        utils.admin.marketList.setData(undefined, vars.ids.map((id) => byId.get(id)!).filter(Boolean));
+      }
+      return { prev };
+    },
+    onError: (e, _v, cInfo) => { if (cInfo?.prev) utils.admin.marketList.setData(undefined, cInfo.prev); error(e.message); },
+    onSettled: () => utils.admin.marketList.invalidate(),
+  });
+
+  function move(index: number, dir: -1 | 1) {
+    const rows = list.data;
+    if (!rows) return;
+    const j = index + dir;
+    if (j < 0 || j >= rows.length) return;
+    const ids = rows.map((m) => m.id);
+    [ids[index], ids[j]] = [ids[j]!, ids[index]!];
+    reorder.mutate({ ids });
+  }
 
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -142,12 +166,23 @@ export default function MarketsManager() {
       )}
 
       {list.isLoading && <p className="text-sm text-neutral-400">…جارٍ التحميل</p>}
-      {list.data?.map((m) => (
+      {!list.isLoading && (list.data?.length ?? 0) > 1 && !creating && (
+        <p className="text-xs text-neutral-400">رتّب الأسواق بالأسهم ↑↓ — الترتيب نفسه يظهر في الرئيسية.</p>
+      )}
+      {list.data?.map((m, index) => (
         <Card key={m.id}>
           {editing === m.id ? (
             <CardBody><MarketForm initial={toState(m)} submitting={update.isPending} onCancel={() => setEditing(null)} onSubmit={(f) => update.mutate({ id: m.id, ...payload(f) })} /></CardBody>
           ) : (
             <div className="flex items-center gap-3 p-3">
+              <div className="flex flex-col">
+                <button onClick={() => move(index, -1)} disabled={index === 0 || reorder.isPending} aria-label="تحريك للأعلى" className="grid h-5 w-6 place-items-center rounded text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+                <button onClick={() => move(index, 1)} disabled={index === (list.data!.length - 1) || reorder.isPending} aria-label="تحريك للأسفل" className="grid h-5 w-6 place-items-center rounded text-neutral-500 hover:bg-neutral-100 disabled:opacity-30">
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </div>
               <span className="grid h-11 w-11 flex-shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-xl text-gold-300">
                 {m.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element

@@ -258,10 +258,16 @@ export const marketCreateSchema = z.object({
   enabled: z.boolean().default(true),
   sortOrder: z.number().int().min(0).max(1000).default(0),
 });
-export const marketUpdateSchema = marketCreateSchema.partial().extend({ id: z.string().cuid() });
-export const marketDeleteSchema = z.object({ id: z.string().cuid() });
+// معرّف السوق قد يكون cuid (من createMarket) أو uuid (من هجرة البذر الافتراضيّة)،
+// فلا نُقيّده بـ cuid وإلا رُفض تعديل/حذف/ترتيب الأسواق الافتراضيّة بخطأ 400.
+const marketId = z.string().trim().min(1).max(64);
+export const marketUpdateSchema = marketCreateSchema.partial().extend({ id: marketId });
+export const marketDeleteSchema = z.object({ id: marketId });
+// إعادة ترتيب الأسواق: قائمة معرّفاتٍ بالترتيب المرغوب، يُسند sortOrder = الموضع.
+export const marketReorderSchema = z.object({ ids: z.array(marketId).min(1).max(100) });
 export type MarketCreateInput = z.infer<typeof marketCreateSchema>;
 export type MarketUpdateInput = z.infer<typeof marketUpdateSchema>;
+export type MarketReorderInput = z.infer<typeof marketReorderSchema>;
 
 // ─────────────────────────── Product ───────────────────────────
 

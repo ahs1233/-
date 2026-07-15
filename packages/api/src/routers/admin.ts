@@ -21,6 +21,7 @@ import {
   marketCreateSchema,
   marketUpdateSchema,
   marketDeleteSchema,
+  marketReorderSchema,
   presignUploadSchema,
   couponCreateSchema,
   couponToggleSchema,
@@ -1228,6 +1229,14 @@ export const adminRouter = router({
   deleteMarket: adminPerm("settings").input(marketDeleteSchema).mutation(async ({ ctx, input }) => {
     await ctx.prisma.market.delete({ where: { id: input.id } });
     await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.delete", entityType: "Market", entityId: input.id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  // إعادة ترتيب الأسواق دفعةً واحدة: sortOrder = موضع المعرّف في القائمة.
+  reorderMarkets: adminPerm("settings").input(marketReorderSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.$transaction(
+      input.ids.map((id, i) => ctx.prisma.market.update({ where: { id }, data: { sortOrder: i } })),
+    );
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.reorder", entityType: "Market", entityId: input.ids[0] ?? "", after: { ids: input.ids }, ip: ctx.reqIp });
     return { ok: true };
   }),
 

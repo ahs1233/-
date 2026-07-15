@@ -756,16 +756,17 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
     imageUrl?: string;
   }[] = [
     // كلّ سوقٍ عالمٌ مستقلّ داخل المحافظة؛ «{gov}» يُستبدل باسم المحافظة وقت العرض.
-    { slug: "stores", nameAr: "سوگ {gov}", tagline: "قلب المدينة — كلّ متاجرها في مكانٍ واحد", icon: "🏙️", kind: "stores", status: "live", imageUrl: "/souks/souk-shorja.jpg" },
-    { slug: "electronics", nameAr: "سوگ {gov} الإلكتروني", tagline: "أجهزة وإكسسوارات أصلية", icon: "💻", kind: "category", categoryName: "إلكترونيات", status: "live" },
-    { slug: "food", nameAr: "سوگ الطعام", tagline: "بقالة ومأكولات ومنتجات محليّة", icon: "🍔", kind: "category", categoryName: "بقالة وأطعمة", status: "live", imageUrl: "/souks/souk-spice.jpg" },
-    { slug: "realestate", nameAr: "سوگ العقار", tagline: "بيع، شراء، إيجار", icon: "🏠", kind: "category", status: "soon" },
-    { slug: "cars", nameAr: "سوگ السيارات", tagline: "بيع وشراء المركبات", icon: "🚗", kind: "category", status: "soon" },
-    { slug: "jobs", nameAr: "سوگ الوظائف", tagline: "فرص عمل في العراق", icon: "💼", kind: "category", status: "soon" },
-    { slug: "services", nameAr: "سوگ الخدمات", tagline: "حِرفيّون وخدماتٌ منزليّة", icon: "🛠️", kind: "category", status: "soon" },
-    { slug: "travel", nameAr: "سوگ السفر", tagline: "طيران، فنادق ورحلات", icon: "✈️", kind: "category", status: "soon" },
-    { slug: "health", nameAr: "سوگ الصحة", tagline: "صيدليات، أطباء، مختبرات", icon: "🩺", kind: "category", status: "soon" },
-    { slug: "education", nameAr: "سوگ التعليم", tagline: "دورات، مدارس، جامعات", icon: "🎓", kind: "category", status: "soon" },
+    // الأسماء بلا كلمة «سوگ» — شعار التطبيق (بجانب الاسم) هو من يحمل هويّة السوگ.
+    { slug: "stores", nameAr: "{gov}", tagline: "قلب المدينة — كلّ متاجرها في مكانٍ واحد", icon: "🏙️", kind: "stores", status: "live", imageUrl: "/souks/souk-shorja.jpg" },
+    { slug: "electronics", nameAr: "{gov} الإلكتروني", tagline: "أجهزة وإكسسوارات أصلية", icon: "💻", kind: "category", categoryName: "إلكترونيات", status: "live" },
+    { slug: "food", nameAr: "الطعام", tagline: "بقالة ومأكولات ومنتجات محليّة", icon: "🍔", kind: "category", categoryName: "بقالة وأطعمة", status: "live", imageUrl: "/souks/souk-spice.jpg" },
+    { slug: "realestate", nameAr: "العقار", tagline: "بيع، شراء، إيجار", icon: "🏠", kind: "category", status: "soon" },
+    { slug: "cars", nameAr: "السيارات", tagline: "بيع وشراء المركبات", icon: "🚗", kind: "category", status: "soon" },
+    { slug: "jobs", nameAr: "الوظائف", tagline: "فرص عمل في العراق", icon: "💼", kind: "category", status: "soon" },
+    { slug: "services", nameAr: "الخدمات", tagline: "حِرفيّون وخدماتٌ منزليّة", icon: "🛠️", kind: "category", status: "soon" },
+    { slug: "travel", nameAr: "السفر", tagline: "طيران، فنادق ورحلات", icon: "✈️", kind: "category", status: "soon" },
+    { slug: "health", nameAr: "الصحة", tagline: "صيدليات، أطباء، مختبرات", icon: "🩺", kind: "category", status: "soon" },
+    { slug: "education", nameAr: "التعليم", tagline: "دورات، مدارس، جامعات", icon: "🎓", kind: "category", status: "soon" },
   ];
   for (let i = 0; i < MARKETS.length; i++) {
     const m = MARKETS[i]!;
