@@ -218,11 +218,30 @@ async function main() {
       name: "حيدر",
       storeName: "موبايلات بغداد",
       gov: "بغداد",
+      // متجرٌ إلكترونيّ (صفحة إنستغرام/تيك توك) — يظهر في «بغداد الإلكتروني»، لا في السوق الواقعيّ.
+      channel: "online",
+      instagramUrl: "https://instagram.com/mobilat_baghdad",
+      tiktokUrl: "https://tiktok.com/@mobilat_baghdad",
       catSlug: slugify("اكسسوارات-هواتف"),
       products: [
         { title: "حافظة جلد آيفون 15", price: 12000, stock: 100, variants: [["أسود", 12000, 50], ["بني", 12000, 50]] },
         { title: "شاحن سريع 25 واط أصلي", price: 18000, stock: 60, variants: [] },
         { title: "سماعة بلوتوث لاسلكية", price: 22000, stock: 45, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647703131313",
+      name: "رند",
+      storeName: "بوتيك رند أونلاين",
+      gov: "بغداد",
+      // صفحةُ أزياءٍ على إنستغرام وتيك توك — عالم «بغداد الإلكتروني».
+      channel: "online",
+      instagramUrl: "https://instagram.com/rand_boutique",
+      tiktokUrl: "https://tiktok.com/@rand_boutique",
+      catSlug: slugify("عبايات"),
+      products: [
+        { title: "عباية كلوش أونلاين حصريّة", price: 55000, stock: 25, variants: [["54", 55000, 8], ["56", 56000, 9], ["58", 57000, 8]] },
+        { title: "طقم سهرة مطرّز", price: 95000, stock: 10, variants: [["S", 95000, 3], ["M", 95000, 4], ["L", 97000, 3]] },
       ],
     },
     {
@@ -360,9 +379,16 @@ async function main() {
     });
 
     const slug = slugify(v.storeName);
+    const vv = v as typeof v & { channel?: string; instagramUrl?: string; tiktokUrl?: string; facebookUrl?: string };
+    const channelFields = {
+      channel: vv.channel ?? "physical",
+      instagramUrl: vv.instagramUrl ?? null,
+      tiktokUrl: vv.tiktokUrl ?? null,
+      facebookUrl: vv.facebookUrl ?? null,
+    };
     const vendor = await prisma.vendorProfile.upsert({
       where: { userId: user.id },
-      update: { status: VendorStatus.APPROVED },
+      update: { status: VendorStatus.APPROVED, ...channelFields },
       create: {
         userId: user.id,
         storeName: v.storeName,
@@ -371,6 +397,7 @@ async function main() {
         status: VendorStatus.APPROVED,
         approvedAt: new Date(),
         governorateId: govByName[v.gov],
+        ...channelFields,
       },
     });
 
@@ -752,13 +779,15 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
     icon: string;
     kind: "stores" | "category" | "external";
     categoryName?: string;
+    channel?: "physical" | "online";
     status: "live" | "soon";
     imageUrl?: string;
   }[] = [
     // كلّ سوقٍ عالمٌ مستقلّ داخل المحافظة؛ «{gov}» يُستبدل باسم المحافظة وقت العرض.
     // الأسماء بلا كلمة «سوگ» — شعار التطبيق (بجانب الاسم) هو من يحمل هويّة السوگ.
-    { slug: "stores", nameAr: "{gov}", tagline: "قلب المدينة — كلّ متاجرها في مكانٍ واحد", icon: "🏙️", kind: "stores", status: "live", imageUrl: "/souks/souk-shorja.jpg" },
-    { slug: "electronics", nameAr: "{gov} الإلكتروني", tagline: "أجهزة وإكسسوارات أصلية", icon: "💻", kind: "category", categoryName: "إلكترونيات", status: "live" },
+    { slug: "stores", nameAr: "{gov}", tagline: "قلب المدينة — كلّ متاجرها في مكانٍ واحد", icon: "🏙️", kind: "stores", channel: "physical", status: "live", imageUrl: "/souks/souk-shorja.jpg" },
+    // «بغداد الإلكتروني» عالمُ متاجرٍ إلكترونيّة (صفحات إنستغرام/فيسبوك/تيك توك)، لا فئةُ منتجاتٍ واقعيّة.
+    { slug: "electronics", nameAr: "{gov} الإلكتروني", tagline: "مشاريعُ وصفحاتٌ على إنستغرام وفيسبوك وتيك توك", icon: "💻", kind: "stores", channel: "online", status: "live" },
     { slug: "food", nameAr: "الطعام", tagline: "بقالة ومأكولات ومنتجات محليّة", icon: "🍔", kind: "category", categoryName: "بقالة وأطعمة", status: "live", imageUrl: "/souks/souk-spice.jpg" },
     { slug: "realestate", nameAr: "العقار", tagline: "بيع، شراء، إيجار", icon: "🏠", kind: "category", status: "soon" },
     { slug: "cars", nameAr: "السيارات", tagline: "بيع وشراء المركبات", icon: "🚗", kind: "category", status: "soon" },
@@ -781,6 +810,7 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
         icon: m.icon,
         kind: m.kind,
         categorySlug: cat?.slug ?? null,
+        channel: m.channel ?? null,
         status: m.status,
         enabled: true,
         sortOrder: i,

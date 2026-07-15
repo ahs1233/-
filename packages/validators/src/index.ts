@@ -253,6 +253,7 @@ export const marketCreateSchema = z.object({
   icon: z.string().trim().max(8).nullable().optional(),
   kind: z.enum(["stores", "category", "external"]).default("category"),
   categorySlug: z.string().trim().max(60).nullable().optional(),
+  channel: z.enum(["physical", "online"]).nullable().optional(),
   href: linkRef.nullable().optional(),
   status: z.enum(["live", "soon"]).default("live"),
   enabled: z.boolean().default(true),

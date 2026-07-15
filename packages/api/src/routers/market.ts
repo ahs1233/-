@@ -14,6 +14,7 @@ export interface MarketItem {
   icon: string | null;
   kind: string;
   categorySlug: string | null;
+  channel: string | null;
   href: string | null;
   status: string;
 }
@@ -25,7 +26,7 @@ export const marketRouter = router({
       orderBy: { sortOrder: "asc" },
       select: {
         id: true, slug: true, nameAr: true, tagline: true, imageUrl: true,
-        icon: true, kind: true, categorySlug: true, href: true, status: true,
+        icon: true, kind: true, categorySlug: true, channel: true, href: true, status: true,
       },
     });
     return rows;
@@ -38,7 +39,7 @@ export const marketRouter = router({
         where: { slug: input.slug },
         select: {
           id: true, slug: true, nameAr: true, tagline: true, imageUrl: true,
-          icon: true, kind: true, categorySlug: true, href: true, status: true, enabled: true,
+          icon: true, kind: true, categorySlug: true, channel: true, href: true, status: true, enabled: true,
         },
       });
       if (!m || !m.enabled) return null;

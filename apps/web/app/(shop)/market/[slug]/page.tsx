@@ -7,7 +7,7 @@ import { getServerApi } from "@/src/trpc/server";
 import { getCachedCategories } from "@/src/lib/catalog-cache";
 import { CategoryIcon } from "@/src/components/category-icon";
 import { MarketHeader } from "@/src/components/market/market-header";
-import { MarketPulse, SoukTiles } from "@/src/components/home/home-blocks";
+import { MarketPulse, SoukTiles, AdsCarousel } from "@/src/components/home/home-blocks";
 import { ProductsTabs } from "@/src/components/home/products-tabs";
 import { StoreRail } from "@/src/components/home/section-rail";
 import { ProductCard } from "@/src/components/product-card";
@@ -39,24 +39,16 @@ export default async function MarketPage({ params }: { params: { slug: string } 
   if (!market) notFound();
 
   const displayName = marketDisplayName(market.nameAr, gov?.name);
-  const extras = await api.discovery.homeExtras({ governorateId: gov?.id }).catch(() => null);
 
   return (
     <div>
       <MarketHeader market={market} governorate={gov?.name} />
 
       <div className="mt-5">
-        {/* نبض السوق — مشترَكٌ في كلّ سوق */}
-        {extras && extras.pulse.length > 0 && (
-          <Band surface="ivory">
-            <MarketPulse events={extras.pulse} title={`نبض ${displayName}`} />
-          </Band>
-        )}
-
         {market.status === "soon" ? (
           <ComingSoon name={displayName} />
         ) : market.kind === "stores" ? (
-          <StoresMarket govName={gov?.name} govId={gov?.id} />
+          <StoresMarket channel={market.channel} govName={gov?.name} govId={gov?.id} displayName={displayName} />
         ) : market.categorySlug ? (
           <CategoryMarket slug={market.categorySlug} name={displayName} govId={gov?.id} />
         ) : (
@@ -73,15 +65,31 @@ export default async function MarketPage({ params }: { params: { slug: string } 
   );
 }
 
-/* ── سوق «متاجر بغداد» — الرحلة الكاملة (أسواق ← منتجات ← متاجر ← فئات) ── */
-async function StoresMarket({ govName, govId }: { govName?: string; govId?: string }) {
+/* ── سوق متاجرٍ كامل — يحترم ترتيب الأقسام المضبوط من لوحة الإدارة (المظهر ← الأقسام).
+   channel يفصل العالم الواقعيّ (physical) عن الإلكترونيّ (online) فيعرض بائعي قناته فقط. ── */
+async function StoresMarket({
+  channel,
+  govName,
+  govId,
+  displayName,
+}: {
+  channel?: string | null;
+  govName?: string;
+  govId?: string;
+  displayName: string;
+}) {
   const api = await getServerApi();
-  const [sections, content, categories] = await Promise.all([
-    api.discovery.home({ governorateId: govId }),
+  const ch = channel === "online" || channel === "physical" ? channel : undefined;
+  const online = ch === "online";
+  const [sections, content, appearance, extras, categories] = await Promise.all([
+    api.discovery.home({ governorateId: govId, channel: ch }),
     api.appearance.content({ governorateId: govId }),
+    api.appearance.get(),
+    api.discovery.homeExtras({ governorateId: govId, channel: ch }),
     getCachedCategories(),
   ]);
   const identity = resolveGovIdentity(govName, content.governorate);
+  const titles = appearance.sectionTitles ?? {};
   const productItems = (key: string) => {
     const s = sections.find((x) => x.key === key);
     return s && s.kind === "products" ? s.items : [];
@@ -96,37 +104,76 @@ async function StoresMarket({ govName, govId }: { govName?: string; govId?: stri
     { key: "top_rated", label: "الأعلى تقييماً", items: productItems("top_rated") },
     { key: "trending", label: "ترند", items: productItems("trending") },
   ];
+  const bannerAds = content.ads.filter((a) => a.placement === "home_banner");
+
+  // بنّاءُ كلّ قسمٍ حسب مفتاحه — نصيّرها بالترتيب المحفوظ في لوحة الإدارة.
+  function band(key: string): React.ReactNode {
+    switch (key) {
+      case "souks":
+        // الأسواق الجغرافيّة (المتنبّي/الشورجة) للعالم الواقعيّ فقط، لا الإلكترونيّ.
+        return !online && identity.souks.length ? (
+          <SoukTiles governorate={govName} souks={identity.souks} title={titles.souks} />
+        ) : null;
+      case "pulse":
+        return extras.pulse.length ? (
+          <MarketPulse events={extras.pulse} title={titles.pulse ?? `نبض ${displayName}`} />
+        ) : null;
+      case "banner":
+        return bannerAds.length ? <AdsCarousel ads={content.ads} governorate={govName} /> : null;
+      case "products":
+        return tabs.some((t) => t.items.length) ? (
+          <ProductsTabs title={titles.products ?? (online ? "منتجات المتاجر الإلكترونيّة" : "منتجات السوگ")} tabs={tabs} />
+        ) : null;
+      case "stores":
+        return storeItems().length ? (
+          <StoreRail emoji={online ? "📱" : "🏪"} title={titles.stores ?? (online ? "صفحاتٌ مميّزة" : "متاجر مميّزة")} href="/stores" items={storeItems()} />
+        ) : null;
+      case "categories":
+        return categories.length ? (
+          <>
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
+              <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> {titles.categories ?? "تسوّق حسب الفئة"}
+            </h2>
+            <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
+              {categories.slice(0, 12).map((c) => (
+                <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
+                  <span className="bg-card2 grid h-16 w-16 place-items-center rounded-2xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
+                    <CategoryIcon name={c.icon} className="h-6 w-6" />
+                  </span>
+                  <span className="line-clamp-1 text-center text-[11px] font-medium text-neutral-300">{c.nameAr}</span>
+                </Link>
+              ))}
+            </div>
+          </>
+        ) : null;
+      default:
+        return null;
+    }
+  }
+
+  // الأقسام المرئيّة بالترتيب المحفوظ، مع إيقاعٍ بصريّ متبادل بين السطحين.
+  const rendered = appearance.sections
+    .filter((s) => s.visible)
+    .map((s) => ({ key: s.key, node: band(s.key) }))
+    .filter((x) => x.node !== null);
+
+  if (rendered.length === 0) {
+    return (
+      <Band surface="white">
+        <p className="rounded-2xl border border-dashed border-line p-10 text-center text-neutral-500">
+          {online ? "لا توجد متاجر إلكترونيّة في محافظتك بعد." : "لا توجد متاجر في هذا السوق بعد."}
+        </p>
+      </Band>
+    );
+  }
 
   return (
     <>
-      <Band surface="white">
-        <SoukTiles governorate={govName} souks={identity.souks} />
-      </Band>
-      <Band surface="ivory">
-        <ProductsTabs title="منتجات السوگ" tabs={tabs} />
-      </Band>
-      {storeItems().length > 0 && (
-        <Band surface="white">
-          <StoreRail emoji="🏪" title="متاجر مميّزة" href="/stores" items={storeItems()} />
+      {rendered.map((x, i) => (
+        <Band key={x.key} surface={i % 2 === 0 ? "white" : "ivory"}>
+          {x.node}
         </Band>
-      )}
-      {categories.length > 0 && (
-        <Band surface="ivory">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
-            <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden /> تسوّق حسب الفئة
-          </h2>
-          <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
-            {categories.slice(0, 12).map((c) => (
-              <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
-                <span className="bg-card2 grid h-16 w-16 place-items-center rounded-2xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
-                  <CategoryIcon name={c.icon} className="h-6 w-6" />
-                </span>
-                <span className="line-clamp-1 text-center text-[11px] font-medium text-neutral-300">{c.nameAr}</span>
-              </Link>
-            ))}
-          </div>
-        </Band>
-      )}
+      ))}
     </>
   );
 }
@@ -136,14 +183,20 @@ async function CategoryMarket({ slug, name, govId }: { slug: string; name: strin
   const api = await getServerApi();
   const cat = await api.catalog.categoryBySlug({ slug }).catch(() => null);
   if (!cat) return <ComingSoon name={name} />;
-  const [{ items }, allCats] = await Promise.all([
+  const [{ items }, allCats, extras] = await Promise.all([
     api.catalog.products({ categoryId: cat.id, governorateId: govId, limit: 12 }),
     getCachedCategories(),
+    api.discovery.homeExtras({ governorateId: govId }).catch(() => null),
   ]);
   const subs = allCats.find((c) => c.slug === slug)?.children ?? [];
 
   return (
     <>
+      {extras && extras.pulse.length > 0 && (
+        <Band surface="ivory">
+          <MarketPulse events={extras.pulse} title={`نبض ${name}`} />
+        </Band>
+      )}
       {subs.length > 0 && (
         <Band surface="white">
           <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">

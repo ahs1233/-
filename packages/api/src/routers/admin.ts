@@ -1199,6 +1199,7 @@ export const adminRouter = router({
         icon: input.icon ?? null,
         kind: input.kind,
         categorySlug: input.categorySlug ?? null,
+        channel: input.channel ?? null,
         href: input.href ?? null,
         status: input.status,
         enabled: input.enabled,
@@ -1218,6 +1219,7 @@ export const adminRouter = router({
     if (rest.icon !== undefined) data.icon = rest.icon ?? null;
     if (rest.kind !== undefined) data.kind = rest.kind;
     if (rest.categorySlug !== undefined) data.categorySlug = rest.categorySlug ?? null;
+    if (rest.channel !== undefined) data.channel = rest.channel ?? null;
     if (rest.href !== undefined) data.href = rest.href ?? null;
     if (rest.status !== undefined) data.status = rest.status;
     if (rest.enabled !== undefined) data.enabled = rest.enabled;

@@ -93,9 +93,9 @@ async function distinctBuyerSales7(prisma: PrismaClient): Promise<Map<string, nu
   return new Map(rows.map((r) => [r.productId, Number(r.buyers)]));
 }
 
-async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<Candidate[]> {
+async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<Candidate[]> {
   const products = await prisma.product.findMany({
-    where: { status: "ACTIVE", vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}) } },
+    where: { status: "ACTIVE", vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) } },
     take: POOL_SIZE,
     orderBy: { createdAt: "desc" },
     select: {
@@ -181,11 +181,12 @@ function offerSourceFromPool(pool: Candidate[], trust: TrustProvider): Candidate
   };
 }
 
-async function newStores(prisma: PrismaClient, governorateId?: string): Promise<DiscoveryStoreCard[]> {
+async function newStores(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<DiscoveryStoreCard[]> {
   const vendors = await prisma.vendorProfile.findMany({
     where: {
       status: "APPROVED",
       ...(governorateId ? { governorateId } : {}),
+      ...(channel ? { channel } : {}),
       createdAt: { gte: new Date(Date.now() - W.newStore.windowDays * 86_400_000) },
     },
     orderBy: { createdAt: "desc" },
@@ -214,11 +215,11 @@ async function newStores(prisma: PrismaClient, governorateId?: string): Promise<
 }
 
 /** يبني كل أقسام الصفحة الرئيسية من مجموعة مرشّحين واحدة (استعلام أدنى). */
-export async function getHomeSections(prisma: PrismaClient, governorateId?: string): Promise<DiscoverySection[]> {
-  let pool = await loadPool(prisma, governorateId);
-  // احتياط كل-العراق عند شحّ عرض المحافظة (يحافظ على العزل أولاً).
+export async function getHomeSections(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<DiscoverySection[]> {
+  let pool = await loadPool(prisma, governorateId, channel);
+  // احتياط كل-العراق عند شحّ عرض المحافظة (يحافظ على العزل والقناة أولاً).
   if (pool.length < MIN_POOL_BEFORE_FALLBACK && governorateId) {
-    pool = await loadPool(prisma, undefined);
+    pool = await loadPool(prisma, undefined, channel);
   }
   const now = new Date();
   const inStock = pool.filter((p) => p.available > 0);
@@ -274,7 +275,7 @@ export async function getHomeSections(prisma: PrismaClient, governorateId?: stri
   );
 
   // متاجر جديدة
-  const stores = await newStores(prisma, governorateId);
+  const stores = await newStores(prisma, governorateId, channel);
   if (stores.length) sections.push({ key: "new_stores", kind: "stores", items: stores });
 
   return sections;
@@ -328,8 +329,9 @@ function arRelative(from: Date, now = Date.now()): string {
 }
 
 /** إضافات الرئيسية: إحصاءات حيّة + جهة موصى بها + نبض السوق — كلّها مشتقّة من DB. */
-export async function getHomeExtras(prisma: PrismaClient, governorateId?: string): Promise<HomeExtras> {
-  const govWhere = governorateId ? { governorateId } : {};
+export async function getHomeExtras(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<HomeExtras> {
+  // العزل بالمحافظة + القناة (واقعيّ/إلكترونيّ) — كي يعكس النبض بائعي هذا العالم فقط.
+  const govWhere = { ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) };
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
   const weekAgo = new Date(Date.now() - 7 * 86_400_000);

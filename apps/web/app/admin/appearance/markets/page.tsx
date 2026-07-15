@@ -17,6 +17,7 @@ type FormState = {
   imageUrl: string;
   kind: "stores" | "category" | "external";
   categorySlug: string;
+  channel: "physical" | "online";
   href: string;
   status: "live" | "soon";
   enabled: boolean;
@@ -24,7 +25,7 @@ type FormState = {
 };
 const empty: FormState = {
   slug: "", nameAr: "", tagline: "", icon: "🏬", imageUrl: "",
-  kind: "category", categorySlug: "", href: "", status: "live", enabled: true, sortOrder: 0,
+  kind: "category", categorySlug: "", channel: "physical", href: "", status: "live", enabled: true, sortOrder: 0,
 };
 const KIND_LABEL: Record<string, string> = { stores: "كل المتاجر", category: "فئة منتجات", external: "رابط خارجيّ" };
 
@@ -73,6 +74,16 @@ function MarketForm({ initial, submitting, onCancel, onSubmit }: {
         <div>
           <label className="mb-1 block text-sm font-medium text-neutral-700">معرّف الفئة (slug)</label>
           <input dir="ltr" value={f.categorySlug} onChange={(e) => setF((s) => ({ ...s, categorySlug: e.target.value }))} className="h-10 w-full rounded-lg border border-neutral-300 px-3 text-sm" placeholder="الكترونيات" />
+        </div>
+      )}
+      {f.kind === "stores" && (
+        <div>
+          <label className="mb-1 block text-sm font-medium text-neutral-700">قناة المتاجر</label>
+          <select value={f.channel} onChange={(e) => setF((s) => ({ ...s, channel: e.target.value as FormState["channel"] }))} className="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm">
+            <option value="physical">متاجر واقعيّة (سوق المدينة)</option>
+            <option value="online">متاجر إلكترونيّة (إنستغرام/فيسبوك/تيك توك)</option>
+          </select>
+          <p className="mt-1 text-xs text-neutral-400">يعرض هذا السوق بائعي هذه القناة فقط.</p>
         </div>
       )}
       {f.kind === "external" && (
@@ -134,7 +145,8 @@ export default function MarketsManager() {
     return {
       slug: m.slug, nameAr: m.nameAr, tagline: m.tagline ?? "", icon: m.icon ?? "", imageUrl: m.imageUrl ?? "",
       kind: (m.kind === "stores" || m.kind === "external" ? m.kind : "category"),
-      categorySlug: m.categorySlug ?? "", href: m.href ?? "",
+      categorySlug: m.categorySlug ?? "", channel: (m.channel === "online" ? "online" : "physical"),
+      href: m.href ?? "",
       status: m.status === "soon" ? "soon" : "live", enabled: m.enabled, sortOrder: m.sortOrder,
     };
   }
@@ -143,6 +155,7 @@ export default function MarketsManager() {
       slug: f.slug.trim(), nameAr: f.nameAr.trim(), tagline: f.tagline.trim() || null,
       icon: f.icon.trim() || null, imageUrl: f.imageUrl.trim() || null, kind: f.kind,
       categorySlug: f.kind === "category" ? (f.categorySlug.trim() || null) : null,
+      channel: f.kind === "stores" ? f.channel : null,
       href: f.kind === "external" ? (f.href.trim() || null) : null,
       status: f.status, enabled: f.enabled, sortOrder: f.sortOrder,
     };

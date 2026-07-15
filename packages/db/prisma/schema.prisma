@@ -154,6 +154,12 @@ model VendorProfile {
   logoUrl        String?
   bannerUrl      String?
   status         VendorStatus @default(PENDING)
+  // قناة المتجر: واقعيّ (سوق المدينة) أو إلكترونيّ (صفحة إنستغرام/فيسبوك/تيك توك).
+  // تفصل «سوگ بغداد» الواقعيّ عن «بغداد الإلكتروني» — كلٌّ يعرض بائعي قناته فقط.
+  channel        String       @default("physical") // physical | online
+  instagramUrl   String?
+  facebookUrl    String?
+  tiktokUrl      String?
   // تجاوز اختياري لنسبة العمولة العامة للمنصة (null = استخدم العامة)
   commissionRate Decimal?     @db.Decimal(5, 4)
   governorateId  String?
@@ -563,6 +569,7 @@ model Market {
   icon         String? // مفتاح أيقونة/إيموجي
   kind         String  @default("category") // stores | category | external
   categorySlug String? // لـ kind=category: فئة المنتجات المرتبطة
+  channel      String? // لـ kind=stores: physical | online — يعرض بائعي هذه القناة فقط
   href         String? // لـ kind=external: وجهة خارجيّة
   status       String  @default("live") // live | soon
   enabled      Boolean @default(true)

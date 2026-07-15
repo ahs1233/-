@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Store, MapPin, BadgeCheck, Star, CalendarDays, Package, Truck } from "lucide-react";
+import { Store, MapPin, BadgeCheck, Star, CalendarDays, Package, Truck, Instagram, Facebook, ExternalLink } from "lucide-react";
 import { getServerApi } from "@/src/trpc/server";
 import { ProductCard } from "@/src/components/product-card";
 import { AppImage } from "@/src/components/app-image";
@@ -130,6 +130,21 @@ export default async function StorePage({ params }: { params: { slug: string } }
             </Badge>
             <Badge icon={<Truck className="h-3.5 w-3.5 text-petrol" />}>الدفع عند الاستلام</Badge>
           </div>
+
+          {/* روابط الصفحات — للمتاجر الإلكترونيّة (إنستغرام/فيسبوك/تيك توك) */}
+          {vendor.channel === "online" && (vendor.instagramUrl || vendor.facebookUrl || vendor.tiktokUrl) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {vendor.instagramUrl && (
+                <SocialLink href={vendor.instagramUrl} icon={<Instagram className="h-3.5 w-3.5" />}>إنستغرام</SocialLink>
+              )}
+              {vendor.tiktokUrl && (
+                <SocialLink href={vendor.tiktokUrl} icon={<ExternalLink className="h-3.5 w-3.5" />}>تيك توك</SocialLink>
+              )}
+              {vendor.facebookUrl && (
+                <SocialLink href={vendor.facebookUrl} icon={<Facebook className="h-3.5 w-3.5" />}>فيسبوك</SocialLink>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -164,5 +179,19 @@ function Badge({ icon, children }: { icon: React.ReactNode; children: React.Reac
       {icon}
       {children}
     </span>
+  );
+}
+
+function SocialLink({ href, icon, children }: { href: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className="inline-flex items-center gap-1.5 rounded-full border border-gold-500/40 bg-gold-500/10 px-3 py-1.5 text-xs font-bold text-gold-200 transition hover:border-gold-500/70"
+    >
+      {icon}
+      {children}
+    </a>
   );
 }
