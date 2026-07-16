@@ -2,9 +2,8 @@ import Link from "next/link";
 import { ChevronLeft, Store } from "lucide-react";
 import { getGovernorate } from "@/src/lib/governorate";
 import { getServerApi } from "@/src/trpc/server";
-import { getCachedCategories } from "@/src/lib/catalog-cache";
 import { CityHero } from "@/src/components/home/city-hero";
-import { MarketDirectory } from "@/src/components/home/market-directory";
+import { MarketShortcuts } from "@/src/components/home/market-shortcuts";
 import { MarketPulse, AdsCarousel } from "@/src/components/home/home-blocks";
 import { ProductRail, StoreRail } from "@/src/components/home/section-rail";
 import { NearbyStores } from "@/src/components/home/nearby-stores";
@@ -25,20 +24,18 @@ export default async function HomePage() {
   let markets: MarketItem[] = [];
   let sections: DiscoverySection[] = [];
   let suggested: Awaited<ReturnType<Awaited<ReturnType<typeof getServerApi>>["discovery"]["marketStores"]>> = [];
-  let counts: Record<string, number> = {};
   let userName: string | undefined;
   let dbReady = true;
 
   try {
     const api = await getServerApi();
-    const [st, ex, cont, mk, sec, sug, cats] = await Promise.all([
+    const [st, ex, cont, mk, sec, sug] = await Promise.all([
       api.discovery.cityStats({ governorateId: gov?.id }),
       api.discovery.homeExtras({ governorateId: gov?.id }),
       api.appearance.content({ governorateId: gov?.id }),
       api.market.list(),
       api.discovery.home({ governorateId: gov?.id }),
       api.discovery.marketStores({ governorateId: gov?.id }),
-      getCachedCategories(),
     ]);
     stats = st;
     extras = ex;
@@ -46,23 +43,6 @@ export default async function HomePage() {
     markets = mk;
     sections = sec;
     suggested = sug;
-
-    // عدّاد متاجر كلّ سوق (نطاقٌ بالقناة أو بالأقسام) — يُغذّي الدليل المدمج.
-    const catBySlug = new Map(cats.map((c) => [c.slug, c]));
-    const specs = markets
-      .filter((m) => m.status !== "soon")
-      .map((m) => {
-        if (m.kind === "stores") {
-          const ch = m.channel === "physical" ? ("physical" as const) : m.channel === "online" ? ("online" as const) : undefined;
-          return { id: m.id, channel: ch };
-        }
-        if (m.categorySlug) {
-          const cat = catBySlug.get(m.categorySlug);
-          return { id: m.id, categoryIds: cat ? [cat.id, ...cat.children.map((c) => c.id)] : [] };
-        }
-        return { id: m.id };
-      });
-    if (specs.length) counts = await api.discovery.marketCounts({ governorateId: gov?.id, markets: specs });
 
     // اسم المستخدم للتحيّة — يعمل عند تسجيل الدخول فقط.
     try {
@@ -109,8 +89,8 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* ② إلى أين تريد الذهاب؟ — دليلٌ مدمج */}
-      <MarketDirectory markets={markets} govName={gov?.name} counts={counts} />
+      {/* ② إلى أين تريد الذهاب؟ — صفٌّ مصغّر + «كل الأسواق» */}
+      <MarketShortcuts markets={markets} govName={gov?.name} />
 
       {/* ③ نبض السوق — حياةٌ مباشرة، لا منتجات */}
       {extras && extras.pulse.length > 0 && <MarketPulse events={extras.pulse} governorate={gov?.name} />}
