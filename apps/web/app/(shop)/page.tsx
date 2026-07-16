@@ -93,7 +93,7 @@ export default async function HomePage() {
       <MarketShortcuts markets={markets} govName={gov?.name} />
 
       {/* ③ نبض السوق — حياةٌ مباشرة، لا منتجات */}
-      {extras && extras.pulse.length > 0 && <MarketPulse events={extras.pulse} governorate={gov?.name} />}
+      {extras && extras.pulse.length > 0 && <MarketPulse events={extras.pulse} governorate={gov?.name} href="/pulse" />}
 
       {/* ④ عروض اليوم */}
       {content.ads.length > 0 && (
@@ -115,19 +115,19 @@ export default async function HomePage() {
       <StoreRail emoji="✨" title="متاجر مقترحة لك" href="/stores" items={topStores} />
 
       {/* ⑥ الأكثر مبيعاً */}
-      <ProductRail emoji="🔥" title="الأكثر مبيعاً" href="/search?sort=best_selling" items={bestSelling} />
+      <ProductRail emoji="🔥" title="الأكثر مبيعاً" href="/best-selling" items={bestSelling} />
 
       {/* ⑦ وصل حديثاً */}
-      <ProductRail emoji="🆕" title="وصل حديثاً" href="/search?sort=new" items={newArrivals} />
+      <ProductRail emoji="🆕" title="وصل حديثاً" href="/new-arrivals" items={newArrivals} />
 
       {/* ⑧ قريب منك — GPS */}
       <NearbyStores stores={nearby} govName={gov?.name} />
 
       {/* ⑨ متاجر جديدة */}
-      <StoreRail emoji="🏪" title="متاجر جديدة في السوق" href="/stores" items={newStores} />
+      <StoreRail emoji="🏪" title="متاجر جديدة في السوق" href="/new-stores" items={newStores} />
 
       {/* ⑩ اكتشف اليوم — يتجدّد يوميّاً */}
-      <DiscoverToday items={today} />
+      <DiscoverToday items={today} href="/discover" />
 
       {/* ⑪ افتح متجرك */}
       <Link

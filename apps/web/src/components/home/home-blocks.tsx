@@ -166,7 +166,7 @@ export function AdsCarousel({ ads, governorate }: { ads: AdItem[]; governorate?:
   );
 }
 
-export function MarketPulse({ events, governorate, title }: { events: PulseEvent[]; governorate?: string; title?: string }) {
+export function MarketPulse({ events, governorate, title, href }: { events: PulseEvent[]; governorate?: string; title?: string; href?: string }) {
   if (!events.length) return null;
   return (
     <section>
@@ -182,6 +182,11 @@ export function MarketPulse({ events, governorate, title }: { events: PulseEvent
           </span>
           مباشر
         </span>
+        {href && (
+          <Link href={href} className="ms-auto flex items-center gap-0.5 text-sm font-medium text-gold-400 hover:text-gold-300">
+            الكل <ChevronLeft className="h-4 w-4" />
+          </Link>
+        )}
       </div>
       <p className="mb-3 -mt-1 ps-3 text-xs text-neutral-400">ليست منتجات — بل حياةُ السوق اليوم</p>
       <div className="grid gap-2.5 sm:grid-cols-2">
