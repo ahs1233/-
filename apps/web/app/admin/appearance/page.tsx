@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Palette, LayoutList, Grid3x3, MapPin, Megaphone, ChevronLeft, LayoutGrid, Tags } from "lucide-react";
+import { Palette, LayoutList, MapPin, Megaphone, ChevronLeft, LayoutGrid, Tags } from "lucide-react";
 import { Card } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
-import { DEFAULT_APPEARANCE, serviceStatusOf, type AppearanceColors, type SectionCfg, type ServiceCfg } from "@/src/lib/theme";
+import { DEFAULT_APPEARANCE, type AppearanceColors, type SectionCfg } from "@/src/lib/theme";
 
 export default function AppearanceHub() {
   const appearance = trpc.admin.getAppearance.useQuery(undefined, { retry: false });
@@ -13,14 +13,10 @@ export default function AppearanceHub() {
   const markets = trpc.admin.marketList.useQuery(undefined, { retry: false });
   const categories = trpc.admin.categories.useQuery(undefined, { retry: false });
 
-  const v = (appearance.data ?? null) as
-    | { colors?: AppearanceColors; sections?: SectionCfg[]; services?: ServiceCfg[] }
-    | null;
+  const v = (appearance.data ?? null) as { colors?: AppearanceColors; sections?: SectionCfg[] } | null;
   const colors = v?.colors ?? DEFAULT_APPEARANCE.colors;
   const sections = v?.sections ?? DEFAULT_APPEARANCE.sections;
-  const services = v?.services ?? DEFAULT_APPEARANCE.services;
   const visibleSections = sections.filter((s) => s.visible).length;
-  const activeServices = services.filter((s) => serviceStatusOf(s) !== "hidden").length;
   const enabledGovs = govs.data?.filter((g) => g.enabled).length ?? 0;
   const activeAds = ads.data?.filter((a) => a.active).length ?? 0;
   const enabledMarkets = markets.data?.filter((m) => m.enabled).length ?? 0;
@@ -60,13 +56,6 @@ export default function AppearanceHub() {
       title: "تخطيط السوق (الافتراضيّ)",
       desc: "ترتيب أقسام صفحة السوق وإظهارها: الأقسام ← الإعلانات ← المتاجر ← المنتجات ← أفضل المتاجر ← النبض. (يمكن تخصيص كلّ سوق من «الأسواق»)",
       accent: <Stat n={visibleSections} unit="قسم ظاهر" />,
-    },
-    {
-      href: "/admin/appearance/services",
-      icon: Grid3x3,
-      title: "خدمات السوگ",
-      desc: "الترتيب، الحالة الرباعيّة، والتسميات",
-      accent: <Stat n={activeServices} unit="خدمة" />,
     },
     {
       href: "/admin/appearance/governorates",
