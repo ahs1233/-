@@ -39,7 +39,9 @@ import { changeOrderStatus } from "../services/order";
 
 export const adminRouter = router({
   // ── لوحة المؤشرات (KPIs) ──
-  dashboard: adminPerm("dashboard").query(async ({ ctx }) => {
+  dashboard: adminPerm("dashboard")
+    .input(z.object({ governorateId: z.string().cuid().optional() }).optional())
+    .query(async ({ ctx, input }) => {
     const now = new Date();
     const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const todayStart = startOfDay(now).getTime();
@@ -48,6 +50,11 @@ export const adminRouter = router({
     const since30 = new Date(now.getTime() - 30 * 86_400_000);
     const sincePrev30 = new Date(now.getTime() - 60 * 86_400_000);
     const REALIZED = { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] };
+    // فلتر المحافظة: مدير المحافظة مقيّدٌ بمحافظته؛ المدير العامّ يختار محافظةً أو الكلّ.
+    const gov = ctx.user.scopeGovernorateId ?? input?.governorateId ?? undefined;
+    const oGov: Prisma.OrderWhereInput = gov ? { vendor: { governorateId: gov } } : {};
+    const vGov: Prisma.VendorProfileWhereInput = gov ? { governorateId: gov } : {};
+    const pGov: Prisma.ProductWhereInput = gov ? { vendor: { governorateId: gov } } : {};
 
     const [
       users,
@@ -64,40 +71,41 @@ export const adminRouter = router({
       topVendorsAgg,
       recentOrders,
     ] = await Promise.all([
-      ctx.prisma.user.count(),
-      ctx.prisma.vendorProfile.groupBy({ by: ["status"], _count: true }),
-      ctx.prisma.product.groupBy({ by: ["status"], _count: true }),
-      ctx.prisma.order.groupBy({ by: ["status"], _count: true }),
+      gov ? ctx.prisma.vendorProfile.count({ where: vGov }) : ctx.prisma.user.count(),
+      ctx.prisma.vendorProfile.groupBy({ by: ["status"], where: vGov, _count: true }),
+      ctx.prisma.product.groupBy({ by: ["status"], where: pGov, _count: true }),
+      ctx.prisma.order.groupBy({ by: ["status"], where: oGov, _count: true }),
       ctx.prisma.order.aggregate({
-        where: { status: REALIZED },
+        where: { status: REALIZED, ...oGov },
         _sum: { total: true, commissionAmount: true },
         _count: true,
       }),
-      ctx.prisma.vendorProfile.count({ where: { status: "PENDING" } }),
-      ctx.prisma.product.count({ where: { status: "PENDING_REVIEW" } }),
-      ctx.prisma.returnRequest.count({ where: { status: "REQUESTED" } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "PENDING", ...vGov } }),
+      ctx.prisma.product.count({ where: { status: "PENDING_REVIEW", ...pGov } }),
+      ctx.prisma.returnRequest.count({ where: { status: "REQUESTED", ...(gov ? { order: { vendor: { governorateId: gov } } } : {}) } }),
       ctx.prisma.order.findMany({
-        where: { placedAt: { gte: since14 }, status: REALIZED },
+        where: { placedAt: { gte: since14 }, status: REALIZED, ...oGov },
         select: { placedAt: true, total: true },
       }),
       ctx.prisma.order.aggregate({
-        where: { status: REALIZED, placedAt: { gte: since30 } },
+        where: { status: REALIZED, placedAt: { gte: since30 }, ...oGov },
         _sum: { total: true },
         _count: true,
       }),
       ctx.prisma.order.aggregate({
-        where: { status: REALIZED, placedAt: { gte: sincePrev30, lt: since30 } },
+        where: { status: REALIZED, placedAt: { gte: sincePrev30, lt: since30 }, ...oGov },
         _sum: { total: true },
         _count: true,
       }),
       ctx.prisma.order.groupBy({
         by: ["vendorId"],
-        where: { status: REALIZED },
+        where: { status: REALIZED, ...oGov },
         _sum: { total: true },
         orderBy: { _sum: { total: "desc" } },
         take: 5,
       }),
       ctx.prisma.order.findMany({
+        where: oGov,
         orderBy: { placedAt: "desc" },
         take: 6,
         include: { vendor: { select: { storeName: true } } },
@@ -164,7 +172,7 @@ export const adminRouter = router({
 
   // ── ملخّص مالي/محاسبي (بفلتر زمني) ──
   financeSummary: adminPerm("finance")
-    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
+    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d"), governorateId: z.string().cuid().optional() }))
     .query(async ({ ctx, input }) => {
       const now = new Date();
       let since: Date | null = null;
@@ -172,10 +180,15 @@ export const adminRouter = router({
       else if (input.period === "7d") since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       else if (input.period === "30d") since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+      // فلتر المحافظة (مدير المحافظة مقيّد؛ العامّ يختار). الطلبات تُفلتر عبر بائعها.
+      const gov = ctx.user.scopeGovernorateId ?? input.governorateId ?? undefined;
+      const oGov = gov ? { vendor: { governorateId: gov } } : {};
+
       // الإيراد يُعترف به على الطلبات المُنجزة (مسلّمة/مكتملة) ضمن الفترة.
       const realizedWhere = {
         status: { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] },
         ...(since ? { placedAt: { gte: since } } : {}),
+        ...oGov,
       };
       const [agg, unsettled, settledAgg] = await Promise.all([
         ctx.prisma.order.aggregate({
@@ -185,10 +198,10 @@ export const adminRouter = router({
         }),
         // الرصيد المستحق للبائعين (غير مسوّى) — رصيد لحظي لا يتقيّد بالفترة.
         ctx.prisma.commission.findMany({
-          where: { payoutId: null, order: { status: { in: ["DELIVERED", "COMPLETED"] } } },
+          where: { payoutId: null, order: { status: { in: ["DELIVERED", "COMPLETED"] }, ...oGov } },
           include: { order: { select: { subtotal: true } } },
         }),
-        ctx.prisma.payout.aggregate({ where: { status: "PAID" }, _sum: { amount: true } }),
+        ctx.prisma.payout.aggregate({ where: { status: "PAID", ...(gov ? { vendor: { governorateId: gov } } : {}) }, _sum: { amount: true } }),
       ]);
 
       const merchandiseSales = Number(agg._sum.subtotal ?? 0); // مبيعات البضاعة
@@ -285,12 +298,14 @@ export const adminRouter = router({
 
   // ── البائعون ──
   vendors: adminPerm("vendors")
-    .input(z.object({ status: z.string().optional(), search: z.string().trim().max(60).optional() }).optional())
+    .input(z.object({ status: z.string().optional(), search: z.string().trim().max(60).optional(), governorateId: z.string().cuid().optional() }).optional())
     .query(async ({ ctx, input }) => {
       const where: Prisma.VendorProfileWhereInput = {};
       if (input?.status) where.status = input.status as Prisma.EnumVendorStatusFilter["equals"];
       if (input?.search) where.storeName = { contains: input.search, mode: "insensitive" };
-      if (ctx.user.scopeGovernorateId) where.governorateId = ctx.user.scopeGovernorateId; // نطاق مدير المحافظة
+      // مدير المحافظة مقيّدٌ بمحافظته؛ المدير العامّ يفلتر بأيّ محافظةٍ اختارها.
+      const gov = ctx.user.scopeGovernorateId ?? input?.governorateId;
+      if (gov) where.governorateId = gov;
       const vendors = await ctx.prisma.vendorProfile.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -780,6 +795,7 @@ export const adminRouter = router({
           status: z.string().optional(),
           search: z.string().trim().max(60).optional(),
           limit: z.number().int().min(1).max(100).default(50),
+          governorateId: z.string().cuid().optional(),
         })
         .optional(),
     )
@@ -792,7 +808,9 @@ export const adminRouter = router({
           { customer: { phone: { contains: input.search } } },
         ];
       }
-      if (ctx.user.scopeGovernorateId) where.vendor = { governorateId: ctx.user.scopeGovernorateId }; // نطاق المحافظة
+      // مدير المحافظة مقيّدٌ بمحافظته؛ المدير العامّ يفلتر بأيّ محافظة.
+      const gov = ctx.user.scopeGovernorateId ?? input?.governorateId;
+      if (gov) where.vendor = { governorateId: gov };
       const orders = await ctx.prisma.order.findMany({
         where,
         orderBy: { placedAt: "desc" },

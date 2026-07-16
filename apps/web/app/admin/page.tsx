@@ -5,11 +5,13 @@ import { Card, CardBody, OrderStatusBadge, ORDER_STATUS_LABEL } from "@al-souq/u
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { QueryError } from "@/src/components/query-error";
+import { useAdminGov } from "@/src/components/admin/admin-gov";
 
 const ORDER_STATES = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as const;
 
 export default function AdminDashboard() {
-  const kpi = trpc.admin.dashboard.useQuery(undefined, { retry: false, refetchInterval: 60_000 });
+  const { govId } = useAdminGov();
+  const kpi = trpc.admin.dashboard.useQuery({ governorateId: govId ?? undefined }, { retry: false, refetchInterval: 60_000 });
 
   if (kpi.isLoading) return <DashboardSkeleton />;
   if (kpi.isError || !kpi.data) return <QueryError message={kpi.error?.message} onRetry={() => kpi.refetch()} />;

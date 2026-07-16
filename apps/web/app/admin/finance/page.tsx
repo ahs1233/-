@@ -6,6 +6,7 @@ import { Button, Card, CardBody, useToast } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { QueryError } from "@/src/components/query-error";
+import { useAdminGov } from "@/src/components/admin/admin-gov";
 
 type Period = "today" | "7d" | "30d" | "all";
 const PERIODS: { key: Period; label: string }[] = [
@@ -17,7 +18,8 @@ const PERIODS: { key: Period; label: string }[] = [
 
 export default function AdminFinance() {
   const [period, setPeriod] = useState<Period>("30d");
-  const fin = trpc.admin.financeSummary.useQuery({ period }, { retry: false });
+  const { govId } = useAdminGov();
+  const fin = trpc.admin.financeSummary.useQuery({ period, governorateId: govId ?? undefined }, { retry: false });
   const utils = trpc.useUtils();
   const { success, error } = useToast();
   const [exporting, setExporting] = useState(false);
