@@ -106,7 +106,10 @@ async function MarketWorld({
     api.discovery.marketStores({ governorateId: govId, channel, categoryIds }),
   ]);
   // إعدادُ هذا السوق تحديداً يتقدّم على الإعداد العامّ (تحكّمٌ كاملٌ لكلّ سوق من المظهر).
-  const cfgSections = config?.sections && config.sections.length ? config.sections : appearance.sections;
+  // نُصفّي إعداد السوق إلى المفاتيح الصالحة الحاليّة؛ فإن كان قديماً (souks…) عاد للافتراضيّ.
+  const VALID_KEYS = ["categories", "banner", "stores", "products", "top_stores", "pulse"];
+  const usableCfg = (config?.sections ?? []).filter((s) => VALID_KEYS.includes(s.key));
+  const cfgSections = usableCfg.length ? usableCfg : appearance.sections;
   const titles = { ...(appearance.sectionTitles ?? {}), ...(config?.sectionTitles ?? {}) };
 
   const productItems = (key: string) => {

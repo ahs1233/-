@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Palette, LayoutList, Grid3x3, MapPin, Megaphone, ChevronLeft, LayoutGrid } from "lucide-react";
+import { Palette, LayoutList, Grid3x3, MapPin, Megaphone, ChevronLeft, LayoutGrid, Tags } from "lucide-react";
 import { Card } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { DEFAULT_APPEARANCE, serviceStatusOf, type AppearanceColors, type SectionCfg, type ServiceCfg } from "@/src/lib/theme";
@@ -11,6 +11,7 @@ export default function AppearanceHub() {
   const govs = trpc.admin.govList.useQuery(undefined, { retry: false });
   const ads = trpc.admin.adList.useQuery(undefined, { retry: false });
   const markets = trpc.admin.marketList.useQuery(undefined, { retry: false });
+  const categories = trpc.admin.categories.useQuery(undefined, { retry: false });
 
   const v = (appearance.data ?? null) as
     | { colors?: AppearanceColors; sections?: SectionCfg[]; services?: ServiceCfg[] }
@@ -23,14 +24,22 @@ export default function AppearanceHub() {
   const enabledGovs = govs.data?.filter((g) => g.enabled).length ?? 0;
   const activeAds = ads.data?.filter((a) => a.active).length ?? 0;
   const enabledMarkets = markets.data?.filter((m) => m.enabled).length ?? 0;
+  const topCategories = categories.data?.filter((c) => !c.parentId).length ?? 0;
 
   const cards = [
     {
       href: "/admin/appearance/markets",
       icon: LayoutGrid,
-      title: "الأسواق",
-      desc: "أسواق الرئيسية (متاجر، إلكترونية، سفر…) — كلٌّ عالمٌ مستقلّ",
+      title: "الأسواق (البوّابات)",
+      desc: "بوّابات المحافظة: متاجر بغداد، الإلكتروني، المطاعم… رتّبها وتحكّم بعرض كلٍّ منها",
       accent: <Stat n={enabledMarkets} unit="سوق مفعّل" loading={markets.isLoading} />,
+    },
+    {
+      href: "/admin/categories",
+      icon: Tags,
+      title: "الأقسام (الفئات)",
+      desc: "الفئات التي تظهر داخل كلّ سوق كبوّابات (الأزياء، الإلكترونيات…) — سمِّها، رتّبها، صوّرها، احذفها",
+      accent: <Stat n={topCategories} unit="قسم رئيسيّ" loading={categories.isLoading} />,
     },
     {
       href: "/admin/appearance/theme",
@@ -48,8 +57,8 @@ export default function AppearanceHub() {
     {
       href: "/admin/appearance/sections",
       icon: LayoutList,
-      title: "أقسام الرئيسية",
-      desc: "الترتيب، الإظهار، والعناوين المخصّصة",
+      title: "تخطيط السوق (الافتراضيّ)",
+      desc: "ترتيب أقسام صفحة السوق وإظهارها: الأقسام ← الإعلانات ← المتاجر ← المنتجات ← أفضل المتاجر ← النبض. (يمكن تخصيص كلّ سوق من «الأسواق»)",
       accent: <Stat n={visibleSections} unit="قسم ظاهر" />,
     },
     {

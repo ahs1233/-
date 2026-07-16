@@ -35,8 +35,9 @@ export default function SectionsEditor() {
   return (
     <div className="space-y-5 pb-24">
       <div>
-        <h1 className="text-xl font-extrabold text-brand-800">أقسام الرئيسية</h1>
-        <p className="text-sm text-neutral-500">اسحب لإعادة الترتيب، أظهِر/أخفِ، وخصّص العناوين. البطل (بوّابة المحافظة) يبقى أوّلاً دائماً.</p>
+        <h1 className="text-xl font-extrabold text-brand-800">تخطيط السوق (الافتراضيّ)</h1>
+        <p className="text-sm text-neutral-500">ترتيب أقسام صفحة أيّ سوق وإظهارها وعناوينها. هذا التخطيط الافتراضيّ لكلّ الأسواق؛ لتخصيص سوقٍ بعينه استخدم «ضبط العرض» من صفحة الأسواق.</p>
+        <p className="mt-1 text-xs text-neutral-400">ملاحظة: «الأقسام» هنا قسمُ الفئات (الأزياء/الإلكترونيات…)؛ لتسمية الفئات وترتيبها وحذفها استخدم تبويب «الفئات».</p>
       </div>
 
       <Card>
