@@ -99,7 +99,8 @@ async function MarketWorld({
 }) {
   const api = await getServerApi();
   const [sections, content, appearance, extras, marketStores] = await Promise.all([
-    api.discovery.home({ governorateId: govId, channel, categoryIds }),
+    // strict: منتجات السوق تخصّ متاجر المحافظة حصراً (لا احتياط كل-العراق).
+    api.discovery.home({ governorateId: govId, channel, categoryIds, strict: true }),
     api.appearance.content({ governorateId: govId }),
     api.appearance.get(),
     api.discovery.homeExtras({ governorateId: govId, channel }),

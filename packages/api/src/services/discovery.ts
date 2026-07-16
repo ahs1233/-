@@ -255,10 +255,11 @@ async function newStores(prisma: PrismaClient, governorateId?: string, channel?:
 }
 
 /** يبني كل أقسام الصفحة الرئيسية من مجموعة مرشّحين واحدة (استعلام أدنى). */
-export async function getHomeSections(prisma: PrismaClient, governorateId?: string, channel?: string, categoryIds?: string[]): Promise<DiscoverySection[]> {
+export async function getHomeSections(prisma: PrismaClient, governorateId?: string, channel?: string, categoryIds?: string[], strict = false): Promise<DiscoverySection[]> {
   let pool = await loadPool(prisma, governorateId, channel, categoryIds);
-  // احتياط كل-العراق عند شحّ عرض المحافظة (يحافظ على العزل والقناة والأقسام أولاً).
-  if (pool.length < MIN_POOL_BEFORE_FALLBACK && governorateId) {
+  // احتياط كل-العراق عند شحّ عرض المحافظة — إلا في وضع «صارم» (صفحة السوق): منتجات
+  // السوق تخصّ متاجر المحافظة حصراً، فلا نُظهر منتجات محافظاتٍ أخرى.
+  if (!strict && pool.length < MIN_POOL_BEFORE_FALLBACK && governorateId) {
     pool = await loadPool(prisma, undefined, channel, categoryIds);
   }
   const now = new Date();

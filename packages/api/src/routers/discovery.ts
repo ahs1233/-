@@ -9,8 +9,8 @@ import { getHomeSections, getHomeExtras, getMarketStores } from "../services/dis
 
 export const discoveryRouter = router({
   home: publicProcedure
-    .input(z.object({ governorateId: z.string().cuid().optional(), channel: z.enum(["physical", "online"]).optional(), categoryIds: z.array(z.string().cuid()).max(60).optional() }).optional())
-    .query(({ ctx, input }) => getHomeSections(ctx.prisma, input?.governorateId, input?.channel, input?.categoryIds)),
+    .input(z.object({ governorateId: z.string().cuid().optional(), channel: z.enum(["physical", "online"]).optional(), categoryIds: z.array(z.string().cuid()).max(60).optional(), strict: z.boolean().optional() }).optional())
+    .query(({ ctx, input }) => getHomeSections(ctx.prisma, input?.governorateId, input?.channel, input?.categoryIds, input?.strict)),
 
   // إحصاءات حيّة + جهة موصى بها + نبض السوق — للرأس السينمائيّ للرئيسية
   homeExtras: publicProcedure

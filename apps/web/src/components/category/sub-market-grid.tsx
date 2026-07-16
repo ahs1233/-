@@ -22,17 +22,17 @@ export function SubMarketGrid({ title, items }: { title: string; items: SubMarke
         <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
         {title}
       </h2>
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-5">
         {items.map((c) => (
-          <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
-            <span className="bg-card2 relative grid aspect-square w-full place-items-center overflow-hidden rounded-2xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
+          <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-1.5">
+            <span className="bg-card2 relative grid aspect-square w-full place-items-center overflow-hidden rounded-xl border border-line text-gold-300 shadow-sm transition group-hover:border-gold-500/50 group-hover:bg-card">
               {c.imageUrl ? (
-                <AppImage src={c.imageUrl} alt={c.nameAr} sizes="120px" className="absolute inset-0 h-full w-full object-cover" />
+                <AppImage src={c.imageUrl} alt={c.nameAr} sizes="90px" className="absolute inset-0 h-full w-full object-cover" />
               ) : (
-                <CategoryIcon name={c.icon} className="h-7 w-7" />
+                <CategoryIcon name={c.icon} className="h-5 w-5" />
               )}
             </span>
-            <span className="line-clamp-1 text-center text-[12px] font-semibold text-neutral-200">{c.nameAr}</span>
+            <span className="line-clamp-1 text-center text-[10px] font-semibold text-neutral-200">{c.nameAr}</span>
           </Link>
         ))}
       </div>
