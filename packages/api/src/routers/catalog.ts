@@ -390,25 +390,34 @@ export const catalogRouter = router({
           ratingAvg: z.number(),
           ratingCount: z.number(),
           productCount: z.number(),
+          salesCount: z.number(),
+          createdAt: z.string(),
         }),
       ),
     )
     .query(async ({ ctx, input }) => {
-      const vendors = await ctx.prisma.vendorProfile.findMany({
-        where: { status: "APPROVED", ...(input.governorateId ? { governorateId: input.governorateId } : {}) },
-        orderBy: { ratingAvg: "desc" },
-        take: 60,
-        select: {
-          id: true,
-          storeName: true,
-          slug: true,
-          logoUrl: true,
-          ratingAvg: true,
-          ratingCount: true,
-          governorate: { select: { nameAr: true } },
-          _count: { select: { products: { where: { status: "ACTIVE" } } } },
-        },
-      });
+      const vendorWhere = { status: "APPROVED" as const, ...(input.governorateId ? { governorateId: input.governorateId } : {}) };
+      const [vendors, salesGroups] = await Promise.all([
+        ctx.prisma.vendorProfile.findMany({
+          where: vendorWhere,
+          orderBy: { ratingAvg: "desc" },
+          take: 60,
+          select: {
+            id: true,
+            storeName: true,
+            slug: true,
+            logoUrl: true,
+            ratingAvg: true,
+            ratingCount: true,
+            createdAt: true,
+            governorate: { select: { nameAr: true } },
+            _count: { select: { products: { where: { status: "ACTIVE" } } } },
+          },
+        }),
+        // مبيعات كلّ متجر = مجموع مبيعات منتجاته — لفرز «الأكثر مبيعاً».
+        ctx.prisma.product.groupBy({ by: ["vendorId"], where: { vendor: vendorWhere }, _sum: { soldCount: true } }),
+      ]);
+      const salesByVendor = new Map(salesGroups.map((g) => [g.vendorId, g._sum.soldCount ?? 0]));
       return vendors.map((v) => ({
         id: v.id,
         storeName: v.storeName,
@@ -418,6 +427,8 @@ export const catalogRouter = router({
         ratingAvg: Number(v.ratingAvg),
         ratingCount: v.ratingCount,
         productCount: v._count.products,
+        salesCount: salesByVendor.get(v.id) ?? 0,
+        createdAt: v.createdAt.toISOString(),
       }));
     }),
 });

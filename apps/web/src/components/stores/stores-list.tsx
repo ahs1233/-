@@ -14,12 +14,15 @@ export interface StoreListItem {
   ratingAvg: number;
   ratingCount: number;
   productCount: number;
+  salesCount: number;
+  createdAt: string;
 }
 
 const SORTS: { key: string; label: string; cmp: (a: StoreListItem, b: StoreListItem) => number }[] = [
   { key: "featured", label: "المميّزة", cmp: (a, b) => b.ratingAvg - a.ratingAvg || b.ratingCount - a.ratingCount },
   { key: "rating", label: "الأعلى تقييماً", cmp: (a, b) => b.ratingAvg - a.ratingAvg || b.ratingCount - a.ratingCount },
-  { key: "products", label: "الأكثر تشكيلةً", cmp: (a, b) => b.productCount - a.productCount },
+  { key: "sales", label: "الأكثر مبيعاً", cmp: (a, b) => b.salesCount - a.salesCount },
+  { key: "new", label: "حديثة", cmp: (a, b) => b.createdAt.localeCompare(a.createdAt) },
 ];
 
 export function StoresList({ stores }: { stores: StoreListItem[] }) {

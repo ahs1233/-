@@ -56,6 +56,7 @@ export interface DiscoveryProductCard {
   ratingAvg: number;
   ratingCount: number;
   image: string | null;
+  category: string; // اسم الفئة العليا — لشرائح التصفية في صفحات «عرض الكل»
   vendor: { storeName: string; slug: string; governorate: string | null };
   reasons: ReasonCode[];
 }
@@ -117,6 +118,7 @@ async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: 
       vendorId: true,
       images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
       variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
+      category: { select: { nameAr: true, parent: { select: { nameAr: true } } } },
       vendor: {
         select: { storeName: true, slug: true, ratingAvg: true, ratingCount: true, governorate: { select: { nameAr: true } } },
       },
@@ -148,6 +150,7 @@ async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: 
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
         image: p.images[0]?.url ?? null,
+        category: p.category.parent?.nameAr ?? p.category.nameAr,
         vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },
       },
     };
@@ -329,6 +332,7 @@ export async function getOffers(prisma: PrismaClient, governorateId?: string, li
     select: {
       id: true, title: true, slug: true, basePrice: true, compareAtPrice: true, ratingAvg: true, ratingCount: true,
       images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
+      category: { select: { nameAr: true, parent: { select: { nameAr: true } } } },
       vendor: { select: { storeName: true, slug: true, governorate: { select: { nameAr: true } } } },
     },
   });
@@ -342,6 +346,7 @@ export async function getOffers(prisma: PrismaClient, governorateId?: string, li
       ratingAvg: Number(p.ratingAvg),
       ratingCount: p.ratingCount,
       image: p.images[0]?.url ?? null,
+      category: p.category.parent?.nameAr ?? p.category.nameAr,
       vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },
       reasons: [] as ReasonCode[],
     }))
