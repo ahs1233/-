@@ -164,6 +164,7 @@ export const vendorRouter = router({
       description: product.description,
       categoryId: product.categoryId,
       basePrice: Number(product.basePrice),
+      compareAtPrice: product.compareAtPrice != null ? Number(product.compareAtPrice) : null,
       status: product.status,
       images: product.images.map((i) => i.url),
       variants: product.variants.map((v) => ({
@@ -191,6 +192,7 @@ export const vendorRouter = router({
         slug,
         description: input.description,
         basePrice: new Prisma.Decimal(input.basePrice),
+        compareAtPrice: input.compareAtPrice != null ? new Prisma.Decimal(input.compareAtPrice) : null,
         status: "DRAFT",
         images: { create: input.images.map((url, i) => ({ url, sortOrder: i })) },
         variants: {
@@ -221,6 +223,12 @@ export const vendorRouter = router({
           description: input.description,
           categoryId: input.categoryId,
           basePrice: input.basePrice !== undefined ? new Prisma.Decimal(input.basePrice) : undefined,
+          compareAtPrice:
+            input.compareAtPrice === undefined
+              ? undefined
+              : input.compareAtPrice === null
+                ? null
+                : new Prisma.Decimal(input.compareAtPrice),
           // أي تعديل جوهري يعيد المنتج للمراجعة
           status: owned.status === "ACTIVE" ? "PENDING_REVIEW" : owned.status,
         },

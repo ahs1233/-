@@ -98,10 +98,15 @@ export default async function HomePage() {
       {/* ④ عروض اليوم */}
       {content.ads.length > 0 && (
         <section>
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
-            <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-            عروض اليوم
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
+              <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+              عروض اليوم
+            </h2>
+            <Link href="/offers" className="flex items-center gap-0.5 text-sm font-medium text-gold-400 hover:text-gold-300">
+              كل العروض <ChevronLeft className="h-4 w-4" />
+            </Link>
+          </div>
           <AdsCarousel ads={content.ads} governorate={gov?.name} />
         </section>
       )}

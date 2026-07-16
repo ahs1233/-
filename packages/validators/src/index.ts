@@ -319,18 +319,30 @@ export const productImageSchema = z
     "رابط صورة غير صالح",
   );
 
-export const productCreateSchema = z.object({
-  title: z.string().trim().min(3, "العنوان قصير").max(120),
-  description: z.string().trim().max(2000).optional(),
-  categoryId: z.string().cuid(),
-  basePrice: priceIQD,
-  images: z.array(productImageSchema).max(8).default([]),
-  variants: z.array(productVariantSchema).min(1, "أضف متغيّراً واحداً على الأقل"),
-});
+export const productCreateSchema = z
+  .object({
+    title: z.string().trim().min(3, "العنوان قصير").max(120),
+    description: z.string().trim().max(2000).optional(),
+    categoryId: z.string().cuid(),
+    basePrice: priceIQD,
+    // السعر قبل الخصم (اختياري) — null/undefined = لا خصم. يجب أن يفوق السعر الحاليّ.
+    compareAtPrice: priceIQD.nullish(),
+    images: z.array(productImageSchema).max(8).default([]),
+    variants: z.array(productVariantSchema).min(1, "أضف متغيّراً واحداً على الأقل"),
+  })
+  .refine((d) => d.compareAtPrice == null || d.compareAtPrice > d.basePrice, {
+    message: "السعر قبل الخصم يجب أن يكون أعلى من السعر الحاليّ",
+    path: ["compareAtPrice"],
+  });
 
-export const productUpdateSchema = productCreateSchema.partial().extend({
-  id: z.string().cuid(),
-});
+export const productUpdateSchema = productCreateSchema
+  .innerType()
+  .partial()
+  .extend({ id: z.string().cuid() })
+  .refine((d) => d.compareAtPrice == null || d.basePrice == null || d.compareAtPrice > d.basePrice, {
+    message: "السعر قبل الخصم يجب أن يكون أعلى من السعر الحاليّ",
+    path: ["compareAtPrice"],
+  });
 
 // ─────────────────────────── Cart / Order ───────────────────────────
 

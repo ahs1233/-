@@ -52,6 +52,7 @@ export interface DiscoveryProductCard {
   title: string;
   slug: string;
   price: number;
+  compareAtPrice: number | null;
   ratingAvg: number;
   ratingCount: number;
   image: string | null;
@@ -107,6 +108,7 @@ async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: 
       title: true,
       slug: true,
       basePrice: true,
+      compareAtPrice: true,
       ratingAvg: true,
       ratingCount: true,
       soldCount: true,
@@ -142,6 +144,7 @@ async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: 
         title: p.title,
         slug: p.slug,
         price: Number(p.basePrice),
+        compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
         image: p.images[0]?.url ?? null,
@@ -273,6 +276,40 @@ export async function getMarketCounts(
     }),
   );
   return Object.fromEntries(entries);
+}
+
+/** منتجات العروض — التي لها «سعر قبل الخصم» أعلى من السعر الحاليّ، مرتّبةً بأكبر خصم. */
+export async function getOffers(prisma: PrismaClient, governorateId?: string, limit = 24): Promise<DiscoveryProductCard[]> {
+  const products = await prisma.product.findMany({
+    where: {
+      status: "ACTIVE",
+      compareAtPrice: { not: null },
+      vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}) },
+    },
+    take: 120,
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true, title: true, slug: true, basePrice: true, compareAtPrice: true, ratingAvg: true, ratingCount: true,
+      images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
+      vendor: { select: { storeName: true, slug: true, governorate: { select: { nameAr: true } } } },
+    },
+  });
+  return products
+    .map((p) => ({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      price: Number(p.basePrice),
+      compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
+      ratingAvg: Number(p.ratingAvg),
+      ratingCount: p.ratingCount,
+      image: p.images[0]?.url ?? null,
+      vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },
+      reasons: [] as ReasonCode[],
+    }))
+    .filter((p) => p.compareAtPrice != null && p.compareAtPrice > p.price)
+    .sort((a, b) => (1 - a.price / a.compareAtPrice!) - (1 - b.price / b.compareAtPrice!) > 0 ? -1 : 1)
+    .slice(0, limit);
 }
 
 async function newStores(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<DiscoveryStoreCard[]> {

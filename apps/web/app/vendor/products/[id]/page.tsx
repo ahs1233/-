@@ -26,6 +26,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [basePrice, setBasePrice] = useState("");
+  const [compareAtPrice, setCompareAtPrice] = useState("");
   const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setDescription(product.data.description ?? "");
       setCategoryId(product.data.categoryId);
       setBasePrice(String(product.data.basePrice));
+      setCompareAtPrice(product.data.compareAtPrice != null ? String(product.data.compareAtPrice) : "");
       setImages(product.data.images);
     }
   }, [product.data]);
@@ -73,11 +75,20 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             )}
           </Select>
           <Input inputMode="numeric" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="السعر الأساسي" />
+          <Input inputMode="numeric" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} placeholder="السعر قبل الخصم (اختياري)" />
           <ImageUploader value={images} onChange={setImages} />
           <Button
             loading={update.isPending}
             onClick={() =>
-              update.mutate({ id: p.id, title, description: description || undefined, categoryId, basePrice: Number(basePrice), images })
+              update.mutate({
+                id: p.id,
+                title,
+                description: description || undefined,
+                categoryId,
+                basePrice: Number(basePrice),
+                compareAtPrice: compareAtPrice.trim() && Number(compareAtPrice) > 0 ? Number(compareAtPrice) : null,
+                images,
+              })
             }
           >
             حفظ التعديلات

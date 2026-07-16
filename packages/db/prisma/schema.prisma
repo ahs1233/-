@@ -215,6 +215,8 @@ model Product {
   slug        String        @unique
   description String?
   basePrice   Decimal       @db.Decimal(12, 2) // IQD
+  // السعر قبل الخصم (اختياري) — إن وُجد وكان أعلى من basePrice ظهر خصمٌ ونسبةٌ مشطوبة.
+  compareAtPrice Decimal?   @db.Decimal(12, 2)
   status      ProductStatus @default(DRAFT)
   ratingAvg   Decimal       @default(0) @db.Decimal(3, 2)
   ratingCount Int           @default(0)

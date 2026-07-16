@@ -25,6 +25,7 @@ export interface ProductDetailData {
   slug: string;
   description: string | null;
   basePrice: number;
+  compareAtPrice: number | null;
   ratingAvg: number;
   ratingCount: number;
   images: { url: string; alt: string | null }[];
@@ -154,8 +155,18 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
         {/* طاولة البائع — السعر والخيار والكمية والشراء */}
         <div className="bg-card rounded-3xl border border-gold-500/25 p-4 shadow-sm">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-3xl font-extrabold text-gold-300 nums">
-              {selected ? formatIQD(selected.price) : formatIQD(product.basePrice)}
+            <span className="flex items-baseline gap-2">
+              <span className="text-3xl font-extrabold text-gold-300 nums">
+                {selected ? formatIQD(selected.price) : formatIQD(product.basePrice)}
+              </span>
+              {product.compareAtPrice != null && product.compareAtPrice > (selected ? selected.price : product.basePrice) && (
+                <>
+                  <span className="text-base font-medium text-neutral-500 line-through nums">{formatIQD(product.compareAtPrice)}</span>
+                  <span className="rounded-lg bg-danger px-1.5 py-0.5 text-xs font-extrabold text-white nums">
+                    −{Math.round((1 - (selected ? selected.price : product.basePrice) / product.compareAtPrice) * 100)}%
+                  </span>
+                </>
+              )}
             </span>
             {product.ratingCount > 0 && (
               <span className="text-sm font-semibold text-gold-300">

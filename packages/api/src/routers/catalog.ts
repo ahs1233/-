@@ -15,6 +15,7 @@ const productCardOut = z.object({
   title: z.string(),
   slug: z.string(),
   price: z.number(),
+  compareAtPrice: z.number().nullable(),
   ratingAvg: z.number(),
   ratingCount: z.number(),
   image: z.string().nullable(),
@@ -38,6 +39,7 @@ const productDetailOut = z
     slug: z.string(),
     description: z.string().nullable(),
     basePrice: z.number(),
+    compareAtPrice: z.number().nullable(),
     ratingAvg: z.number(),
     ratingCount: z.number(),
     images: z.array(z.object({ url: z.string(), alt: z.string().nullable() })),
@@ -88,6 +90,7 @@ function serializeProduct(p: {
   title: string;
   slug: string;
   basePrice: Prisma.Decimal;
+  compareAtPrice: Prisma.Decimal | null;
   ratingAvg: Prisma.Decimal;
   ratingCount: number;
   images: { url: string }[];
@@ -98,6 +101,7 @@ function serializeProduct(p: {
     title: p.title,
     slug: p.slug,
     price: Number(p.basePrice),
+    compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
     ratingAvg: Number(p.ratingAvg),
     ratingCount: p.ratingCount,
     image: p.images[0]?.url ?? null,
@@ -265,6 +269,7 @@ export const catalogRouter = router({
           title: true,
           slug: true,
           basePrice: true,
+          compareAtPrice: true,
           ratingAvg: true,
           ratingCount: true,
           images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
@@ -300,6 +305,7 @@ export const catalogRouter = router({
         slug: p.slug,
         description: p.description,
         basePrice: Number(p.basePrice),
+        compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
         images: p.images.map((i) => ({ url: i.url, alt: i.alt })),
@@ -350,6 +356,7 @@ export const catalogRouter = router({
           title: true,
           slug: true,
           basePrice: true,
+          compareAtPrice: true,
           ratingAvg: true,
           ratingCount: true,
           images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },

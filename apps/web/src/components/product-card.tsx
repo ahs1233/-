@@ -8,6 +8,7 @@ export interface ProductCardData {
   title: string;
   slug: string;
   price: number;
+  compareAtPrice?: number | null;
   ratingAvg: number;
   ratingCount: number;
   image: string | null;
@@ -16,6 +17,8 @@ export interface ProductCardData {
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   const place = product.vendor.governorate;
+  const hasDiscount = product.compareAtPrice != null && product.compareAtPrice > product.price;
+  const discountPct = hasDiscount ? Math.round((1 - product.price / product.compareAtPrice!) * 100) : 0;
   return (
     <Link
       href={`/product/${product.slug}`}
@@ -40,6 +43,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             {product.ratingAvg.toFixed(1)}
           </span>
         )}
+        {hasDiscount && (
+          <span className="absolute end-2 bottom-2 rounded-lg bg-danger px-2 py-0.5 text-xs font-extrabold text-white shadow-sm nums">
+            −{discountPct}%
+          </span>
+        )}
         {/* شريطٌ ذهبيّ سفليّ رفيع — لمسة هويّة السوگ */}
         <span className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-gold-400/70 to-transparent" aria-hidden />
       </div>
@@ -47,8 +55,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       <div className="flex flex-1 flex-col gap-0.5 p-3">
         <h3 className="line-clamp-2 text-sm font-bold leading-snug text-neutral-100">{product.title}</h3>
         <p className="line-clamp-1 text-xs font-medium text-neutral-400">{product.vendor.storeName}</p>
-        <div className="mt-auto pt-1.5">
+        <div className="mt-auto flex items-baseline gap-1.5 pt-1.5">
           <span className="text-lg font-extrabold text-gold-300 nums">{formatIQD(product.price)}</span>
+          {hasDiscount && (
+            <span className="text-xs font-medium text-neutral-500 line-through nums">{formatIQD(product.compareAtPrice!)}</span>
+          )}
         </div>
       </div>
     </Link>
