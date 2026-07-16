@@ -5,6 +5,7 @@ import { Button, Card, CardBody, Input, Select, useToast } from "@al-souq/ui";
 import { ChevronUp, ChevronDown, Eye, EyeOff, Pencil, Trash2, Plus, Check, X } from "lucide-react";
 import { trpc } from "@/src/trpc/react";
 import { ImageField } from "../appearance/_image-field";
+import { AppearanceTabs } from "../appearance/_tabs";
 import { CategoryIcon } from "@/src/components/category-icon";
 
 type Cat = {
@@ -77,9 +78,10 @@ export default function AdminCategories() {
 
   return (
     <div className="space-y-4 pb-8">
+      <AppearanceTabs />
       <div>
         <h1 className="text-xl font-bold">إدارة الأقسام</h1>
-        <p className="text-sm text-neutral-500">هذه هي «أقسام الأسواق» — رتّبها، غيّر اسمها وصورتها وأيقونتها، أظهِرها/أخفِها، أو احذفها. تظهر كبوّاباتٍ داخل الأسواق.</p>
+        <p className="text-sm text-neutral-500">هذه هي «أقسام الأسواق» — رتّبها بالسهمين ⬆⬇، غيّر اسمها وصورتها وأيقونتها، أظهِرها/أخفِها، أو احذفها. تظهر كبوّاباتٍ داخل الأسواق.</p>
       </div>
 
       <Card>
@@ -188,9 +190,9 @@ function Row({
   return (
     <div>
       <div className="flex items-center gap-2">
-        <div className="flex flex-col">
-          <button onClick={() => onMove(-1)} disabled={index === 0} aria-label="لأعلى" className="grid h-4 w-5 place-items-center rounded text-neutral-400 hover:bg-neutral-100 disabled:opacity-30"><ChevronUp className="h-3.5 w-3.5" /></button>
-          <button onClick={() => onMove(1)} disabled={index === total - 1} aria-label="لأسفل" className="grid h-4 w-5 place-items-center rounded text-neutral-400 hover:bg-neutral-100 disabled:opacity-30"><ChevronDown className="h-3.5 w-3.5" /></button>
+        <div className="flex flex-shrink-0 flex-col gap-0.5">
+          <button onClick={() => onMove(-1)} disabled={index === 0} aria-label="نقل لأعلى" title="نقل لأعلى" className="grid h-6 w-7 place-items-center rounded-md border border-neutral-200 bg-neutral-50 text-brand-600 hover:bg-brand-50 hover:text-brand-700 disabled:opacity-25"><ChevronUp className="h-4 w-4" /></button>
+          <button onClick={() => onMove(1)} disabled={index === total - 1} aria-label="نقل لأسفل" title="نقل لأسفل" className="grid h-6 w-7 place-items-center rounded-md border border-neutral-200 bg-neutral-50 text-brand-600 hover:bg-brand-50 hover:text-brand-700 disabled:opacity-25"><ChevronDown className="h-4 w-4" /></button>
         </div>
         <span className="grid h-9 w-9 flex-shrink-0 place-items-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 text-brand-600">
           {cat.imageUrl ? (
