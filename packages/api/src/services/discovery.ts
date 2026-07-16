@@ -278,6 +278,44 @@ export async function getMarketCounts(
   return Object.fromEntries(entries);
 }
 
+export interface NearbyStore extends DiscoveryStoreCard {
+  latitude: number;
+  longitude: number;
+  governorate: string | null;
+}
+
+/** متاجر لها إحداثيّات على الخريطة — لصفحة «قريب منك» (الترتيب بالمسافة يتمّ في المتصفّح). */
+export async function getNearbyStores(prisma: PrismaClient, governorateId?: string, limit = 80): Promise<NearbyStore[]> {
+  const vendors = await prisma.vendorProfile.findMany({
+    where: {
+      status: "APPROVED",
+      ...(governorateId ? { governorateId } : {}),
+      latitude: { not: null },
+      longitude: { not: null },
+    },
+    take: limit,
+    orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }],
+    select: {
+      id: true, storeName: true, slug: true, logoUrl: true, ratingAvg: true, ratingCount: true,
+      latitude: true, longitude: true,
+      governorate: { select: { nameAr: true } },
+      _count: { select: { products: { where: { status: "ACTIVE" } } } },
+    },
+  });
+  return vendors.map((v) => ({
+    id: v.id,
+    storeName: v.storeName,
+    slug: v.slug,
+    logoUrl: v.logoUrl,
+    productCount: v._count.products,
+    ratingAvg: Number(v.ratingAvg),
+    ratingCount: v.ratingCount,
+    latitude: v.latitude!,
+    longitude: v.longitude!,
+    governorate: v.governorate?.nameAr ?? null,
+  }));
+}
+
 /** منتجات العروض — التي لها «سعر قبل الخصم» أعلى من السعر الحاليّ، مرتّبةً بأكبر خصم. */
 export async function getOffers(prisma: PrismaClient, governorateId?: string, limit = 24): Promise<DiscoveryProductCard[]> {
   const products = await prisma.product.findMany({

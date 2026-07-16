@@ -160,6 +160,9 @@ model VendorProfile {
   instagramUrl   String?
   facebookUrl    String?
   tiktokUrl      String?
+  // موقع المتجر على الخريطة (اختياري) — لعرضه في «قريب منك» وحساب المسافة.
+  latitude       Float?
+  longitude      Float?
   // تجاوز اختياري لنسبة العمولة العامة للمنصة (null = استخدم العامة)
   commissionRate Decimal?     @db.Decimal(5, 4)
   governorateId  String?

@@ -93,6 +93,8 @@ export const vendorRouter = router({
       status: vendor.status,
       rejectionNote: vendor.rejectionNote,
       governorate: vendor.governorate,
+      latitude: vendor.latitude,
+      longitude: vendor.longitude,
       ratingAvg: Number(vendor.ratingAvg),
       ratingCount: vendor.ratingCount,
       payoutDetails: vendor.payoutDetails,
@@ -114,6 +116,8 @@ export const vendorRouter = router({
         logoUrl: input.logoUrl || undefined,
         bannerUrl: input.bannerUrl || undefined,
         governorateId: input.governorateId,
+        latitude: input.latitude === undefined ? undefined : input.latitude,
+        longitude: input.longitude === undefined ? undefined : input.longitude,
         ...(payoutDetails ? { payoutDetails } : {}),
       },
     });

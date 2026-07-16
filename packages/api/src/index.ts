@@ -12,6 +12,7 @@ export type {
   DiscoverySection,
   DiscoveryProductCard,
   DiscoveryStoreCard,
+  NearbyStore,
 } from "./services/discovery";
 export type { AppContent, AdItem, GovPresentation, Appearance } from "./routers/appearance";
 export type { MarketItem, MarketDisplayConfig } from "./routers/market";

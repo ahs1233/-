@@ -68,6 +68,9 @@ export const vendorSettingsSchema = z.object({
   logoUrl: z.string().url().optional().or(z.literal("")),
   bannerUrl: z.string().url().optional().or(z.literal("")),
   governorateId: z.string().cuid().optional(),
+  // موقع المتجر على الخريطة (اختياري) — null يمسح الموقع.
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
   // تفاصيل التسوية (طريقة استلام البائع لمستحقاته)
   payoutMethod: z.string().trim().max(40).optional(),
   payoutAccount: z.string().trim().max(80).optional(),
