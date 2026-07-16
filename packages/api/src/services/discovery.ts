@@ -221,6 +221,60 @@ export async function getMarketStores(
   }));
 }
 
+// ─── إحصاءات المدينة + عدّاد كلّ سوق (لبطل الرئيسية والدليل المدمج) ───
+
+export interface CityStats {
+  openStores: number;   // متجرٌ مفتوح الآن (معتمد)
+  newStores: number;    // متجرٌ افتتح خلال ٣٠ يوماً
+  newProducts: number;  // منتجٌ وصل خلال ١٤ يوماً
+  offers: number;       // عرضٌ فعّالٌ الآن (إعلانات هذه المحافظة + كلّ العراق)
+}
+
+/** أرقامٌ حيّةٌ تجعل المدينة تنبض — كلّها مشتقّةٌ من DB، بنوافذ تُظهر حركةً حقيقيّة. */
+export async function getCityStats(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<CityStats> {
+  const govWhere = { ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) };
+  const now = Date.now();
+  const d30 = new Date(now - 30 * 86_400_000);
+  const d14 = new Date(now - 14 * 86_400_000);
+  const adWhere = governorateId ? { active: true, OR: [{ governorateId }, { governorateId: null }] } : { active: true };
+  const [openStores, newStores, newProducts, offers] = await Promise.all([
+    prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere } }),
+    prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere, createdAt: { gte: d30 } } }),
+    prisma.product.count({ where: { status: "ACTIVE", createdAt: { gte: d14 }, vendor: { status: "APPROVED", ...govWhere } } }),
+    prisma.ad.count({ where: adWhere }),
+  ]);
+  return { openStores, newStores, newProducts, offers };
+}
+
+export interface MarketCountSpec {
+  id: string;
+  channel?: string;
+  categoryIds?: string[];
+}
+
+/** عدد المتاجر المعتمدة داخل نطاق كلّ سوق (قناة أو أقسام) — لعرض «٤٢ متجر» بجانب كلّ سوق. */
+export async function getMarketCounts(
+  prisma: PrismaClient,
+  governorateId: string | undefined,
+  specs: MarketCountSpec[],
+): Promise<Record<string, number>> {
+  const entries = await Promise.all(
+    specs.map(async (s) => {
+      const hasCats = !!s.categoryIds && s.categoryIds.length > 0;
+      const count = await prisma.vendorProfile.count({
+        where: {
+          status: "APPROVED",
+          ...(governorateId ? { governorateId } : {}),
+          ...(s.channel ? { channel: s.channel } : {}),
+          ...(hasCats ? { products: { some: { status: "ACTIVE", categoryId: { in: s.categoryIds } } } } : {}),
+        },
+      });
+      return [s.id, count] as const;
+    }),
+  );
+  return Object.fromEntries(entries);
+}
+
 async function newStores(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<DiscoveryStoreCard[]> {
   const vendors = await prisma.vendorProfile.findMany({
     where: {

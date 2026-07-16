@@ -2,41 +2,106 @@ import Link from "next/link";
 import { ChevronLeft, Store } from "lucide-react";
 import { getGovernorate } from "@/src/lib/governorate";
 import { getServerApi } from "@/src/trpc/server";
-import { HomeGreetingHero } from "@/src/components/home/home-greeting-hero";
-import { MarketGrid } from "@/src/components/home/market-grid";
-import { PulseGrid } from "@/src/components/home/pulse-grid";
-import { AdsCarousel } from "@/src/components/home/home-blocks";
+import { getCachedCategories } from "@/src/lib/catalog-cache";
+import { CityHero } from "@/src/components/home/city-hero";
+import { MarketDirectory } from "@/src/components/home/market-directory";
+import { MarketPulse, AdsCarousel } from "@/src/components/home/home-blocks";
+import { ProductRail, StoreRail } from "@/src/components/home/section-rail";
+import { NearbyStores } from "@/src/components/home/nearby-stores";
+import { DiscoverToday } from "@/src/components/home/discover-today";
 import { resolveGovIdentity } from "@/src/lib/governorate-identity";
-import type { HomeExtras, AppContent, MarketItem } from "@al-souq/api";
+import type { HomeExtras, CityStats, AppContent, MarketItem, DiscoverySection } from "@al-souq/api";
 
 export const dynamic = "force-dynamic";
 
+const EMPTY_STATS: CityStats = { openStores: 0, newStores: 0, newProducts: 0, offers: 0 };
+
 export default async function HomePage() {
   const gov = getGovernorate();
+
+  let stats: CityStats = EMPTY_STATS;
   let extras: HomeExtras | null = null;
   let content: AppContent = { governorate: null, ads: [] };
   let markets: MarketItem[] = [];
+  let sections: DiscoverySection[] = [];
+  let suggested: Awaited<ReturnType<Awaited<ReturnType<typeof getServerApi>>["discovery"]["marketStores"]>> = [];
+  let counts: Record<string, number> = {};
+  let userName: string | undefined;
   let dbReady = true;
+
   try {
     const api = await getServerApi();
-    const [ex, cont, mk] = await Promise.all([
+    const [st, ex, cont, mk, sec, sug, cats] = await Promise.all([
+      api.discovery.cityStats({ governorateId: gov?.id }),
       api.discovery.homeExtras({ governorateId: gov?.id }),
       api.appearance.content({ governorateId: gov?.id }),
       api.market.list(),
+      api.discovery.home({ governorateId: gov?.id }),
+      api.discovery.marketStores({ governorateId: gov?.id }),
+      getCachedCategories(),
     ]);
+    stats = st;
     extras = ex;
     content = cont;
     markets = mk;
+    sections = sec;
+    suggested = sug;
+
+    // عدّاد متاجر كلّ سوق (نطاقٌ بالقناة أو بالأقسام) — يُغذّي الدليل المدمج.
+    const catBySlug = new Map(cats.map((c) => [c.slug, c]));
+    const specs = markets
+      .filter((m) => m.status !== "soon")
+      .map((m) => {
+        if (m.kind === "stores") {
+          const ch = m.channel === "physical" ? ("physical" as const) : m.channel === "online" ? ("online" as const) : undefined;
+          return { id: m.id, channel: ch };
+        }
+        if (m.categorySlug) {
+          const cat = catBySlug.get(m.categorySlug);
+          return { id: m.id, categoryIds: cat ? [cat.id, ...cat.children.map((c) => c.id)] : [] };
+        }
+        return { id: m.id };
+      });
+    if (specs.length) counts = await api.discovery.marketCounts({ governorateId: gov?.id, markets: specs });
+
+    // اسم المستخدم للتحيّة — يعمل عند تسجيل الدخول فقط.
+    try {
+      const me = await api.auth.me();
+      userName = me?.name?.trim() || undefined;
+    } catch {
+      /* زائرٌ غير مسجّل — تحيّةٌ عامّة */
+    }
   } catch {
     dbReady = false;
   }
 
   const identity = resolveGovIdentity(gov?.name, content.governorate);
+  const activeMarkets = markets.filter((m) => m.status !== "soon").length;
+
+  const productsOf = (key: string) => {
+    const s = sections.find((x) => x.key === key);
+    return s && s.kind === "products" ? s.items : [];
+  };
+  const newStoresSection = sections.find((x) => x.key === "new_stores");
+  const newStores = newStoresSection && newStoresSection.kind === "stores" ? newStoresSection.items : [];
+
+  const topStores = suggested.slice(0, 8);
+  const nearby = [...suggested].sort((a, b) => b.productCount - a.productCount).slice(0, 8);
+  const bestSelling = productsOf("best_selling");
+  const newArrivals = productsOf("new");
+  const today = productsOf("today");
 
   return (
-    <div className="space-y-6">
-      {/* ① أهلاً بك في بغداد */}
-      <HomeGreetingHero governorate={gov?.name} heroImage={identity.hero} feel={identity.feel} />
+    <div className="space-y-7">
+      {/* ① المدينة هي البطل — تحيّةٌ + أرقامٌ حيّة */}
+      <CityHero
+        governorate={gov?.name}
+        userName={userName}
+        heroImage={identity.hero}
+        feel={identity.feel}
+        stats={stats}
+        activeMarkets={activeMarkets}
+      />
 
       {!dbReady && (
         <div className="rounded-2xl border border-gold-500/30 bg-gold-500/10 p-4 text-sm text-gold-300">
@@ -44,11 +109,11 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* ② اختر السوق الذي يناسبك */}
-      <MarketGrid markets={markets} govName={gov?.name} />
+      {/* ② إلى أين تريد الذهاب؟ — دليلٌ مدمج */}
+      <MarketDirectory markets={markets} govName={gov?.name} counts={counts} />
 
-      {/* ③ نبض السوگ */}
-      {extras && extras.pulse.length > 0 && <PulseGrid events={extras.pulse} />}
+      {/* ③ نبض السوق — حياةٌ مباشرة، لا منتجات */}
+      {extras && extras.pulse.length > 0 && <MarketPulse events={extras.pulse} governorate={gov?.name} />}
 
       {/* ④ عروض اليوم */}
       {content.ads.length > 0 && (
@@ -61,7 +126,25 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ⑤ افتح متجرك */}
+      {/* ⑤ متاجر مقترحة */}
+      <StoreRail emoji="✨" title="متاجر مقترحة لك" href="/stores" items={topStores} />
+
+      {/* ⑥ الأكثر مبيعاً */}
+      <ProductRail emoji="🔥" title="الأكثر مبيعاً" href="/search?sort=best_selling" items={bestSelling} />
+
+      {/* ⑦ وصل حديثاً */}
+      <ProductRail emoji="🆕" title="وصل حديثاً" href="/search?sort=new" items={newArrivals} />
+
+      {/* ⑧ قريب منك — GPS */}
+      <NearbyStores stores={nearby} govName={gov?.name} />
+
+      {/* ⑨ متاجر جديدة */}
+      <StoreRail emoji="🏪" title="متاجر جديدة في السوق" href="/stores" items={newStores} />
+
+      {/* ⑩ اكتشف اليوم — يتجدّد يوميّاً */}
+      <DiscoverToday items={today} />
+
+      {/* ⑪ افتح متجرك */}
       <Link
         href="/become-seller"
         className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-gradient-to-l from-brand-700 to-brand-900 p-5 text-white shadow-lg ring-1 ring-gold-500/20"
