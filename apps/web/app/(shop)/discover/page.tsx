@@ -7,6 +7,7 @@ import { formatIQD } from "@al-souq/utils";
 import { AppImage } from "@/src/components/app-image";
 import { ProductCard, type ProductCardData } from "@/src/components/product-card";
 import { SectionPageHeader } from "@/src/components/section-page-header";
+import { ARTICLES } from "@/src/lib/articles";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "اكتشف اليوم — السوگ" };
@@ -66,6 +67,24 @@ export default async function DiscoverPage() {
           )}
         </>
       )}
+
+      {/* بطاقتا «مقال اليوم» و«نصيحة اليوم» — محتوىً تحريريّ */}
+      <div className="space-y-3 pt-2">
+        {ARTICLES.map((a) => (
+          <Link key={a.slug} href={`/article/${a.slug}`} className="bg-card group flex items-center gap-3 overflow-hidden rounded-2xl border border-line shadow-sm transition hover:border-gold-500/40">
+            <span className="relative h-24 w-28 flex-shrink-0 overflow-hidden">
+              <AppImage src={a.cover} alt={a.title} sizes="112px" className="h-full w-full object-cover" />
+            </span>
+            <span className="min-w-0 flex-1 py-3 pe-3">
+              <span className="text-[11px] font-bold text-gold-400">{a.label}</span>
+              <span className="mt-0.5 line-clamp-2 block font-bold leading-snug text-neutral-100">{a.title}</span>
+              <span className="mt-1 inline-flex items-center gap-0.5 text-xs font-semibold text-gold-300">
+                {a.kind === "article" ? "اقرأ المقال" : "اقرأ المزيد"} <ChevronLeft className="h-3.5 w-3.5" />
+              </span>
+            </span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
