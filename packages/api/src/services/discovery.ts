@@ -56,6 +56,7 @@ export interface DiscoveryProductCard {
   ratingAvg: number;
   ratingCount: number;
   soldCount: number; // عدد عمليّات الشراء — عنصر ثقة في «الأكثر مبيعاً»
+  available: number; // المخزون المتاح — لشارة «متوفّر/غير متوفّر»
   image: string | null;
   category: string; // اسم الفئة العليا — لشرائح التصفية في صفحات «عرض الكل»
   vendor: { storeName: string; slug: string; governorate: string | null };
@@ -153,6 +154,7 @@ async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: 
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
         soldCount: p.soldCount,
+        available,
         image: p.images[0]?.url ?? null,
         category: p.category.parent?.nameAr ?? p.category.nameAr,
         vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },
@@ -343,6 +345,7 @@ export async function getOffers(prisma: PrismaClient, governorateId?: string, li
     select: {
       id: true, title: true, slug: true, basePrice: true, compareAtPrice: true, ratingAvg: true, ratingCount: true, soldCount: true,
       images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
+      variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
       category: { select: { nameAr: true, parent: { select: { nameAr: true } } } },
       vendor: { select: { storeName: true, slug: true, governorate: { select: { nameAr: true } } } },
     },
@@ -357,6 +360,7 @@ export async function getOffers(prisma: PrismaClient, governorateId?: string, li
       ratingAvg: Number(p.ratingAvg),
       ratingCount: p.ratingCount,
       soldCount: p.soldCount,
+      available: p.variants.reduce((s, v) => s + Math.max(0, v.stock - v.reservedStock), 0),
       image: p.images[0]?.url ?? null,
       category: p.category.parent?.nameAr ?? p.category.nameAr,
       vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },

@@ -18,6 +18,7 @@ const productCardOut = z.object({
   compareAtPrice: z.number().nullable(),
   ratingAvg: z.number(),
   ratingCount: z.number(),
+  available: z.number(),
   image: z.string().nullable(),
   vendor: z.object({ storeName: z.string(), slug: z.string() }),
 });
@@ -94,6 +95,7 @@ function serializeProduct(p: {
   ratingAvg: Prisma.Decimal;
   ratingCount: number;
   images: { url: string }[];
+  variants?: { stock: number; reservedStock: number }[];
   vendor: { storeName: string; slug: string };
 }) {
   return {
@@ -104,6 +106,7 @@ function serializeProduct(p: {
     compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
     ratingAvg: Number(p.ratingAvg),
     ratingCount: p.ratingCount,
+    available: (p.variants ?? []).reduce((s, v) => s + Math.max(0, v.stock - v.reservedStock), 0),
     image: p.images[0]?.url ?? null,
     vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug },
   };
@@ -272,6 +275,7 @@ export const catalogRouter = router({
           compareAtPrice: true,
           ratingAvg: true,
           ratingCount: true,
+          variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
           images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
           vendor: { select: { storeName: true, slug: true } },
         },
@@ -359,6 +363,7 @@ export const catalogRouter = router({
           compareAtPrice: true,
           ratingAvg: true,
           ratingCount: true,
+          variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
           images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
           vendor: { select: { storeName: true, slug: true } },
         },

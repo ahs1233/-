@@ -391,7 +391,7 @@ async function main() {
         { title: "حذاء رياضي جديد", price: 45000, ageDays: 1, stock: 30, variants: [["42", 45000, 10], ["43", 45000, 10], ["44", 45000, 10]] as [string, number, number][] },
         { title: "شنطة جلد طبيعي", price: 95000, ageDays: 2, stock: 25, variants: [] },
         { title: "قميص رسميّ قطن", price: 40000, sold: 60, stock: 50, variants: [["M", 40000, 20], ["L", 41000, 20], ["XL", 42000, 10]] as [string, number, number][] },
-        { title: "بدلة كلاسيك صوف", price: 180000, sold: 20, stock: 12, variants: [] },
+        { title: "بدلة كلاسيك صوف", price: 180000, sold: 20, stock: 12, variants: [], out: true },
       ],
     },
     {
@@ -401,7 +401,7 @@ async function main() {
         { title: "عطر فرنسي أصلي", price: 85000, rating: [4.9, 74] as [number, number], sold: 500, stock: 60, variants: [] },
         { title: "دهن عود هندي فاخر", price: 120000, sold: 40, stock: 30, variants: [] },
         { title: "مسك أبيض معتّق", price: 30000, sold: 55, stock: 90, variants: [] },
-        { title: "بخور كمبودي راقٍ", price: 45000, sold: 25, stock: 40, variants: [] },
+        { title: "بخور كمبودي راقٍ", price: 45000, sold: 25, stock: 40, variants: [], out: true },
         { title: "عطر شرقيّ مركّز", price: 65000, sold: 30, stock: 45, variants: [] },
       ],
     },
@@ -413,7 +413,7 @@ async function main() {
         { title: "كتاب تاريخ العراق", price: 25000, sold: 45, stock: 60, variants: [] },
         { title: "دفتر جلد فاخر", price: 8000, sold: 90, stock: 120, variants: [] },
         { title: "قلم حبر فاخر", price: 12000, sold: 50, stock: 80, variants: [] },
-        { title: "مجلّة ثقافيّة شهريّة", price: 5000, sold: 30, stock: 150, variants: [] },
+        { title: "مجلّة ثقافيّة شهريّة", price: 5000, sold: 30, stock: 150, variants: [], out: true },
       ],
     },
     {
@@ -423,7 +423,7 @@ async function main() {
         { title: "وجبة مشاوي مشكّلة", price: 25000, sold: 200, stock: 100, variants: [] },
         { title: "قوزي عراقيّ", price: 30000, sold: 120, stock: 80, variants: [] },
         { title: "تمن وقيمة", price: 12000, sold: 160, stock: 120, variants: [] },
-        { title: "دولمة عراقيّة", price: 15000, sold: 90, stock: 70, variants: [] },
+        { title: "دولمة عراقيّة", price: 15000, sold: 90, stock: 70, variants: [], out: true },
         { title: "كباب عراقيّ", price: 20000, sold: 140, stock: 90, variants: [] },
       ],
     },
@@ -446,7 +446,7 @@ async function main() {
         { title: "فستان سهرة أنيق", price: 120000, sold: 30, stock: 20, variants: [["S", 120000, 6], ["M", 120000, 8], ["L", 122000, 6]] as [string, number, number][] },
         { title: "عباية مطرّزة عصريّة", price: 90000, sold: 25, stock: 25, variants: [] },
         { title: "حقيبة يد نسائيّة", price: 55000, sold: 40, stock: 35, variants: [] },
-        { title: "حذاء كعب أنيق", price: 65000, sold: 20, stock: 30, variants: [] },
+        { title: "حذاء كعب أنيق", price: 65000, sold: 20, stock: 30, variants: [], out: true },
         { title: "طقم إكسسوارات", price: 25000, sold: 50, stock: 60, variants: [] },
       ],
     },
@@ -458,7 +458,7 @@ async function main() {
         { title: "كليجة عيديّة بالتمر", price: 10000, sold: 60, stock: 90, variants: [] },
         { title: "كنافة نابلسيّة", price: 12000, sold: 70, stock: 80, variants: [] },
         { title: "زلابية عراقيّة", price: 8000, sold: 55, stock: 120, variants: [] },
-        { title: "حلقوم بالفستق", price: 9000, sold: 40, stock: 100, variants: [] },
+        { title: "حلقوم بالفستق", price: 9000, sold: 40, stock: 100, variants: [], out: true },
       ],
     },
     {
@@ -469,7 +469,7 @@ async function main() {
         { title: "أطلس مصوّر للعالم", price: 30000, sold: 20, stock: 40, variants: [] },
         { title: "قرطاسيّة مدرسيّة", price: 15000, sold: 65, stock: 120, variants: [] },
         { title: "ألوان خشبيّة ٢٤ لون", price: 8000, sold: 50, stock: 90, variants: [] },
-        { title: "دفتر رسم فنّي", price: 6000, sold: 35, stock: 110, variants: [] },
+        { title: "دفتر رسم فنّي", price: 6000, sold: 35, stock: 110, variants: [], out: true },
       ],
     },
     // متاجر لها موقعٌ على الخريطة (قريب منك) — مؤسَّسة (ageDays كبير).
@@ -489,7 +489,7 @@ async function main() {
       products: [
         { title: "فيتامين سي ١٠٠٠", price: 9000, sold: 70, stock: 150, variants: [] },
         { title: "كمّامات طبّيّة علبة", price: 5000, sold: 120, stock: 200, variants: [] },
-        { title: "جهاز قياس ضغط", price: 45000, sold: 25, stock: 30, variants: [] },
+        { title: "جهاز قياس ضغط", price: 45000, sold: 25, stock: 30, variants: [], out: true },
         { title: "معقّم يدين ٥٠٠مل", price: 4000, sold: 100, stock: 180, variants: [] },
       ],
     },
@@ -613,6 +613,10 @@ async function main() {
             });
           }
         }
+      }
+      // إنفاذُ حالة «غير متوفّر» في كلّ بذرة (~١٠٪ من المنتجات) — لعرض الشارة.
+      if (pp.out) {
+        await prisma.productVariant.updateMany({ where: { productId: product.id }, data: { stock: 0 } });
       }
     }
     console.log(`✅ بائع: ${v.storeName} (${v.products.length} منتج)`);

@@ -11,6 +11,7 @@ export interface ProductCardData {
   compareAtPrice?: number | null;
   ratingAvg: number;
   ratingCount: number;
+  available?: number;
   image: string | null;
   vendor: { storeName: string; slug: string; governorate?: string | null };
 }
@@ -19,6 +20,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   const place = product.vendor.governorate;
   const hasDiscount = product.compareAtPrice != null && product.compareAtPrice > product.price;
   const discountPct = hasDiscount ? Math.round((1 - product.price / product.compareAtPrice!) * 100) : 0;
+  const outOfStock = product.available === 0;
   return (
     <Link
       href={`/product/${product.slug}`}
@@ -43,9 +45,14 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             {product.ratingAvg.toFixed(1)}
           </span>
         )}
-        {hasDiscount && (
+        {hasDiscount && !outOfStock && (
           <span className="absolute end-2 bottom-2 rounded-lg bg-danger px-2 py-0.5 text-xs font-extrabold text-white shadow-sm nums">
             −{discountPct}%
+          </span>
+        )}
+        {outOfStock && (
+          <span className="absolute inset-0 grid place-items-center bg-brand-900/55">
+            <span className="rounded-lg bg-neutral-800/90 px-3 py-1 text-xs font-bold text-neutral-200 ring-1 ring-white/10">غير متوفّر</span>
           </span>
         )}
         {/* شريطٌ ذهبيّ سفليّ رفيع — لمسة هويّة السوگ */}
@@ -55,6 +62,12 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       <div className="flex flex-1 flex-col gap-0.5 p-3">
         <h3 className="line-clamp-2 text-sm font-bold leading-snug text-neutral-100">{product.title}</h3>
         <p className="line-clamp-1 text-xs font-medium text-neutral-400">{product.vendor.storeName}</p>
+        {product.available != null && (
+          <span className={`mt-0.5 inline-flex w-fit items-center gap-1 text-[11px] font-semibold ${outOfStock ? "text-neutral-500" : "text-petrol"}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${outOfStock ? "bg-neutral-500" : "bg-petrol"}`} />
+            {outOfStock ? "غير متوفّر" : "متوفّر"}
+          </span>
+        )}
         <div className="mt-auto flex items-baseline gap-1.5 pt-1.5">
           <span className="text-lg font-extrabold text-gold-300 nums">{formatIQD(product.price)}</span>
           {hasDiscount && (
