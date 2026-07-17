@@ -31,7 +31,8 @@ export default function NearbyMap({
         13,
       );
       mapRef.current = map;
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+      // بلاطاتٌ داكنة (CartoDB dark_matter) لتتناسب مع ثيم «السوگ» الليليّ.
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 20, subdomains: "abcd" }).addTo(map);
 
       const pin = L.divIcon({
         className: "",

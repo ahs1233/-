@@ -7,7 +7,7 @@ import { formatIQD } from "@al-souq/utils";
 import { AppImage } from "@/src/components/app-image";
 import { ProductCard, type ProductCardData } from "@/src/components/product-card";
 
-type Item = ProductCardData & { category?: string };
+type Item = ProductCardData & { category?: string; soldCount?: number };
 
 /** شبكة/قائمة منتجات مع شرائح تصفية بالفئة العليا. variant يحدّد التخطيط. */
 export function FilteredProducts({
@@ -71,6 +71,9 @@ export function FilteredProducts({
                       <span className="font-extrabold text-gold-300 nums">{formatIQD(p.price)}</span>
                       {hasDiscount && <span className="text-xs text-neutral-500 line-through nums">{formatIQD(p.compareAtPrice!)}</span>}
                     </span>
+                    {p.soldCount != null && p.soldCount > 0 && (
+                      <span className="mt-0.5 block text-[11px] text-petrol"><span className="nums">{p.soldCount}</span> عملية شراء</span>
+                    )}
                   </span>
                   {p.ratingCount > 0 && (
                     <span className="flex flex-shrink-0 items-center gap-1 text-sm font-semibold text-gold-300">

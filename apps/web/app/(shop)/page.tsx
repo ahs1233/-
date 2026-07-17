@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft, Store } from "lucide-react";
+import { ChevronLeft, Store, Search } from "lucide-react";
 import { getGovernorate } from "@/src/lib/governorate";
 import { getServerApi } from "@/src/trpc/server";
 import { CityHero } from "@/src/components/home/city-hero";
@@ -89,6 +89,12 @@ export default async function HomePage() {
           المتجر قيد التجهيز — لم تُربط قاعدة البيانات بعد.
         </div>
       )}
+
+      {/* شريط البحث */}
+      <Link href="/search" className="bg-card2 flex items-center gap-2 rounded-2xl border border-line px-4 py-3 text-sm text-neutral-400 transition hover:border-gold-500/40">
+        <Search className="h-4 w-4 text-gold-400" />
+        ابحث عن منتج أو متجر أو خدمة…
+      </Link>
 
       {/* ② إلى أين تريد الذهاب؟ — صفٌّ مصغّر + «كل الأسواق» */}
       <MarketShortcuts markets={markets} govName={gov?.name} />

@@ -28,7 +28,7 @@ export default function LocationPicker({
       const start = value ?? { lat: BAGHDAD[0], lng: BAGHDAD[1] };
       const map = L.map(elRef.current, { attributionControl: false }).setView([start.lat, start.lng], 13);
       mapRef.current = map;
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 20, subdomains: "abcd" }).addTo(map);
 
       const icon = L.divIcon({
         className: "",

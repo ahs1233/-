@@ -61,7 +61,7 @@ export function NearbyClient({ stores, govName }: { stores: NearbyStore[]; govNa
       ) : (
         <>
           <NearbyMap stores={stores} user={user} />
-          <p className="text-[10px] text-neutral-500">© مساهمو OpenStreetMap</p>
+          <p className="text-[10px] text-neutral-500">© مساهمو OpenStreetMap · بلاطات CARTO</p>
 
           <h2 className="flex items-center gap-2 pt-1 text-lg font-extrabold text-neutral-100">
             <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
