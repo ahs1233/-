@@ -113,6 +113,9 @@ const CATEGORIES: { nameAr: string; icon: string; children: string[] }[] = [
   { nameAr: "مستلزمات أطفال", icon: "baby", children: ["ملابس أطفال", "ألعاب", "مستلزمات رضّع"] },
   { nameAr: "عطور وتجميل", icon: "sparkles", children: ["عطور", "مكياج", "العناية بالبشرة"] },
   { nameAr: "بقالة وأطعمة", icon: "shopping-basket", children: ["تمور", "مكسرات", "بهارات", "حلويات"] },
+  { nameAr: "كتب ومستلزمات", icon: "book-open", children: ["كتب", "قرطاسية", "مجلات"] },
+  { nameAr: "مطاعم", icon: "utensils", children: ["أكل شرقي", "حلويات ومعجنات", "وجبات سريعة"] },
+  { nameAr: "صحة", icon: "heart-pulse", children: ["صيدليات", "مستلزمات طبية"] },
 ];
 
 async function main() {
@@ -278,6 +281,7 @@ async function main() {
         { title: "دلّة قهوة نحاسية مشغولة يدوياً", price: 45000, stock: 25, variants: [] },
         { title: "طقم استكانات شاي ٦ قطع", price: 20000, stock: 70, variants: [] },
         { title: "صينية نحاس مزخرفة كبيرة", price: 35000, stock: 30, variants: [] },
+        { title: "طقم صحون بورسلان", price: 95000, compareAt: 120000, rating: [4.7, 64] as [number, number], sold: 350, stock: 28, variants: [] },
       ],
     },
     {
@@ -369,6 +373,129 @@ async function main() {
         { title: "سماعة سلكية بميكروفون", price: 8000, stock: 100, variants: [] },
       ],
     },
+
+    // ══════════ المتاجر القانونيّة (مصدر الحقيقة للشاشات — لا تُغيَّر أسماؤها) ══════════
+    // متاجر موثّقة (مميّزة) — مؤسَّسة منذ فترة (ageDays كبير كي لا تُعدّ «جديدة»).
+    {
+      phone: "+9647710000001", name: "دار الأناقة", storeName: "دار الأناقة", gov: "بغداد",
+      catSlug: slugify("أزياء رجالية"), verified: true, ageDays: 90, rating: [4.8, 320] as [number, number],
+      products: [
+        { title: "ساعة رجالية فاخرة", price: 125000, compareAt: 166000, rating: [4.8, 96] as [number, number], sold: 400, stock: 40, variants: [] },
+        { title: "حذاء رياضي جديد", price: 45000, ageDays: 1, stock: 30, variants: [["42", 45000, 10], ["43", 45000, 10], ["44", 45000, 10]] as [string, number, number][] },
+        { title: "شنطة جلد طبيعي", price: 95000, ageDays: 2, stock: 25, variants: [] },
+        { title: "قميص رسميّ قطن", price: 40000, sold: 60, stock: 50, variants: [["M", 40000, 20], ["L", 41000, 20], ["XL", 42000, 10]] as [string, number, number][] },
+        { title: "بدلة كلاسيك صوف", price: 180000, sold: 20, stock: 12, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000002", name: "بيت العطور", storeName: "بيت العطور", gov: "بغداد",
+      catSlug: slugify("عطور"), verified: true, ageDays: 90, rating: [4.7, 210] as [number, number],
+      products: [
+        { title: "عطر فرنسي أصلي", price: 85000, rating: [4.9, 74] as [number, number], sold: 500, stock: 60, variants: [] },
+        { title: "دهن عود هندي فاخر", price: 120000, sold: 40, stock: 30, variants: [] },
+        { title: "مسك أبيض معتّق", price: 30000, sold: 55, stock: 90, variants: [] },
+        { title: "بخور كمبودي راقٍ", price: 45000, sold: 25, stock: 40, variants: [] },
+        { title: "عطر شرقيّ مركّز", price: 65000, sold: 30, stock: 45, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000003", name: "مكتبة المتنبي", storeName: "مكتبة المتنبي", gov: "بغداد",
+      catSlug: slugify("كتب"), verified: true, ageDays: 90, rating: [4.6, 180] as [number, number],
+      products: [
+        { title: "رواية أدبيّة عراقيّة", price: 15000, sold: 70, stock: 100, variants: [] },
+        { title: "كتاب تاريخ العراق", price: 25000, sold: 45, stock: 60, variants: [] },
+        { title: "دفتر جلد فاخر", price: 8000, sold: 90, stock: 120, variants: [] },
+        { title: "قلم حبر فاخر", price: 12000, sold: 50, stock: 80, variants: [] },
+        { title: "مجلّة ثقافيّة شهريّة", price: 5000, sold: 30, stock: 150, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000004", name: "مطعم دجلة", storeName: "مطعم دجلة", gov: "بغداد",
+      catSlug: slugify("أكل شرقي"), verified: true, ageDays: 90, rating: [4.8, 410] as [number, number],
+      products: [
+        { title: "وجبة مشاوي مشكّلة", price: 25000, sold: 200, stock: 100, variants: [] },
+        { title: "قوزي عراقيّ", price: 30000, sold: 120, stock: 80, variants: [] },
+        { title: "تمن وقيمة", price: 12000, sold: 160, stock: 120, variants: [] },
+        { title: "دولمة عراقيّة", price: 15000, sold: 90, stock: 70, variants: [] },
+        { title: "كباب عراقيّ", price: 20000, sold: 140, stock: 90, variants: [] },
+      ],
+    },
+    // متاجر جديدة (ageDays صغير + ٥ منتجات فأكثر كي تظهر في «المتاجر الجديدة»).
+    {
+      phone: "+9647710000005", name: "متجر القمة", storeName: "متجر القمة", gov: "بغداد",
+      catSlug: slugify("إلكترونيات"), ageDays: 1, rating: [4.6, 45] as [number, number],
+      products: [
+        { title: "iPhone 15 Pro Max", price: 1650000, rating: [4.8, 128] as [number, number], sold: 450, stock: 15, variants: [] },
+        { title: "iPhone 15 Pro", price: 1350000, compareAt: 1600000, rating: [4.7, 40] as [number, number], sold: 90, stock: 12, variants: [] },
+        { title: "لاب توب ASUS", price: 950000, ageDays: 1, stock: 8, variants: [] },
+        { title: "سماعات لاسلكية", price: 65000, ageDays: 2, stock: 50, variants: [] },
+        { title: "ساعة ذكية حديثة", price: 150000, compareAt: 200000, rating: [4.5, 20] as [number, number], ageDays: 0, sold: 35, stock: 30, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000006", name: "أزياء البغدادية", storeName: "أزياء البغدادية", gov: "بغداد",
+      catSlug: slugify("أزياء نسائية"), ageDays: 2, rating: [4.7, 28] as [number, number],
+      products: [
+        { title: "فستان سهرة أنيق", price: 120000, sold: 30, stock: 20, variants: [["S", 120000, 6], ["M", 120000, 8], ["L", 122000, 6]] as [string, number, number][] },
+        { title: "عباية مطرّزة عصريّة", price: 90000, sold: 25, stock: 25, variants: [] },
+        { title: "حقيبة يد نسائيّة", price: 55000, sold: 40, stock: 35, variants: [] },
+        { title: "حذاء كعب أنيق", price: 65000, sold: 20, stock: 30, variants: [] },
+        { title: "طقم إكسسوارات", price: 25000, sold: 50, stock: 60, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000007", name: "بيت الحلويات", storeName: "بيت الحلويات", gov: "بغداد",
+      catSlug: slugify("حلويات ومعجنات"), ageDays: 3, rating: [4.5, 22] as [number, number],
+      products: [
+        { title: "بقلاوة بالجوز علبة كيلو", price: 15000, sold: 80, stock: 100, variants: [] },
+        { title: "كليجة عيديّة بالتمر", price: 10000, sold: 60, stock: 90, variants: [] },
+        { title: "كنافة نابلسيّة", price: 12000, sold: 70, stock: 80, variants: [] },
+        { title: "زلابية عراقيّة", price: 8000, sold: 55, stock: 120, variants: [] },
+        { title: "حلقوم بالفستق", price: 9000, sold: 40, stock: 100, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000008", name: "مكتبة النافذة", storeName: "مكتبة النافذة", gov: "بغداد",
+      catSlug: slugify("كتب"), ageDays: 3, rating: [4.6, 18] as [number, number],
+      products: [
+        { title: "كتب أطفال مصوّرة", price: 10000, sold: 45, stock: 100, variants: [] },
+        { title: "أطلس مصوّر للعالم", price: 30000, sold: 20, stock: 40, variants: [] },
+        { title: "قرطاسيّة مدرسيّة", price: 15000, sold: 65, stock: 120, variants: [] },
+        { title: "ألوان خشبيّة ٢٤ لون", price: 8000, sold: 50, stock: 90, variants: [] },
+        { title: "دفتر رسم فنّي", price: 6000, sold: 35, stock: 110, variants: [] },
+      ],
+    },
+    // متاجر لها موقعٌ على الخريطة (قريب منك) — مؤسَّسة (ageDays كبير).
+    {
+      phone: "+9647710000009", name: "سوبر ماركت الزوراء", storeName: "سوبر ماركت الزوراء", gov: "بغداد",
+      catSlug: slugify("بقالة وأطعمة"), ageDays: 50, rating: [4.5, 40] as [number, number], lat: 33.3210, lng: 44.3610,
+      products: [
+        { title: "سلّة تسوّق أسبوعيّة", price: 50000, sold: 40, stock: 60, variants: [] },
+        { title: "زيت طبخ ٥ لتر", price: 12000, sold: 80, stock: 100, variants: [] },
+        { title: "رز عنبر ١٠ كغم", price: 25000, sold: 60, stock: 70, variants: [] },
+        { title: "شاي سيلانيّ فاخر", price: 8000, sold: 90, stock: 120, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000010", name: "صيدلية الحياة", storeName: "صيدلية الحياة", gov: "بغداد",
+      catSlug: slugify("صيدليات"), ageDays: 50, rating: [4.7, 35] as [number, number], lat: 33.3085, lng: 44.3660,
+      products: [
+        { title: "فيتامين سي ١٠٠٠", price: 9000, sold: 70, stock: 150, variants: [] },
+        { title: "كمّامات طبّيّة علبة", price: 5000, sold: 120, stock: 200, variants: [] },
+        { title: "جهاز قياس ضغط", price: 45000, sold: 25, stock: 30, variants: [] },
+        { title: "معقّم يدين ٥٠٠مل", price: 4000, sold: 100, stock: 180, variants: [] },
+      ],
+    },
+    {
+      phone: "+9647710000011", name: "مطعم بيت أمي", storeName: "مطعم بيت أمي", gov: "بغداد",
+      catSlug: slugify("مطاعم"), ageDays: 50, rating: [4.6, 30] as [number, number], lat: 33.3160, lng: 44.3540,
+      products: [
+        { title: "وجبة بيتيّة منزليّة", price: 15000, sold: 110, stock: 80, variants: [] },
+        { title: "شوربة عدس", price: 5000, sold: 90, stock: 120, variants: [] },
+        { title: "كبّة موصليّة", price: 12000, sold: 70, stock: 90, variants: [] },
+        { title: "مقلوبة دجاج", price: 18000, sold: 60, stock: 70, variants: [] },
+      ],
+    },
   ];
 
   for (const v of vendorsSeed) {
@@ -379,25 +506,36 @@ async function main() {
     });
 
     const slug = slugify(v.storeName);
-    const vv = v as typeof v & { channel?: string; instagramUrl?: string; tiktokUrl?: string; facebookUrl?: string };
-    const channelFields = {
+    const vv = v as typeof v & {
+      channel?: string; instagramUrl?: string; tiktokUrl?: string; facebookUrl?: string;
+      verified?: boolean; lat?: number; lng?: number; rating?: [number, number]; ageDays?: number;
+    };
+    const vAge = vv.ageDays ?? 45; // المتاجر الحاليّة مؤسَّسة (لا تُعدّ «جديدة»)
+    const vCreatedAt = new Date(Date.now() - vAge * 86_400_000);
+    // حقولٌ قانونيّة تُفرَض في كلّ بذرة (create+update) كي تبقى الشاشات متّسقة.
+    const canonicalVendorFields = {
       channel: vv.channel ?? "physical",
       instagramUrl: vv.instagramUrl ?? null,
       tiktokUrl: vv.tiktokUrl ?? null,
       facebookUrl: vv.facebookUrl ?? null,
+      verified: vv.verified ?? false,
+      latitude: vv.lat ?? null,
+      longitude: vv.lng ?? null,
+      ...(vv.rating ? { ratingAvg: new Prisma.Decimal(vv.rating[0]), ratingCount: vv.rating[1] } : {}),
     };
     const vendor = await prisma.vendorProfile.upsert({
       where: { userId: user.id },
-      update: { status: VendorStatus.APPROVED, ...channelFields },
+      update: { status: VendorStatus.APPROVED, ...canonicalVendorFields },
       create: {
         userId: user.id,
         storeName: v.storeName,
         slug,
         slugNorm: normalizeArabic(v.storeName),
         status: VendorStatus.APPROVED,
-        approvedAt: new Date(),
+        approvedAt: vCreatedAt,
+        createdAt: vCreatedAt,
         governorateId: govByName[v.gov],
-        ...channelFields,
+        ...canonicalVendorFields,
       },
     });
 
@@ -408,10 +546,21 @@ async function main() {
     }
 
     for (const p of v.products) {
+      const pp = p as typeof p & { compareAt?: number; rating?: [number, number]; sold?: number; ageDays?: number; out?: boolean };
       const pSlug = slugify(p.title) + "-" + vendor.id.slice(-4);
+      const pAge = pp.ageDays ?? 20; // المنتجات الحاليّة ليست «جديدة» افتراضياً (نافذة الجديد ٧ أيام)
+      const pCreatedAt = new Date(Date.now() - pAge * 86_400_000);
+      // حقولٌ قانونيّة تُفرَض (create+update): السعر، الخصم، المبيعات، التقييم، وقت الإنشاء.
+      const canonicalProductFields = {
+        basePrice: new Prisma.Decimal(p.price),
+        compareAtPrice: pp.compareAt != null ? new Prisma.Decimal(pp.compareAt) : null,
+        soldCount: pp.sold ?? 0,
+        createdAt: pCreatedAt,
+        ...(pp.rating ? { ratingAvg: new Prisma.Decimal(pp.rating[0]), ratingCount: pp.rating[1] } : {}),
+      };
       const product = await prisma.product.upsert({
         where: { slug: pSlug },
-        update: {},
+        update: canonicalProductFields,
         create: {
           vendorId: vendor.id,
           categoryId,
@@ -419,8 +568,8 @@ async function main() {
           titleNorm: normalizeArabic(p.title),
           slug: pSlug,
           description: `${p.title} — منتج عراقي بجودة ممتازة من ${v.storeName}.`,
-          basePrice: new Prisma.Decimal(p.price),
           status: ProductStatus.ACTIVE,
+          ...canonicalProductFields,
         },
       });
 
@@ -437,7 +586,7 @@ async function main() {
       if (existingVariants === 0) {
         if (p.variants.length === 0) {
           await prisma.productVariant.create({
-            data: { productId: product.id, sku: null, price: new Prisma.Decimal(p.price), stock: p.stock },
+            data: { productId: product.id, sku: null, price: new Prisma.Decimal(p.price), stock: pp.out ? 0 : p.stock },
           });
         } else {
           for (const [size, price, stock] of p.variants as [string, number, number][]) {
@@ -512,12 +661,14 @@ async function main() {
   // ── مراجعات → تحديث تقييم المنتجات والبائعين ──
   const allProducts = await prisma.product.findMany({
     where: { status: ProductStatus.ACTIVE },
-    select: { id: true, vendorId: true },
+    select: { id: true, vendorId: true, ratingCount: true },
   });
   const reviewTexts = ["منتج ممتاز وجودة عالية", "وصل بسرعة، شكراً", "جيد لكن التغليف بسيط", "رائع وأنصح به"];
   let reviewCount = 0;
   for (let i = 0; i < allProducts.length; i++) {
     const product = allProducts[i]!;
+    // لا نمسّ المنتجات ذات التقييم القانونيّ المضبوط مسبقاً.
+    if (product.ratingCount > 0) continue;
     const numReviews = Math.min((i % 3) + 1, customers.length); // مراجعة لكل زبون متمايز
     let sum = 0;
     let count = 0;
@@ -552,10 +703,12 @@ async function main() {
   }
   // تقييمُ المتجر (تجربة الشراء) — تقييمٌ مستقلٌّ عن تقييم المنتجات.
   const storeReviewTexts = ["تعامل ممتاز والتوصيل سريع", "بائع أمين وبضاعته مطابقة", "خدمة طيّبة، أنصح بالشراء منه", "رائع والردّ سريع"];
-  const vendorsAll = await prisma.vendorProfile.findMany({ select: { id: true } });
+  const vendorsAll = await prisma.vendorProfile.findMany({ select: { id: true, ratingCount: true } });
   let storeReviewCount = 0;
   for (let i = 0; i < vendorsAll.length; i++) {
     const v = vendorsAll[i]!;
+    // المتاجر القانونيّة لها تقييمٌ مضبوط — لا نُعيد حسابه.
+    if (v.ratingCount > 0) continue;
     const numReviews = Math.min((i % 3) + 1, customers.length);
     let sum = 0;
     let count = 0;
@@ -788,7 +941,7 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
     { slug: "stores", nameAr: "{gov}", tagline: "قلب المدينة — كلّ متاجرها في مكانٍ واحد", icon: "🏙️", kind: "stores", channel: "physical", status: "live", imageUrl: "/souks/souk-shorja.jpg" },
     // «بغداد الإلكتروني» عالمُ متاجرٍ إلكترونيّة (صفحات إنستغرام/فيسبوك/تيك توك)، لا فئةُ منتجاتٍ واقعيّة.
     { slug: "electronics", nameAr: "{gov} الإلكتروني", tagline: "مشاريعُ وصفحاتٌ على إنستغرام وفيسبوك وتيك توك", icon: "💻", kind: "stores", channel: "online", status: "live" },
-    { slug: "food", nameAr: "المطاعم", tagline: "مطاعم ومأكولات ومنتجات محليّة", icon: "🍽️", kind: "category", categoryName: "بقالة وأطعمة", status: "live", imageUrl: "/souks/souk-spice.jpg" },
+    { slug: "food", nameAr: "المطاعم", tagline: "مطاعم ومأكولات ومنتجات محليّة", icon: "🍽️", kind: "category", categoryName: "مطاعم", status: "live", imageUrl: "/souks/souk-spice.jpg" },
     { slug: "realestate", nameAr: "العقار", tagline: "بيع، شراء، إيجار", icon: "🏠", kind: "category", status: "soon" },
     { slug: "cars", nameAr: "السيارات", tagline: "بيع وشراء المركبات", icon: "🚗", kind: "category", status: "soon" },
     { slug: "jobs", nameAr: "الوظائف", tagline: "فرص عمل في العراق", icon: "💼", kind: "category", status: "soon" },

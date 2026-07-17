@@ -230,25 +230,28 @@ export async function getMarketStores(
 // ─── إحصاءات المدينة + عدّاد كلّ سوق (لبطل الرئيسية والدليل المدمج) ───
 
 export interface CityStats {
-  openStores: number;   // متجرٌ مفتوح الآن (معتمد)
-  newStores: number;    // متجرٌ افتتح خلال ٣٠ يوماً
-  newProducts: number;  // منتجٌ وصل خلال ١٤ يوماً
-  offers: number;       // عرضٌ فعّالٌ الآن (إعلانات هذه المحافظة + كلّ العراق)
+  openStores: number;   // متجرٌ مفتوح الآن (معتمد) — يطابق صفحة المتاجر
+  newStores: number;    // متجرٌ افتتح — يطابق «المتاجر الجديدة» (١٤ يوم + ≥٥ منتجات)
+  newProducts: number;  // منتجٌ وصل — يطابق «وصل حديثاً» (نافذة ٧ أيام)
+  offers: number;       // عرضٌ — يطابق «العروض» (منتجاتٌ لها خصم)
 }
 
-/** أرقامٌ حيّةٌ تجعل المدينة تنبض — كلّها مشتقّةٌ من DB، بنوافذ تُظهر حركةً حقيقيّة. */
+/** أرقامٌ حيّةٌ تجعل المدينة تنبض — كلّ رقمٍ يطابق تماماً عدد عناصر صفحته (بوّابة الاتساق). */
 export async function getCityStats(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<CityStats> {
   const govWhere = { ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) };
   const now = Date.now();
-  const d30 = new Date(now - 30 * 86_400_000);
-  const d14 = new Date(now - 14 * 86_400_000);
-  const adWhere = governorateId ? { active: true, OR: [{ governorateId }, { governorateId: null }] } : { active: true };
-  const [openStores, newStores, newProducts, offers] = await Promise.all([
+  const d7 = new Date(now - W.newWindowDays * 86_400_000);
+  const d14 = new Date(now - W.newStore.windowDays * 86_400_000);
+  const [openStores, newProducts, offers, recentVendors] = await Promise.all([
     prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere } }),
-    prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere, createdAt: { gte: d30 } } }),
-    prisma.product.count({ where: { status: "ACTIVE", createdAt: { gte: d14 }, vendor: { status: "APPROVED", ...govWhere } } }),
-    prisma.ad.count({ where: adWhere }),
+    prisma.product.count({ where: { status: "ACTIVE", createdAt: { gte: d7 }, vendor: { status: "APPROVED", ...govWhere } } }),
+    prisma.product.count({ where: { status: "ACTIVE", compareAtPrice: { not: null }, vendor: { status: "APPROVED", ...govWhere } } }),
+    prisma.vendorProfile.findMany({
+      where: { status: "APPROVED", ...govWhere, createdAt: { gte: d14 } },
+      select: { _count: { select: { products: { where: { status: "ACTIVE" } } } } },
+    }),
   ]);
+  const newStores = recentVendors.filter((v) => v._count.products >= W.newStore.minProducts).length;
   return { openStores, newStores, newProducts, offers };
 }
 

@@ -56,7 +56,8 @@ export default async function HomePage() {
   }
 
   const identity = resolveGovIdentity(gov?.name, content.governorate);
-  const activeMarkets = markets.filter((m) => m.status !== "soon").length;
+  // «سوق نشط» = عدد الأسواق المفعّلة (يطابق صفحة اختيار السوق).
+  const activeMarkets = markets.length;
 
   const productsOf = (key: string) => {
     const s = sections.find((x) => x.key === key);

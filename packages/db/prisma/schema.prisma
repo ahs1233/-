@@ -163,6 +163,8 @@ model VendorProfile {
   // موقع المتجر على الخريطة (اختياري) — لعرضه في «قريب منك» وحساب المسافة.
   latitude       Float?
   longitude      Float?
+  // متجرٌ موثّق — علامة ✓ ذهبيّة بجانب الاسم (عنصر ثقة).
+  verified       Boolean      @default(false)
   // تجاوز اختياري لنسبة العمولة العامة للمنصة (null = استخدم العامة)
   commissionRate Decimal?     @db.Decimal(5, 4)
   governorateId  String?
