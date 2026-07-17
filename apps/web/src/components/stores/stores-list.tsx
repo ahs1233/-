@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Store, Star, ChevronLeft } from "lucide-react";
+import { Store, Star, ChevronLeft, BadgeCheck } from "lucide-react";
 import { AppImage } from "@/src/components/app-image";
 
 export interface StoreListItem {
@@ -10,6 +10,9 @@ export interface StoreListItem {
   storeName: string;
   slug: string;
   logoUrl: string | null;
+  bannerUrl: string | null;
+  verified: boolean;
+  category: string | null;
   governorate: string | null;
   ratingAvg: number;
   ratingCount: number;
@@ -64,10 +67,11 @@ export function StoresList({ stores }: { stores: StoreListItem[] }) {
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-neutral-100">{s.storeName}</p>
-                  <p className="text-xs text-neutral-400">
-                    <span className="nums">{s.productCount}</span> منتج{s.governorate ? ` · ${s.governorate}` : ""}
+                  <p className="flex items-center gap-1 truncate font-bold text-neutral-100">
+                    {s.storeName}
+                    {s.verified && <BadgeCheck className="h-4 w-4 flex-shrink-0 text-gold-400" aria-label="موثّق" />}
                   </p>
+                  <p className="truncate text-xs text-neutral-400">{s.category ?? "متجر"}{s.governorate ? ` · ${s.governorate}` : ""}</p>
                   {s.ratingCount > 0 && (
                     <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-gold-300">
                       <Star className="h-3 w-3 fill-gold-500 text-gold-500" /> {s.ratingAvg.toFixed(1)}

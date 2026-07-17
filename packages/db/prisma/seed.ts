@@ -150,6 +150,7 @@ async function main() {
 
   // الفئات (أب → أبناء)
   const catBySlug: Record<string, string> = {};
+  const catNameBySlug: Record<string, string> = {}; // للصورة البديلة المُوسومة بالفئة
   for (let i = 0; i < CATEGORIES.length; i++) {
     const c = CATEGORIES[i]!;
     const parentSlug = slugify(c.nameAr);
@@ -159,6 +160,7 @@ async function main() {
       create: { nameAr: c.nameAr, slug: parentSlug, icon: c.icon, sortOrder: i },
     });
     catBySlug[parentSlug] = parent.id;
+    catNameBySlug[parentSlug] = c.nameAr;
     for (let j = 0; j < c.children.length; j++) {
       const childName = c.children[j]!;
       const childSlug = slugify(childName);
@@ -168,8 +170,13 @@ async function main() {
         create: { nameAr: childName, slug: childSlug, parentId: parent.id, sortOrder: j },
       });
       catBySlug[childSlug] = child.id;
+      catNameBySlug[childSlug] = childName;
     }
   }
+
+  // صورةٌ بديلةٌ مُوحّدة العلامة (SVG) — تُستبدل بصورٍ حقيقيّة لاحقاً.
+  const ph = (title: string, cat: string, kind?: "logo" | "banner") =>
+    `/api/ph?t=${encodeURIComponent(title)}&c=${encodeURIComponent(cat)}${kind ? `&k=${kind}` : ""}`;
   console.log(`✅ الفئات`);
 
   // الأدمن
@@ -513,6 +520,7 @@ async function main() {
     const vAge = vv.ageDays ?? 45; // المتاجر الحاليّة مؤسَّسة (لا تُعدّ «جديدة»)
     const vCreatedAt = new Date(Date.now() - vAge * 86_400_000);
     // حقولٌ قانونيّة تُفرَض في كلّ بذرة (create+update) كي تبقى الشاشات متّسقة.
+    const vCatName = catNameBySlug[v.catSlug] ?? v.storeName;
     const canonicalVendorFields = {
       channel: vv.channel ?? "physical",
       instagramUrl: vv.instagramUrl ?? null,
@@ -521,6 +529,8 @@ async function main() {
       verified: vv.verified ?? false,
       latitude: vv.lat ?? null,
       longitude: vv.lng ?? null,
+      logoUrl: ph(v.storeName, vCatName, "logo"),
+      bannerUrl: ph(v.storeName, vCatName, "banner"),
       ...(vv.rating ? { ratingAvg: new Prisma.Decimal(vv.rating[0]), ratingCount: vv.rating[1] } : {}),
     };
     const vendor = await prisma.vendorProfile.upsert({
@@ -573,12 +583,14 @@ async function main() {
         },
       });
 
-      // الصور (روابط placeholder تُستبدل برفع حقيقي لاحقاً في لوحة البائع)
-      const existingImages = await prisma.productImage.count({ where: { productId: product.id } });
-      if (existingImages === 0) {
-        await prisma.productImage.create({
-          data: { productId: product.id, url: `/placeholder-product.svg`, alt: p.title, sortOrder: 0 },
-        });
+      // صورةُ المنتج: بديلٌ مُوسومٌ بالاسم والفئة (يُستبدل بصورةٍ حقيقيّة عند الرفع).
+      const phUrl = ph(p.title, catNameBySlug[v.catSlug] ?? p.title);
+      const firstImg = await prisma.productImage.findFirst({ where: { productId: product.id }, orderBy: { sortOrder: "asc" } });
+      if (!firstImg) {
+        await prisma.productImage.create({ data: { productId: product.id, url: phUrl, alt: p.title, sortOrder: 0 } });
+      } else if (firstImg.url.startsWith("/placeholder") || firstImg.url.startsWith("/api/ph")) {
+        // نُحدّث البدائل فقط — لا نلمس صورةً حقيقيّة رفعها البائع (https).
+        await prisma.productImage.update({ where: { id: firstImg.id }, data: { url: phUrl, alt: p.title } });
       }
 
       // المتغيّرات (أو متغيّر افتراضي واحد إن لم تُحدَّد)

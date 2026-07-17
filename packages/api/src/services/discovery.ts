@@ -66,6 +66,8 @@ export interface DiscoveryStoreCard {
   storeName: string;
   slug: string;
   logoUrl: string | null;
+  bannerUrl: string | null;
+  verified: boolean;
   productCount: number;
   ratingAvg: number;
   ratingCount: number;
@@ -212,7 +214,7 @@ export async function getMarketStores(
     orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }, { createdAt: "desc" }],
     take: limit,
     select: {
-      id: true, storeName: true, slug: true, logoUrl: true, ratingAvg: true, ratingCount: true,
+      id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true, ratingAvg: true, ratingCount: true,
       _count: { select: { products: { where: productWhere } } },
     },
   });
@@ -221,6 +223,8 @@ export async function getMarketStores(
     storeName: v.storeName,
     slug: v.slug,
     logoUrl: v.logoUrl,
+    bannerUrl: v.bannerUrl,
+    verified: v.verified,
     productCount: v._count.products,
     ratingAvg: Number(v.ratingAvg),
     ratingCount: v.ratingCount,
@@ -302,7 +306,7 @@ export async function getNearbyStores(prisma: PrismaClient, governorateId?: stri
     take: limit,
     orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }],
     select: {
-      id: true, storeName: true, slug: true, logoUrl: true, ratingAvg: true, ratingCount: true,
+      id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true, ratingAvg: true, ratingCount: true,
       latitude: true, longitude: true,
       governorate: { select: { nameAr: true } },
       _count: { select: { products: { where: { status: "ACTIVE" } } } },
@@ -313,6 +317,8 @@ export async function getNearbyStores(prisma: PrismaClient, governorateId?: stri
     storeName: v.storeName,
     slug: v.slug,
     logoUrl: v.logoUrl,
+    bannerUrl: v.bannerUrl,
+    verified: v.verified,
     productCount: v._count.products,
     ratingAvg: Number(v.ratingAvg),
     ratingCount: v.ratingCount,
@@ -373,6 +379,8 @@ async function newStores(prisma: PrismaClient, governorateId?: string, channel?:
       storeName: true,
       slug: true,
       logoUrl: true,
+      bannerUrl: true,
+      verified: true,
       ratingAvg: true,
       ratingCount: true,
       _count: { select: { products: { where: { status: "ACTIVE" } } } },
@@ -385,6 +393,8 @@ async function newStores(prisma: PrismaClient, governorateId?: string, channel?:
       storeName: v.storeName,
       slug: v.slug,
       logoUrl: v.logoUrl,
+      bannerUrl: v.bannerUrl,
+      verified: v.verified,
       productCount: v._count.products,
       ratingAvg: Number(v.ratingAvg),
       ratingCount: v.ratingCount,
