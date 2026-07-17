@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Palette, LayoutList, LayoutGrid, Tags, MapPin, Megaphone } from "lucide-react";
+import { Palette, LayoutList, LayoutGrid, Tags, MapPin, Megaphone, Newspaper } from "lucide-react";
 
-// تبويبات «المظهر» — شريطٌ ثابت يجعل كلّ محرّرٍ (ومنه «الإعلانات») على بُعد نقرةٍ واحدة.
+// تبويبات «المظهر» — شريطٌ ثابت يجعل كلّ محرّرٍ (ومنه «الإعلانات» و«المحتوى») على بُعد نقرةٍ واحدة.
 const TABS: { href: string; label: string; icon: typeof Palette; match: string }[] = [
   { href: "/admin/appearance/theme", label: "الألوان", icon: Palette, match: "/admin/appearance/theme" },
   { href: "/admin/appearance/sections", label: "التخطيط", icon: LayoutList, match: "/admin/appearance/sections" },
@@ -12,6 +12,7 @@ const TABS: { href: string; label: string; icon: typeof Palette; match: string }
   { href: "/admin/categories", label: "الفئات", icon: Tags, match: "/admin/categories" },
   { href: "/admin/appearance/governorates", label: "المحافظات", icon: MapPin, match: "/admin/appearance/governorates" },
   { href: "/admin/appearance/ads", label: "الإعلانات", icon: Megaphone, match: "/admin/appearance/ads" },
+  { href: "/admin/appearance/content", label: "المحتوى", icon: Newspaper, match: "/admin/appearance/content" },
 ];
 
 export function AppearanceTabs() {

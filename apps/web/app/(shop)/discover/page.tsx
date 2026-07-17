@@ -8,6 +8,7 @@ import { AppImage } from "@/src/components/app-image";
 import { ProductCard, type ProductCardData } from "@/src/components/product-card";
 import { SectionPageHeader } from "@/src/components/section-page-header";
 import { ARTICLES } from "@/src/lib/articles";
+import type { Article } from "@/src/lib/articles";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "اكتشف اليوم — السوگ" };
@@ -15,11 +16,16 @@ export const metadata: Metadata = { title: "اكتشف اليوم — السوگ
 export default async function DiscoverPage() {
   const gov = getGovernorate();
   let items: ProductCardData[] = [];
+  let articles: Article[] = ARTICLES; // احتياطٌ إن لم تُربط القاعدة
   try {
     const api = await getServerApi();
-    const sections = await api.discovery.home({ governorateId: gov?.id });
+    const [sections, dbArticles] = await Promise.all([
+      api.discovery.home({ governorateId: gov?.id }),
+      api.appearance.articles(),
+    ]);
     const s = sections.find((x) => x.key === "today");
     if (s && s.kind === "products") items = s.items;
+    if (dbArticles.length) articles = dbArticles as Article[];
   } catch {
     /* قاعدة البيانات غير جاهزة */
   }
@@ -68,9 +74,9 @@ export default async function DiscoverPage() {
         </>
       )}
 
-      {/* بطاقتا «مقال اليوم» و«نصيحة اليوم» — محتوىً تحريريّ */}
+      {/* بطاقتا «مقال اليوم» و«نصيحة اليوم» — محتوىً تحريريّ يديره المدير */}
       <div className="space-y-3 pt-2">
-        {ARTICLES.map((a) => (
+        {articles.map((a) => (
           <Link key={a.slug} href={`/article/${a.slug}`} className="bg-card group flex items-center gap-3 overflow-hidden rounded-2xl border border-line shadow-sm transition hover:border-gold-500/40">
             <span className="relative h-24 w-28 flex-shrink-0 overflow-hidden">
               <AppImage src={a.cover} alt={a.title} sizes="112px" className="h-full w-full object-cover" />

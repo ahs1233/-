@@ -2,15 +2,30 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AppImage } from "@/src/components/app-image";
 import { SectionPageHeader } from "@/src/components/section-page-header";
-import { articleBySlug } from "@/src/lib/articles";
+import { getServerApi } from "@/src/trpc/server";
+import { articleBySlug, type Article } from "@/src/lib/articles";
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const a = articleBySlug(params.slug);
+export const dynamic = "force-dynamic";
+
+async function loadArticle(slug: string): Promise<Article | null> {
+  try {
+    const api = await getServerApi();
+    const rows = await api.appearance.articles();
+    const a = rows.find((x) => x.slug === slug);
+    if (a) return a as Article;
+  } catch {
+    /* احتياطٌ إن لم تُربط القاعدة */
+  }
+  return articleBySlug(slug);
+}
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const a = await loadArticle(params.slug);
   return { title: a ? `${a.title} — السوگ` : "مقال" };
 }
 
-export default function ArticlePage({ params }: { params: { slug: string } }) {
-  const a = articleBySlug(params.slug);
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  const a = await loadArticle(params.slug);
   if (!a) notFound();
 
   return (
@@ -21,7 +36,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
           <AppImage src={a.cover} alt={a.title} sizes="(max-width:768px) 100vw, 768px" priority className="h-full w-full object-cover" />
         </div>
         <h1 className="text-2xl font-extrabold leading-snug text-neutral-100">{a.title}</h1>
-        <p className="text-sm text-neutral-400">{a.excerpt}</p>
+        {a.excerpt && <p className="text-sm text-neutral-400">{a.excerpt}</p>}
         <div className="space-y-3 leading-relaxed text-neutral-200">
           {a.body.map((p, i) => (
             <p key={i}>{p}</p>

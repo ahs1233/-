@@ -18,6 +18,8 @@ import {
   governoratePresentationSchema,
   adCreateSchema,
   adUpdateSchema,
+  articleUpsertSchema,
+  articleDeleteSchema,
   adDeleteSchema,
   marketCreateSchema,
   marketUpdateSchema,
@@ -1233,6 +1235,33 @@ export const adminRouter = router({
       entityId: input.id,
       ip: ctx.reqIp,
     });
+    return { ok: true };
+  }),
+
+  // ── المحتوى التحريريّ: CRUD (لوحة «المظهر» ← تبويب المحتوى) ──
+  articleList: adminPerm("settings").query(async ({ ctx }) => {
+    return ctx.prisma.article.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }] });
+  }),
+  upsertArticle: adminPerm("settings").input(articleUpsertSchema).mutation(async ({ ctx, input }) => {
+    const data = {
+      slug: input.slug,
+      kind: input.kind,
+      title: input.title,
+      excerpt: input.excerpt ?? null,
+      coverUrl: input.coverUrl ?? null,
+      body: input.body,
+      active: input.active,
+      sortOrder: input.sortOrder,
+    };
+    const a = input.id
+      ? await ctx.prisma.article.update({ where: { id: input.id }, data })
+      : await ctx.prisma.article.create({ data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: input.id ? "article.update" : "article.create", entityType: "Article", entityId: a.id, ip: ctx.reqIp });
+    return { id: a.id };
+  }),
+  deleteArticle: adminPerm("settings").input(articleDeleteSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.article.delete({ where: { id: input.id } });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "article.delete", entityType: "Article", entityId: input.id, ip: ctx.reqIp });
     return { ok: true };
   }),
 

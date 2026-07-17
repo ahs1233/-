@@ -173,4 +173,22 @@ export const appearanceRouter = router({
         ads,
       };
     }),
+
+  // المحتوى التحريريّ الظاهر للمشتري («اكتشف اليوم» ← مقال/نصيحة اليوم).
+  articles: publicProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.prisma.article.findMany({
+      where: { active: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      take: 8,
+    });
+    return rows.map((a) => ({
+      slug: a.slug,
+      kind: a.kind === "tip" ? ("tip" as const) : ("article" as const),
+      label: a.kind === "tip" ? "نصيحة اليوم" : "مقال اليوم",
+      title: a.title,
+      excerpt: a.excerpt ?? "",
+      cover: a.coverUrl ?? `/api/ph?t=${encodeURIComponent(a.title)}&k=banner`,
+      body: a.body,
+    }));
+  }),
 });

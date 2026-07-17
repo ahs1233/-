@@ -620,6 +620,23 @@ model Ad {
   @@index([governorateId])
 }
 
+// محتوىً تحريريّ يُدار من «المظهر ← المحتوى» ويظهر في «اكتشف اليوم» (مقال/نصيحة اليوم).
+model Article {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  kind      String   @default("article") // article | tip
+  title     String
+  excerpt   String?
+  coverUrl  String?
+  body      String[] // فقراتٌ نصّيّة
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
 // ─────────────────────────── Coupons ───────────────────────────
 
 /// نوع الخصم: نسبة مئوية من المجموع الجزئي، أو مبلغ ثابت بالدينار.

@@ -246,6 +246,21 @@ export const adDeleteSchema = z.object({ id: z.string().cuid() });
 export type AdCreateInput = z.infer<typeof adCreateSchema>;
 export type AdUpdateInput = z.infer<typeof adUpdateSchema>;
 
+// ── المحتوى التحريريّ (مقال/نصيحة اليوم) — يُدار من «المظهر ← المحتوى» ──
+export const articleUpsertSchema = z.object({
+  id: z.string().cuid().optional(),
+  slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9-]+$/, "المعرّف بأحرفٍ لاتينيّة صغيرة وأرقامٍ وشرطات فقط"),
+  kind: z.enum(["article", "tip"]).default("article"),
+  title: z.string().trim().min(2, "العنوان قصير").max(120),
+  excerpt: z.string().trim().max(300).nullable().optional(),
+  coverUrl: z.string().trim().max(500).nullable().optional(),
+  body: z.array(z.string().trim().max(4000)).max(40).default([]),
+  active: z.boolean().default(true),
+  sortOrder: z.number().int().min(0).max(1000).default(0),
+});
+export const articleDeleteSchema = z.object({ id: z.string().cuid() });
+export type ArticleUpsertInput = z.infer<typeof articleUpsertSchema>;
+
 // ─────────────────────── Markets (الأسواق) ───────────────────────
 const marketSlug = z
   .string()
