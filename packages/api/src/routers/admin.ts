@@ -141,6 +141,17 @@ export const adminRouter = router({
       sales: Number(t._sum.total ?? 0),
     }));
 
+    // ── صحّة الكتالوج (بناءً على البيانات الأحدث: التوثيق، الخصومات، المخزون، الموقع) ──
+    const d7 = new Date(now.getTime() - 7 * 86_400_000);
+    const [storesApproved, storesVerified, storesLocated, newStores7, offersActive, outOfStock] = await Promise.all([
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", ...vGov } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", verified: true, ...vGov } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", latitude: { not: null }, ...vGov } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", createdAt: { gte: d7 }, ...vGov } }),
+      ctx.prisma.product.count({ where: { status: "ACTIVE", compareAtPrice: { not: null }, ...pGov } }),
+      ctx.prisma.product.count({ where: { status: "ACTIVE", ...pGov, variants: { none: { stock: { gt: 0 } } } } }),
+    ]);
+
     return {
       users,
       vendorsByStatus: toMap(vendorsByStatus),
@@ -159,6 +170,15 @@ export const adminRouter = router({
       ordersPrev30: prev30._count,
       salesSeries,
       topVendors,
+      catalog: {
+        storesApproved,
+        storesVerified,
+        storesLocated,
+        newStores7,
+        offersActive,
+        outOfStock,
+        activeProducts: toMap(productsByStatus)["ACTIVE"] ?? 0,
+      },
       recentOrders: recentOrders.map((o) => ({
         id: o.id,
         number: o.number,
