@@ -5,7 +5,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { Prisma, type OrderStatus } from "@al-souq/db";
-import { slugify } from "@al-souq/utils";
+import { slugify, normalizeArabic } from "@al-souq/utils";
 import {
   vendorReviewSchema,
   productReviewSchema,
@@ -31,6 +31,11 @@ import {
   couponToggleSchema,
   staffCreateSchema,
   staffUpdateSchema,
+  storeProfileUpdateSchema,
+  adminSectionUpsertSchema,
+  adminSectionReorderSchema,
+  storeActivityUpsertSchema,
+  idSchema,
 } from "@al-souq/validators";
 import { getStorage } from "@al-souq/storage";
 import { effectivePermissions, isSuperAdmin, sanitizePermissions } from "@al-souq/auth";
@@ -1262,6 +1267,121 @@ export const adminRouter = router({
   deleteArticle: adminPerm("settings").input(articleDeleteSchema).mutation(async ({ ctx, input }) => {
     await ctx.prisma.article.delete({ where: { id: input.id } });
     await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "article.delete", entityType: "Article", entityId: input.id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+
+  // ── إدارة المتاجر (لوحة «المظهر» ← تبويب المتاجر): شخصيّة + أقسام + نبض ──
+  storeList: adminPerm("settings")
+    .input(z.object({ governorateId: z.string().cuid().optional(), q: z.string().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      const where: Prisma.VendorProfileWhereInput = { status: "APPROVED" };
+      if (input?.governorateId) where.governorateId = input.governorateId;
+      if (input?.q) where.slugNorm = { contains: normalizeArabic(input.q) };
+      const vendors = await ctx.prisma.vendorProfile.findMany({
+        where,
+        orderBy: [{ governorateId: "asc" }, { storeName: "asc" }],
+        select: {
+          id: true, storeName: true, slug: true, logoUrl: true, verified: true,
+          ratingAvg: true, ratingCount: true, ordersCount: true,
+          governorate: { select: { nameAr: true } },
+          _count: { select: { products: true, sections: true, activities: true } },
+        },
+      });
+      return vendors.map((v) => ({
+        id: v.id, storeName: v.storeName, slug: v.slug, logoUrl: v.logoUrl, verified: v.verified,
+        ratingAvg: Number(v.ratingAvg), ratingCount: v.ratingCount, ordersCount: v.ordersCount,
+        governorate: v.governorate?.nameAr ?? null,
+        productCount: v._count.products, sectionCount: v._count.sections, activityCount: v._count.activities,
+      }));
+    }),
+
+  storeGet: adminPerm("settings").input(idSchema).query(async ({ ctx, input }) => {
+    const v = await ctx.prisma.vendorProfile.findUnique({
+      where: { id: input.id },
+      select: {
+        id: true, storeName: true, slug: true, description: true, logoUrl: true, bannerUrl: true,
+        verified: true, establishedYear: true, responseMins: true, opensAt: true, closesAt: true,
+        deliveryInfo: true, addressText: true, ordersCount: true, latitude: true, longitude: true,
+        ratingAvg: true, ratingCount: true,
+        governorate: { select: { nameAr: true } },
+        sections: { orderBy: { sortOrder: "asc" }, select: { id: true, nameAr: true, icon: true, sortOrder: true, _count: { select: { products: true } } } },
+        activities: { orderBy: { createdAt: "desc" }, select: { id: true, kind: true, message: true, createdAt: true } },
+      },
+    });
+    if (!v) throw new TRPCError({ code: "NOT_FOUND", message: "المتجر غير موجود" });
+    return {
+      ...v,
+      ratingAvg: Number(v.ratingAvg),
+      governorate: v.governorate?.nameAr ?? null,
+      sections: v.sections.map((s) => ({ id: s.id, nameAr: s.nameAr, icon: s.icon, sortOrder: s.sortOrder, productCount: s._count.products })),
+      activities: v.activities.map((a) => ({ id: a.id, kind: a.kind, message: a.message, at: a.createdAt.toISOString() })),
+    };
+  }),
+
+  updateStoreProfile: adminPerm("settings").input(storeProfileUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const data: Prisma.VendorProfileUpdateInput = {};
+    if (rest.description !== undefined) data.description = rest.description ?? null;
+    if (rest.logoUrl !== undefined) data.logoUrl = rest.logoUrl ?? null;
+    if (rest.bannerUrl !== undefined) data.bannerUrl = rest.bannerUrl ?? null;
+    if (rest.verified !== undefined) data.verified = rest.verified;
+    if (rest.establishedYear !== undefined) data.establishedYear = rest.establishedYear ?? null;
+    if (rest.responseMins !== undefined) data.responseMins = rest.responseMins ?? null;
+    if (rest.opensAt !== undefined) data.opensAt = rest.opensAt ?? null;
+    if (rest.closesAt !== undefined) data.closesAt = rest.closesAt ?? null;
+    if (rest.deliveryInfo !== undefined) data.deliveryInfo = rest.deliveryInfo ?? null;
+    if (rest.addressText !== undefined) data.addressText = rest.addressText ?? null;
+    if (rest.ordersCount !== undefined) data.ordersCount = rest.ordersCount;
+    if (rest.latitude !== undefined) data.latitude = rest.latitude ?? null;
+    if (rest.longitude !== undefined) data.longitude = rest.longitude ?? null;
+    if (rest.ratingAvg !== undefined) data.ratingAvg = new Prisma.Decimal(rest.ratingAvg);
+    if (rest.ratingCount !== undefined) data.ratingCount = rest.ratingCount;
+    await ctx.prisma.vendorProfile.update({ where: { id }, data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "store.profile.update", entityType: "VendorProfile", entityId: id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+
+  // أقسام المتجر (المدير يديرها لأيّ متجر)
+  storeSectionUpsert: adminPerm("settings").input(adminSectionUpsertSchema).mutation(async ({ ctx, input }) => {
+    if (input.id) {
+      await ctx.prisma.vendorSection.update({ where: { id: input.id }, data: { nameAr: input.nameAr, icon: input.icon ?? null } });
+      return { id: input.id };
+    }
+    const count = await ctx.prisma.vendorSection.count({ where: { vendorId: input.vendorId } });
+    const created = await ctx.prisma.vendorSection.create({
+      data: { vendorId: input.vendorId, nameAr: input.nameAr, slug: `${slugify(input.nameAr)}-${Math.random().toString(36).slice(2, 6)}`, icon: input.icon ?? null, sortOrder: count },
+    });
+    return { id: created.id };
+  }),
+  storeSectionDelete: adminPerm("settings").input(idSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.vendorSection.delete({ where: { id: input.id } });
+    return { ok: true };
+  }),
+  storeSectionReorder: adminPerm("settings").input(adminSectionReorderSchema).mutation(async ({ ctx, input }) => {
+    const owned = await ctx.prisma.vendorSection.findMany({ where: { vendorId: input.vendorId }, select: { id: true } });
+    const ownedIds = new Set(owned.map((s) => s.id));
+    if (!input.orderedIds.every((id) => ownedIds.has(id))) throw new TRPCError({ code: "BAD_REQUEST", message: "قسمٌ لا يخصّ المتجر" });
+    await ctx.prisma.$transaction(input.orderedIds.map((id, i) => ctx.prisma.vendorSection.update({ where: { id }, data: { sortOrder: i } })));
+    return { ok: true };
+  }),
+
+  // نبض السوق — أحداث المتجر
+  storeActivityUpsert: adminPerm("settings").input(storeActivityUpsertSchema).mutation(async ({ ctx, input }) => {
+    const createdAt = input.minutesAgo != null ? new Date(Date.now() - input.minutesAgo * 60_000) : undefined;
+    if (input.id) {
+      await ctx.prisma.storeActivity.update({
+        where: { id: input.id },
+        data: { kind: input.kind, message: input.message, ...(createdAt ? { createdAt } : {}) },
+      });
+      return { id: input.id };
+    }
+    const created = await ctx.prisma.storeActivity.create({
+      data: { vendorId: input.vendorId, kind: input.kind, message: input.message, ...(createdAt ? { createdAt } : {}) },
+    });
+    return { id: created.id };
+  }),
+  storeActivityDelete: adminPerm("settings").input(idSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.storeActivity.delete({ where: { id: input.id } });
     return { ok: true };
   }),
 

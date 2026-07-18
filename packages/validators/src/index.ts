@@ -376,6 +376,52 @@ export const vendorSectionReorderSchema = z.object({
   orderedIds: z.array(z.string().cuid()).min(1),
 });
 
+// ─────────── إدارة المتاجر من لوحة المدير (المظهر ← المتاجر) ───────────
+const hhmm = z.string().trim().regex(/^\d{1,2}:\d{2}$/, "الصيغة HH:MM");
+
+// تحديث شخصيّة المتجر — كلّ الحقول اختياريّة (تُحدَّث المُرسَلة فقط).
+export const storeProfileUpdateSchema = z.object({
+  id: z.string().cuid(),
+  description: z.string().trim().max(400).nullish(),
+  logoUrl: z.string().trim().max(2000).nullish(),
+  bannerUrl: z.string().trim().max(2000).nullish(),
+  verified: z.boolean().optional(),
+  establishedYear: z.number().int().min(1970).max(2100).nullish(),
+  responseMins: z.number().int().min(1).max(1440).nullish(),
+  opensAt: hhmm.nullish(),
+  closesAt: hhmm.nullish(),
+  deliveryInfo: z.string().trim().max(200).nullish(),
+  addressText: z.string().trim().max(200).nullish(),
+  ordersCount: z.number().int().min(0).max(10_000_000).optional(),
+  latitude: z.number().min(-90).max(90).nullish(),
+  longitude: z.number().min(-180).max(180).nullish(),
+  ratingAvg: z.number().min(0).max(5).optional(),
+  ratingCount: z.number().int().min(0).max(1_000_000).optional(),
+});
+
+// أقسام المتجر (يديرها المدير لأيّ متجر — vendorId صريح).
+export const adminSectionUpsertSchema = z.object({
+  id: z.string().cuid().optional(),
+  vendorId: z.string().cuid(),
+  nameAr: z.string().trim().min(2, "الاسم قصير").max(40),
+  icon: z.string().trim().max(40).nullish(),
+});
+export const adminSectionReorderSchema = z.object({
+  vendorId: z.string().cuid(),
+  orderedIds: z.array(z.string().cuid()).min(1),
+});
+export const idSchema = z.object({ id: z.string().cuid() });
+
+// أحداث نبض السوق (وصول دفعة، افتتاح قسم، الأكثر زيارة…).
+export const STORE_ACTIVITY_KINDS = ["restock", "new_arrival", "new_section", "most_visited", "promo"] as const;
+export const storeActivityUpsertSchema = z.object({
+  id: z.string().cuid().optional(),
+  vendorId: z.string().cuid(),
+  kind: z.enum(STORE_ACTIVITY_KINDS),
+  message: z.string().trim().min(3, "الرسالة قصيرة").max(160),
+  minutesAgo: z.number().int().min(0).max(20160).optional(), // متى وقع (حتى ١٤ يوماً)
+});
+
 // ─────────────────────────── Cart / Order ───────────────────────────
 
 export const cartItemSchema = z.object({
