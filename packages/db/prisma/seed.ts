@@ -116,6 +116,11 @@ const CATEGORIES: { nameAr: string; icon: string; children: string[] }[] = [
   { nameAr: "كتب ومستلزمات", icon: "book-open", children: ["كتب", "قرطاسية", "مجلات"] },
   { nameAr: "مطاعم", icon: "utensils", children: ["أكل شرقي", "حلويات ومعجنات", "وجبات سريعة"] },
   { nameAr: "صحة", icon: "heart-pulse", children: ["صيدليات", "مستلزمات طبية"] },
+  { nameAr: "أثاث وستائر", icon: "sofa", children: ["أثاث", "ستائر"] },
+  { nameAr: "أجهزة كهربائية", icon: "plug", children: ["ثلاجات وغسّالات", "تكييف وتبريد", "أجهزة صغيرة"] },
+  { nameAr: "كهربائيات وإنشائية", icon: "wrench", children: ["كهربائيات", "مواد إنشائية", "مواد تنظيف"] },
+  { nameAr: "ديكور منزلي", icon: "lamp", children: ["إكسسوارات ديكور"] },
+  { nameAr: "إكسسوارات سيارات", icon: "car", children: ["إكسسوارات داخلية", "أنظمة صوت وشاشات"] },
 ];
 
 async function main() {
@@ -213,17 +218,6 @@ async function main() {
       ],
     },
     {
-      phone: "+9647702222222",
-      name: "أم زينب",
-      storeName: "بوتيك أم زينب",
-      gov: "النجف",
-      catSlug: slugify("عبايات"),
-      products: [
-        { title: "عباية كم واسع سوداء", price: 45000, stock: 30, variants: [["54", 45000, 10], ["56", 46000, 10], ["58", 47000, 10]] },
-        { title: "فستان سهرة مخمل", price: 85000, stock: 12, variants: [["S", 85000, 4], ["M", 85000, 4], ["L", 87000, 4]] },
-      ],
-    },
-    {
       phone: "+9647703333333",
       name: "حيدر",
       storeName: "موبايلات بغداد",
@@ -300,28 +294,6 @@ async function main() {
       products: [
         { title: "عباية كلوش سوداء كريستال", price: 55000, stock: 35, variants: [["54", 55000, 12], ["56", 56000, 12], ["58", 57000, 11]] },
         { title: "عباية مطرّزة يدوياً", price: 90000, stock: 14, variants: [["وسط", 90000, 7], ["كبير", 92000, 7]] },
-      ],
-    },
-    {
-      phone: "+9647708111111",
-      name: "أبو زهراء",
-      storeName: "عطور النجف",
-      gov: "النجف",
-      catSlug: slugify("عطور"),
-      products: [
-        { title: "ماء ورد نجفيّ مقطّر", price: 8000, stock: 120, variants: [] },
-        { title: "دهن عنبر معتّق", price: 40000, stock: 30, variants: [] },
-      ],
-    },
-    {
-      phone: "+9647708222222",
-      name: "خيّاط النجف",
-      storeName: "خيّاط النجف للدشاديش",
-      gov: "النجف",
-      catSlug: slugify("دشاديش"),
-      products: [
-        { title: "دشداشة نجفيّة شتويّة صوف", price: 40000, stock: 45, variants: [["L", 40000, 15], ["XL", 41000, 15], ["XXL", 42000, 15]] },
-        { title: "غترة وعقال فاخر", price: 25000, stock: 60, variants: [] },
       ],
     },
     {
@@ -503,7 +475,54 @@ async function main() {
         { title: "مقلوبة دجاج", price: 18000, sold: 60, stock: 70, variants: [] },
       ],
     },
+
+    // ══════════ متاجر النجف (بيانات شبه حقيقيّة، مصنّفة حسب الفئة) ══════════
+    // الغذائية
+    { phone: "+9647720000001", name: "أسواق شمسة", storeName: "أسواق شمسة", gov: "النجف", catSlug: slugify("بقالة وأطعمة"), products: [ { title: "سلّة تسوّق شهريّة", price: 75000, stock: 40, variants: [] }, { title: "معلّبات متنوّعة", price: 5000, stock: 200, variants: [] } ] },
+    { phone: "+9647720000002", name: "وجه الشمس للتسوق", storeName: "وجه الشمس للتسوق", gov: "النجف", catSlug: slugify("بقالة وأطعمة"), products: [ { title: "زيت وسمن طبخ", price: 15000, stock: 120, variants: [] }, { title: "حبوب ومعكرونة", price: 4000, stock: 200, variants: [] } ] },
+    { phone: "+9647720000003", name: "متجر ماز", storeName: "متجر ماز", gov: "النجف", catSlug: slugify("بقالة وأطعمة"), products: [ { title: "مكسّرات مشكّلة", price: 20000, stock: 80, variants: [] }, { title: "عصائر ومشروبات", price: 3000, stock: 250, variants: [] } ] },
+    // المنزل — الأثاث والستائر
+    { phone: "+9647720000004", name: "ايدل هوم", storeName: "ايدل هوم", gov: "النجف", catSlug: slugify("أثاث وستائر"), products: [ { title: "كنبة زاوية مودرن", price: 650000, stock: 12, variants: [] }, { title: "طاولة طعام خشب", price: 300000, stock: 15, variants: [] } ] },
+    { phone: "+9647720000005", name: "العالمية للأثاث", storeName: "العالمية للأثاث", gov: "النجف", catSlug: slugify("أثاث وستائر"), products: [ { title: "غرفة نوم كاملة", price: 1200000, stock: 6, variants: [] }, { title: "دولاب ملابس", price: 400000, stock: 10, variants: [] } ] },
+    { phone: "+9647720000006", name: "هوم سنتر", storeName: "هوم سنتر", gov: "النجف", catSlug: slugify("أثاث وستائر"), products: [ { title: "ركنة قماش عائليّة", price: 550000, stock: 8, variants: [] }, { title: "طاولة تلفزيون", price: 180000, stock: 20, variants: [] } ] },
+    { phone: "+9647720000007", name: "الصباح للستائر", storeName: "الصباح للستائر", gov: "النجف", catSlug: slugify("أثاث وستائر"), products: [ { title: "ستائر بلاك أوت", price: 90000, stock: 40, variants: [] }, { title: "ستائر تركيّة مطرّزة", price: 120000, stock: 30, variants: [] } ] },
+    // المنزل — الأجهزة الكهربائية
+    { phone: "+9647720000008", name: "الطفيلي", storeName: "الطفيلي للأجهزة", gov: "النجف", catSlug: slugify("أجهزة كهربائية"), products: [ { title: "ثلاجة نوفروست", price: 750000, stock: 15, variants: [] }, { title: "غسّالة أوتوماتيك", price: 500000, stock: 18, variants: [] } ] },
+    { phone: "+9647720000009", name: "سامسونج", storeName: "سامسونج النجف", gov: "النجف", catSlug: slugify("أجهزة كهربائية"), verified: true, rating: [4.7, 130] as [number, number], products: [ { title: "تلفزيون سامسونج ٥٥ بوصة", price: 850000, sold: 60, stock: 20, variants: [] }, { title: "مايكرويف سامسونج", price: 150000, sold: 40, stock: 30, variants: [] } ] },
+    { phone: "+9647720000010", name: "علي الرماحي", storeName: "علي الرماحي للأجهزة", gov: "النجف", catSlug: slugify("أجهزة كهربائية"), products: [ { title: "مكيّف سبليت ١.٥ طن", price: 600000, stock: 25, variants: [] }, { title: "سخّان ماء كهربائيّ", price: 120000, stock: 35, variants: [] } ] },
+    { phone: "+9647720000011", name: "سمارت هوم", storeName: "سمارت هوم", gov: "النجف", catSlug: slugify("أجهزة كهربائية"), products: [ { title: "مكنسة كهربائيّة", price: 90000, stock: 40, variants: [] }, { title: "خلّاط عصير", price: 45000, stock: 60, variants: [] } ] },
+    // المنزل — الكهربائيات والإنشائية ومواد التنظيف
+    { phone: "+9647720000012", name: "ابو فاطمة للكهربائيات", storeName: "أبو فاطمة للكهربائيات", gov: "النجف", catSlug: slugify("كهربائيات وإنشائية"), products: [ { title: "أسلاك كهرباء لفّة", price: 25000, stock: 80, variants: [] }, { title: "لمبات ليد موفّرة", price: 5000, stock: 200, variants: [] } ] },
+    { phone: "+9647720000013", name: "الأمير للمواد الانشائية", storeName: "الأمير للمواد الإنشائية", gov: "النجف", catSlug: slugify("كهربائيات وإنشائية"), products: [ { title: "إسمنت كيس ٥٠ كغم", price: 12000, stock: 150, variants: [] }, { title: "أنابيب PVC", price: 8000, stock: 120, variants: [] } ] },
+    { phone: "+9647720000014", name: "بركات ام البنين", storeName: "بركات أمّ البنين", gov: "النجف", catSlug: slugify("كهربائيات وإنشائية"), products: [ { title: "مواد تنظيف متنوّعة", price: 6000, stock: 180, variants: [] }, { title: "مساحيق غسيل", price: 9000, stock: 150, variants: [] } ] },
+    // المنزل — ديكور منزلي
+    { phone: "+9647720000015", name: "الروان للمنزلية", storeName: "الروان للمنزليّة", gov: "النجف", catSlug: slugify("ديكور منزلي"), products: [ { title: "طقم أدوات مائدة", price: 35000, stock: 50, variants: [] }, { title: "مزهريّات ديكور", price: 20000, stock: 70, variants: [] } ] },
+    { phone: "+9647720000016", name: "ديكورك", storeName: "ديكورك", gov: "النجف", catSlug: slugify("ديكور منزلي"), products: [ { title: "لوحات جداريّة", price: 40000, stock: 40, variants: [] }, { title: "إضاءة ديكور", price: 60000, stock: 35, variants: [] } ] },
+    { phone: "+9647720000017", name: "دعافيس", storeName: "دعافيس", gov: "النجف", catSlug: slugify("ديكور منزلي"), products: [ { title: "سجّاد مودرن", price: 150000, stock: 25, variants: [] }, { title: "وسائد ديكور", price: 15000, stock: 90, variants: [] } ] },
+    // التقنية
+    { phone: "+9647720000018", name: "متجر بوابة السعد", storeName: "بوّابة السعد", gov: "النجف", catSlug: slugify("إلكترونيات"), products: [ { title: "شاشة حماية زجاجيّة", price: 5000, stock: 200, variants: [] }, { title: "شاحن سريع أصليّ", price: 15000, stock: 120, variants: [] } ] },
+    { phone: "+9647720000019", name: "الشريك للموبايلات", storeName: "الشريك للموبايلات", gov: "النجف", catSlug: slugify("إلكترونيات"), products: [ { title: "سامسونج جالكسي A54", price: 350000, sold: 40, stock: 20, variants: [] }, { title: "ساعة ذكيّة", price: 90000, stock: 40, variants: [] } ] },
+    { phone: "+9647720000020", name: "شاومي نجف", storeName: "شاومي النجف", gov: "النجف", catSlug: slugify("إلكترونيات"), verified: true, rating: [4.6, 90] as [number, number], products: [ { title: "شاومي ريدمي نوت ١٣", price: 320000, sold: 70, stock: 25, variants: [] }, { title: "باور بانك شاومي", price: 25000, sold: 50, stock: 80, variants: [] } ] },
+    { phone: "+9647720000021", name: "ابل ستور", storeName: "آبل ستور النجف", gov: "النجف", catSlug: slugify("إلكترونيات"), verified: true, rating: [4.8, 160] as [number, number], products: [ { title: "آيفون ١٤", price: 1250000, sold: 55, stock: 12, variants: [] }, { title: "آيربودز", price: 180000, sold: 60, stock: 40, variants: [] } ] },
+    { phone: "+9647720000022", name: "اي تيك", storeName: "آي تيك", gov: "النجف", catSlug: slugify("إلكترونيات"), products: [ { title: "كاميرا مراقبة", price: 120000, stock: 30, variants: [] }, { title: "راوتر واي فاي", price: 45000, stock: 50, variants: [] } ] },
+    { phone: "+9647720000023", name: "الاول للحاسبات", storeName: "الأوّل للحاسبات", gov: "النجف", catSlug: slugify("إلكترونيات"), products: [ { title: "لابتوب HP", price: 780000, sold: 30, stock: 15, variants: [] }, { title: "ماوس وكيبورد", price: 30000, stock: 60, variants: [] } ] },
+    { phone: "+9647720000024", name: "الجزيرة للمستلزمات التقنية", storeName: "الجزيرة للتقنية", gov: "النجف", catSlug: slugify("إلكترونيات"), products: [ { title: "بلي ستيشن ٥", price: 950000, sold: 45, stock: 10, variants: [] }, { title: "يد تحكّم إضافيّة", price: 90000, stock: 40, variants: [] } ] },
+    // الملابس
+    { phone: "+9647720000025", name: "عزوز", storeName: "عزّوز للأزياء", gov: "النجف", catSlug: slugify("أزياء رجالية"), products: [ { title: "قميص رجاليّ", price: 35000, stock: 60, variants: [] }, { title: "بنطلون جينز", price: 40000, stock: 50, variants: [] } ] },
+    { phone: "+9647720000026", name: "قفطان", storeName: "قفطان", gov: "النجف", catSlug: slugify("أزياء رجالية"), products: [ { title: "قفطان مطرّز", price: 85000, stock: 30, variants: [] }, { title: "عباءة رجاليّة", price: 60000, stock: 35, variants: [] } ] },
+    { phone: "+9647720000027", name: "دشاديش ابن بشيش", storeName: "دشاديش ابن بشيش", gov: "النجف", catSlug: slugify("أزياء رجالية"), products: [ { title: "دشداشة نجفيّة", price: 45000, stock: 50, variants: [] }, { title: "غترة وعقال", price: 25000, stock: 70, variants: [] } ] },
+    { phone: "+9647720000028", name: "متجر انزو", storeName: "متجر أنزو", gov: "النجف", catSlug: slugify("أزياء رجالية"), products: [ { title: "تيشيرت قطن", price: 20000, stock: 90, variants: [] }, { title: "جاكيت شتويّ", price: 70000, stock: 30, variants: [] } ] },
+    { phone: "+9647720000029", name: "الصافي", storeName: "الصافي للأزياء", gov: "النجف", catSlug: slugify("أزياء رجالية"), products: [ { title: "بدلة رسميّة", price: 200000, stock: 20, variants: [] }, { title: "حذاء جلد", price: 90000, stock: 40, variants: [] } ] },
+    // إكسسوارات السيارات
+    { phone: "+9647720000030", name: "البغدادي", storeName: "البغدادي لإكسسوارات السيّارات", gov: "النجف", catSlug: slugify("إكسسوارات سيارات"), products: [ { title: "مساند مقاعد جلد", price: 80000, stock: 30, variants: [] }, { title: "معطّر سيّارة", price: 5000, stock: 150, variants: [] } ] },
+    { phone: "+9647720000031", name: "اكسسوارات بانيقيا", storeName: "بانيقيا لإكسسوارات السيّارات", gov: "النجف", catSlug: slugify("إكسسوارات سيارات"), products: [ { title: "شاشة سيّارة أندرويد", price: 250000, stock: 18, variants: [] }, { title: "كاميرا خلفيّة", price: 60000, stock: 40, variants: [] } ] },
+    // مواد تجميل
+    { phone: "+9647720000032", name: "ريحانه للتجميل", storeName: "ريحانة للتجميل", gov: "النجف", catSlug: slugify("عطور وتجميل"), products: [ { title: "طقم مكياج", price: 65000, stock: 40, variants: [] }, { title: "كريم عناية بالبشرة", price: 30000, stock: 60, variants: [] } ] },
+    { phone: "+9647720000033", name: "ابن الحكيم", storeName: "ابن الحكيم للتجميل", gov: "النجف", catSlug: slugify("عطور وتجميل"), products: [ { title: "عطر نسائيّ", price: 55000, stock: 45, variants: [] }, { title: "مستحضرات بشرة", price: 25000, stock: 70, variants: [] } ] },
   ];
+
+  // اسم كلّ متاجر النجف المعتمدة الجديدة — لحذف ما عداها.
+  const NAJAF_STORE_NAMES = vendorsSeed.filter((v) => v.gov === "النجف").map((v) => v.storeName);
 
   for (const v of vendorsSeed) {
     const user = await prisma.user.upsert({
@@ -620,6 +639,27 @@ async function main() {
       }
     }
     console.log(`✅ بائع: ${v.storeName} (${v.products.length} منتج)`);
+  }
+
+  // ── تنظيف النجف: حذف أيّ متجرٍ نجفيٍّ قديمٍ خارج القائمة المضبوطة (بيانات شبه حقيقيّة) ──
+  // على قاعدةٍ قائمة قد تبقى متاجر نجفٍ سابقة؛ نحذفها بترتيبٍ آمنٍ للمفاتيح الأجنبيّة
+  // (OrderItem → Payout → Order → VendorProfile). على بذرةٍ نظيفةٍ لا شيء يُحذف.
+  const najafId = govByName["النجف"];
+  if (najafId) {
+    const stale = await prisma.vendorProfile.findMany({
+      where: { governorateId: najafId, storeName: { notIn: NAJAF_STORE_NAMES } },
+      select: { id: true },
+    });
+    const staleIds = stale.map((s) => s.id);
+    if (staleIds.length) {
+      const orders = await prisma.order.findMany({ where: { vendorId: { in: staleIds } }, select: { id: true } });
+      const orderIds = orders.map((o) => o.id);
+      if (orderIds.length) await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+      await prisma.payout.deleteMany({ where: { vendorId: { in: staleIds } } });
+      await prisma.order.deleteMany({ where: { vendorId: { in: staleIds } } });
+      await prisma.vendorProfile.deleteMany({ where: { id: { in: staleIds } } });
+      console.log(`🗑️  حُذف ${staleIds.length} متجر نجفٍ قديمٍ خارج القائمة`);
+    }
   }
 
   // ── بائع قيد المراجعة (لاختبار اعتماد الأدمن لاحقاً) ──
