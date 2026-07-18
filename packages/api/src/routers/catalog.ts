@@ -446,4 +446,72 @@ export const catalogRouter = router({
         createdAt: v.createdAt.toISOString(),
       }));
     }),
+
+  // متاجر فئةٍ بعينها — كلّ متجرٍ له منتجٌ فعّالٌ في الفئة (أو إحدى فئاتها الفرعيّة).
+  // تُعرض في صدر صفحة الفئة: «المتاجر أوّلاً، ثمّ المنتجات».
+  storesByCategory: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/categories/{categoryId}/stores", tags: ["catalog"] } })
+    .input(
+      z.object({
+        categoryId: z.string().cuid(),
+        governorateId: z.string().cuid().optional(),
+        limit: z.number().int().min(1).max(30).default(12),
+      }),
+    )
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          storeName: z.string(),
+          slug: z.string(),
+          logoUrl: z.string().nullable(),
+          bannerUrl: z.string().nullable(),
+          verified: z.boolean(),
+          productCount: z.number(),
+          ratingAvg: z.number(),
+          ratingCount: z.number(),
+        }),
+      ),
+    )
+    .query(async ({ ctx, input }) => {
+      // فئة أب → اشمل متاجر فئاتها الفرعيّة أيضاً.
+      const children = await ctx.prisma.category.findMany({
+        where: { parentId: input.categoryId },
+        select: { id: true },
+      });
+      const catIds = [input.categoryId, ...children.map((c) => c.id)];
+      const productInCat = { status: "ACTIVE" as const, categoryId: { in: catIds } };
+      const vendors = await ctx.prisma.vendorProfile.findMany({
+        where: {
+          status: "APPROVED",
+          ...(input.governorateId ? { governorateId: input.governorateId } : {}),
+          products: { some: productInCat },
+        },
+        // الموثّق أوّلاً، ثمّ الأعلى تقييماً — ليتصدّر السوقَ أفضلُ متاجره.
+        orderBy: [{ verified: "desc" }, { ratingAvg: "desc" }, { ratingCount: "desc" }],
+        take: input.limit,
+        select: {
+          id: true,
+          storeName: true,
+          slug: true,
+          logoUrl: true,
+          bannerUrl: true,
+          verified: true,
+          ratingAvg: true,
+          ratingCount: true,
+          _count: { select: { products: { where: productInCat } } },
+        },
+      });
+      return vendors.map((v) => ({
+        id: v.id,
+        storeName: v.storeName,
+        slug: v.slug,
+        logoUrl: v.logoUrl,
+        bannerUrl: v.bannerUrl,
+        verified: v.verified,
+        productCount: v._count.products,
+        ratingAvg: Number(v.ratingAvg),
+        ratingCount: v.ratingCount,
+      }));
+    }),
 });
