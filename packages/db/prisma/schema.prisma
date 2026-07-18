@@ -171,6 +171,14 @@ model VendorProfile {
   governorate    Governorate? @relation(fields: [governorateId], references: [id])
   ratingAvg      Decimal      @default(0) @db.Decimal(3, 2)
   ratingCount    Int          @default(0)
+  // ── شخصيّة المتجر (لجعله كياناً حقيقياً) ──
+  establishedYear Int?        // سنة التأسيس (سنوات الخبرة = السنة الحاليّة − هذه)
+  responseMins    Int?        // متوسّط وقت الردّ بالدقائق (يردّ عادةً خلال X دقيقة)
+  opensAt         String?     // ساعة الفتح "HH:MM" بتوقيت العراق (لحالة «مفتوح الآن»)
+  closesAt        String?     // ساعة الإغلاق "HH:MM"
+  deliveryInfo    String?     // وصف التوصيل (مثال: توصيل داخل النجف خلال ٢٤ ساعة)
+  addressText     String?     // العنوان النصّي داخل المحافظة (منطقة/شارع)
+  ordersCount     Int         @default(0) // عدّاد الطلبات المُنجَزة (مصداقيّة)
   // تفاصيل التسوية المالية (طريقة الدفع للبائع) — يملؤها البائع
   payoutDetails  Json?
   rejectionNote  String?
@@ -178,14 +186,29 @@ model VendorProfile {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  products Product[]
-  orders   Order[]
-  payouts  Payout[]
-  reviews  StoreReview[]
-  sections VendorSection[]
+  products   Product[]
+  orders     Order[]
+  payouts    Payout[]
+  reviews    StoreReview[]
+  sections   VendorSection[]
+  activities StoreActivity[]
 
   @@index([status])
   @@index([governorateId])
+}
+
+// نبض السوق — حدثٌ حيٌّ للمتجر يظهر في تغذية «نبض السوق» (وصول دفعة، افتتاح
+// قسم، الأكثر زيارة…). يُبقي البيئة تبدو حيّة.
+model StoreActivity {
+  id        String        @id @default(cuid())
+  vendorId  String
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  kind      String // restock | new_section | most_visited | new_arrival | promo
+  message   String
+  createdAt DateTime      @default(now())
+
+  @@index([vendorId])
+  @@index([createdAt])
 }
 
 // قسمٌ داخليٌّ للمتجر (رفٌّ/خدمة) — يُنظّم منتجات المتجر حسب نوعه وخدماته.

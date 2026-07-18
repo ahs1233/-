@@ -7,6 +7,7 @@ import { formatIQD } from "@al-souq/utils";
 import { AppImage } from "@/src/components/app-image";
 import { ProductCard, type ProductCardData } from "@/src/components/product-card";
 import { SectionPageHeader } from "@/src/components/section-page-header";
+import { MarketPulse, type PulseItem } from "@/src/components/home/market-pulse";
 import { ARTICLES } from "@/src/lib/articles";
 import type { Article } from "@/src/lib/articles";
 
@@ -17,15 +18,18 @@ export default async function DiscoverPage() {
   const gov = getGovernorate();
   let items: ProductCardData[] = [];
   let articles: Article[] = ARTICLES; // احتياطٌ إن لم تُربط القاعدة
+  let pulse: PulseItem[] = [];
   try {
     const api = await getServerApi();
-    const [sections, dbArticles] = await Promise.all([
+    const [sections, dbArticles, marketPulse] = await Promise.all([
       api.discovery.home({ governorateId: gov?.id }),
       api.appearance.articles(),
+      api.catalog.marketPulse({ governorateId: gov?.id, limit: 10 }),
     ]);
     const s = sections.find((x) => x.key === "today");
     if (s && s.kind === "products") items = s.items;
     if (dbArticles.length) articles = dbArticles as Article[];
+    pulse = marketPulse;
   } catch {
     /* قاعدة البيانات غير جاهزة */
   }
@@ -73,6 +77,9 @@ export default async function DiscoverPage() {
           )}
         </>
       )}
+
+      {/* نبض السوق — أحداثٌ حيّةٌ من متاجر محافظتك */}
+      <MarketPulse items={pulse} />
 
       {/* بطاقتا «مقال اليوم» و«نصيحة اليوم» — محتوىً تحريريّ يديره المدير */}
       <div className="space-y-3 pt-2">

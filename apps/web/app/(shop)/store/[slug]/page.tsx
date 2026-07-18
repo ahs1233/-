@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Store, MapPin, BadgeCheck, Star, CalendarDays, Package, Truck, Instagram, Facebook, ExternalLink } from "lucide-react";
+import { Store, MapPin, BadgeCheck, Star, CalendarDays, Package, Truck, Instagram, Facebook, ExternalLink, Clock, Timer, ShoppingBag, Award, Boxes, Sparkles, TrendingUp, Tag } from "lucide-react";
 import { getServerApi } from "@/src/trpc/server";
 import { ProductCard } from "@/src/components/product-card";
+import { StoreRailCard } from "@/src/components/home/store-rail-card";
 import { AppImage } from "@/src/components/app-image";
 import { StoreReviews } from "@/src/components/store/store-reviews";
 import { decodeSlug } from "@/src/lib/slug";
+import { storeOpenState, timeAgoAr } from "@/src/lib/store-hours";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +38,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function StorePage({ params }: { params: { slug: string } }) {
-  const data = await getStore(params.slug);
+  const api = await getServerApi();
+  const slug = decodeSlug(params.slug);
+  const data = await api.catalog.storeBySlug({ slug });
   if (!data) notFound();
-  const { vendor, products, sections } = data;
+  const { vendor, products, sections, activities } = data;
+  const related = await api.catalog.relatedStores({ slug, limit: 8 });
 
   // تجميع منتجات المتجر تحت أقسامه الداخليّة (بترتيب الأقسام)، وما بلا قسمٍ في «منتجات أخرى».
   const grouped = sections
@@ -58,8 +63,11 @@ export default async function StorePage({ params }: { params: { slug: string } }
       : {}),
   };
 
-  const year = new Date(vendor.memberSince).getFullYear();
+  const memberYear = new Date(vendor.memberSince).getFullYear();
   const hasRating = vendor.ratingCount > 0;
+  const nowYear = new Date().getFullYear();
+  const experience = vendor.establishedYear ? Math.max(0, nowYear - vendor.establishedYear) : null;
+  const openState = storeOpenState(vendor.opensAt, vendor.closesAt);
 
   return (
     <div className="space-y-5">
@@ -98,13 +106,29 @@ export default async function StorePage({ params }: { params: { slug: string } }
             <div className="flex-1 pb-1">
               <h1 className="flex items-center gap-1.5 text-xl font-extrabold text-neutral-100">
                 {vendor.storeName}
-                <BadgeCheck className="h-5 w-5 text-gold-400" aria-label="متجر موثّق" />
+                {vendor.verified && <BadgeCheck className="h-5 w-5 text-gold-400" aria-label="متجر موثّق" />}
               </h1>
-              {vendor.governorate && (
-                <p className="mt-0.5 flex items-center gap-1 text-sm text-neutral-400">
-                  <MapPin className="h-3.5 w-3.5" /> {vendor.governorate.nameAr}
-                </p>
-              )}
+              <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-neutral-400">
+                {(vendor.addressText || vendor.governorate) && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" /> {vendor.addressText ?? vendor.governorate?.nameAr}
+                  </span>
+                )}
+                {openState && (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                      openState.open
+                        ? openState.soon
+                          ? "bg-amber-500/15 text-amber-300"
+                          : "bg-petrol/15 text-petrol"
+                        : "bg-neutral-500/15 text-neutral-400"
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${openState.open ? (openState.soon ? "bg-amber-400" : "bg-petrol") : "bg-neutral-500"}`} />
+                    {openState.label}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
 
@@ -119,7 +143,7 @@ export default async function StorePage({ params }: { params: { slug: string } }
             )}
           </p>
 
-          {/* شارات الثقة — منذ متى، التقييم، الرفوف، التوصيل */}
+          {/* شارات الثقة — التقييم، الطلبات، الخبرة، الرفوف، الردّ، الساعات، التوصيل */}
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <Badge icon={<Star className="h-3.5 w-3.5 fill-gold-400 text-gold-400" />}>
               {hasRating ? (
@@ -129,14 +153,41 @@ export default async function StorePage({ params }: { params: { slug: string } }
               )}
               {hasRating && <span className="text-neutral-400"> ({vendor.ratingCount})</span>}
             </Badge>
+            {vendor.ordersCount > 0 && (
+              <Badge icon={<ShoppingBag className="h-3.5 w-3.5 text-gold-400" />}>
+                <span className="nums">{vendor.ordersCount.toLocaleString("en")}</span> طلب
+              </Badge>
+            )}
+            {experience != null && experience >= 1 && (
+              <Badge icon={<Award className="h-3.5 w-3.5 text-gold-400" />}>
+                <span className="nums">{experience}</span> سنة خبرة
+              </Badge>
+            )}
             <Badge icon={<Package className="h-3.5 w-3.5 text-gold-400" />}>
               <span className="nums">{vendor.productCount}</span> منتج
             </Badge>
+            {vendor.responseMins != null && (
+              <Badge icon={<Timer className="h-3.5 w-3.5 text-gold-400" />}>
+                يردّ خلال <span className="nums">{vendor.responseMins}</span> دقيقة
+              </Badge>
+            )}
+            {vendor.opensAt && vendor.closesAt && (
+              <Badge icon={<Clock className="h-3.5 w-3.5 text-gold-400" />}>
+                <span className="nums" dir="ltr">{vendor.opensAt}–{vendor.closesAt}</span>
+              </Badge>
+            )}
             <Badge icon={<CalendarDays className="h-3.5 w-3.5 text-gold-400" />}>
-              في السوگ منذ <span className="nums">{year}</span>
+              في السوگ منذ <span className="nums">{memberYear}</span>
             </Badge>
             <Badge icon={<Truck className="h-3.5 w-3.5 text-petrol" />}>الدفع عند الاستلام</Badge>
           </div>
+
+          {/* التوصيل — سطرٌ مميّز */}
+          {vendor.deliveryInfo && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-petrol">
+              <Truck className="h-3.5 w-3.5" /> {vendor.deliveryInfo}
+            </p>
+          )}
 
           {/* روابط الصفحات — للمتاجر الإلكترونيّة (إنستغرام/فيسبوك/تيك توك) */}
           {vendor.channel === "online" && (vendor.instagramUrl || vendor.facebookUrl || vendor.tiktokUrl) && (
@@ -154,6 +205,30 @@ export default async function StorePage({ params }: { params: { slug: string } }
           )}
         </div>
       </section>
+
+      {/* نبض المتجر — آخر أحداثه الحيّة */}
+      {activities.length > 0 && (
+        <section className="bg-card rounded-3xl border border-line p-4">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold text-neutral-200">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-petrol opacity-70" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-petrol" />
+            </span>
+            نبض المتجر
+          </h2>
+          <ul className="space-y-2.5">
+            {activities.map((a) => (
+              <li key={a.id} className="flex items-center gap-2.5 text-sm">
+                <span className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg bg-gold-500/10 text-gold-300">
+                  <ActivityIcon kind={a.kind} />
+                </span>
+                <span className="min-w-0 flex-1 truncate text-neutral-200">{a.message}</span>
+                <span className="flex-shrink-0 text-[11px] text-neutral-500">{timeAgoAr(a.at)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* أقسام المتجر الداخليّة — شريط تنقّلٍ سريع (يظهر إن كان للمتجر أقسام) */}
       {hasSections && (
@@ -225,8 +300,35 @@ export default async function StorePage({ params }: { params: { slug: string } }
 
       {/* تقييمات المتجر — رأيُ من اشترى منه */}
       <StoreReviews vendorId={vendor.id} />
+
+      {/* من نفس البيئة — متاجرُ محافظتِه التي تشاركه المجال */}
+      {related.length > 0 && (
+        <section>
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
+            <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+            من نفس البيئة
+          </h2>
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {related.map((s) => (
+              <div key={s.id} className="w-44 flex-shrink-0">
+                <StoreRailCard store={s} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
+}
+
+// أيقونة نوع حدث النبض.
+function ActivityIcon({ kind }: { kind: string }) {
+  const cls = "h-4 w-4";
+  if (kind === "restock" || kind === "new_arrival") return <Boxes className={cls} />;
+  if (kind === "new_section") return <Sparkles className={cls} />;
+  if (kind === "most_visited") return <TrendingUp className={cls} />;
+  if (kind === "promo") return <Tag className={cls} />;
+  return <Sparkles className={cls} />;
 }
 
 function Badge({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {

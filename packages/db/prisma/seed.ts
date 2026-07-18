@@ -595,6 +595,45 @@ async function main() {
   // اسم كلّ متاجر النجف المعتمدة الجديدة — لحذف ما عداها.
   const NAJAF_STORE_NAMES = vendorsSeed.filter((v) => v.gov === "النجف").map((v) => v.storeName);
 
+  // ── شخصيّة كلّ متجرٍ نجفيّ (بيانات شبه حقيقيّة تجعله كياناً حيّاً) ──
+  // نبذة · سنة التأسيس · وقت الردّ (دقيقة) · الفتح/الإغلاق · التوصيل · المنطقة · عدد الطلبات · الإحداثيّات.
+  type NajafProfile = { bio: string; est: number; resp: number; open: string; close: string; delivery: string; area: string; orders: number; lat: number; lng: number };
+  const NAJAF_PROFILES: Record<string, NajafProfile> = {
+    "أسواق شمسة": { bio: "بقالة العائلة في النجف — كلّ حاجيّات البيت بأسعار الجملة وتوصيلٍ لباب دارك.", est: 2014, resp: 10, open: "08:00", close: "23:30", delivery: "توصيل داخل النجف خلال يوم — مجّاناً فوق ٥٠ ألف", area: "حيّ السعد", orders: 1840, lat: 32.006, lng: 44.331 },
+    "وجه الشمس للتسوق": { bio: "زيوت وحبوب ومعلّبات بجودةٍ مضمونة — نختار لك الأفضل لمطبخك.", est: 2017, resp: 15, open: "08:30", close: "22:30", delivery: "توصيل داخل النجف خلال ٢٤ ساعة", area: "حيّ الأمير", orders: 970, lat: 31.994, lng: 44.318 },
+    "متجر ماز": { bio: "مكسّرات وحلويات ومشروبات — نكهاتٌ تفرح بيها ضيوفك.", est: 2019, resp: 12, open: "09:00", close: "23:00", delivery: "توصيل داخل النجف والكوفة", area: "الكوفة", orders: 640, lat: 32.028, lng: 44.401 },
+    "ايدل هوم": { bio: "أثاثٌ مودرن بلمسةٍ عراقيّة — نأثّث بيتك بذوقٍ يدوم.", est: 2016, resp: 30, open: "10:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف خلال ٣ أيّام", area: "شارع المدينة", orders: 420, lat: 31.997, lng: 44.309 },
+    "العالمية للأثاث": { bio: "غرف نومٍ ودواليب بخشبٍ أصليّ وضمانٍ حقيقيّ.", est: 2012, resp: 30, open: "10:00", close: "21:30", delivery: "توصيل وتركيب مجّانيّ داخل النجف", area: "حيّ الجزيرة", orders: 510, lat: 32.011, lng: 44.336 },
+    "هوم سنتر": { bio: "كلّ ما يخصّ الجلوس والترفيه المنزليّ — ركناتٌ وطاولاتٌ بأسعار تنافسيّة.", est: 2018, resp: 25, open: "10:00", close: "22:00", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ النصر", orders: 360, lat: 31.989, lng: 44.322 },
+    "الصباح للستائر": { bio: "ستائرٌ ومفروشاتٌ تركيّة تفصيل حسب مقاسك — نزيّن نوافذ بيتك.", est: 2015, resp: 20, open: "09:30", close: "21:00", delivery: "قياس وتركيب داخل النجف", area: "حيّ الغري", orders: 480, lat: 32.001, lng: 44.325 },
+    "الطفيلي للأجهزة": { bio: "ثلاجاتٌ وغسّالاتٌ بضمانٍ وخدمة صيانةٍ سريعة — خبرة عائلةٍ بالأجهزة.", est: 2013, resp: 15, open: "09:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف خلال ٢٤ ساعة", area: "شارع الرسول", orders: 720, lat: 31.996, lng: 44.314 },
+    "سامسونج النجف": { bio: "الوكيل المعتمد لأجهزة سامسونج في النجف — أصليٌّ بكفالةٍ رسميّة.", est: 2015, resp: 8, open: "09:00", close: "23:00", delivery: "توصيل وتركيب مجّانيّ داخل النجف", area: "السوق الكبير", orders: 2100, lat: 31.999, lng: 44.315 },
+    "علي الرماحي للأجهزة": { bio: "تكييفٌ وتبريدٌ وسخّانات — نبرّد صيفك وندفّي شتاءك.", est: 2016, resp: 15, open: "08:30", close: "22:00", delivery: "توصيل وتركيب داخل النجف", area: "حيّ الميلاد", orders: 650, lat: 32.008, lng: 44.329 },
+    "سمارت هوم": { bio: "أجهزةٌ منزليّةٌ صغيرة تسهّل يومك — جودةٌ بسعرٍ مريح.", est: 2020, resp: 12, open: "09:00", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ العروبة", orders: 390, lat: 31.992, lng: 44.311 },
+    "أبو فاطمة للكهربائيات": { bio: "كلّ مستلزمات الكهرباء والإنارة — نصيحةٌ صادقةٌ قبل البيع.", est: 2011, resp: 12, open: "08:00", close: "21:00", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الوفاء", orders: 830, lat: 32.003, lng: 44.320 },
+    "الأمير للمواد الإنشائية": { bio: "موادّ بناءٍ وسباكةٍ للمقاولين والبيوت — كمّيّاتٌ بأسعار الجملة.", est: 2010, resp: 20, open: "07:30", close: "20:00", delivery: "توصيل بالشاحنة داخل النجف والمحافظة", area: "حيّ الجديدة", orders: 560, lat: 32.015, lng: 44.340 },
+    "بركات أمّ البنين": { bio: "موادّ تنظيفٍ وأدواتٍ منزليّة — نظافة بيتك أمانة عندنا.", est: 2018, resp: 10, open: "08:30", close: "22:00", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الزهراء", orders: 710, lat: 31.990, lng: 44.324 },
+    "الروان للمنزليّة": { bio: "أدوات مائدةٍ وديكوراتٌ تضيف لمسةً لبيتك.", est: 2019, resp: 15, open: "09:30", close: "22:00", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ الأنصار", orders: 300, lat: 32.005, lng: 44.318 },
+    "ديكورك": { bio: "لوحاتٌ وإضاءةٌ وديكوراتٌ عصريّة — جدرانك تحكي ذوقك.", est: 2021, resp: 18, open: "10:00", close: "22:00", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ العسكري", orders: 250, lat: 31.995, lng: 44.328 },
+    "دعافيس": { bio: "سجّادٌ ووسائدُ ومفارشٌ تدفّي بيتك بالدفء والذوق.", est: 2017, resp: 20, open: "09:00", close: "21:30", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ القادسية", orders: 410, lat: 32.010, lng: 44.334 },
+    "بوّابة السعد": { bio: "إكسسوارات وشواحن الموبايل الأصليّة — كلّ ما يحمي جهازك.", est: 2018, resp: 8, open: "09:00", close: "23:30", delivery: "توصيل داخل النجف خلال يوم", area: "السوق الكبير", orders: 1360, lat: 31.998, lng: 44.316 },
+    "الشريك للموبايلات": { bio: "هواتفُ وإكسسواراتٌ وخدمة صيانةٍ سريعة — شريكك الأمين بالتقنية.", est: 2016, resp: 10, open: "09:00", close: "23:00", delivery: "توصيل داخل النجف خلال يوم", area: "شارع المدينة", orders: 1490, lat: 31.997, lng: 44.313 },
+    "شاومي النجف": { bio: "وكيل شاومي في النجف — هواتفُ وأجهزةٌ ذكيّةٌ أصليّةٌ بكفالة.", est: 2019, resp: 7, open: "09:30", close: "23:00", delivery: "توصيل مجّانيّ داخل النجف", area: "السوق الكبير", orders: 1780, lat: 31.999, lng: 44.317 },
+    "آبل ستور النجف": { bio: "أجهزة آبل الأصليّة بكفالةٍ معتمدة — تجربةٌ راقيةٌ من أوّل لمسة.", est: 2017, resp: 6, open: "10:00", close: "23:00", delivery: "توصيل مجّانيّ داخل النجف خلال ساعات", area: "شارع الرسول", orders: 2340, lat: 31.998, lng: 44.315 },
+    "آي تيك": { bio: "كاميرات مراقبةٍ وشبكاتٍ وطاقةٍ شمسيّة — حلولٌ تقنيّةٌ لبيتك ومشروعك.", est: 2018, resp: 20, open: "09:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف", area: "حيّ الحرية", orders: 540, lat: 32.007, lng: 44.332 },
+    "الأوّل للحاسبات": { bio: "لابتوباتٌ وإكسسواراتٌ وخدمة صيانةٍ للحواسيب — خبرةٌ تثق بيها.", est: 2014, resp: 12, open: "09:00", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "شارع المدينة", orders: 880, lat: 31.996, lng: 44.312 },
+    "الجزيرة للتقنية": { bio: "بلي ستيشن وألعابٌ وأقراص — عالم الألعاب في النجف.", est: 2020, resp: 10, open: "11:00", close: "23:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ العروبة", orders: 620, lat: 31.993, lng: 44.319 },
+    "عزّوز للأزياء": { bio: "أزياءٌ رجاليّةٌ عصريّةٌ بأسعار الشباب — أناقتك تبدأ من هنا.", est: 2018, resp: 15, open: "10:00", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الغري", orders: 730, lat: 32.000, lng: 44.323 },
+    "قفطان": { bio: "قفاطينُ وعبيٌّ رجاليّةٌ مطرّزة — للمناسبات وللزينة اليوميّة.", est: 2019, resp: 18, open: "10:00", close: "22:00", delivery: "توصيل داخل النجف والكوفة", area: "الكوفة", orders: 340, lat: 32.026, lng: 44.399 },
+    "دشاديش ابن بشيش": { bio: "دشاديشُ نجفيّةٌ أصيلةٌ بخياطةٍ يدويّة — تراثٌ يلبسك.", est: 2013, resp: 20, open: "09:00", close: "21:30", delivery: "توصيل داخل النجف خلال يومين", area: "البلد القديم", orders: 560, lat: 32.002, lng: 44.320 },
+    "متجر أنزو": { bio: "تيشيرتاتٌ وجاكيتاتٌ بموضةٍ شبابيّة — ستايلك بأسعارٍ حلوة.", est: 2021, resp: 14, open: "10:30", close: "23:00", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الميلاد", orders: 410, lat: 32.009, lng: 44.330 },
+    "الصافي للأزياء": { bio: "بدلاتٌ رسميّةٌ وأحذيةٌ جلديّةٌ لإطلالةٍ راقية.", est: 2015, resp: 20, open: "10:00", close: "22:00", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ النصر", orders: 480, lat: 31.988, lng: 44.321 },
+    "البغدادي لإكسسوارات السيّارات": { bio: "كلّ ما تحتاجه سيّارتك من داخلٍ وعناية — سيّارتك بأبهى حلّة.", est: 2017, resp: 15, open: "09:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف", area: "حيّ الجزيرة", orders: 520, lat: 32.012, lng: 44.337 },
+    "بانيقيا لإكسسوارات السيّارات": { bio: "أنظمة صوتٍ وشاشاتٌ وكاميراتُ سيّاراتٍ باحترافيّة.", est: 2019, resp: 18, open: "09:30", close: "22:00", delivery: "توصيل وتركيب داخل النجف", area: "حيّ القادسية", orders: 380, lat: 32.011, lng: 44.335 },
+    "ريحانة للتجميل": { bio: "مكياجٌ وعنايةٌ بالبشرة بمنتجاتٍ أصليّة — جمالك يستاهل الأفضل.", est: 2018, resp: 12, open: "10:00", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الوفاء", orders: 690, lat: 32.004, lng: 44.319 },
+    "ابن الحكيم للتجميل": { bio: "عطورٌ ومستحضرات عنايةٍ فاخرة — رائحتك توقيعك.", est: 2016, resp: 12, open: "09:30", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الزهراء", orders: 750, lat: 31.991, lng: 44.325 },
+  };
+
   for (const v of vendorsSeed) {
     const user = await prisma.user.upsert({
       where: { phone: v.phone },
@@ -611,17 +650,31 @@ async function main() {
     const vCreatedAt = new Date(Date.now() - vAge * 86_400_000);
     // حقولٌ قانونيّة تُفرَض في كلّ بذرة (create+update) كي تبقى الشاشات متّسقة.
     const vCatName = catNameBySlug[v.catSlug] ?? v.storeName;
+    const profile = NAJAF_PROFILES[v.storeName]; // شخصيّة المتجر (لمتاجر النجف)
     const canonicalVendorFields = {
       channel: vv.channel ?? "physical",
       instagramUrl: vv.instagramUrl ?? null,
       tiktokUrl: vv.tiktokUrl ?? null,
       facebookUrl: vv.facebookUrl ?? null,
       verified: vv.verified ?? false,
-      latitude: vv.lat ?? null,
-      longitude: vv.lng ?? null,
+      latitude: profile?.lat ?? vv.lat ?? null,
+      longitude: profile?.lng ?? vv.lng ?? null,
       logoUrl: ph(v.storeName, vCatName, "logo"),
       bannerUrl: ph(v.storeName, vCatName, "banner"),
       ...(vv.rating ? { ratingAvg: new Prisma.Decimal(vv.rating[0]), ratingCount: vv.rating[1] } : {}),
+      // شخصيّة المتجر — تُفرَض في كلّ بذرة كي يبقى المتجر كياناً حيّاً متّسقاً.
+      ...(profile
+        ? {
+            description: profile.bio,
+            establishedYear: profile.est,
+            responseMins: profile.resp,
+            opensAt: profile.open,
+            closesAt: profile.close,
+            deliveryInfo: profile.delivery,
+            addressText: `النجف — ${profile.area}`,
+            ordersCount: profile.orders,
+          }
+        : {}),
     };
     const vendor = await prisma.vendorProfile.upsert({
       where: { userId: user.id },
@@ -941,6 +994,40 @@ async function main() {
     await prisma.article.upsert({ where: { slug: a.slug }, update: {}, create: a });
   }
   console.log(`✅ ${ARTICLES.length} مقال (اكتشف اليوم)`);
+
+  // ── نبض السوق — أحداثٌ حيّةٌ للمتاجر («وصلت دفعة»، «افتُتح قسم»، «الأكثر زيارة»…) ──
+  // نُعيد البذر: نمسح أحداث النجف القديمة ثمّ نُنشئ أحداثاً بتوقيتاتٍ نسبيّةٍ حديثة.
+  const najafVendors = await prisma.vendorProfile.findMany({
+    where: { governorateId: govByName["النجف"] },
+    select: { id: true, storeName: true },
+  });
+  const vendorIdByName = new Map(najafVendors.map((v) => [v.storeName, v.id]));
+  await prisma.storeActivity.deleteMany({ where: { vendorId: { in: najafVendors.map((v) => v.id) } } });
+  const min = 60_000;
+  const ACTIVITIES: { store: string; kind: string; message: string; minsAgo: number }[] = [
+    { store: "شاومي النجف", kind: "restock", message: "وصلت دفعة جديدة من شاومي ريدمي نوت ١٣", minsAgo: 30 },
+    { store: "دعافيس", kind: "new_section", message: "افتتح قسمًا جديدًا: سجّاد مودرن", minsAgo: 95 },
+    { store: "وجه الشمس للتسوق", kind: "most_visited", message: "أكثر متجرٍ زيارةً اليوم في الغذائية", minsAgo: 20 },
+    { store: "آبل ستور النجف", kind: "new_arrival", message: "توفّر الآن: آيفون ١٥ برو", minsAgo: 150 },
+    { store: "سامسونج النجف", kind: "promo", message: "خصمٌ على تلفزيون سامسونج ٥٥ بوصة هذا الأسبوع", minsAgo: 240 },
+    { store: "الشريك للموبايلات", kind: "restock", message: "وصلت دفعة جديدة من سامسونج جالكسي A54", minsAgo: 55 },
+    { store: "آي تيك", kind: "new_section", message: "افتتح قسم الطاقة الشمسية", minsAgo: 320 },
+    { store: "بوّابة السعد", kind: "most_visited", message: "الأكثر زيارةً في قسم الإكسسوارات", minsAgo: 12 },
+    { store: "الطفيلي للأجهزة", kind: "new_arrival", message: "توفّرت ثلاجات نوفروست جديدة", minsAgo: 180 },
+    { store: "ريحانة للتجميل", kind: "restock", message: "وصلت تشكيلة مكياجٍ جديدة", minsAgo: 75 },
+    { store: "الجزيرة للتقنية", kind: "restock", message: "توفّر بلي ستيشن ٥ بكمّيّاتٍ محدودة", minsAgo: 45 },
+    { store: "أسواق شمسة", kind: "promo", message: "عرض السلّة الشهريّة بسعرٍ خاصّ", minsAgo: 400 },
+  ];
+  let activityCount = 0;
+  for (const a of ACTIVITIES) {
+    const vid = vendorIdByName.get(a.store);
+    if (!vid) continue;
+    await prisma.storeActivity.create({
+      data: { vendorId: vid, kind: a.kind, message: a.message, createdAt: new Date(Date.now() - a.minsAgo * min) },
+    });
+    activityCount++;
+  }
+  console.log(`✅ ${activityCount} حدث نبضٍ للسوق`);
 
   console.log("🎉 اكتمل البذر بنجاح.");
 }

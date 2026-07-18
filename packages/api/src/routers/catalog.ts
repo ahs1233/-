@@ -74,6 +74,7 @@ const storeOut = z
       bannerUrl: z.string().nullable(),
       governorate: z.object({ nameAr: z.string() }).nullable(),
       channel: z.string(),
+      verified: z.boolean(),
       instagramUrl: z.string().nullable(),
       facebookUrl: z.string().nullable(),
       tiktokUrl: z.string().nullable(),
@@ -81,10 +82,22 @@ const storeOut = z
       ratingCount: z.number(),
       productCount: z.number(),
       memberSince: z.string(),
+      // شخصيّة المتجر
+      establishedYear: z.number().nullable(),
+      responseMins: z.number().nullable(),
+      opensAt: z.string().nullable(),
+      closesAt: z.string().nullable(),
+      deliveryInfo: z.string().nullable(),
+      addressText: z.string().nullable(),
+      ordersCount: z.number(),
+      latitude: z.number().nullable(),
+      longitude: z.number().nullable(),
     }),
     // أقسام المتجر الداخليّة (رفوف/خدمات) بترتيبها، مع عدد منتجات كلٍّ منها.
     sections: z.array(z.object({ id: z.string(), nameAr: z.string(), slug: z.string(), icon: z.string().nullable(), productCount: z.number() })),
     products: z.array(productCardOut.extend({ sectionId: z.string().nullable() })),
+    // نبض المتجر — آخر أحداثه الحيّة.
+    activities: z.array(z.object({ id: z.string(), kind: z.string(), message: z.string(), at: z.string() })),
   })
   .nullable();
 
@@ -343,17 +356,27 @@ export const catalogRouter = router({
           bannerUrl: true,
           governorate: { select: { nameAr: true } },
           channel: true,
+          verified: true,
           instagramUrl: true,
           facebookUrl: true,
           tiktokUrl: true,
           ratingAvg: true,
           ratingCount: true,
           createdAt: true,
+          establishedYear: true,
+          responseMins: true,
+          opensAt: true,
+          closesAt: true,
+          deliveryInfo: true,
+          addressText: true,
+          ordersCount: true,
+          latitude: true,
+          longitude: true,
           _count: { select: { products: { where: { status: "ACTIVE" } } } },
         },
       });
       if (!vendor) return null;
-      const [products, sections] = await Promise.all([
+      const [products, sections, activities] = await Promise.all([
         ctx.prisma.product.findMany({
           where: { vendorId: vendor.id, status: "ACTIVE" },
           orderBy: { createdAt: "desc" },
@@ -377,12 +400,20 @@ export const catalogRouter = router({
           orderBy: { sortOrder: "asc" },
           select: { id: true, nameAr: true, slug: true, icon: true, _count: { select: { products: { where: { status: "ACTIVE" } } } } },
         }),
+        ctx.prisma.storeActivity.findMany({
+          where: { vendorId: vendor.id },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+          select: { id: true, kind: true, message: true, createdAt: true },
+        }),
       ]);
-      const { createdAt, _count, ratingAvg, ...rest } = vendor;
+      const { createdAt, _count, ratingAvg, latitude, longitude, ...rest } = vendor;
       return {
         vendor: {
           ...rest,
           ratingAvg: Number(ratingAvg),
+          latitude: latitude ?? null,
+          longitude: longitude ?? null,
           productCount: _count.products,
           memberSince: createdAt.toISOString(),
         },
@@ -391,6 +422,7 @@ export const catalogRouter = router({
           .filter((s) => s._count.products > 0)
           .map((s) => ({ id: s.id, nameAr: s.nameAr, slug: s.slug, icon: s.icon, productCount: s._count.products })),
         products: products.map((p) => ({ ...serializeProduct(p), sectionId: p.sectionId })),
+        activities: activities.map((a) => ({ id: a.id, kind: a.kind, message: a.message, at: a.createdAt.toISOString() })),
       };
     }),
 
@@ -526,6 +558,98 @@ export const catalogRouter = router({
         productCount: v._count.products,
         ratingAvg: Number(v.ratingAvg),
         ratingCount: v.ratingCount,
+      }));
+    }),
+
+  // متاجرُ «من نفس البيئة» — متاجرُ محافظةِ المتجرِ التي تشاركه فئاتِه، عدا نفسه.
+  // «من يدخل شاومي النجف يُقترح عليه آبل ستور والأوّل للحاسبات وبوّابة السعد».
+  relatedStores: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/stores/{slug}/related", tags: ["catalog"] } })
+    .input(z.object({ slug: z.string(), limit: z.number().int().min(1).max(20).default(8) }))
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          storeName: z.string(),
+          slug: z.string(),
+          logoUrl: z.string().nullable(),
+          bannerUrl: z.string().nullable(),
+          verified: z.boolean(),
+          productCount: z.number(),
+          ratingAvg: z.number(),
+          ratingCount: z.number(),
+        }),
+      ),
+    )
+    .query(async ({ ctx, input }) => {
+      const store = await ctx.prisma.vendorProfile.findFirst({
+        where: { slug: input.slug, status: "APPROVED" },
+        select: {
+          id: true,
+          governorateId: true,
+          // فئات منتجات المتجر (مع الأب) — تُحدّد «بيئته».
+          products: { where: { status: "ACTIVE" }, select: { categoryId: true, category: { select: { parentId: true } } }, take: 100 },
+        },
+      });
+      if (!store) return [];
+      const catIds = new Set<string>();
+      for (const p of store.products) {
+        catIds.add(p.categoryId);
+        if (p.category.parentId) catIds.add(p.category.parentId);
+      }
+      // نشمل الأبناء أيضاً كي يتقاطع متجرٌ يبيع في فئةٍ أبٍ مع آخرَ في فئةٍ فرعيّة.
+      if (catIds.size) {
+        const children = await ctx.prisma.category.findMany({ where: { parentId: { in: [...catIds] } }, select: { id: true } });
+        children.forEach((c) => catIds.add(c.id));
+      }
+      const vendors = await ctx.prisma.vendorProfile.findMany({
+        where: {
+          status: "APPROVED",
+          id: { not: store.id },
+          ...(store.governorateId ? { governorateId: store.governorateId } : {}),
+          ...(catIds.size ? { products: { some: { status: "ACTIVE", categoryId: { in: [...catIds] } } } } : {}),
+        },
+        orderBy: [{ verified: "desc" }, { ratingAvg: "desc" }, { ratingCount: "desc" }],
+        take: input.limit,
+        select: {
+          id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true,
+          ratingAvg: true, ratingCount: true, _count: { select: { products: { where: { status: "ACTIVE" } } } },
+        },
+      });
+      return vendors.map((v) => ({
+        id: v.id, storeName: v.storeName, slug: v.slug, logoUrl: v.logoUrl, bannerUrl: v.bannerUrl,
+        verified: v.verified, productCount: v._count.products, ratingAvg: Number(v.ratingAvg), ratingCount: v.ratingCount,
+      }));
+    }),
+
+  // نبض السوق — آخر أحداث المتاجر الحيّة (وصول دفعة، افتتاح قسم، الأكثر زيارة…).
+  marketPulse: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/pulse", tags: ["catalog"] } })
+    .input(z.object({ governorateId: z.string().cuid().optional(), limit: z.number().int().min(1).max(30).default(12) }))
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          kind: z.string(),
+          message: z.string(),
+          at: z.string(),
+          store: z.object({ storeName: z.string(), slug: z.string(), logoUrl: z.string().nullable() }),
+        }),
+      ),
+    )
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.prisma.storeActivity.findMany({
+        where: input.governorateId ? { vendor: { governorateId: input.governorateId, status: "APPROVED" } } : { vendor: { status: "APPROVED" } },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+        select: { id: true, kind: true, message: true, createdAt: true, vendor: { select: { storeName: true, slug: true, logoUrl: true } } },
+      });
+      return rows.map((r) => ({
+        id: r.id,
+        kind: r.kind,
+        message: r.message,
+        at: r.createdAt.toISOString(),
+        store: { storeName: r.vendor.storeName, slug: r.vendor.slug, logoUrl: r.vendor.logoUrl },
       }));
     }),
 });
