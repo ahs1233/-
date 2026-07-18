@@ -546,9 +546,45 @@ async function main() {
     { phone: "+9647720000005", name: "العالمية للأثاث", storeName: "العالمية للأثاث", gov: "النجف", catSlug: slugify("أثاث وستائر"), products: [
       { title: "غرفة نوم كاملة", section: "غرف نوم", price: 1200000, stock: 6, variants: [] }, { title: "سرير مزدوج فاخر", section: "غرف نوم", price: 550000, stock: 10, variants: [] },
       { title: "دولاب ملابس", section: "دواليب", price: 400000, stock: 10, variants: [] }, { title: "دولاب أطفال ملوّن", section: "دواليب", price: 280000, stock: 12, variants: [] } ] },
-    { phone: "+9647720000006", name: "هوم سنتر", storeName: "هوم سنتر", gov: "النجف", catSlug: slugify("أثاث وستائر"), products: [
-      { title: "ركنة قماش عائليّة", section: "كنب وركنات", price: 550000, stock: 8, variants: [] }, { title: "كنبة ثلاثيّة", section: "كنب وركنات", price: 380000, stock: 12, variants: [] },
-      { title: "طاولة تلفزيون", section: "طاولات تلفزيون", price: 180000, stock: 20, variants: [] }, { title: "مكتبة خشب جانبيّة", section: "طاولات تلفزيون", price: 150000, stock: 18, variants: [] } ] },
+    // ★ متجرٌ مرجعيّ — هوم سنتر (كلّ ما يلزم بيتك)
+    { phone: "+9647720000006", name: "هوم سنتر", storeName: "هوم سنتر", gov: "النجف", catSlug: slugify("أثاث وستائر"), verified: true, rating: [4.6, 190] as [number, number], products: [
+      // غرف المعيشة
+      { title: "كنبة زاوية مودرن", section: "غرف المعيشة", price: 650000, compareAt: 850000, sold: 40, stock: 12, variants: [] },
+      { title: "طقم كنب ٧ مقاعد", section: "غرف المعيشة", price: 1200000, sold: 18, stock: 6, variants: [] },
+      { title: "ركنة قماش عائليّة", section: "غرف المعيشة", price: 550000, sold: 30, stock: 8, variants: [] },
+      { title: "كنبة ثلاثيّة", section: "غرف المعيشة", price: 380000, stock: 12, variants: [] },
+      { title: "كرسي مفرد مريح", section: "غرف المعيشة", price: 180000, stock: 20, variants: [] },
+      { title: "طاولة وسط", section: "غرف المعيشة", price: 120000, stock: 25, variants: [] },
+      // غرف النوم
+      { title: "غرفة نوم كاملة", section: "غرف النوم", price: 1400000, sold: 22, stock: 6, variants: [] },
+      { title: "سرير مزدوج فاخر", section: "غرف النوم", price: 550000, stock: 10, variants: [] },
+      { title: "دولاب ٦ أبواب", section: "غرف النوم", price: 700000, stock: 8, variants: [] },
+      { title: "تسريحة بمرآة", section: "غرف النوم", price: 320000, stock: 12, variants: [] },
+      { title: "كومدينو خشب", section: "غرف النوم", price: 90000, stock: 30, variants: [] },
+      // غرف الطعام
+      { title: "طاولة طعام ٦ كراسي", section: "غرف الطعام", price: 600000, sold: 25, stock: 10, variants: [] },
+      { title: "طاولة طعام ٨ كراسي", section: "غرف الطعام", price: 850000, stock: 7, variants: [] },
+      { title: "بوفيه خشب", section: "غرف الطعام", price: 450000, stock: 9, variants: [] },
+      { title: "كراسي طعام (طقم ٢)", section: "غرف الطعام", price: 160000, stock: 24, variants: [] },
+      // ديكور وإكسسوارات
+      { title: "مرآة جداريّة", section: "ديكور وإكسسوارات", price: 90000, stock: 30, variants: [] },
+      { title: "ساعة حائط فاخرة", section: "ديكور وإكسسوارات", price: 60000, stock: 35, variants: [] },
+      { title: "مزهريّات (طقم)", section: "ديكور وإكسسوارات", price: 45000, stock: 40, variants: [] },
+      { title: "لوحات جداريّة", section: "ديكور وإكسسوارات", price: 40000, stock: 40, variants: [] },
+      // إضاءة
+      { title: "ثريا كريستال", section: "إضاءة", price: 250000, sold: 15, stock: 10, variants: [] },
+      { title: "أباجورة أرضيّة", section: "إضاءة", price: 85000, stock: 22, variants: [] },
+      { title: "إضاءة سقف LED", section: "إضاءة", price: 70000, stock: 30, variants: [] },
+      // سجاد وموكيت
+      { title: "سجّاد تركيّ ٣×٤", section: "سجاد وموكيت", price: 280000, sold: 20, stock: 14, variants: [] },
+      { title: "سجّاد مودرن", section: "سجاد وموكيت", price: 150000, stock: 25, variants: [] },
+      { title: "موكيت غرف", section: "سجاد وموكيت", price: 120000, stock: 20, variants: [] },
+      // ستائر
+      { title: "ستائر بلاك أوت", section: "ستائر", price: 90000, stock: 40, variants: [] },
+      { title: "ستائر مطرّزة", section: "ستائر", price: 120000, stock: 30, variants: [] },
+      // أثاث خارجي
+      { title: "جلسة حديقة", section: "أثاث خارجي", price: 400000, stock: 10, variants: [] },
+      { title: "أرجوحة خارجيّة", section: "أثاث خارجي", price: 320000, stock: 8, variants: [] } ] },
     { phone: "+9647720000007", name: "الصباح للستائر", storeName: "الصباح للستائر", gov: "النجف", catSlug: slugify("أثاث وستائر"), products: [
       { title: "ستائر بلاك أوت", section: "ستائر", price: 90000, stock: 40, variants: [] }, { title: "ستائر تركيّة مطرّزة", section: "ستائر", price: 120000, stock: 30, variants: [] },
       { title: "مفارش سرير قطن", section: "مفروشات", price: 45000, stock: 50, variants: [] }, { title: "شراشف قطن مصريّ", section: "مفروشات", price: 35000, stock: 60, variants: [] } ] },
@@ -586,9 +622,53 @@ async function main() {
       { title: "سجّاد مودرن", section: "سجّاد", price: 150000, stock: 25, variants: [] }, { title: "سجّاد تركيّ", section: "سجّاد", price: 220000, stock: 15, variants: [] },
       { title: "وسائد ديكور", section: "وسائد ومفارش", price: 15000, stock: 90, variants: [] }, { title: "مفارش أرضيّة", section: "وسائد ومفارش", price: 40000, stock: 50, variants: [] } ] },
     // التقنية (بيع + خدمات: هواتف/صيانة/إكسسوارات/طاقة شمسية/كاميرات/بلي ستيشن/حاسبات)
-    { phone: "+9647720000018", name: "متجر بوابة السعد", storeName: "بوّابة السعد", gov: "النجف", catSlug: slugify("إلكترونيات"), products: [
-      { title: "شاشة حماية زجاجيّة", section: "إكسسوارات", price: 5000, stock: 200, variants: [] }, { title: "كفرات موبايل", section: "إكسسوارات", price: 7000, stock: 180, variants: [] },
-      { title: "شاحن سريع أصليّ", section: "شواحن وكوابل", price: 15000, stock: 120, variants: [] }, { title: "كيبل شحن Type-C", section: "شواحن وكوابل", price: 6000, stock: 200, variants: [] } ] },
+    // ★ متجرٌ مرجعيّ — بوّابة السعد للأجهزة الإلكترونيّة (تقنيةٌ تفتح لك المستقبل · منذ ٢٠١٠)
+    { phone: "+9647720000018", name: "متجر بوابة السعد", storeName: "بوّابة السعد", gov: "النجف", catSlug: slugify("إلكترونيات"), verified: true, rating: [4.8, 520] as [number, number], products: [
+      // هواتف
+      { title: "آيفون ١٥ برو ماكس", section: "هواتف", price: 1750000, sold: 90, stock: 14, variants: [] },
+      { title: "آيفون ١٤", section: "هواتف", price: 1250000, compareAt: 1400000, sold: 120, stock: 18, variants: [] },
+      { title: "سامسونج جالكسي S24 Ultra", section: "هواتف", price: 1650000, sold: 70, stock: 12, variants: [] },
+      { title: "سامسونج جالكسي A54", section: "هواتف", price: 350000, sold: 140, stock: 30, variants: [] },
+      { title: "شاومي ريدمي نوت ١٣", section: "هواتف", price: 320000, sold: 160, stock: 35, variants: [] },
+      // لابتوبات
+      { title: "ماك بوك اير M3", section: "لابتوبات", price: 1900000, sold: 45, stock: 10, variants: [] },
+      { title: "لابتوب Dell XPS", section: "لابتوبات", price: 1350000, sold: 30, stock: 12, variants: [] },
+      { title: "لابتوب HP", section: "لابتوبات", price: 780000, sold: 55, stock: 15, variants: [] },
+      { title: "لابتوب Lenovo", section: "لابتوبات", price: 690000, stock: 18, variants: [] },
+      { title: "لابتوب Asus للألعاب", section: "لابتوبات", price: 1500000, sold: 25, stock: 8, variants: [] },
+      // أجهزة لوحية
+      { title: "آيباد اير", section: "أجهزة لوحية", price: 900000, sold: 40, stock: 15, variants: [] },
+      { title: "آيباد الجيل ١٠", section: "أجهزة لوحية", price: 650000, stock: 20, variants: [] },
+      { title: "تابلت سامسونج", section: "أجهزة لوحية", price: 450000, stock: 22, variants: [] },
+      // شاشات
+      { title: "شاشة LG ٢٧ بوصة", section: "شاشات", price: 300000, stock: 18, variants: [] },
+      { title: "شاشة سامسونج منحنية", section: "شاشات", price: 450000, sold: 20, stock: 12, variants: [] },
+      { title: "شاشة ألعاب 165Hz", section: "شاشات", price: 400000, stock: 14, variants: [] },
+      // إكسسوارات
+      { title: "آيربودز برو", section: "إكسسوارات", price: 250000, compareAt: 300000, sold: 200, stock: 40, variants: [] },
+      { title: "سماعة بلوتوث", section: "إكسسوارات", price: 90000, sold: 130, stock: 60, variants: [] },
+      { title: "سبيكر JBL", section: "إكسسوارات", price: 120000, stock: 30, variants: [] },
+      { title: "ماوس وكيبورد لاسلكيّ", section: "إكسسوارات", price: 30000, stock: 80, variants: [] },
+      { title: "باور بانك ٢٠٠٠٠", section: "إكسسوارات", price: 25000, sold: 180, stock: 100, variants: [] },
+      // ساعات ذكية
+      { title: "ساعة آبل ٩", section: "ساعات ذكية", price: 550000, sold: 60, stock: 16, variants: [] },
+      { title: "ساعة سامسونج ووتش", section: "ساعات ذكية", price: 350000, stock: 20, variants: [] },
+      { title: "سوار شاومي الرياضيّ", section: "ساعات ذكية", price: 45000, sold: 90, stock: 60, variants: [] },
+      // أجهزة ألعاب
+      { title: "بلي ستيشن ٥", section: "أجهزة ألعاب", price: 950000, sold: 80, stock: 10, variants: [] },
+      { title: "يد تحكّم إضافيّة", section: "أجهزة ألعاب", price: 90000, stock: 40, variants: [] },
+      { title: "إكس بوكس سيريس", section: "أجهزة ألعاب", price: 850000, stock: 8, variants: [] },
+      // كاميرات
+      { title: "كاميرا كانون", section: "كاميرات", price: 850000, sold: 18, stock: 10, variants: [] },
+      { title: "كاميرا سوني", section: "كاميرات", price: 1100000, stock: 7, variants: [] },
+      { title: "درون DJI", section: "كاميرات", price: 900000, sold: 22, stock: 9, variants: [] },
+      // شبكات
+      { title: "راوتر واي فاي", section: "شبكات", price: 45000, stock: 50, variants: [] },
+      { title: "مقوّي إشارة", section: "شبكات", price: 30000, stock: 45, variants: [] },
+      // أجهزة منزلية
+      { title: "مكنسة روبوت", section: "أجهزة منزلية", price: 220000, sold: 35, stock: 15, variants: [] },
+      { title: "مكينة قهوة", section: "أجهزة منزلية", price: 180000, stock: 18, variants: [] },
+      { title: "قلاية هوائيّة", section: "أجهزة منزلية", price: 120000, sold: 50, stock: 30, variants: [] } ] },
     { phone: "+9647720000019", name: "الشريك للموبايلات", storeName: "الشريك للموبايلات", gov: "النجف", catSlug: slugify("إلكترونيات"), products: [
       { title: "سامسونج جالكسي A54", section: "هواتف", price: 350000, sold: 40, stock: 20, variants: [] }, { title: "سامسونج جالكسي A15", section: "هواتف", price: 220000, sold: 30, stock: 25, variants: [] },
       { title: "ساعة ذكيّة", section: "إكسسوارات", price: 90000, stock: 40, variants: [] }, { title: "سماعات بلوتوث", section: "إكسسوارات", price: 35000, stock: 60, variants: [] },
@@ -611,9 +691,36 @@ async function main() {
       { title: "بلي ستيشن ٥", section: "بلي ستيشن", price: 950000, sold: 45, stock: 10, variants: [] }, { title: "يد تحكّم إضافيّة", section: "بلي ستيشن", price: 90000, stock: 40, variants: [] },
       { title: "أقراص ألعاب PS5", section: "ألعاب وأقراص", price: 65000, sold: 80, stock: 60, variants: [] }, { title: "بطاقات شحن ألعاب", section: "ألعاب وأقراص", price: 25000, sold: 120, stock: 100, variants: [] } ] },
     // الملابس
-    { phone: "+9647720000025", name: "عزوز", storeName: "عزّوز للأزياء", gov: "النجف", catSlug: slugify("أزياء رجالية"), products: [
-      { title: "قميص رجاليّ", section: "قمصان", price: 35000, stock: 60, variants: [] }, { title: "تيشيرت بولو", section: "قمصان", price: 25000, stock: 80, variants: [] },
-      { title: "بنطلون جينز", section: "بناطيل", price: 40000, stock: 50, variants: [] }, { title: "بنطلون قماش", section: "بناطيل", price: 38000, stock: 45, variants: [] } ] },
+    // ★ متجرٌ مرجعيّ — عزّوز للأزياء (أناقةٌ تبدأ من هنا)
+    { phone: "+9647720000025", name: "عزوز", storeName: "عزّوز للأزياء", gov: "النجف", catSlug: slugify("أزياء رجالية"), verified: true, rating: [4.7, 240] as [number, number], products: [
+      // أزياء رجالية
+      { title: "بدلة رسميّة", section: "أزياء رجالية", price: 200000, compareAt: 260000, sold: 55, stock: 20, variants: [] },
+      { title: "قميص رجاليّ", section: "أزياء رجالية", price: 35000, sold: 90, stock: 60, variants: [] },
+      { title: "تيشيرت بولو", section: "أزياء رجالية", price: 25000, sold: 110, stock: 80, variants: [] },
+      { title: "بنطلون جينز", section: "أزياء رجالية", price: 40000, sold: 70, stock: 50, variants: [] },
+      { title: "جاكيت رجاليّ", section: "أزياء رجالية", price: 90000, stock: 30, variants: [] },
+      { title: "بدلة زفاف", section: "أزياء رجالية", price: 320000, stock: 10, variants: [] },
+      // أزياء نسائية
+      { title: "فستان سهرة", section: "أزياء نسائية", price: 150000, sold: 40, stock: 18, variants: [] },
+      { title: "عباءة مطرّزة", section: "أزياء نسائية", price: 85000, sold: 60, stock: 25, variants: [] },
+      { title: "بلوزة نسائيّة", section: "أزياء نسائية", price: 35000, stock: 50, variants: [] },
+      { title: "معطف شتويّ", section: "أزياء نسائية", price: 120000, stock: 22, variants: [] },
+      { title: "حقيبة يد نسائيّة", section: "أزياء نسائية", price: 60000, sold: 45, stock: 35, variants: [] },
+      // أزياء أطفال
+      { title: "طقم أطفال", section: "أزياء أطفال", price: 30000, sold: 50, stock: 60, variants: [] },
+      { title: "جاكيت أطفال", section: "أزياء أطفال", price: 40000, stock: 40, variants: [] },
+      { title: "فستان بنات", section: "أزياء أطفال", price: 45000, stock: 35, variants: [] },
+      // أحذية
+      { title: "حذاء جلد رجاليّ", section: "أحذية", price: 90000, sold: 48, stock: 40, variants: [] },
+      { title: "حذاء رياضيّ", section: "أحذية", price: 75000, sold: 65, stock: 45, variants: [] },
+      { title: "كعب نسائيّ", section: "أحذية", price: 65000, stock: 30, variants: [] },
+      { title: "حذاء أطفال", section: "أحذية", price: 30000, stock: 50, variants: [] },
+      // إكسسوارات
+      { title: "ساعة يد أنيقة", section: "إكسسوارات", price: 120000, sold: 30, stock: 25, variants: [] },
+      { title: "حزام جلد", section: "إكسسوارات", price: 30000, stock: 60, variants: [] },
+      { title: "نظّارة شمسيّة", section: "إكسسوارات", price: 45000, sold: 55, stock: 50, variants: [] },
+      { title: "محفظة جلد", section: "إكسسوارات", price: 35000, stock: 55, variants: [] },
+      { title: "ربطة عنق", section: "إكسسوارات", price: 20000, stock: 70, variants: [] } ] },
     { phone: "+9647720000026", name: "قفطان", storeName: "قفطان", gov: "النجف", catSlug: slugify("أزياء رجالية"), products: [
       { title: "قفطان مطرّز", section: "قفاطين", price: 85000, stock: 30, variants: [] }, { title: "قفطان صيفيّ", section: "قفاطين", price: 65000, stock: 35, variants: [] },
       { title: "عباءة رجاليّة", section: "عبي رجاليّة", price: 60000, stock: 35, variants: [] }, { title: "بشت عربيّ", section: "عبي رجاليّة", price: 150000, stock: 15, variants: [] } ] },
@@ -654,7 +761,7 @@ async function main() {
     "متجر ماز": { bio: "مكسّرات وحلويات ومشروبات — نكهاتٌ تفرح بيها ضيوفك.", est: 2019, resp: 12, open: "09:00", close: "23:00", delivery: "توصيل داخل النجف والكوفة", area: "الكوفة", orders: 640, lat: 32.028, lng: 44.401 },
     "ايدل هوم": { bio: "أثاثٌ مودرن بلمسةٍ عراقيّة — نأثّث بيتك بذوقٍ يدوم.", est: 2016, resp: 30, open: "10:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف خلال ٣ أيّام", area: "شارع المدينة", orders: 420, lat: 31.997, lng: 44.309 },
     "العالمية للأثاث": { bio: "غرف نومٍ ودواليب بخشبٍ أصليّ وضمانٍ حقيقيّ.", est: 2012, resp: 30, open: "10:00", close: "21:30", delivery: "توصيل وتركيب مجّانيّ داخل النجف", area: "حيّ الجزيرة", orders: 510, lat: 32.011, lng: 44.336 },
-    "هوم سنتر": { bio: "كلّ ما يخصّ الجلوس والترفيه المنزليّ — ركناتٌ وطاولاتٌ بأسعار تنافسيّة.", est: 2018, resp: 25, open: "10:00", close: "22:00", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ النصر", orders: 360, lat: 31.989, lng: 44.322 },
+    "هوم سنتر": { bio: "كلّ ما يلزم بيتك — أثاثٌ عصريٌّ وديكورٌ بلمسةٍ راقية، مع توصيلٍ وتركيبٍ احترافيّ وضمان جودة.", est: 2015, resp: 25, open: "10:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف خلال يومين", area: "حيّ النصر", orders: 940, lat: 31.989, lng: 44.322 },
     "الصباح للستائر": { bio: "ستائرٌ ومفروشاتٌ تركيّة تفصيل حسب مقاسك — نزيّن نوافذ بيتك.", est: 2015, resp: 20, open: "09:30", close: "21:00", delivery: "قياس وتركيب داخل النجف", area: "حيّ الغري", orders: 480, lat: 32.001, lng: 44.325 },
     "الطفيلي للأجهزة": { bio: "ثلاجاتٌ وغسّالاتٌ بضمانٍ وخدمة صيانةٍ سريعة — خبرة عائلةٍ بالأجهزة.", est: 2013, resp: 15, open: "09:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف خلال ٢٤ ساعة", area: "شارع الرسول", orders: 720, lat: 31.996, lng: 44.314 },
     "سامسونج النجف": { bio: "الوكيل المعتمد لأجهزة سامسونج في النجف — أصليٌّ بكفالةٍ رسميّة.", est: 2015, resp: 8, open: "09:00", close: "23:00", delivery: "توصيل وتركيب مجّانيّ داخل النجف", area: "السوق الكبير", orders: 2100, lat: 31.999, lng: 44.315 },
@@ -666,14 +773,14 @@ async function main() {
     "الروان للمنزليّة": { bio: "أدوات مائدةٍ وديكوراتٌ تضيف لمسةً لبيتك.", est: 2019, resp: 15, open: "09:30", close: "22:00", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ الأنصار", orders: 300, lat: 32.005, lng: 44.318 },
     "ديكورك": { bio: "لوحاتٌ وإضاءةٌ وديكوراتٌ عصريّة — جدرانك تحكي ذوقك.", est: 2021, resp: 18, open: "10:00", close: "22:00", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ العسكري", orders: 250, lat: 31.995, lng: 44.328 },
     "دعافيس": { bio: "سجّادٌ ووسائدُ ومفارشٌ تدفّي بيتك بالدفء والذوق.", est: 2017, resp: 20, open: "09:00", close: "21:30", delivery: "توصيل داخل النجف خلال يومين", area: "حيّ القادسية", orders: 410, lat: 32.010, lng: 44.334 },
-    "بوّابة السعد": { bio: "إكسسوارات وشواحن الموبايل الأصليّة — كلّ ما يحمي جهازك.", est: 2018, resp: 8, open: "09:00", close: "23:30", delivery: "توصيل داخل النجف خلال يوم", area: "السوق الكبير", orders: 1360, lat: 31.998, lng: 44.316 },
+    "بوّابة السعد": { bio: "تقنيةٌ تفتح لك المستقبل — أجهزةٌ إلكترونيّةٌ أصليّةٌ بضمان الوكيل وتقسيطٍ ميسّر ودعمٍ فنّيّ دائم. من النجف إلى كلّ العراق.", est: 2010, resp: 8, open: "09:00", close: "23:30", delivery: "شحنٌ سريعٌ لكلّ المحافظات — توصيل النجف خلال يوم", area: "السوق الكبير", orders: 4200, lat: 31.998, lng: 44.316 },
     "الشريك للموبايلات": { bio: "هواتفُ وإكسسواراتٌ وخدمة صيانةٍ سريعة — شريكك الأمين بالتقنية.", est: 2016, resp: 10, open: "09:00", close: "23:00", delivery: "توصيل داخل النجف خلال يوم", area: "شارع المدينة", orders: 1490, lat: 31.997, lng: 44.313 },
     "شاومي النجف": { bio: "وكيل شاومي في النجف — هواتفُ وأجهزةٌ ذكيّةٌ أصليّةٌ بكفالة.", est: 2019, resp: 7, open: "09:30", close: "23:00", delivery: "توصيل مجّانيّ داخل النجف", area: "السوق الكبير", orders: 1780, lat: 31.999, lng: 44.317 },
     "آبل ستور النجف": { bio: "أجهزة آبل الأصليّة بكفالةٍ معتمدة — تجربةٌ راقيةٌ من أوّل لمسة.", est: 2017, resp: 6, open: "10:00", close: "23:00", delivery: "توصيل مجّانيّ داخل النجف خلال ساعات", area: "شارع الرسول", orders: 2340, lat: 31.998, lng: 44.315 },
     "آي تيك": { bio: "كاميرات مراقبةٍ وشبكاتٍ وطاقةٍ شمسيّة — حلولٌ تقنيّةٌ لبيتك ومشروعك.", est: 2018, resp: 20, open: "09:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف", area: "حيّ الحرية", orders: 540, lat: 32.007, lng: 44.332 },
     "الأوّل للحاسبات": { bio: "لابتوباتٌ وإكسسواراتٌ وخدمة صيانةٍ للحواسيب — خبرةٌ تثق بيها.", est: 2014, resp: 12, open: "09:00", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "شارع المدينة", orders: 880, lat: 31.996, lng: 44.312 },
     "الجزيرة للتقنية": { bio: "بلي ستيشن وألعابٌ وأقراص — عالم الألعاب في النجف.", est: 2020, resp: 10, open: "11:00", close: "23:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ العروبة", orders: 620, lat: 31.993, lng: 44.319 },
-    "عزّوز للأزياء": { bio: "أزياءٌ رجاليّةٌ عصريّةٌ بأسعار الشباب — أناقتك تبدأ من هنا.", est: 2018, resp: 15, open: "10:00", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الغري", orders: 730, lat: 32.000, lng: 44.323 },
+    "عزّوز للأزياء": { bio: "أناقةٌ تبدأ من هنا — أحدث صيحات الأزياء الرجاليّة والنسائيّة والأطفال بجودةٍ عاليةٍ وأناقةٍ استثنائيّة.", est: 2016, resp: 15, open: "10:00", close: "22:30", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الغري", orders: 1180, lat: 32.000, lng: 44.323 },
     "قفطان": { bio: "قفاطينُ وعبيٌّ رجاليّةٌ مطرّزة — للمناسبات وللزينة اليوميّة.", est: 2019, resp: 18, open: "10:00", close: "22:00", delivery: "توصيل داخل النجف والكوفة", area: "الكوفة", orders: 340, lat: 32.026, lng: 44.399 },
     "دشاديش ابن بشيش": { bio: "دشاديشُ نجفيّةٌ أصيلةٌ بخياطةٍ يدويّة — تراثٌ يلبسك.", est: 2013, resp: 20, open: "09:00", close: "21:30", delivery: "توصيل داخل النجف خلال يومين", area: "البلد القديم", orders: 560, lat: 32.002, lng: 44.320 },
     "متجر أنزو": { bio: "تيشيرتاتٌ وجاكيتاتٌ بموضةٍ شبابيّة — ستايلك بأسعارٍ حلوة.", est: 2021, resp: 14, open: "10:30", close: "23:00", delivery: "توصيل داخل النجف خلال يوم", area: "حيّ الميلاد", orders: 410, lat: 32.009, lng: 44.330 },
@@ -1069,7 +1176,12 @@ async function main() {
     { store: "سامسونج النجف", kind: "promo", message: "خصمٌ على تلفزيون سامسونج ٥٥ بوصة هذا الأسبوع", minsAgo: 240 },
     { store: "الشريك للموبايلات", kind: "restock", message: "وصلت دفعة جديدة من سامسونج جالكسي A54", minsAgo: 55 },
     { store: "آي تيك", kind: "new_section", message: "افتتح قسم الطاقة الشمسية", minsAgo: 320 },
-    { store: "بوّابة السعد", kind: "most_visited", message: "الأكثر زيارةً في قسم الإكسسوارات", minsAgo: 12 },
+    { store: "بوّابة السعد", kind: "new_arrival", message: "وصل حديثًا: آيفون ١٥ برو ماكس وماك بوك اير M3", minsAgo: 12 },
+    { store: "بوّابة السعد", kind: "promo", message: "عروض نهاية الأسبوع — خصمٌ حتى ٣٠٪ + خصم خاصّ للطلاب", minsAgo: 130 },
+    { store: "هوم سنتر", kind: "restock", message: "وصل حديثًا: تصاميم جلسات معيشةٍ عصريّة", minsAgo: 40 },
+    { store: "هوم سنتر", kind: "promo", message: "خصمٌ حتى ٣٠٪ على جلسات المعيشة", minsAgo: 200 },
+    { store: "عزّوز للأزياء", kind: "new_arrival", message: "تشكيلة صيف ٢٠٢٤ وصلت حديثًا", minsAgo: 60 },
+    { store: "عزّوز للأزياء", kind: "promo", message: "عروض نهاية الأسبوع — خصوماتٌ تصل إلى ٥٠٪", minsAgo: 260 },
     { store: "الطفيلي للأجهزة", kind: "new_arrival", message: "توفّرت ثلاجات نوفروست جديدة", minsAgo: 180 },
     { store: "ريحانة للتجميل", kind: "restock", message: "وصلت تشكيلة مكياجٍ جديدة", minsAgo: 75 },
     { store: "الجزيرة للتقنية", kind: "restock", message: "توفّر بلي ستيشن ٥ بكمّيّاتٍ محدودة", minsAgo: 45 },
