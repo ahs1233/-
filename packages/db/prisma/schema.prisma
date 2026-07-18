@@ -182,9 +182,29 @@ model VendorProfile {
   orders   Order[]
   payouts  Payout[]
   reviews  StoreReview[]
+  sections VendorSection[]
 
   @@index([status])
   @@index([governorateId])
+}
+
+// قسمٌ داخليٌّ للمتجر (رفٌّ/خدمة) — يُنظّم منتجات المتجر حسب نوعه وخدماته.
+// مثال: متجر تقنية ⇐ «هواتف، إكسسوارات، صيانة، كاميرات»؛ بقالة ⇐ «معلّبات، ألبان».
+model VendorSection {
+  id        String        @id @default(cuid())
+  vendorId  String
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  nameAr    String
+  slug      String // فريدٌ ضمن المتجر
+  icon      String? // اسم أيقونة lucide (اختياري)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  products Product[]
+
+  @@unique([vendorId, slug])
+  @@index([vendorId, sortOrder])
 }
 
 // ─────────────────────────── Catalog ───────────────────────────
@@ -215,6 +235,9 @@ model Product {
   vendor      VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id])
+  // القسم الداخليّ للمتجر (اختياري) — حذفُ القسم يترك المنتج بلا قسم.
+  sectionId   String?
+  section     VendorSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   title       String
   titleNorm   String // عنوان مطبّع للبحث العربي
   slug        String        @unique
@@ -237,6 +260,7 @@ model Product {
 
   @@index([vendorId, status])
   @@index([categoryId, status])
+  @@index([sectionId])
   @@index([titleNorm])
   // فهرس trigram (GIN) لبحث الاحتواء العربي القابل للتوسّع.
   @@index([titleNorm(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_titleNorm_trgm_idx")

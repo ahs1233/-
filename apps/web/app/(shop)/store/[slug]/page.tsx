@@ -38,7 +38,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function StorePage({ params }: { params: { slug: string } }) {
   const data = await getStore(params.slug);
   if (!data) notFound();
-  const { vendor, products } = data;
+  const { vendor, products, sections } = data;
+
+  // تجميع منتجات المتجر تحت أقسامه الداخليّة (بترتيب الأقسام)، وما بلا قسمٍ في «منتجات أخرى».
+  const grouped = sections
+    .map((s) => ({ ...s, items: products.filter((p) => p.sectionId === s.id) }))
+    .filter((s) => s.items.length > 0);
+  const ungrouped = products.filter((p) => !p.sectionId || !sections.some((s) => s.id === p.sectionId));
+  const hasSections = grouped.length > 0;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -148,24 +155,73 @@ export default async function StorePage({ params }: { params: { slug: string } }
         </div>
       </section>
 
-      {/* الرفوف */}
-      <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
-          <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
-          على الرفوف <span className="text-sm font-medium text-neutral-400">· <span className="nums">{vendor.productCount}</span> منتج</span>
-        </h2>
-        {products.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line p-10 text-center text-neutral-400">
-            الرفوف قيد التجهيز — لا توجد منتجات بعد.
+      {/* أقسام المتجر الداخليّة — شريط تنقّلٍ سريع (يظهر إن كان للمتجر أقسام) */}
+      {hasSections && (
+        <nav aria-label="أقسام المتجر" className="sticky top-[3.75rem] z-10 -mx-4 bg-[rgb(var(--c-bg))]/90 px-4 py-2 backdrop-blur">
+          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {grouped.map((s) => (
+              <a
+                key={s.id}
+                href={`#sec-${s.id}`}
+                className="bg-card2 inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold text-neutral-300 transition hover:border-gold-500/50 hover:text-gold-200"
+              >
+                {s.nameAr}
+                <span className="text-xs font-normal text-neutral-500 nums">{s.items.length}</span>
+              </a>
+            ))}
           </div>
-        ) : (
+        </nav>
+      )}
+
+      {/* الرفوف — مجمّعةً حسب أقسام المتجر الداخليّة، أو قائمةً واحدة إن لم تكن هناك أقسام */}
+      {products.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-line p-10 text-center text-neutral-400">
+          الرفوف قيد التجهيز — لا توجد منتجات بعد.
+        </div>
+      ) : hasSections ? (
+        <div className="space-y-6">
+          {grouped.map((s) => (
+            <section key={s.id} id={`sec-${s.id}`} className="scroll-mt-28">
+              <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
+                <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+                {s.nameAr}
+                <span className="text-sm font-medium text-neutral-400">· <span className="nums">{s.items.length}</span> منتج</span>
+              </h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {s.items.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </section>
+          ))}
+          {ungrouped.length > 0 && (
+            <section id="sec-other" className="scroll-mt-28">
+              <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
+                <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+                منتجات أخرى
+                <span className="text-sm font-medium text-neutral-400">· <span className="nums">{ungrouped.length}</span> منتج</span>
+              </h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {ungrouped.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      ) : (
+        <section>
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-neutral-100">
+            <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+            على الرفوف <span className="text-sm font-medium text-neutral-400">· <span className="nums">{vendor.productCount}</span> منتج</span>
+          </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {/* تقييمات المتجر — رأيُ من اشترى منه */}
       <StoreReviews vendorId={vendor.id} />

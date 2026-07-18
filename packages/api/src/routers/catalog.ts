@@ -82,7 +82,9 @@ const storeOut = z
       productCount: z.number(),
       memberSince: z.string(),
     }),
-    products: z.array(productCardOut),
+    // أقسام المتجر الداخليّة (رفوف/خدمات) بترتيبها، مع عدد منتجات كلٍّ منها.
+    sections: z.array(z.object({ id: z.string(), nameAr: z.string(), slug: z.string(), icon: z.string().nullable(), productCount: z.number() })),
+    products: z.array(productCardOut.extend({ sectionId: z.string().nullable() })),
   })
   .nullable();
 
@@ -351,23 +353,31 @@ export const catalogRouter = router({
         },
       });
       if (!vendor) return null;
-      const products = await ctx.prisma.product.findMany({
-        where: { vendorId: vendor.id, status: "ACTIVE" },
-        orderBy: { createdAt: "desc" },
-        take: 24,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          basePrice: true,
-          compareAtPrice: true,
-          ratingAvg: true,
-          ratingCount: true,
-          variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
-          images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
-          vendor: { select: { storeName: true, slug: true } },
-        },
-      });
+      const [products, sections] = await Promise.all([
+        ctx.prisma.product.findMany({
+          where: { vendorId: vendor.id, status: "ACTIVE" },
+          orderBy: { createdAt: "desc" },
+          take: 60,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            basePrice: true,
+            compareAtPrice: true,
+            ratingAvg: true,
+            ratingCount: true,
+            sectionId: true,
+            variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
+            images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
+            vendor: { select: { storeName: true, slug: true } },
+          },
+        }),
+        ctx.prisma.vendorSection.findMany({
+          where: { vendorId: vendor.id },
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, nameAr: true, slug: true, icon: true, _count: { select: { products: { where: { status: "ACTIVE" } } } } },
+        }),
+      ]);
       const { createdAt, _count, ratingAvg, ...rest } = vendor;
       return {
         vendor: {
@@ -376,7 +386,11 @@ export const catalogRouter = router({
           productCount: _count.products,
           memberSince: createdAt.toISOString(),
         },
-        products: products.map(serializeProduct),
+        // نُظهر فقط الأقسام التي تحتوي منتجاتٍ فعّالة.
+        sections: sections
+          .filter((s) => s._count.products > 0)
+          .map((s) => ({ id: s.id, nameAr: s.nameAr, slug: s.slug, icon: s.icon, productCount: s._count.products })),
+        products: products.map((p) => ({ ...serializeProduct(p), sectionId: p.sectionId })),
       };
     }),
 

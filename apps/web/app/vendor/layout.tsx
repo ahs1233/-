@@ -9,6 +9,7 @@ import { trpc } from "@/src/trpc/react";
 const NAV = [
   { href: "/vendor", label: "نظرة عامة" },
   { href: "/vendor/products", label: ar.vendor.products },
+  { href: "/vendor/sections", label: "أقسام المتجر" },
   { href: "/vendor/orders", label: ar.vendor.orders },
   { href: "/vendor/statement", label: "كشف الحساب" },
   { href: "/vendor/payouts", label: ar.vendor.payouts },

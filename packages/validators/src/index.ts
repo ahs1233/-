@@ -345,6 +345,8 @@ export const productCreateSchema = z
     basePrice: priceIQD,
     // السعر قبل الخصم (اختياري) — null/undefined = لا خصم. يجب أن يفوق السعر الحاليّ.
     compareAtPrice: priceIQD.nullish(),
+    // القسم الداخليّ للمتجر (اختياري) — null = بلا قسم.
+    sectionId: z.string().cuid().nullish(),
     images: z.array(productImageSchema).max(8).default([]),
     variants: z.array(productVariantSchema).min(1, "أضف متغيّراً واحداً على الأقل"),
   })
@@ -361,6 +363,18 @@ export const productUpdateSchema = productCreateSchema
     message: "السعر قبل الخصم يجب أن يكون أعلى من السعر الحاليّ",
     path: ["compareAtPrice"],
   });
+
+// ─────────────────────────── أقسام المتجر الداخليّة ───────────────────────────
+
+export const vendorSectionUpsertSchema = z.object({
+  id: z.string().cuid().optional(), // موجود = تعديل، غائب = إنشاء
+  nameAr: z.string().trim().min(2, "الاسم قصير").max(40),
+  icon: z.string().trim().max(40).nullish(),
+});
+
+export const vendorSectionReorderSchema = z.object({
+  orderedIds: z.array(z.string().cuid()).min(1),
+});
 
 // ─────────────────────────── Cart / Order ───────────────────────────
 
