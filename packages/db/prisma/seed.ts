@@ -480,9 +480,59 @@ async function main() {
 
     // ══════════ متاجر النجف (بيانات شبه حقيقيّة — كلّ متجرٍ بأقسامٍ داخليّة حسب نوعه وخدماته) ══════════
     // الغذائية
-    { phone: "+9647720000001", name: "أسواق شمسة", storeName: "أسواق شمسة", gov: "النجف", catSlug: slugify("بقالة وأطعمة"), products: [
-      { title: "سلّة تسوّق شهريّة", section: "معلّبات وحبوب", price: 75000, stock: 40, variants: [] }, { title: "معلّبات متنوّعة", section: "معلّبات وحبوب", price: 5000, stock: 200, variants: [] }, { title: "حبوب ومعكرونة", section: "معلّبات وحبوب", price: 4000, stock: 200, variants: [] },
-      { title: "عصائر طبيعيّة", section: "مشروبات وعصائر", price: 3000, stock: 250, variants: [] }, { title: "مشروبات غازيّة", section: "مشروبات وعصائر", price: 2000, stock: 300, variants: [] } ] },
+    // ★ المتجر المرجعيّ — مكتبةٌ كاملة بهويّة «أسواق شمسة» (جودة تستحق ثقتك · من النجف لكل بيت)
+    { phone: "+9647720000001", name: "أسواق شمسة", storeName: "أسواق شمسة", gov: "النجف", catSlug: slugify("بقالة وأطعمة"), verified: true, rating: [4.8, 340] as [number, number], products: [
+      // الخضار
+      { title: "طماطم طازجة (كغم)", section: "الخضار", price: 1500, sold: 900, stock: 300, variants: [] },
+      { title: "خيار (كغم)", section: "الخضار", price: 1250, sold: 620, stock: 260, variants: [] },
+      { title: "بصل أحمر (كغم)", section: "الخضار", price: 1000, sold: 540, stock: 300, variants: [] },
+      { title: "بطاطا (كغم)", section: "الخضار", price: 1000, sold: 700, stock: 320, variants: [] },
+      { title: "فلفل حلو ملوّن (كغم)", section: "الخضار", price: 2000, stock: 180, variants: [] },
+      { title: "باذنجان (كغم)", section: "الخضار", price: 1250, stock: 200, variants: [] },
+      { title: "ثوم (كغم)", section: "الخضار", price: 4000, stock: 120, variants: [] },
+      { title: "بقدونس وخضار ورقيّة (ربطة)", section: "الخضار", price: 500, sold: 480, stock: 400, variants: [] },
+      // الفواكه
+      { title: "تفّاح أحمر (كغم)", section: "الفواكه", price: 3000, compareAt: 4000, sold: 560, stock: 240, variants: [] },
+      { title: "موز (كغم)", section: "الفواكه", price: 2500, sold: 610, stock: 260, variants: [] },
+      { title: "برتقال (كغم)", section: "الفواكه", price: 2000, stock: 240, variants: [] },
+      { title: "عنب (كغم)", section: "الفواكه", price: 3500, stock: 160, variants: [] },
+      { title: "رمّان (كغم)", section: "الفواكه", price: 2500, stock: 150, variants: [] },
+      { title: "ليمون (كغم)", section: "الفواكه", price: 2000, stock: 200, variants: [] },
+      { title: "رقّي (كغم)", section: "الفواكه", price: 1000, sold: 420, stock: 300, variants: [] },
+      // الألبان والأجبان
+      { title: "حليب طازج (لتر)", section: "الألبان والأجبان", price: 2000, sold: 800, stock: 300, variants: [] },
+      { title: "لبن رائب (كيلو)", section: "الألبان والأجبان", price: 1500, sold: 520, stock: 260, variants: [] },
+      { title: "جبن أبيض (كغم)", section: "الألبان والأجبان", price: 8000, stock: 120, variants: [] },
+      { title: "قيمر عرب (علبة)", section: "الألبان والأجبان", price: 4000, sold: 360, stock: 140, variants: [] },
+      { title: "بيض طازج (طبق ٣٠)", section: "الألبان والأجبان", price: 6000, sold: 640, stock: 200, variants: [] },
+      { title: "زبدة (٢٠٠غم)", section: "الألبان والأجبان", price: 5000, stock: 150, variants: [] },
+      // المشروبات
+      { title: "ماء معدنيّ (قارورة)", section: "المشروبات", price: 500, sold: 1500, stock: 600, variants: [] },
+      { title: "عصير فواكه طبيعيّ", section: "المشروبات", price: 1500, sold: 480, stock: 300, variants: [] },
+      { title: "مشروب غازيّ (علبة)", section: "المشروبات", price: 1000, sold: 900, stock: 400, variants: [] },
+      { title: "مشروب طاقة", section: "المشروبات", price: 2000, stock: 220, variants: [] },
+      { title: "عصير برتقال طازج (لتر)", section: "المشروبات", price: 3000, stock: 160, variants: [] },
+      // المعلّبات
+      { title: "معجون طماطم (علبة)", section: "المعلّبات", price: 2500, sold: 430, stock: 260, variants: [] },
+      { title: "فاصوليا معلّبة", section: "المعلّبات", price: 2000, stock: 240, variants: [] },
+      { title: "ذرة حلوة معلّبة", section: "المعلّبات", price: 2000, stock: 240, variants: [] },
+      { title: "تونة (علبة)", section: "المعلّبات", price: 3000, sold: 520, stock: 300, variants: [] },
+      { title: "مخلّلات مشكّلة", section: "المعلّبات", price: 2500, stock: 200, variants: [] },
+      { title: "مربّى فواكه", section: "المعلّبات", price: 3500, stock: 180, variants: [] },
+      // المنظّفات
+      { title: "مسحوق غسيل (٣ كغم)", section: "المنظّفات", price: 9000, compareAt: 12000, sold: 380, stock: 200, variants: [] },
+      { title: "سائل غسل الصحون", section: "المنظّفات", price: 3500, sold: 300, stock: 240, variants: [] },
+      { title: "منظّف أرضيّات", section: "المنظّفات", price: 4000, stock: 200, variants: [] },
+      { title: "معطّر جوّ", section: "المنظّفات", price: 3000, stock: 220, variants: [] },
+      { title: "صابون يديّ (٤ قطع)", section: "المنظّفات", price: 2000, stock: 300, variants: [] },
+      // الحبوب والبهارات
+      { title: "رزّ عنبر عراقيّ (كغم)", section: "الحبوب والبهارات", price: 3500, compareAt: 4500, sold: 720, stock: 300, variants: [] },
+      { title: "برغل خشن (كغم)", section: "الحبوب والبهارات", price: 2000, stock: 240, variants: [] },
+      { title: "عدس أحمر (كغم)", section: "الحبوب والبهارات", price: 2500, stock: 220, variants: [] },
+      { title: "حمّص (كغم)", section: "الحبوب والبهارات", price: 2500, stock: 220, variants: [] },
+      { title: "سكّر (كغم)", section: "الحبوب والبهارات", price: 1500, sold: 640, stock: 320, variants: [] },
+      { title: "بهارات مشكّلة", section: "الحبوب والبهارات", price: 2000, stock: 200, variants: [] },
+      { title: "مكسّرات مشكّلة (كغم)", section: "الحبوب والبهارات", price: 20000, stock: 100, variants: [] } ] },
     { phone: "+9647720000002", name: "وجه الشمس للتسوق", storeName: "وجه الشمس للتسوق", gov: "النجف", catSlug: slugify("بقالة وأطعمة"), products: [
       { title: "زيت وسمن طبخ", section: "زيوت وسمن", price: 15000, stock: 120, variants: [] }, { title: "زيت زيتون بكر", section: "زيوت وسمن", price: 22000, stock: 60, variants: [] },
       { title: "حبوب ومعكرونة", section: "حبوب ومعلّبات", price: 4000, stock: 200, variants: [] }, { title: "معلّبات خضار", section: "حبوب ومعلّبات", price: 3500, stock: 180, variants: [] } ] },
@@ -599,7 +649,7 @@ async function main() {
   // نبذة · سنة التأسيس · وقت الردّ (دقيقة) · الفتح/الإغلاق · التوصيل · المنطقة · عدد الطلبات · الإحداثيّات.
   type NajafProfile = { bio: string; est: number; resp: number; open: string; close: string; delivery: string; area: string; orders: number; lat: number; lng: number };
   const NAJAF_PROFILES: Record<string, NajafProfile> = {
-    "أسواق شمسة": { bio: "بقالة العائلة في النجف — كلّ حاجيّات البيت بأسعار الجملة وتوصيلٍ لباب دارك.", est: 2014, resp: 10, open: "08:00", close: "23:30", delivery: "توصيل داخل النجف خلال يوم — مجّاناً فوق ٥٠ ألف", area: "حيّ السعد", orders: 1840, lat: 32.006, lng: 44.331 },
+    "أسواق شمسة": { bio: "جودةٌ تستحقّ ثقتك — من النجف لكلّ بيت. خضارٌ وفواكهُ طازجةٌ من مزارع النجف، وكلّ حاجيّات البيت بأسعارٍ منافسةٍ وتوصيلٍ سريع.", est: 2014, resp: 10, open: "08:00", close: "23:30", delivery: "توصيل داخل النجف خلال يوم — مجّاناً فوق ٥٠ ألف", area: "حيّ السعد", orders: 1840, lat: 32.006, lng: 44.331 },
     "وجه الشمس للتسوق": { bio: "زيوت وحبوب ومعلّبات بجودةٍ مضمونة — نختار لك الأفضل لمطبخك.", est: 2017, resp: 15, open: "08:30", close: "22:30", delivery: "توصيل داخل النجف خلال ٢٤ ساعة", area: "حيّ الأمير", orders: 970, lat: 31.994, lng: 44.318 },
     "متجر ماز": { bio: "مكسّرات وحلويات ومشروبات — نكهاتٌ تفرح بيها ضيوفك.", est: 2019, resp: 12, open: "09:00", close: "23:00", delivery: "توصيل داخل النجف والكوفة", area: "الكوفة", orders: 640, lat: 32.028, lng: 44.401 },
     "ايدل هوم": { bio: "أثاثٌ مودرن بلمسةٍ عراقيّة — نأثّث بيتك بذوقٍ يدوم.", est: 2016, resp: 30, open: "10:00", close: "22:00", delivery: "توصيل وتركيب داخل النجف خلال ٣ أيّام", area: "شارع المدينة", orders: 420, lat: 31.997, lng: 44.309 },
@@ -785,6 +835,13 @@ async function main() {
         await prisma.productVariant.updateMany({ where: { productId: product.id }, data: { stock: 0 } });
       }
     }
+    // أرشفةُ منتجاتٍ قديمةٍ لم تعُد في مكتبة البذرة (يُبقى للطلبات، ويُخفى عن الواجهة).
+    // آمنٌ للمفاتيح الأجنبيّة (تغييرُ حالةٍ لا حذف)، وعلى بذرةٍ نظيفةٍ لا يفعل شيئاً.
+    const seededSlugs = v.products.map((p) => slugify(p.title) + "-" + vendor.id.slice(-4));
+    await prisma.product.updateMany({
+      where: { vendorId: vendor.id, status: ProductStatus.ACTIVE, slug: { notIn: seededSlugs } },
+      data: { status: ProductStatus.ARCHIVED },
+    });
     console.log(`✅ بائع: ${v.storeName} (${v.products.length} منتج)`);
   }
 
@@ -1016,7 +1073,9 @@ async function main() {
     { store: "الطفيلي للأجهزة", kind: "new_arrival", message: "توفّرت ثلاجات نوفروست جديدة", minsAgo: 180 },
     { store: "ريحانة للتجميل", kind: "restock", message: "وصلت تشكيلة مكياجٍ جديدة", minsAgo: 75 },
     { store: "الجزيرة للتقنية", kind: "restock", message: "توفّر بلي ستيشن ٥ بكمّيّاتٍ محدودة", minsAgo: 45 },
-    { store: "أسواق شمسة", kind: "promo", message: "عرض السلّة الشهريّة بسعرٍ خاصّ", minsAgo: 400 },
+    { store: "أسواق شمسة", kind: "restock", message: "خضارٌ وفواكهُ طازجة وصلت اليوم من مزارع النجف", minsAgo: 15 },
+    { store: "أسواق شمسة", kind: "promo", message: "عروض نهاية الأسبوع — خصوماتٌ تصل إلى ٣٠٪", minsAgo: 90 },
+    { store: "أسواق شمسة", kind: "promo", message: "اشترِ ٢ واحصل على ١ مجّاناً على منتجاتٍ مختارة", minsAgo: 300 },
   ];
   let activityCount = 0;
   for (const a of ACTIVITIES) {
