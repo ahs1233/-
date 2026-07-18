@@ -17,6 +17,8 @@ import { Prisma, type PrismaClient, type OrderStatus } from "@al-souq/db";
 import {
   resolveItemCommissionRate,
   buildOrderNumber,
+  orderNumberPrefix,
+  parseOrderSequence,
   reservationExpiry,
   canTransition,
   type Actor,
@@ -192,7 +194,15 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
     }
     void couponId;
 
-    const baseCount = await tx.order.count();
+    // تسلسلُ رقم الطلب مشتقٌّ من أعلى رقمٍ قائمٍ لشهر الحال — مُقاومٌ للحذف
+    // (العدّ الكلّي كان قد يُعيد توليد رقمٍ محذوفٍ فيتضارب مع القيد الفريد).
+    const prefix = orderNumberPrefix();
+    const lastForMonth = await tx.order.findFirst({
+      where: { number: { startsWith: prefix } },
+      orderBy: { number: "desc" },
+      select: { number: true },
+    });
+    const baseSeq = lastForMonth ? parseOrderSequence(lastForMonth.number) : 0;
     const expiresAt = reservationExpiry();
     const shipTo = {
       fullName: address.fullName,
@@ -219,7 +229,7 @@ export async function placeOrder(prisma: PrismaClient, input: PlaceOrderInput) {
 
       const order = await tx.order.create({
         data: {
-          number: buildOrderNumber(baseCount + 1 + idx),
+          number: buildOrderNumber(baseSeq + 1 + idx),
           customerId: input.customerId,
           vendorId,
           status: "PENDING",

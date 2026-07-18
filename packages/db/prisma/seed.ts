@@ -18,6 +18,8 @@ import {
   calculateCommission,
   resolveCommissionRate,
   buildOrderNumber,
+  orderNumberPrefix,
+  parseOrderSequence,
 } from "@al-souq/domain";
 
 const PLATFORM_RATE = 0.1;
@@ -865,8 +867,15 @@ async function seedSampleOrders(customers: { id: string; addressId: string }[]) 
   });
   if (variants.length === 0) return;
 
-  let seq = 1;
   const now = new Date();
+  // نبدأ التسلسل من أعلى رقمٍ قائمٍ لشهر الحال — كي لا يتضارب إعادةُ البذر
+  // مع طلباتٍ سابقة (نفس أسلوب placeOrder المقاوم للحذف).
+  const lastSeeded = await prisma.order.findFirst({
+    where: { number: { startsWith: orderNumberPrefix(now) } },
+    orderBy: { number: "desc" },
+    select: { number: true },
+  });
+  let seq = (lastSeeded ? parseOrderSequence(lastSeeded.number) : 0) + 1;
 
   async function makeOrder(
     variant: (typeof variants)[number],

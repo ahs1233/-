@@ -55,4 +55,24 @@ describe("دورة حياة الطلب (COD) — حجز ذرّي وآثار ال
     expect(v.reservedStock).toBe(before.reservedStock);
     expect(p1.soldCount).toBe(p0.soldCount + 1);
   });
+
+  // انحدار: رقم الطلب يُشتقّ من أعلى تسلسلٍ قائمٍ (لا العدّ الكلّي)، فيبقى فريداً
+  // حتى بعد حذف طلبٍ — كان العدّ الكلّي يُعيد توليد رقمٍ محذوفٍ فيتضارب مع القيد الفريد.
+  it("ترقيم الطلبات مُقاومٌ للحذف (لا يُعيد استخدام رقمٍ محذوف)", async () => {
+    const place = () => placeOrder(prisma, { customerId, addressId, items: [{ productId, variantId, quantity: 1 }] });
+    const a = (await place()).orders[0]!;
+    const b = (await place()).orders[0]!;
+    expect(b.number).not.toBe(a.number);
+
+    // حذف الطلب الأوّل (غير الأخير) يُنقص العدّ الكلّي بينما يبقى أعلى تسلسلٍ ثابتاً.
+    await prisma.order.delete({ where: { id: a.id } });
+
+    // بالأسلوب القديم (count()+1) كان هذا يُولّد رقم b نفسه فيتضارب؛ الآن max+1 يبقى فريداً.
+    const c = (await place()).orders[0]!;
+    expect(c.number).not.toBe(b.number);
+    expect(c.number).not.toBe(a.number);
+
+    // تنظيف
+    await prisma.order.deleteMany({ where: { id: { in: [b.id, c.id] } } });
+  });
 });
