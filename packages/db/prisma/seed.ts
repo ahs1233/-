@@ -13,6 +13,8 @@ import {
   PayoutStatus,
   ReviewStatus,
 } from "@prisma/client";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { normalizeArabic, slugify } from "@al-souq/utils";
 import {
   calculateCommission,
@@ -23,6 +25,29 @@ import {
 } from "@al-souq/domain";
 
 const PLATFORM_RATE = 0.1;
+
+// ── صور المتاجر المرجعيّة المستخرجة من دلائل الهوية (شعار/واجهة/منتجات) ──
+// شعار/واجهة كلّ متجر (ملفّات محليّة في apps/web/public/stores).
+const STORE_ASSETS: Record<string, { logo: string; banner: string }> = {
+  "أسواق شمسة": { logo: "/stores/shamsa/logo.png", banner: "/stores/shamsa/banner.jpg" },
+  "هوم سنتر": { logo: "/stores/homecenter/logo.png", banner: "/stores/homecenter/banner.jpg" },
+  "عزّوز للأزياء": { logo: "/stores/azoz/logo.png", banner: "/stores/azoz/banner.jpg" },
+  "بوّابة السعد": { logo: "/stores/saad/logo.png", banner: "/stores/saad/banner.jpg" },
+};
+// صور المنتجات المستخرجة: storeName → sectionName → [مسارات مرتّبة].
+const PRODUCT_IMAGES: Record<string, Record<string, string[]>> = (() => {
+  for (const p of [
+    join(process.cwd(), "../../apps/web/public/stores/product-images.json"),
+    join(process.cwd(), "apps/web/public/stores/product-images.json"),
+  ]) {
+    try {
+      return JSON.parse(readFileSync(p, "utf8"));
+    } catch {
+      /* جرّب المسار التالي */
+    }
+  }
+  return {};
+})();
 
 const prisma = new PrismaClient();
 
@@ -808,6 +833,7 @@ async function main() {
     // حقولٌ قانونيّة تُفرَض في كلّ بذرة (create+update) كي تبقى الشاشات متّسقة.
     const vCatName = catNameBySlug[v.catSlug] ?? v.storeName;
     const profile = NAJAF_PROFILES[v.storeName]; // شخصيّة المتجر (لمتاجر النجف)
+    const assets = STORE_ASSETS[v.storeName]; // شعار/واجهة حقيقيّان من دليل الهوية (إن وُجد)
     const canonicalVendorFields = {
       channel: vv.channel ?? "physical",
       instagramUrl: vv.instagramUrl ?? null,
@@ -816,8 +842,8 @@ async function main() {
       verified: vv.verified ?? false,
       latitude: profile?.lat ?? vv.lat ?? null,
       longitude: profile?.lng ?? vv.lng ?? null,
-      logoUrl: ph(v.storeName, vCatName, "logo"),
-      bannerUrl: ph(v.storeName, vCatName, "banner"),
+      logoUrl: assets?.logo ?? ph(v.storeName, vCatName, "logo"),
+      bannerUrl: assets?.banner ?? ph(v.storeName, vCatName, "banner"),
       ...(vv.rating ? { ratingAvg: new Prisma.Decimal(vv.rating[0]), ratingCount: vv.rating[1] } : {}),
       // شخصيّة المتجر — تُفرَض في كلّ بذرة كي يبقى المتجر كياناً حيّاً متّسقاً.
       ...(profile
@@ -877,6 +903,10 @@ async function main() {
       where: { vendorId: vendor.id, slug: { notIn: sectionNames.map((n) => slugify(n)) } },
     });
 
+    // صور منتجات المتجر من مكتبته (إن استُخرجت) — عدّادٌ لكلّ قسم للتوزيع بالترتيب.
+    const storeImages = PRODUCT_IMAGES[v.storeName];
+    const sectionImgIdx: Record<string, number> = {};
+
     for (const p of v.products) {
       const pp = p as typeof p & { compareAt?: number; rating?: [number, number]; sold?: number; ageDays?: number; out?: boolean; section?: string };
       const pSlug = slugify(p.title) + "-" + vendor.id.slice(-4);
@@ -906,14 +936,20 @@ async function main() {
         },
       });
 
-      // صورةُ المنتج: بديلٌ مُوسومٌ بالاسم والفئة (يُستبدل بصورةٍ حقيقيّة عند الرفع).
-      const phUrl = ph(p.title, catNameBySlug[v.catSlug] ?? p.title);
+      // صورةُ المنتج: صورةٌ حقيقيّةٌ من مكتبة المتجر (إن وُجدت) وإلا بديلٌ مُوسوم.
+      let imgUrl = ph(p.title, catNameBySlug[v.catSlug] ?? p.title);
+      const secImgs = pp.section && storeImages ? storeImages[pp.section] : undefined;
+      if (secImgs && secImgs.length) {
+        const idx = sectionImgIdx[pp.section!] ?? 0;
+        imgUrl = secImgs[idx % secImgs.length]!;
+        sectionImgIdx[pp.section!] = idx + 1;
+      }
       const firstImg = await prisma.productImage.findFirst({ where: { productId: product.id }, orderBy: { sortOrder: "asc" } });
       if (!firstImg) {
-        await prisma.productImage.create({ data: { productId: product.id, url: phUrl, alt: p.title, sortOrder: 0 } });
-      } else if (firstImg.url.startsWith("/placeholder") || firstImg.url.startsWith("/api/ph")) {
-        // نُحدّث البدائل فقط — لا نلمس صورةً حقيقيّة رفعها البائع (https).
-        await prisma.productImage.update({ where: { id: firstImg.id }, data: { url: phUrl, alt: p.title } });
+        await prisma.productImage.create({ data: { productId: product.id, url: imgUrl, alt: p.title, sortOrder: 0 } });
+      } else if (firstImg.url.startsWith("/placeholder") || firstImg.url.startsWith("/api/ph") || firstImg.url.startsWith("/stores/")) {
+        // نُحدّث البدائل والصور المُدارة فقط — لا نلمس صورةً رفعها البائع (https).
+        await prisma.productImage.update({ where: { id: firstImg.id }, data: { url: imgUrl, alt: p.title } });
       }
 
       // المتغيّرات (أو متغيّر افتراضي واحد إن لم تُحدَّد)
