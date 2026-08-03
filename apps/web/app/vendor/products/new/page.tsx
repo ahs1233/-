@@ -15,6 +15,7 @@ interface VariantRow {
 export default function NewProductPage() {
   const router = useRouter();
   const categories = trpc.catalog.categories.useQuery();
+  const sections = trpc.vendor.sections.useQuery();
   const create = trpc.vendor.productCreate.useMutation({
     onSuccess: (r) => router.replace(`/vendor/products/${r.id}`),
     onError: (e) => setError(e.message),
@@ -23,7 +24,9 @@ export default function NewProductPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [sectionId, setSectionId] = useState("");
   const [basePrice, setBasePrice] = useState("");
+  const [compareAtPrice, setCompareAtPrice] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [variants, setVariants] = useState<VariantRow[]>([{ label: "", price: "", stock: "" }]);
   const [error, setError] = useState<string | null>(null);
@@ -41,11 +44,14 @@ export default function NewProductPage() {
       setError("أضف خياراً واحداً على الأقل بسعر وكمية");
       return;
     }
+    const compare = Number(compareAtPrice);
     create.mutate({
       title,
       description: description || undefined,
       categoryId,
       basePrice: base || mapped[0]!.price,
+      compareAtPrice: compareAtPrice.trim() && compare > 0 ? compare : null,
+      sectionId: sectionId || null,
       images,
       variants: mapped,
     });
@@ -83,8 +89,22 @@ export default function NewProductPage() {
               )}
             </Select>
           </Field>
+          <Field label="قسم المتجر الداخليّ (اختياري)">
+            <Select value={sectionId} onChange={(e) => setSectionId(e.target.value)}>
+              <option value="">بلا قسم</option>
+              {sections.data?.map((s) => (
+                <option key={s.id} value={s.id}>{s.nameAr}</option>
+              ))}
+            </Select>
+            {sections.data && sections.data.length === 0 && (
+              <span className="mt-1 block text-xs text-neutral-500">أضِف أقسامك من صفحة «أقسام المتجر».</span>
+            )}
+          </Field>
           <Field label="السعر الأساسي (د.ع)">
             <Input inputMode="numeric" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="45000" />
+          </Field>
+          <Field label="السعر قبل الخصم (اختياري)">
+            <Input inputMode="numeric" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} placeholder="أعلى من السعر الأساسيّ — يُظهر خصماً" />
           </Field>
           <Field label="الصور">
             <ImageUploader value={images} onChange={setImages} />

@@ -16,7 +16,8 @@ export type CachedCategory = {
   nameAr: string;
   slug: string;
   icon: string | null;
-  children: { id: string; nameAr: string; slug: string }[];
+  imageUrl: string | null;
+  children: { id: string; nameAr: string; slug: string; icon: string | null; imageUrl: string | null }[];
 };
 
 export const getCachedCategories = unstable_cache(
@@ -29,15 +30,16 @@ export const getCachedCategories = unstable_cache(
         nameAr: true,
         slug: true,
         icon: true,
+        imageUrl: true,
         children: {
           where: { isActive: true },
           orderBy: { sortOrder: "asc" },
-          select: { id: true, nameAr: true, slug: true },
+          select: { id: true, nameAr: true, slug: true, icon: true, imageUrl: true },
         },
       },
     }),
   ["catalog:categories"],
-  { revalidate: 300, tags: ["categories"] },
+  { revalidate: 30, tags: ["categories"] },
 );
 
 /** أحدث المنتجات للصفحة الرئيسية، مُخزَّنة مؤقتاً لكل محافظة. */
@@ -57,6 +59,7 @@ export function getCachedHomeProducts(governorateId?: string): Promise<ProductCa
           title: true,
           slug: true,
           basePrice: true,
+          compareAtPrice: true,
           ratingAvg: true,
           ratingCount: true,
           images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
@@ -68,6 +71,7 @@ export function getCachedHomeProducts(governorateId?: string): Promise<ProductCa
         title: p.title,
         slug: p.slug,
         price: Number(p.basePrice),
+        compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
         image: p.images[0]?.url ?? null,

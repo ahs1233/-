@@ -103,6 +103,7 @@ model User {
   addresses     Address[]
   orders        Order[]
   reviews       Review[]
+  storeReviews  StoreReview[]
   notifications Notification[]
   sessions      Session[]
   favorites      Favorite[]
@@ -153,12 +154,35 @@ model VendorProfile {
   logoUrl        String?
   bannerUrl      String?
   status         VendorStatus @default(PENDING)
+  // قناة المتجر: واقعيّ (سوق المدينة) أو إلكترونيّ (صفحة إنستغرام/فيسبوك/تيك توك).
+  // تفصل «سوگ بغداد» الواقعيّ عن «بغداد الإلكتروني» — كلٌّ يعرض بائعي قناته فقط.
+  channel        String       @default("physical") // physical | online
+  instagramUrl   String?
+  facebookUrl    String?
+  tiktokUrl      String?
+  // موقع المتجر على الخريطة (اختياري) — لعرضه في «قريب منك» وحساب المسافة.
+  latitude       Float?
+  longitude      Float?
+  // متجرٌ موثّق — علامة ✓ ذهبيّة بجانب الاسم (عنصر ثقة).
+  verified       Boolean      @default(false)
   // تجاوز اختياري لنسبة العمولة العامة للمنصة (null = استخدم العامة)
   commissionRate Decimal?     @db.Decimal(5, 4)
   governorateId  String?
   governorate    Governorate? @relation(fields: [governorateId], references: [id])
   ratingAvg      Decimal      @default(0) @db.Decimal(3, 2)
   ratingCount    Int          @default(0)
+  // ── شخصيّة المتجر (لجعله كياناً حقيقياً) ──
+  establishedYear Int?        // سنة التأسيس (سنوات الخبرة = السنة الحاليّة − هذه)
+  responseMins    Int?        // متوسّط وقت الردّ بالدقائق (يردّ عادةً خلال X دقيقة)
+  opensAt         String?     // ساعة الفتح "HH:MM" بتوقيت العراق (لحالة «مفتوح الآن»)
+  closesAt        String?     // ساعة الإغلاق "HH:MM"
+  deliveryInfo    String?     // وصف التوصيل (مثال: توصيل داخل النجف خلال ٢٤ ساعة)
+  addressText     String?     // العنوان النصّي داخل المحافظة (منطقة/شارع)
+  ordersCount     Int         @default(0) // عدّاد الطلبات المُنجَزة (مصداقيّة)
+  // ── تحصيل الدخل: طبقة الاشتراك + الظهور المدفوع ──
+  plan          String       @default("free") // free | silver | gold — تُدار من لوحة الإدارة
+  planExpiresAt DateTime? // انتهاء الاشتراك (null = دائم/مجّاني)
+  featuredUntil DateTime? // «متجرٌ مميّز» مدفوع حتى هذا التاريخ (يرفع الترتيب)
   // تفاصيل التسوية المالية (طريقة الدفع للبائع) — يملؤها البائع
   payoutDetails  Json?
   rejectionNote  String?
@@ -166,12 +190,49 @@ model VendorProfile {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  products Product[]
-  orders   Order[]
-  payouts  Payout[]
+  products   Product[]
+  orders     Order[]
+  payouts    Payout[]
+  reviews    StoreReview[]
+  sections   VendorSection[]
+  activities StoreActivity[]
 
   @@index([status])
   @@index([governorateId])
+}
+
+// نبض السوق — حدثٌ حيٌّ للمتجر يظهر في تغذية «نبض السوق» (وصول دفعة، افتتاح
+// قسم، الأكثر زيارة…). يُبقي البيئة تبدو حيّة.
+model StoreActivity {
+  id        String        @id @default(cuid())
+  vendorId  String
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  kind      String // restock | new_section | most_visited | new_arrival | promo
+  message   String
+  sponsored Boolean       @default(false) // حدثٌ مموّل — يتصدّر النبض بوسم «مموّل»
+  createdAt DateTime      @default(now())
+
+  @@index([vendorId])
+  @@index([createdAt])
+}
+
+// قسمٌ داخليٌّ للمتجر (رفٌّ/خدمة) — يُنظّم منتجات المتجر حسب نوعه وخدماته.
+// مثال: متجر تقنية ⇐ «هواتف، إكسسوارات، صيانة، كاميرات»؛ بقالة ⇐ «معلّبات، ألبان».
+model VendorSection {
+  id        String        @id @default(cuid())
+  vendorId  String
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  nameAr    String
+  slug      String // فريدٌ ضمن المتجر
+  icon      String? // اسم أيقونة lucide (اختياري)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  products Product[]
+
+  @@unique([vendorId, slug])
+  @@index([vendorId, sortOrder])
 }
 
 // ─────────────────────────── Catalog ───────────────────────────
@@ -181,6 +242,7 @@ model Category {
   nameAr    String
   slug      String     @unique
   icon      String?
+  imageUrl  String? // صورةُ القسم (بوّابة السوق الفرعيّة) — تُفضَّل على الأيقونة إن وُجدت
   parentId  String?
   parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children  Category[] @relation("CategoryTree")
@@ -201,11 +263,16 @@ model Product {
   vendor      VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id])
+  // القسم الداخليّ للمتجر (اختياري) — حذفُ القسم يترك المنتج بلا قسم.
+  sectionId   String?
+  section     VendorSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   title       String
   titleNorm   String // عنوان مطبّع للبحث العربي
   slug        String        @unique
   description String?
   basePrice   Decimal       @db.Decimal(12, 2) // IQD
+  // السعر قبل الخصم (اختياري) — إن وُجد وكان أعلى من basePrice ظهر خصمٌ ونسبةٌ مشطوبة.
+  compareAtPrice Decimal?   @db.Decimal(12, 2)
   status      ProductStatus @default(DRAFT)
   ratingAvg   Decimal       @default(0) @db.Decimal(3, 2)
   ratingCount Int           @default(0)
@@ -221,6 +288,7 @@ model Product {
 
   @@index([vendorId, status])
   @@index([categoryId, status])
+  @@index([sectionId])
   @@index([titleNorm])
   // فهرس trigram (GIN) لبحث الاحتواء العربي القابل للتوسّع.
   @@index([titleNorm(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_titleNorm_trgm_idx")
@@ -265,9 +333,17 @@ model Governorate {
   code      String @unique // كود مختصر، مثل BGD
   sortOrder Int    @default(0)
 
+  // ── عرض المحافظة (لوحة «المظهر» ← تبويب المحافظات) ──
+  // كلّ محافظةٍ تُغيّر التجربة: شعورٌ، صورةُ بطلٍ، وأسواقٌ خاصّة بها.
+  enabled      Boolean @default(true) // هل تظهر للاختيار وفي الواجهة؟
+  tagline      String? // «الشعور»: قباب وأزقّة وفوانيس عند المغرب
+  heroImageUrl String? // صورة بطل المحافظة (تتجاوز الافتراضيّة في الكود)
+  souks        Json? // بلاطات الأسواق: [{ label, q, img?, emoji? }]
+
   areas     Area[]
   addresses Address[]
   vendors   VendorProfile[]
+  ads       Ad[]
 }
 
 model Area {
@@ -456,6 +532,25 @@ model Review {
   @@index([productId, status])
 }
 
+/// تقييمُ المتجر (تجربة الشراء منه) — موثّقٌ بطلبٍ مكتمل من هذا المتجر.
+/// منفصلٌ عن تقييم المنتج: هذا لخدمة المتجر، وذاك لجودة المنتج.
+model StoreReview {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  orderId   String? // موثّقٌ بطلب فعليّ من المتجر
+  rating    Int // 1..5 (يُتحقّق في طبقة التطبيق)
+  comment   String?
+  status    ReviewStatus  @default(PUBLISHED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([userId, vendorId])
+  @@index([vendorId, status])
+}
+
 model Favorite {
   id        String   @id @default(cuid())
   userId    String
@@ -518,6 +613,80 @@ model PlatformSetting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────── Markets (الأسواق) ───────────────────────────
+
+/// سوقٌ داخل «السوگ» — كلّ سوقٍ عالمٌ مستقلّ (متاجر بغداد، الإلكترونية، الطعام،
+/// السفر، العقارات، الوظائف، الصحة، التعليم، السيارات…). الرئيسية تعرضها ليختار
+/// المستخدم «أيّ سوقٍ يدخل»، ولكلّ سوقٍ صفحته المستقلّة.
+model Market {
+  id           String  @id @default(cuid())
+  slug         String  @unique // stores | electronics | food | travel | realestate | jobs | health | education | cars
+  nameAr       String
+  tagline      String?
+  imageUrl     String? // خلفية بطاقة السوق
+  icon         String? // مفتاح أيقونة/إيموجي
+  kind         String  @default("category") // stores | category | external
+  categorySlug String? // لـ kind=category: فئة المنتجات المرتبطة
+  channel      String? // لـ kind=stores: physical | online — يعرض بائعي هذه القناة فقط
+  // تخصيصُ عرض هذا السوق تحديداً: { sections: [{key,visible}], sectionTitles: {} }
+  // فارغٌ = يرث الإعداد العامّ. يمنح الأدمن تحكّماً كاملاً بكلّ سوقٍ على حدة.
+  config       Json?
+  href         String? // لـ kind=external: وجهة خارجيّة
+  status       String  @default("live") // live | soon
+  enabled      Boolean @default(true)
+  sortOrder    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled, sortOrder])
+}
+
+// ─────────────────────────── Advertisements ───────────────────────────
+
+/// إعلانٌ/لافتةٌ ترويجيّة تُدار من لوحة «المظهر» ← تبويب الإعلانات.
+/// الموضع (placement) يحدّد مكان الظهور في الرئيسية؛ المحافظة اختياريّة
+/// (null = كلّ العراق). الجدولة عبر startsAt/endsAt، والفعّال عبر active.
+model Ad {
+  id        String  @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  linkUrl   String  @default("/search") // وجهة النقر (مسار داخليّ أو رابط)
+  placement String  @default("home_banner") // home_banner | hero_strip
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  governorateId String?
+  governorate   Governorate? @relation(fields: [governorateId], references: [id], onDelete: SetNull)
+
+  startsAt DateTime? // بداية العرض (null = فوراً)
+  endsAt   DateTime? // نهاية العرض (null = بلا انتهاء)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, placement, sortOrder])
+  @@index([governorateId])
+}
+
+// محتوىً تحريريّ يُدار من «المظهر ← المحتوى» ويظهر في «اكتشف اليوم» (مقال/نصيحة اليوم).
+model Article {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  kind      String   @default("article") // article | tip
+  title     String
+  excerpt   String?
+  coverUrl  String?
+  body      String[] // فقراتٌ نصّيّة
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
 }
 
 // ─────────────────────────── Coupons ───────────────────────────

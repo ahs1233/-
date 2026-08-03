@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { LocateFixed } from "lucide-react";
 import { Button, Card, CardBody, Input, Select, Textarea } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { ImageUploader } from "@/src/components/vendor/image-uploader";
+
+const LocationPicker = dynamic(() => import("@/src/components/nearby/location-picker"), {
+  ssr: false,
+  loading: () => <div className="bg-card2 grid h-64 w-full place-items-center rounded-2xl border border-line text-sm text-neutral-500">…تحميل الخريطة</div>,
+});
 
 export default function VendorSettings() {
   const me = trpc.vendor.me.useQuery(undefined, { retry: false });
@@ -23,6 +30,7 @@ export default function VendorSettings() {
   const [logo, setLogo] = useState<string[]>([]);
   const [payoutMethod, setPayoutMethod] = useState("");
   const [payoutAccount, setPayoutAccount] = useState("");
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -31,11 +39,21 @@ export default function VendorSettings() {
       setDescription(me.data.description ?? "");
       setGovernorateId(me.data.governorate?.id ?? "");
       setLogo(me.data.logoUrl ? [me.data.logoUrl] : []);
+      if (me.data.latitude != null && me.data.longitude != null) setLocation({ lat: me.data.latitude, lng: me.data.longitude });
       const pd = me.data.payoutDetails as { method?: string; account?: string } | null;
       setPayoutMethod(pd?.method ?? "");
       setPayoutAccount(pd?.account ?? "");
     }
   }, [me.data]);
+
+  function useMyLocation() {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      undefined,
+      { timeout: 8000, enableHighAccuracy: true },
+    );
+  }
 
   if (me.isLoading) return <p className="text-neutral-500">جارٍ التحميل…</p>;
 
@@ -69,6 +87,24 @@ export default function VendorSettings() {
 
       <Card>
         <CardBody className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold">موقع المتجر على الخريطة</h2>
+            <Button variant="ghost" size="sm" onClick={useMyLocation}>
+              <LocateFixed className="h-4 w-4" /> موقعي الحاليّ
+            </Button>
+          </div>
+          <p className="text-xs text-neutral-500">انقر على الخريطة أو اسحب الدبّوس لتحديد موقع متجرك — يظهر في «قريب منك».</p>
+          <LocationPicker value={location} onChange={setLocation} />
+          {location && (
+            <p className="text-xs text-neutral-500 nums" dir="ltr">
+              {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+            </p>
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardBody className="space-y-3">
           <h2 className="font-bold">تفاصيل التسوية المالية</h2>
           <Field label="طريقة الاستلام">
             <Select value={payoutMethod} onChange={(e) => setPayoutMethod(e.target.value)}>
@@ -93,6 +129,8 @@ export default function VendorSettings() {
             description,
             governorateId: governorateId || undefined,
             logoUrl: logo[0] ?? "",
+            latitude: location?.lat ?? null,
+            longitude: location?.lng ?? null,
             payoutMethod: payoutMethod || undefined,
             payoutAccount: payoutAccount || undefined,
           })

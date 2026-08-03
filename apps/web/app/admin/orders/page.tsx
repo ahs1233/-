@@ -7,6 +7,7 @@ import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { OrderElapsed } from "@/src/components/order-elapsed";
 import { DataTable, type Column } from "@/src/components/data-table";
+import { useAdminGov } from "@/src/components/admin/admin-gov";
 
 const FILTERS = ["", "PENDING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"];
 const FORCE_OPTIONS = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as const;
@@ -15,8 +16,9 @@ export default function AdminOrders() {
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const { error: toastError } = useToast();
+  const { govId } = useAdminGov();
   const orders = trpc.admin.orders.useQuery(
-    { status: status || undefined, search: search.trim() || undefined, limit: 100 },
+    { status: status || undefined, search: search.trim() || undefined, limit: 100, governorateId: govId ?? undefined },
     { retry: false },
   );
   const utils = trpc.useUtils();

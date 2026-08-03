@@ -35,7 +35,7 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">الإشعارات</h1>
+        <h1 className="text-xl font-extrabold text-brand-800">الإشعارات</h1>
         <Button size="sm" variant="ghost" onClick={() => markAll.mutate()}>
           تعليم الكل كمقروء
         </Button>

@@ -5,19 +5,42 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { Prisma, type OrderStatus } from "@al-souq/db";
-import { slugify } from "@al-souq/utils";
+import { slugify, normalizeArabic } from "@al-souq/utils";
 import {
   vendorReviewSchema,
   productReviewSchema,
   categoryCreateSchema,
   categoryUpdateSchema,
+  categoryReorderSchema,
   userManageSchema,
   platformSettingsSchema,
+  appearanceSchema,
+  governoratePresentationSchema,
+  adCreateSchema,
+  adUpdateSchema,
+  articleUpsertSchema,
+  articleDeleteSchema,
+  adDeleteSchema,
+  marketCreateSchema,
+  marketUpdateSchema,
+  marketDeleteSchema,
+  marketReorderSchema,
+  marketDisplayUpdateSchema,
+  presignUploadSchema,
   couponCreateSchema,
   couponToggleSchema,
   staffCreateSchema,
   staffUpdateSchema,
+  storeProfileUpdateSchema,
+  adminSectionUpsertSchema,
+  adminSectionReorderSchema,
+  storeActivityUpsertSchema,
+  setStorePlanSchema,
+  vendorPlansConfigSchema,
+  idSchema,
 } from "@al-souq/validators";
+import { normalizePlansConfig } from "@al-souq/domain";
+import { getStorage } from "@al-souq/storage";
 import { effectivePermissions, isSuperAdmin, sanitizePermissions } from "@al-souq/auth";
 import { router, adminProcedure, adminPerm } from "../trpc";
 import type { Context } from "../context";
@@ -26,7 +49,9 @@ import { changeOrderStatus } from "../services/order";
 
 export const adminRouter = router({
   // ── لوحة المؤشرات (KPIs) ──
-  dashboard: adminPerm("dashboard").query(async ({ ctx }) => {
+  dashboard: adminPerm("dashboard")
+    .input(z.object({ governorateId: z.string().cuid().optional() }).optional())
+    .query(async ({ ctx, input }) => {
     const now = new Date();
     const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const todayStart = startOfDay(now).getTime();
@@ -35,6 +60,11 @@ export const adminRouter = router({
     const since30 = new Date(now.getTime() - 30 * 86_400_000);
     const sincePrev30 = new Date(now.getTime() - 60 * 86_400_000);
     const REALIZED = { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] };
+    // فلتر المحافظة: مدير المحافظة مقيّدٌ بمحافظته؛ المدير العامّ يختار محافظةً أو الكلّ.
+    const gov = ctx.user.scopeGovernorateId ?? input?.governorateId ?? undefined;
+    const oGov: Prisma.OrderWhereInput = gov ? { vendor: { governorateId: gov } } : {};
+    const vGov: Prisma.VendorProfileWhereInput = gov ? { governorateId: gov } : {};
+    const pGov: Prisma.ProductWhereInput = gov ? { vendor: { governorateId: gov } } : {};
 
     const [
       users,
@@ -51,40 +81,41 @@ export const adminRouter = router({
       topVendorsAgg,
       recentOrders,
     ] = await Promise.all([
-      ctx.prisma.user.count(),
-      ctx.prisma.vendorProfile.groupBy({ by: ["status"], _count: true }),
-      ctx.prisma.product.groupBy({ by: ["status"], _count: true }),
-      ctx.prisma.order.groupBy({ by: ["status"], _count: true }),
+      gov ? ctx.prisma.vendorProfile.count({ where: vGov }) : ctx.prisma.user.count(),
+      ctx.prisma.vendorProfile.groupBy({ by: ["status"], where: vGov, _count: true }),
+      ctx.prisma.product.groupBy({ by: ["status"], where: pGov, _count: true }),
+      ctx.prisma.order.groupBy({ by: ["status"], where: oGov, _count: true }),
       ctx.prisma.order.aggregate({
-        where: { status: REALIZED },
+        where: { status: REALIZED, ...oGov },
         _sum: { total: true, commissionAmount: true },
         _count: true,
       }),
-      ctx.prisma.vendorProfile.count({ where: { status: "PENDING" } }),
-      ctx.prisma.product.count({ where: { status: "PENDING_REVIEW" } }),
-      ctx.prisma.returnRequest.count({ where: { status: "REQUESTED" } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "PENDING", ...vGov } }),
+      ctx.prisma.product.count({ where: { status: "PENDING_REVIEW", ...pGov } }),
+      ctx.prisma.returnRequest.count({ where: { status: "REQUESTED", ...(gov ? { order: { vendor: { governorateId: gov } } } : {}) } }),
       ctx.prisma.order.findMany({
-        where: { placedAt: { gte: since14 }, status: REALIZED },
+        where: { placedAt: { gte: since14 }, status: REALIZED, ...oGov },
         select: { placedAt: true, total: true },
       }),
       ctx.prisma.order.aggregate({
-        where: { status: REALIZED, placedAt: { gte: since30 } },
+        where: { status: REALIZED, placedAt: { gte: since30 }, ...oGov },
         _sum: { total: true },
         _count: true,
       }),
       ctx.prisma.order.aggregate({
-        where: { status: REALIZED, placedAt: { gte: sincePrev30, lt: since30 } },
+        where: { status: REALIZED, placedAt: { gte: sincePrev30, lt: since30 }, ...oGov },
         _sum: { total: true },
         _count: true,
       }),
       ctx.prisma.order.groupBy({
         by: ["vendorId"],
-        where: { status: REALIZED },
+        where: { status: REALIZED, ...oGov },
         _sum: { total: true },
         orderBy: { _sum: { total: "desc" } },
         take: 5,
       }),
       ctx.prisma.order.findMany({
+        where: oGov,
         orderBy: { placedAt: "desc" },
         take: 6,
         include: { vendor: { select: { storeName: true } } },
@@ -120,6 +151,17 @@ export const adminRouter = router({
       sales: Number(t._sum.total ?? 0),
     }));
 
+    // ── صحّة الكتالوج (بناءً على البيانات الأحدث: التوثيق، الخصومات، المخزون، الموقع) ──
+    const d7 = new Date(now.getTime() - 7 * 86_400_000);
+    const [storesApproved, storesVerified, storesLocated, newStores7, offersActive, outOfStock] = await Promise.all([
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", ...vGov } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", verified: true, ...vGov } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", latitude: { not: null }, ...vGov } }),
+      ctx.prisma.vendorProfile.count({ where: { status: "APPROVED", createdAt: { gte: d7 }, ...vGov } }),
+      ctx.prisma.product.count({ where: { status: "ACTIVE", compareAtPrice: { not: null }, ...pGov } }),
+      ctx.prisma.product.count({ where: { status: "ACTIVE", ...pGov, variants: { none: { stock: { gt: 0 } } } } }),
+    ]);
+
     return {
       users,
       vendorsByStatus: toMap(vendorsByStatus),
@@ -138,6 +180,15 @@ export const adminRouter = router({
       ordersPrev30: prev30._count,
       salesSeries,
       topVendors,
+      catalog: {
+        storesApproved,
+        storesVerified,
+        storesLocated,
+        newStores7,
+        offersActive,
+        outOfStock,
+        activeProducts: toMap(productsByStatus)["ACTIVE"] ?? 0,
+      },
       recentOrders: recentOrders.map((o) => ({
         id: o.id,
         number: o.number,
@@ -151,7 +202,7 @@ export const adminRouter = router({
 
   // ── ملخّص مالي/محاسبي (بفلتر زمني) ──
   financeSummary: adminPerm("finance")
-    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d") }))
+    .input(z.object({ period: z.enum(["today", "7d", "30d", "all"]).default("30d"), governorateId: z.string().cuid().optional() }))
     .query(async ({ ctx, input }) => {
       const now = new Date();
       let since: Date | null = null;
@@ -159,10 +210,15 @@ export const adminRouter = router({
       else if (input.period === "7d") since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       else if (input.period === "30d") since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+      // فلتر المحافظة (مدير المحافظة مقيّد؛ العامّ يختار). الطلبات تُفلتر عبر بائعها.
+      const gov = ctx.user.scopeGovernorateId ?? input.governorateId ?? undefined;
+      const oGov = gov ? { vendor: { governorateId: gov } } : {};
+
       // الإيراد يُعترف به على الطلبات المُنجزة (مسلّمة/مكتملة) ضمن الفترة.
       const realizedWhere = {
         status: { in: ["DELIVERED", "COMPLETED"] as OrderStatus[] },
         ...(since ? { placedAt: { gte: since } } : {}),
+        ...oGov,
       };
       const [agg, unsettled, settledAgg] = await Promise.all([
         ctx.prisma.order.aggregate({
@@ -172,10 +228,10 @@ export const adminRouter = router({
         }),
         // الرصيد المستحق للبائعين (غير مسوّى) — رصيد لحظي لا يتقيّد بالفترة.
         ctx.prisma.commission.findMany({
-          where: { payoutId: null, order: { status: { in: ["DELIVERED", "COMPLETED"] } } },
+          where: { payoutId: null, order: { status: { in: ["DELIVERED", "COMPLETED"] }, ...oGov } },
           include: { order: { select: { subtotal: true } } },
         }),
-        ctx.prisma.payout.aggregate({ where: { status: "PAID" }, _sum: { amount: true } }),
+        ctx.prisma.payout.aggregate({ where: { status: "PAID", ...(gov ? { vendor: { governorateId: gov } } : {}) }, _sum: { amount: true } }),
       ]);
 
       const merchandiseSales = Number(agg._sum.subtotal ?? 0); // مبيعات البضاعة
@@ -272,12 +328,14 @@ export const adminRouter = router({
 
   // ── البائعون ──
   vendors: adminPerm("vendors")
-    .input(z.object({ status: z.string().optional(), search: z.string().trim().max(60).optional() }).optional())
+    .input(z.object({ status: z.string().optional(), search: z.string().trim().max(60).optional(), governorateId: z.string().cuid().optional() }).optional())
     .query(async ({ ctx, input }) => {
       const where: Prisma.VendorProfileWhereInput = {};
       if (input?.status) where.status = input.status as Prisma.EnumVendorStatusFilter["equals"];
       if (input?.search) where.storeName = { contains: input.search, mode: "insensitive" };
-      if (ctx.user.scopeGovernorateId) where.governorateId = ctx.user.scopeGovernorateId; // نطاق مدير المحافظة
+      // مدير المحافظة مقيّدٌ بمحافظته؛ المدير العامّ يفلتر بأيّ محافظةٍ اختارها.
+      const gov = ctx.user.scopeGovernorateId ?? input?.governorateId;
+      if (gov) where.governorateId = gov;
       const vendors = await ctx.prisma.vendorProfile.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -599,6 +657,7 @@ export const adminRouter = router({
       nameAr: c.nameAr,
       slug: c.slug,
       icon: c.icon,
+      imageUrl: c.imageUrl,
       parentId: c.parentId,
       sortOrder: c.sortOrder,
       isActive: c.isActive,
@@ -615,6 +674,7 @@ export const adminRouter = router({
         nameAr: input.nameAr,
         slug,
         icon: input.icon,
+        imageUrl: input.imageUrl ?? null,
         parentId: input.parentId ?? null,
         sortOrder: input.sortOrder ?? 0,
       },
@@ -641,6 +701,15 @@ export const adminRouter = router({
       after: data,
       ip: ctx.reqIp,
     });
+    return { ok: true };
+  }),
+
+  // إعادة ترتيب فئاتٍ ضمن نفس المستوى: sortOrder = موضع المعرّف في القائمة.
+  reorderCategories: adminPerm("categories").input(categoryReorderSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.$transaction(
+      input.ids.map((id, i) => ctx.prisma.category.update({ where: { id }, data: { sortOrder: i } })),
+    );
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "category.reorder", entityType: "Category", entityId: input.ids[0] ?? "", after: { ids: input.ids }, ip: ctx.reqIp });
     return { ok: true };
   }),
 
@@ -756,6 +825,7 @@ export const adminRouter = router({
           status: z.string().optional(),
           search: z.string().trim().max(60).optional(),
           limit: z.number().int().min(1).max(100).default(50),
+          governorateId: z.string().cuid().optional(),
         })
         .optional(),
     )
@@ -768,7 +838,9 @@ export const adminRouter = router({
           { customer: { phone: { contains: input.search } } },
         ];
       }
-      if (ctx.user.scopeGovernorateId) where.vendor = { governorateId: ctx.user.scopeGovernorateId }; // نطاق المحافظة
+      // مدير المحافظة مقيّدٌ بمحافظته؛ المدير العامّ يفلتر بأيّ محافظة.
+      const gov = ctx.user.scopeGovernorateId ?? input?.governorateId;
+      if (gov) where.vendor = { governorateId: gov };
       const orders = await ctx.prisma.order.findMany({
         where,
         orderBy: { placedAt: "desc" },
@@ -1000,6 +1072,438 @@ export const adminRouter = router({
     });
     return { ok: true };
   }),
+
+  // مظهر التطبيق — ألوان الثيم وترتيب أقسام الرئيسية (لوحة «المظهر»).
+  getAppearance: adminPerm("settings").query(async ({ ctx }) => {
+    const row = await ctx.prisma.platformSetting.findUnique({ where: { key: "appearance" } });
+    return (row?.value ?? null) as unknown;
+  }),
+  updateAppearance: adminPerm("settings").input(appearanceSchema).mutation(async ({ ctx, input }) => {
+    const hex = (c: string) => (c.startsWith("#") ? c : `#${c}`);
+    const value = {
+      colors: {
+        primary: hex(input.colors.primary),
+        accent: hex(input.colors.accent),
+        surface: hex(input.colors.surface),
+        live: hex(input.colors.live),
+      },
+      sections: input.sections,
+      services: input.services,
+      sectionTitles: input.sectionTitles ?? {},
+      serviceLabels: input.serviceLabels ?? {},
+    };
+    await ctx.prisma.platformSetting.upsert({
+      where: { key: "appearance" },
+      update: { value },
+      create: { key: "appearance", value },
+    });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "appearance.update",
+      entityType: "PlatformSetting",
+      entityId: "appearance",
+      after: value,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // ── المحافظات: العرض والتحكّم (لوحة «المظهر» ← تبويب المحافظات) ──
+  govList: adminPerm("settings").query(async ({ ctx }) => {
+    const rows = await ctx.prisma.governorate.findMany({
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        nameAr: true,
+        code: true,
+        sortOrder: true,
+        enabled: true,
+        tagline: true,
+        heroImageUrl: true,
+        souks: true,
+        _count: { select: { vendors: true, ads: true } },
+      },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      nameAr: r.nameAr,
+      code: r.code,
+      sortOrder: r.sortOrder,
+      enabled: r.enabled,
+      tagline: r.tagline,
+      heroImageUrl: r.heroImageUrl,
+      souks: (r.souks as { label: string; q: string; img?: string; emoji?: string; color?: string; status?: "active" | "hidden" }[] | null) ?? [],
+      vendorCount: r._count.vendors,
+      adCount: r._count.ads,
+    }));
+  }),
+
+  updateGovernorate: adminPerm("settings").input(governoratePresentationSchema).mutation(async ({ ctx, input }) => {
+    const data: Prisma.GovernorateUpdateInput = {};
+    if (input.enabled !== undefined) data.enabled = input.enabled;
+    if (input.tagline !== undefined) data.tagline = input.tagline;
+    if (input.heroImageUrl !== undefined) data.heroImageUrl = input.heroImageUrl;
+    if (input.souks !== undefined) data.souks = input.souks ?? Prisma.DbNull;
+    if (input.sortOrder !== undefined) data.sortOrder = input.sortOrder;
+    const gov = await ctx.prisma.governorate.update({ where: { id: input.id }, data });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "governorate.update",
+      entityType: "Governorate",
+      entityId: gov.id,
+      after: input,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // ── الإعلانات: CRUD (لوحة «المظهر» ← تبويب الإعلانات) ──
+  adList: adminPerm("settings").query(async ({ ctx }) => {
+    const rows = await ctx.prisma.ad.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      include: { governorate: { select: { nameAr: true } } },
+    });
+    return rows.map((a) => ({
+      id: a.id,
+      title: a.title,
+      subtitle: a.subtitle,
+      imageUrl: a.imageUrl,
+      linkUrl: a.linkUrl,
+      placement: a.placement,
+      active: a.active,
+      sortOrder: a.sortOrder,
+      governorateId: a.governorateId,
+      governorateName: a.governorate?.nameAr ?? null,
+      startsAt: a.startsAt,
+      endsAt: a.endsAt,
+    }));
+  }),
+
+  createAd: adminPerm("settings").input(adCreateSchema).mutation(async ({ ctx, input }) => {
+    const ad = await ctx.prisma.ad.create({
+      data: {
+        title: input.title,
+        subtitle: input.subtitle ?? null,
+        imageUrl: input.imageUrl,
+        linkUrl: input.linkUrl,
+        placement: input.placement,
+        active: input.active,
+        sortOrder: input.sortOrder,
+        governorateId: input.governorateId ?? null,
+        startsAt: input.startsAt ?? null,
+        endsAt: input.endsAt ?? null,
+      },
+    });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "ad.create",
+      entityType: "Ad",
+      entityId: ad.id,
+      after: input,
+      ip: ctx.reqIp,
+    });
+    return { id: ad.id };
+  }),
+
+  updateAd: adminPerm("settings").input(adUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const data: Prisma.AdUpdateInput = {};
+    if (rest.title !== undefined) data.title = rest.title;
+    if (rest.subtitle !== undefined) data.subtitle = rest.subtitle ?? null;
+    if (rest.imageUrl !== undefined) data.imageUrl = rest.imageUrl;
+    if (rest.linkUrl !== undefined) data.linkUrl = rest.linkUrl;
+    if (rest.placement !== undefined) data.placement = rest.placement;
+    if (rest.active !== undefined) data.active = rest.active;
+    if (rest.sortOrder !== undefined) data.sortOrder = rest.sortOrder;
+    if (rest.startsAt !== undefined) data.startsAt = rest.startsAt ?? null;
+    if (rest.endsAt !== undefined) data.endsAt = rest.endsAt ?? null;
+    if (rest.governorateId !== undefined) {
+      data.governorate = rest.governorateId
+        ? { connect: { id: rest.governorateId } }
+        : { disconnect: true };
+    }
+    await ctx.prisma.ad.update({ where: { id }, data });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "ad.update",
+      entityType: "Ad",
+      entityId: id,
+      after: input,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  deleteAd: adminPerm("settings").input(adDeleteSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.ad.delete({ where: { id: input.id } });
+    await writeAudit(ctx.prisma, {
+      actorId: ctx.user.id,
+      action: "ad.delete",
+      entityType: "Ad",
+      entityId: input.id,
+      ip: ctx.reqIp,
+    });
+    return { ok: true };
+  }),
+
+  // ── المحتوى التحريريّ: CRUD (لوحة «المظهر» ← تبويب المحتوى) ──
+  articleList: adminPerm("settings").query(async ({ ctx }) => {
+    return ctx.prisma.article.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }] });
+  }),
+  upsertArticle: adminPerm("settings").input(articleUpsertSchema).mutation(async ({ ctx, input }) => {
+    const data = {
+      slug: input.slug,
+      kind: input.kind,
+      title: input.title,
+      excerpt: input.excerpt ?? null,
+      coverUrl: input.coverUrl ?? null,
+      body: input.body,
+      active: input.active,
+      sortOrder: input.sortOrder,
+    };
+    const a = input.id
+      ? await ctx.prisma.article.update({ where: { id: input.id }, data })
+      : await ctx.prisma.article.create({ data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: input.id ? "article.update" : "article.create", entityType: "Article", entityId: a.id, ip: ctx.reqIp });
+    return { id: a.id };
+  }),
+  deleteArticle: adminPerm("settings").input(articleDeleteSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.article.delete({ where: { id: input.id } });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "article.delete", entityType: "Article", entityId: input.id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+
+  // ── إدارة المتاجر (لوحة «المظهر» ← تبويب المتاجر): شخصيّة + أقسام + نبض ──
+  storeList: adminPerm("settings")
+    .input(z.object({ governorateId: z.string().cuid().optional(), q: z.string().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      const where: Prisma.VendorProfileWhereInput = { status: "APPROVED" };
+      if (input?.governorateId) where.governorateId = input.governorateId;
+      if (input?.q) where.slugNorm = { contains: normalizeArabic(input.q) };
+      const vendors = await ctx.prisma.vendorProfile.findMany({
+        where,
+        orderBy: [{ governorateId: "asc" }, { storeName: "asc" }],
+        select: {
+          id: true, storeName: true, slug: true, logoUrl: true, verified: true,
+          ratingAvg: true, ratingCount: true, ordersCount: true, plan: true, featuredUntil: true,
+          governorate: { select: { nameAr: true } },
+          _count: { select: { products: true, sections: true, activities: true } },
+        },
+      });
+      const now = Date.now();
+      return vendors.map((v) => ({
+        id: v.id, storeName: v.storeName, slug: v.slug, logoUrl: v.logoUrl, verified: v.verified,
+        ratingAvg: Number(v.ratingAvg), ratingCount: v.ratingCount, ordersCount: v.ordersCount,
+        plan: v.plan, featured: v.featuredUntil != null && v.featuredUntil.getTime() > now,
+        governorate: v.governorate?.nameAr ?? null,
+        productCount: v._count.products, sectionCount: v._count.sections, activityCount: v._count.activities,
+      }));
+    }),
+
+  storeGet: adminPerm("settings").input(idSchema).query(async ({ ctx, input }) => {
+    const v = await ctx.prisma.vendorProfile.findUnique({
+      where: { id: input.id },
+      select: {
+        id: true, storeName: true, slug: true, description: true, logoUrl: true, bannerUrl: true,
+        verified: true, establishedYear: true, responseMins: true, opensAt: true, closesAt: true,
+        deliveryInfo: true, addressText: true, ordersCount: true, latitude: true, longitude: true,
+        ratingAvg: true, ratingCount: true, plan: true, planExpiresAt: true, featuredUntil: true,
+        governorate: { select: { nameAr: true } },
+        sections: { orderBy: { sortOrder: "asc" }, select: { id: true, nameAr: true, icon: true, sortOrder: true, _count: { select: { products: true } } } },
+        activities: { orderBy: { createdAt: "desc" }, select: { id: true, kind: true, message: true, sponsored: true, createdAt: true } },
+      },
+    });
+    if (!v) throw new TRPCError({ code: "NOT_FOUND", message: "المتجر غير موجود" });
+    return {
+      ...v,
+      ratingAvg: Number(v.ratingAvg),
+      planExpiresAt: v.planExpiresAt ? v.planExpiresAt.toISOString() : null,
+      featuredUntil: v.featuredUntil ? v.featuredUntil.toISOString() : null,
+      governorate: v.governorate?.nameAr ?? null,
+      sections: v.sections.map((s) => ({ id: s.id, nameAr: s.nameAr, icon: s.icon, sortOrder: s.sortOrder, productCount: s._count.products })),
+      activities: v.activities.map((a) => ({ id: a.id, kind: a.kind, message: a.message, sponsored: a.sponsored, at: a.createdAt.toISOString() })),
+    };
+  }),
+
+  updateStoreProfile: adminPerm("settings").input(storeProfileUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const data: Prisma.VendorProfileUpdateInput = {};
+    if (rest.description !== undefined) data.description = rest.description ?? null;
+    if (rest.logoUrl !== undefined) data.logoUrl = rest.logoUrl ?? null;
+    if (rest.bannerUrl !== undefined) data.bannerUrl = rest.bannerUrl ?? null;
+    if (rest.verified !== undefined) data.verified = rest.verified;
+    if (rest.establishedYear !== undefined) data.establishedYear = rest.establishedYear ?? null;
+    if (rest.responseMins !== undefined) data.responseMins = rest.responseMins ?? null;
+    if (rest.opensAt !== undefined) data.opensAt = rest.opensAt ?? null;
+    if (rest.closesAt !== undefined) data.closesAt = rest.closesAt ?? null;
+    if (rest.deliveryInfo !== undefined) data.deliveryInfo = rest.deliveryInfo ?? null;
+    if (rest.addressText !== undefined) data.addressText = rest.addressText ?? null;
+    if (rest.ordersCount !== undefined) data.ordersCount = rest.ordersCount;
+    if (rest.latitude !== undefined) data.latitude = rest.latitude ?? null;
+    if (rest.longitude !== undefined) data.longitude = rest.longitude ?? null;
+    if (rest.ratingAvg !== undefined) data.ratingAvg = new Prisma.Decimal(rest.ratingAvg);
+    if (rest.ratingCount !== undefined) data.ratingCount = rest.ratingCount;
+    await ctx.prisma.vendorProfile.update({ where: { id }, data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "store.profile.update", entityType: "VendorProfile", entityId: id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+
+  // أقسام المتجر (المدير يديرها لأيّ متجر)
+  storeSectionUpsert: adminPerm("settings").input(adminSectionUpsertSchema).mutation(async ({ ctx, input }) => {
+    if (input.id) {
+      await ctx.prisma.vendorSection.update({ where: { id: input.id }, data: { nameAr: input.nameAr, icon: input.icon ?? null } });
+      return { id: input.id };
+    }
+    const count = await ctx.prisma.vendorSection.count({ where: { vendorId: input.vendorId } });
+    const created = await ctx.prisma.vendorSection.create({
+      data: { vendorId: input.vendorId, nameAr: input.nameAr, slug: `${slugify(input.nameAr)}-${Math.random().toString(36).slice(2, 6)}`, icon: input.icon ?? null, sortOrder: count },
+    });
+    return { id: created.id };
+  }),
+  storeSectionDelete: adminPerm("settings").input(idSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.vendorSection.delete({ where: { id: input.id } });
+    return { ok: true };
+  }),
+  storeSectionReorder: adminPerm("settings").input(adminSectionReorderSchema).mutation(async ({ ctx, input }) => {
+    const owned = await ctx.prisma.vendorSection.findMany({ where: { vendorId: input.vendorId }, select: { id: true } });
+    const ownedIds = new Set(owned.map((s) => s.id));
+    if (!input.orderedIds.every((id) => ownedIds.has(id))) throw new TRPCError({ code: "BAD_REQUEST", message: "قسمٌ لا يخصّ المتجر" });
+    await ctx.prisma.$transaction(input.orderedIds.map((id, i) => ctx.prisma.vendorSection.update({ where: { id }, data: { sortOrder: i } })));
+    return { ok: true };
+  }),
+
+  // نبض السوق — أحداث المتجر
+  storeActivityUpsert: adminPerm("settings").input(storeActivityUpsertSchema).mutation(async ({ ctx, input }) => {
+    const createdAt = input.minutesAgo != null ? new Date(Date.now() - input.minutesAgo * 60_000) : undefined;
+    if (input.id) {
+      await ctx.prisma.storeActivity.update({
+        where: { id: input.id },
+        data: { kind: input.kind, message: input.message, ...(input.sponsored !== undefined ? { sponsored: input.sponsored } : {}), ...(createdAt ? { createdAt } : {}) },
+      });
+      return { id: input.id };
+    }
+    const created = await ctx.prisma.storeActivity.create({
+      data: { vendorId: input.vendorId, kind: input.kind, message: input.message, sponsored: input.sponsored ?? false, ...(createdAt ? { createdAt } : {}) },
+    });
+    return { id: created.id };
+  }),
+  storeActivityDelete: adminPerm("settings").input(idSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.storeActivity.delete({ where: { id: input.id } });
+    return { ok: true };
+  }),
+
+  // ── تحصيل الدخل: طبقات الاشتراك (تعريفٌ قابلٌ للتعديل) + تعيين طبقة/ظهور متجر ──
+  getVendorPlans: adminPerm("settings").query(async ({ ctx }) => {
+    const row = await ctx.prisma.platformSetting.findUnique({ where: { key: "vendor_plans" } });
+    return normalizePlansConfig(row?.value);
+  }),
+  updateVendorPlans: adminPerm("settings").input(vendorPlansConfigSchema).mutation(async ({ ctx, input }) => {
+    const value = normalizePlansConfig(input) as unknown as Prisma.InputJsonValue;
+    await ctx.prisma.platformSetting.upsert({
+      where: { key: "vendor_plans" },
+      update: { value },
+      create: { key: "vendor_plans", value },
+    });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "plans.update", entityType: "PlatformSetting", entityId: "vendor_plans", ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  setStorePlan: adminPerm("settings").input(setStorePlanSchema).mutation(async ({ ctx, input }) => {
+    const data: Prisma.VendorProfileUpdateInput = {};
+    if (input.plan !== undefined) data.plan = input.plan;
+    if (input.planExpiresAt !== undefined) data.planExpiresAt = input.planExpiresAt ? new Date(input.planExpiresAt) : null;
+    if (input.featuredUntil !== undefined) data.featuredUntil = input.featuredUntil ? new Date(input.featuredUntil) : null;
+    await ctx.prisma.vendorProfile.update({ where: { id: input.id }, data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "store.plan.update", entityType: "VendorProfile", entityId: input.id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+
+  // ── الأسواق: CRUD (لوحة «المظهر» ← تبويب الأسواق) ──
+  marketList: adminPerm("settings").query(async ({ ctx }) => {
+    return ctx.prisma.market.findMany({ orderBy: { sortOrder: "asc" } });
+  }),
+  createMarket: adminPerm("settings").input(marketCreateSchema).mutation(async ({ ctx, input }) => {
+    const m = await ctx.prisma.market.create({
+      data: {
+        slug: input.slug,
+        nameAr: input.nameAr,
+        tagline: input.tagline ?? null,
+        imageUrl: input.imageUrl ?? null,
+        icon: input.icon ?? null,
+        kind: input.kind,
+        categorySlug: input.categorySlug ?? null,
+        channel: input.channel ?? null,
+        href: input.href ?? null,
+        status: input.status,
+        enabled: input.enabled,
+        sortOrder: input.sortOrder,
+      },
+    });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.create", entityType: "Market", entityId: m.id, after: input, ip: ctx.reqIp });
+    return { id: m.id };
+  }),
+  updateMarket: adminPerm("settings").input(marketUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const data: Prisma.MarketUpdateInput = {};
+    if (rest.slug !== undefined) data.slug = rest.slug;
+    if (rest.nameAr !== undefined) data.nameAr = rest.nameAr;
+    if (rest.tagline !== undefined) data.tagline = rest.tagline ?? null;
+    if (rest.imageUrl !== undefined) data.imageUrl = rest.imageUrl ?? null;
+    if (rest.icon !== undefined) data.icon = rest.icon ?? null;
+    if (rest.kind !== undefined) data.kind = rest.kind;
+    if (rest.categorySlug !== undefined) data.categorySlug = rest.categorySlug ?? null;
+    if (rest.channel !== undefined) data.channel = rest.channel ?? null;
+    if (rest.href !== undefined) data.href = rest.href ?? null;
+    if (rest.status !== undefined) data.status = rest.status;
+    if (rest.enabled !== undefined) data.enabled = rest.enabled;
+    if (rest.sortOrder !== undefined) data.sortOrder = rest.sortOrder;
+    await ctx.prisma.market.update({ where: { id }, data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.update", entityType: "Market", entityId: id, after: input, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  deleteMarket: adminPerm("settings").input(marketDeleteSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.market.delete({ where: { id: input.id } });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.delete", entityType: "Market", entityId: input.id, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  // تخصيصُ عرض سوقٍ بعينه (ترتيب الأقسام/ظهورها/عناوينها) — تحكّمٌ كاملٌ لكلّ سوق.
+  updateMarketDisplay: adminPerm("settings").input(marketDisplayUpdateSchema).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    // نُخزّن الأقسام والعناوين معاً في config؛ null على أيٍّ منهما = مسحه (يرث العامّ).
+    const existing = await ctx.prisma.market.findUnique({ where: { id }, select: { config: true } });
+    const cur = (existing?.config ?? {}) as { sections?: unknown; sectionTitles?: unknown };
+    const next: Record<string, unknown> = { ...cur };
+    if (rest.sections !== undefined) {
+      if (rest.sections === null) delete next.sections;
+      else next.sections = rest.sections;
+    }
+    if (rest.sectionTitles !== undefined) {
+      if (rest.sectionTitles === null) delete next.sectionTitles;
+      else next.sectionTitles = rest.sectionTitles;
+    }
+    const isEmpty = !next.sections && !next.sectionTitles;
+    await ctx.prisma.market.update({ where: { id }, data: { config: isEmpty ? Prisma.DbNull : (next as Prisma.InputJsonValue) } });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.display", entityType: "Market", entityId: id, after: input, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  // إعادة ترتيب الأسواق دفعةً واحدة: sortOrder = موضع المعرّف في القائمة.
+  reorderMarkets: adminPerm("settings").input(marketReorderSchema).mutation(async ({ ctx, input }) => {
+    await ctx.prisma.$transaction(
+      input.ids.map((id, i) => ctx.prisma.market.update({ where: { id }, data: { sortOrder: i } })),
+    );
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "market.reorder", entityType: "Market", entityId: input.ids[0] ?? "", after: { ids: input.ids }, ip: ctx.reqIp });
+    return { ok: true };
+  }),
+
+  // رابط رفعٍ موقّع للأدمن (صور المحافظات/الإعلانات) — يعمل عند تهيئة التخزين الكائنيّ.
+  presignImage: adminPerm("settings").input(presignUploadSchema).mutation(async ({ ctx, input }) => {
+    const storage = getStorage();
+    if (!storage.configured) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "خدمة رفع الصور غير مهيّأة على الخادم" });
+    }
+    const prefix = `${input.purpose}/${ctx.user.id}`;
+    return storage.presignUpload({ prefix, contentType: input.contentType });
+  }),
+  storageStatus: adminPerm("settings").query(() => ({ configured: getStorage().configured })),
 
   // ── سجل التدقيق ──
   auditLog: adminPerm("audit")

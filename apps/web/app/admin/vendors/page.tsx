@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button, Badge, Input } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { DataTable, type Column } from "@/src/components/data-table";
+import { useAdminGov } from "@/src/components/admin/admin-gov";
 
 const VSTATUS: Record<string, { label: string; style: string }> = {
   PENDING: { label: "قيد المراجعة", style: "bg-gold-400/20 text-gold-600" },
@@ -18,8 +19,9 @@ const FILTERS = ["", "PENDING", "APPROVED", "SUSPENDED", "REJECTED"];
 export default function AdminVendors() {
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
+  const { govId } = useAdminGov();
   const vendors = trpc.admin.vendors.useQuery(
-    { status: status || undefined, search: search.trim() || undefined },
+    { status: status || undefined, search: search.trim() || undefined, governorateId: govId ?? undefined },
     { retry: false },
   );
   const utils = trpc.useUtils();

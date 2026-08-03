@@ -6,7 +6,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { Prisma } from "@al-souq/db";
-import { reviewCreateSchema } from "@al-souq/validators";
+import { reviewCreateSchema, storeReviewCreateSchema } from "@al-souq/validators";
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 
 export const reviewRouter = router({
@@ -77,9 +77,74 @@ export const reviewRouter = router({
     });
     return { ok: true };
   }),
+
+  // ── تقييمُ المتجر (تجربة الشراء منه) ──
+  listByStore: publicProcedure
+    .input(z.object({ vendorId: z.string().cuid(), limit: z.number().int().min(1).max(50).default(20) }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.prisma.storeReview.findMany({
+        where: { vendorId: input.vendorId, status: "PUBLISHED" },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+        include: { user: { select: { name: true } } },
+      });
+      return rows.map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        authorName: r.user.name ?? "مستخدم",
+        createdAt: r.createdAt,
+      }));
+    }),
+
+  /** تقييمي لهذا المتجر + أهليّتي لتقييمه (اشتريتُ منه فعلاً). */
+  myStore: protectedProcedure
+    .input(z.object({ vendorId: z.string().cuid() }))
+    .query(async ({ ctx, input }) => {
+      const [mine, eligible] = await Promise.all([
+        ctx.prisma.storeReview.findUnique({
+          where: { userId_vendorId: { userId: ctx.user.id, vendorId: input.vendorId } },
+        }),
+        ctx.prisma.order.findFirst({
+          where: { customerId: ctx.user.id, vendorId: input.vendorId, status: { in: ["DELIVERED", "COMPLETED"] } },
+          select: { id: true },
+        }),
+      ]);
+      return {
+        mine: mine ? { id: mine.id, rating: mine.rating, comment: mine.comment } : null,
+        canReview: Boolean(eligible),
+      };
+    }),
+
+  upsertStore: protectedProcedure.input(storeReviewCreateSchema).mutation(async ({ ctx, input }) => {
+    // الأهليّة: طلبٌ من هذا المتجر وصل أو اكتمل.
+    const eligible = await ctx.prisma.order.findFirst({
+      where: { customerId: ctx.user.id, vendorId: input.vendorId, status: { in: ["DELIVERED", "COMPLETED"] } },
+      select: { id: true },
+    });
+    if (!eligible) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "يمكنك تقييم المتاجر التي اشتريتَ منها فقط" });
+    }
+    await ctx.prisma.$transaction(async (tx) => {
+      await tx.storeReview.upsert({
+        where: { userId_vendorId: { userId: ctx.user.id, vendorId: input.vendorId } },
+        update: { rating: input.rating, comment: input.comment, status: "PUBLISHED" },
+        create: {
+          userId: ctx.user.id,
+          vendorId: input.vendorId,
+          orderId: eligible.id,
+          rating: input.rating,
+          comment: input.comment,
+          status: "PUBLISHED",
+        },
+      });
+      await recomputeStoreRating(tx, input.vendorId);
+    });
+    return { ok: true };
+  }),
 });
 
-/** يعيد حساب تقييم المنتج ثم يجمّع تقييم بائعه. */
+/** يعيد حساب تقييم المنتج (تقييمُ المتجر مستقلٌّ عبر StoreReview). */
 async function recomputeRatings(tx: Prisma.TransactionClient, productId: string) {
   const agg = await tx.review.aggregate({
     where: { productId, status: "PUBLISHED" },
@@ -91,19 +156,20 @@ async function recomputeRatings(tx: Prisma.TransactionClient, productId: string)
     where: { id: productId },
     data: { ratingAvg, ratingCount: agg._count },
   });
+}
 
-  const product = await tx.product.findUnique({ where: { id: productId }, select: { vendorId: true } });
-  if (!product) return;
-  const vAgg = await tx.product.aggregate({
-    where: { vendorId: product.vendorId, ratingCount: { gt: 0 } },
-    _avg: { ratingAvg: true },
-    _sum: { ratingCount: true },
+/** يعيد حساب تقييم المتجر من تقييمات المتجر (StoreReview). */
+async function recomputeStoreRating(tx: Prisma.TransactionClient, vendorId: string) {
+  const agg = await tx.storeReview.aggregate({
+    where: { vendorId, status: "PUBLISHED" },
+    _avg: { rating: true },
+    _count: true,
   });
   await tx.vendorProfile.update({
-    where: { id: product.vendorId },
+    where: { id: vendorId },
     data: {
-      ratingAvg: vAgg._avg.ratingAvg ?? new Prisma.Decimal(0),
-      ratingCount: vAgg._sum.ratingCount ?? 0,
+      ratingAvg: new Prisma.Decimal((agg._avg.rating ?? 0).toFixed(2)),
+      ratingCount: agg._count,
     },
   });
 }

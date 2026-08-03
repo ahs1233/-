@@ -1,196 +1,160 @@
 import Link from "next/link";
-import { ShieldCheck, Truck, BadgeCheck, ChevronLeft, Store, LayoutGrid } from "lucide-react";
+import { ChevronLeft, Store, Search } from "lucide-react";
 import { getGovernorate } from "@/src/lib/governorate";
 import { getServerApi } from "@/src/trpc/server";
-import { ProductCard } from "@/src/components/product-card";
-import { CategoryIcon } from "@/src/components/category-icon";
-import { BrandMark } from "@/src/components/brand-logo";
-import { AppImage } from "@/src/components/app-image";
-import { getCachedCategories, type CachedCategory } from "@/src/lib/catalog-cache";
+import { CityHero } from "@/src/components/home/city-hero";
+import { MarketShortcuts } from "@/src/components/home/market-shortcuts";
+import { MarketPulse, AdsCarousel } from "@/src/components/home/home-blocks";
+import { ProductRail, StoreRail } from "@/src/components/home/section-rail";
+import { NearbyStores } from "@/src/components/home/nearby-stores";
+import { DiscoverToday } from "@/src/components/home/discover-today";
+import { resolveGovIdentity } from "@/src/lib/governorate-identity";
+import type { HomeExtras, CityStats, AppContent, MarketItem, DiscoverySection } from "@al-souq/api";
 
 export const dynamic = "force-dynamic";
 
-// هوية كل قسم: عنوان + هدف (Δ1). المصدر الوحيد للأقسام هو محرّك الاكتشاف.
-const SECTION_META: Record<string, { title: string; purpose: string }> = {
-  today: { title: "اليوم في السوگ", purpose: "مختارات متنوّعة تبدأ منها رحلة تسوّقك" },
-  trending: { title: "الأكثر رواجاً هذا الأسبوع", purpose: "ما يشتريه الناس فعلاً حولك" },
-  new: { title: "جديد هذا الأسبوع", purpose: "أحدث ما وصل من التجّار" },
-  top_rated: { title: "الأعلى تقييماً", purpose: "منتجات نالت رضا المشترين" },
-  best_selling: { title: "الأكثر مبيعاً", purpose: "الأكثر طلباً عبر الوقت" },
-  new_stores: { title: "متاجر جديدة", purpose: "تجّار انضموا حديثاً إلى السوگ" },
-};
-
-type HomeSections = Awaited<ReturnType<Awaited<ReturnType<typeof getServerApi>>["discovery"]["home"]>>;
+const EMPTY_STATS: CityStats = { openStores: 0, newStores: 0, newProducts: 0, offers: 0 };
 
 export default async function HomePage() {
   const gov = getGovernorate();
-  let categories: CachedCategory[] = [];
-  let sections: HomeSections = [];
+
+  let stats: CityStats = EMPTY_STATS;
+  let extras: HomeExtras | null = null;
+  let content: AppContent = { governorate: null, ads: [] };
+  let markets: MarketItem[] = [];
+  let sections: DiscoverySection[] = [];
+  let suggested: Awaited<ReturnType<Awaited<ReturnType<typeof getServerApi>>["discovery"]["marketStores"]>> = [];
+  let userName: string | undefined;
   let dbReady = true;
+
   try {
     const api = await getServerApi();
-    [categories, sections] = await Promise.all([
-      getCachedCategories(),
+    const [st, ex, cont, mk, sec, sug] = await Promise.all([
+      api.discovery.cityStats({ governorateId: gov?.id }),
+      api.discovery.homeExtras({ governorateId: gov?.id }),
+      api.appearance.content({ governorateId: gov?.id }),
+      api.market.list(),
       api.discovery.home({ governorateId: gov?.id }),
+      api.discovery.marketStores({ governorateId: gov?.id }),
     ]);
+    stats = st;
+    extras = ex;
+    content = cont;
+    markets = mk;
+    sections = sec;
+    suggested = sug;
+
+    // اسم المستخدم للتحيّة — يعمل عند تسجيل الدخول فقط.
+    try {
+      const me = await api.auth.me();
+      userName = me?.name?.trim() || undefined;
+    } catch {
+      /* زائرٌ غير مسجّل — تحيّةٌ عامّة */
+    }
   } catch {
     dbReady = false;
   }
 
+  const identity = resolveGovIdentity(gov?.name, content.governorate);
+  // «سوق نشط» = عدد الأسواق المفعّلة (يطابق صفحة اختيار السوق).
+  const activeMarkets = markets.length;
+
+  const productsOf = (key: string) => {
+    const s = sections.find((x) => x.key === key);
+    return s && s.kind === "products" ? s.items : [];
+  };
+  const newStoresSection = sections.find((x) => x.key === "new_stores");
+  const newStores = newStoresSection && newStoresSection.kind === "stores" ? newStoresSection.items : [];
+
+  const topStores = suggested.slice(0, 8);
+  const nearby = [...suggested].sort((a, b) => b.productCount - a.productCount).slice(0, 8);
+  const bestSelling = productsOf("best_selling");
+  const newArrivals = productsOf("new");
+  const today = productsOf("today");
+
   return (
     <div className="space-y-7">
-      {/* البطل */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-brand-700 via-brand-600 to-petrol p-6 text-white shadow-lg ring-1 ring-gold-500/30">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 20%, white 1.5px, transparent 1.5px), radial-gradient(circle at 70% 60%, white 1.5px, transparent 1.5px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
-        <BrandMark className="pointer-events-none absolute -bottom-6 -start-6 h-40 w-40 opacity-10" />
-        <div className="relative">
-          <span className="inline-flex items-center gap-1 rounded-full border border-gold-400/50 bg-gold-400/15 px-3 py-1 text-xs font-semibold text-gold-100 backdrop-blur">
-            <BadgeCheck className="h-3.5 w-3.5" /> ندعم المنتج العراقي
-          </span>
-          <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">
-            {gov ? `سوق ${gov.name} بين يديك` : "كل ما تحتاجه من تجّار محافظتك"}
-          </h1>
-          <p className="mt-1 max-w-md text-sm text-white/90">
-            تسوّق من متاجر موثوقة في {gov ? `محافظة ${gov.name}` : "محافظتك"}، والدفع عند الاستلام.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            <Feature icon={<Truck className="h-4 w-4" />} text="دفع عند الاستلام" />
-            <Feature icon={<ShieldCheck className="h-4 w-4" />} text="تجّار موثوقون" />
-            <Feature icon={<BadgeCheck className="h-4 w-4" />} text="منتجات عراقية" />
-          </div>
-        </div>
-      </section>
+      {/* ① المدينة هي البطل — تحيّةٌ + أرقامٌ حيّة */}
+      <CityHero
+        governorate={gov?.name}
+        userName={userName}
+        heroImage={identity.hero}
+        feel={identity.feel}
+        stats={stats}
+        activeMarkets={activeMarkets}
+      />
 
       {!dbReady && (
-        <div className="rounded-2xl border border-gold-400/40 bg-gold-400/10 p-4 text-sm text-gold-600">
+        <div className="rounded-2xl border border-gold-500/30 bg-gold-500/10 p-4 text-sm text-gold-300">
           المتجر قيد التجهيز — لم تُربط قاعدة البيانات بعد.
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link href="/stores" className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 font-medium text-neutral-800 shadow-sm transition hover:border-brand-300">
-          <Store className="h-5 w-5 text-brand-600" /> تصفّح المتاجر
-        </Link>
-        <Link href="/categories" className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 font-medium text-neutral-800 shadow-sm transition hover:border-brand-300">
-          <LayoutGrid className="h-5 w-5 text-brand-600" /> كل الفئات
-        </Link>
-      </div>
+      {/* شريط البحث */}
+      <Link href="/search" className="bg-card2 flex items-center gap-2 rounded-2xl border border-line px-4 py-3 text-sm text-neutral-400 transition hover:border-gold-500/40">
+        <Search className="h-4 w-4 text-gold-400" />
+        ابحث عن منتج أو متجر أو خدمة…
+      </Link>
 
-      {/* الفئات — تصنيف تنقّل (ليس اكتشافاً) */}
-      {categories.length > 0 && (
+      {/* ② إلى أين تريد الذهاب؟ — صفٌّ مصغّر + «كل الأسواق» */}
+      <MarketShortcuts markets={markets} govName={gov?.name} />
+
+      {/* ③ نبض السوق — حياةٌ مباشرة، لا منتجات */}
+      {extras && extras.pulse.length > 0 && <MarketPulse events={extras.pulse} governorate={gov?.name} href="/pulse" />}
+
+      {/* ④ عروض اليوم */}
+      {content.ads.length > 0 && (
         <section>
-          <SectionHeader title="تسوّق حسب الفئة" href="/categories" />
-          <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
-            {categories.slice(0, 12).map((c) => (
-              <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2">
-                <span className="grid h-16 w-16 place-items-center rounded-2xl border border-neutral-200 bg-white text-brand-600 shadow-sm transition group-hover:border-brand-300 group-hover:bg-brand-50">
-                  <CategoryIcon name={c.icon} className="h-6 w-6" />
-                </span>
-                <span className="line-clamp-1 text-center text-[11px] text-neutral-600">{c.nameAr}</span>
-              </Link>
-            ))}
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-neutral-100">
+              <span className="inline-block h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+              عروض اليوم
+            </h2>
+            <Link href="/offers" className="flex items-center gap-0.5 text-sm font-medium text-gold-400 hover:text-gold-300">
+              كل العروض <ChevronLeft className="h-4 w-4" />
+            </Link>
           </div>
+          <AdsCarousel ads={content.ads} governorate={gov?.name} />
         </section>
       )}
 
-      {/* أقسام الاكتشاف — المصدر الوحيد: DiscoveryService */}
-      {dbReady && sections.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center text-neutral-400">
-          لا توجد منتجات بعد.
-        </div>
-      )}
+      {/* ⑤ متاجر مقترحة */}
+      <StoreRail emoji="✨" title="متاجر مقترحة لك" href="/stores" items={topStores} />
 
-      {sections.map((section) => {
-        const meta = SECTION_META[section.key];
-        return (
-          <section key={section.key}>
-            <div className="mb-3">
-              <h2 className="text-lg font-bold text-neutral-900">{meta?.title ?? section.key}</h2>
-              {meta?.purpose && <p className="text-sm text-neutral-500">{meta.purpose}</p>}
-            </div>
-            {section.kind === "stores" ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {section.items.map((s) => (
-                  <StoreCard key={s.id} store={s} />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {section.items.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            )}
-          </section>
-        );
-      })}
+      {/* ⑥ الأكثر مبيعاً */}
+      <ProductRail emoji="🔥" title="الأكثر مبيعاً" href="/best-selling" items={bestSelling} />
 
-      {/* دعوة أصحاب المتاجر للتسجيل */}
+      {/* ⑦ وصل حديثاً */}
+      <ProductRail emoji="🆕" title="وصل حديثاً" href="/new-arrivals" items={newArrivals} />
+
+      {/* ⑧ قريب منك — GPS */}
+      <NearbyStores stores={nearby} govName={gov?.name} />
+
+      {/* ⑨ متاجر جديدة */}
+      <StoreRail emoji="🏪" title="متاجر جديدة في السوق" href="/new-stores" items={newStores} />
+
+      {/* ⑩ اكتشف اليوم — يتجدّد يوميّاً */}
+      <DiscoverToday items={today} href="/discover" />
+
+      {/* ⑪ افتح متجرك */}
       <Link
         href="/become-seller"
-        className="flex items-center gap-3 overflow-hidden rounded-3xl border border-gold-300 bg-gradient-to-l from-gold-50 to-sand-100 p-5 shadow-sm transition hover:border-gold-400"
+        className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-gradient-to-l from-brand-700 to-brand-900 p-5 text-white shadow-lg ring-1 ring-gold-500/20"
       >
-        <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-gold-500 text-white">
+        <span
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{ backgroundImage: "radial-gradient(120px 90px at 15% 30%, rgba(255,196,96,.35), transparent 70%)" }}
+          aria-hidden
+        />
+        <span className="relative grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-gold-500 text-brand-900">
           <Store className="h-6 w-6" />
         </span>
-        <span className="flex-1">
-          <span className="block font-bold text-neutral-900">هل لديك متجر؟ بِع في السوگ</span>
-          <span className="block text-sm text-neutral-600">سجّل متجرك وابدأ البيع لكل العراق — الدفع عند الاستلام.</span>
+        <span className="relative flex-1">
+          <span className="block font-extrabold">انضم إلى السوق الآن</span>
+          <span className="block text-sm text-white/70">سجّل متجرك ووسّع أعمالك بسهولة — الدفع عند الاستلام.</span>
         </span>
-        <ChevronLeft className="h-5 w-5 flex-shrink-0 text-gold-600" />
+        <ChevronLeft className="relative h-5 w-5 flex-shrink-0 text-gold-300" />
       </Link>
-    </div>
-  );
-}
-
-function StoreCard({
-  store,
-}: {
-  store: { slug: string; storeName: string; logoUrl: string | null; productCount: number };
-}) {
-  return (
-    <Link
-      href={`/store/${store.slug}`}
-      className="group flex flex-col items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
-    >
-      <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
-        {store.logoUrl ? (
-          <AppImage src={store.logoUrl} alt={store.storeName} className="h-full w-full object-cover" />
-        ) : (
-          <Store className="h-7 w-7 text-brand-600" />
-        )}
-      </span>
-      <span className="line-clamp-1 text-sm font-semibold text-neutral-900">{store.storeName}</span>
-      <span className="text-xs text-neutral-400">{store.productCount} منتج</span>
-    </Link>
-  );
-}
-
-function Feature({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur">
-      {icon}
-      {text}
-    </span>
-  );
-}
-
-function SectionHeader({ title, href }: { title: string; href?: string }) {
-  return (
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-lg font-bold text-neutral-900">{title}</h2>
-      {href && (
-        <Link href={href} className="flex items-center gap-0.5 text-sm text-brand-600 hover:text-brand-700">
-          الكل <ChevronLeft className="h-4 w-4" />
-        </Link>
-      )}
     </div>
   );
 }

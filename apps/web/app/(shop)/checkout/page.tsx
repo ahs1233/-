@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ShieldCheck, PackageCheck, HandCoins } from "lucide-react";
 import { Button, Card, CardBody } from "@al-souq/ui";
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
@@ -129,7 +130,20 @@ export default function CheckoutPage() {
 
   return (
     <div className="space-y-3 pb-44 md:pb-28">
-      <h1 className="text-xl font-bold">إتمام الطلب</h1>
+      <h1 className="text-xl font-extrabold text-brand-800">إتمام الطلب</h1>
+
+      {/* طمأنة الأمان — «أشعر بالأمان»: الدفع عند الاستلام بعد التفحّص */}
+      <div className="flex items-center gap-3 rounded-2xl border border-petrol/25 bg-petrol/5 p-3.5">
+        <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-petrol/15 text-petrol">
+          <ShieldCheck className="h-6 w-6" />
+        </span>
+        <div className="text-sm">
+          <p className="font-extrabold text-neutral-800">الدفع عند الاستلام</p>
+          <p className="mt-0.5 leading-relaxed text-neutral-600">
+            لن تُطالَب بالدفع الآن. تفحّص طلبك أوّلاً — ولا تدفع إلا بعد أن يصلك ويرضيك.
+          </p>
+        </div>
+      </div>
 
       {/* وقت التوصيل */}
       <Card>
@@ -354,33 +368,43 @@ export default function CheckoutPage() {
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {/* الشريط السفلي الثابت — يُرفع فوق شريط التنقّل السفلي على الجوال */}
-      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-neutral-200 bg-white p-3 md:bottom-0">
-        <div className="container-app flex items-center gap-3">
-          <div className="shrink-0">
-            <span className="text-xs text-neutral-500">الإجمالي</span>
-            <div className="font-bold text-brand-600 nums">{formatIQD(total)}</div>
+      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-sand-200 bg-white/95 p-3 backdrop-blur-md md:bottom-0">
+        <div className="container-app">
+          <div className="mb-2 flex items-center justify-center gap-4 text-[11px] font-medium text-neutral-500">
+            <span className="inline-flex items-center gap-1 text-petrol">
+              <HandCoins className="h-3.5 w-3.5" /> الدفع عند الاستلام
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <PackageCheck className="h-3.5 w-3.5 text-brand-600" /> تفحّص قبل الدفع
+            </span>
           </div>
-          <Button
-            className="flex-1"
-            size="lg"
-            loading={place.isPending}
-            disabled={!effectiveAddress || belowMin}
-            onClick={() => {
-              setError(null);
-              place.mutate({
-                addressId: effectiveAddress,
-                items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
-                customerNote: composedNote(),
-                couponCode: applied?.code,
-              });
-            }}
-          >
-            {!effectiveAddress
-              ? "أضف عنواناً أولاً"
-              : belowMin
-                ? `الحدّ الأدنى ${formatIQD(minOrder)}`
-                : "إتمام الطلب"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="shrink-0">
+              <span className="text-xs text-neutral-500">الإجمالي</span>
+              <div className="text-lg font-extrabold text-brand-800 nums">{formatIQD(total)}</div>
+            </div>
+            <Button
+              className="flex-1"
+              size="lg"
+              loading={place.isPending}
+              disabled={!effectiveAddress || belowMin}
+              onClick={() => {
+                setError(null);
+                place.mutate({
+                  addressId: effectiveAddress,
+                  items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
+                  customerNote: composedNote(),
+                  couponCode: applied?.code,
+                });
+              }}
+            >
+              {!effectiveAddress
+                ? "أضف عنواناً أولاً"
+                : belowMin
+                  ? `الحدّ الأدنى ${formatIQD(minOrder)}`
+                  : "تأكيد الطلب"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -389,7 +413,7 @@ export default function CheckoutPage() {
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div className={`flex justify-between ${bold ? "font-bold" : "text-sm"}`}>
+    <div className={`flex justify-between ${bold ? "pt-1 text-base font-extrabold text-brand-800" : "text-sm"}`}>
       <span className={bold ? "" : "text-neutral-500"}>{label}</span>
       <span className="nums">{value}</span>
     </div>

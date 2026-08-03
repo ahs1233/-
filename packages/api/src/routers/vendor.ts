@@ -12,6 +12,8 @@ import {
   productCreateSchema,
   productUpdateSchema,
   orderStatusUpdateSchema,
+  vendorSectionUpsertSchema,
+  vendorSectionReorderSchema,
 } from "@al-souq/validators";
 import { signAccessToken, authEnv } from "@al-souq/auth";
 import { getStorage } from "@al-souq/storage";
@@ -44,6 +46,13 @@ function assertApproved(status: string) {
   if (status !== "APPROVED") {
     throw new TRPCError({ code: "FORBIDDEN", message: "حسابك قيد المراجعة — لا يمكن النشر بعد" });
   }
+}
+
+/** يتحقّق أنّ القسم (إن مُرّر) يملكه هذا البائع — حماية IDOR. */
+async function assertSectionOwned(prisma: PrismaClient, vendorId: string, sectionId: string | null | undefined) {
+  if (!sectionId) return;
+  const sec = await prisma.vendorSection.findFirst({ where: { id: sectionId, vendorId }, select: { id: true } });
+  if (!sec) throw new TRPCError({ code: "BAD_REQUEST", message: "القسم غير موجود في متجرك" });
 }
 
 export const vendorRouter = router({
@@ -93,6 +102,8 @@ export const vendorRouter = router({
       status: vendor.status,
       rejectionNote: vendor.rejectionNote,
       governorate: vendor.governorate,
+      latitude: vendor.latitude,
+      longitude: vendor.longitude,
       ratingAvg: Number(vendor.ratingAvg),
       ratingCount: vendor.ratingCount,
       payoutDetails: vendor.payoutDetails,
@@ -114,6 +125,8 @@ export const vendorRouter = router({
         logoUrl: input.logoUrl || undefined,
         bannerUrl: input.bannerUrl || undefined,
         governorateId: input.governorateId,
+        latitude: input.latitude === undefined ? undefined : input.latitude,
+        longitude: input.longitude === undefined ? undefined : input.longitude,
         ...(payoutDetails ? { payoutDetails } : {}),
       },
     });
@@ -121,6 +134,56 @@ export const vendorRouter = router({
   }),
 
   // ── المنتجات ──
+  // ── الأقسام الداخليّة للمتجر (رفوف/خدمات) ──
+  sections: vendorProcedure.query(async ({ ctx }) => {
+    const vendor = await requireVendor(ctx.prisma, ctx.user.id);
+    const sections = await ctx.prisma.vendorSection.findMany({
+      where: { vendorId: vendor.id },
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, nameAr: true, slug: true, icon: true, sortOrder: true, _count: { select: { products: true } } },
+    });
+    return sections.map((s) => ({ id: s.id, nameAr: s.nameAr, slug: s.slug, icon: s.icon, sortOrder: s.sortOrder, productCount: s._count.products }));
+  }),
+
+  sectionUpsert: vendorProcedure.input(vendorSectionUpsertSchema).mutation(async ({ ctx, input }) => {
+    const vendor = await requireVendor(ctx.prisma, ctx.user.id);
+    const slug = `${slugify(input.nameAr)}-${Math.random().toString(36).slice(2, 6)}`;
+    if (input.id) {
+      const owned = await ctx.prisma.vendorSection.findFirst({ where: { id: input.id, vendorId: vendor.id }, select: { id: true } });
+      if (!owned) throw new TRPCError({ code: "NOT_FOUND", message: "القسم غير موجود" });
+      await ctx.prisma.vendorSection.update({ where: { id: input.id }, data: { nameAr: input.nameAr, icon: input.icon ?? null } });
+      return { id: input.id };
+    }
+    // القسم الجديد يُضاف في نهاية الترتيب.
+    const count = await ctx.prisma.vendorSection.count({ where: { vendorId: vendor.id } });
+    const created = await ctx.prisma.vendorSection.create({
+      data: { vendorId: vendor.id, nameAr: input.nameAr, slug, icon: input.icon ?? null, sortOrder: count },
+    });
+    return { id: created.id };
+  }),
+
+  sectionDelete: vendorProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+    const vendor = await requireVendor(ctx.prisma, ctx.user.id);
+    const owned = await ctx.prisma.vendorSection.findFirst({ where: { id: input.id, vendorId: vendor.id }, select: { id: true } });
+    if (!owned) throw new TRPCError({ code: "NOT_FOUND", message: "القسم غير موجود" });
+    // منتجات القسم تبقى وتُفرَّغ من القسم تلقائياً (onDelete: SetNull).
+    await ctx.prisma.vendorSection.delete({ where: { id: input.id } });
+    return { ok: true };
+  }),
+
+  sectionReorder: vendorProcedure.input(vendorSectionReorderSchema).mutation(async ({ ctx, input }) => {
+    const vendor = await requireVendor(ctx.prisma, ctx.user.id);
+    const owned = await ctx.prisma.vendorSection.findMany({ where: { vendorId: vendor.id }, select: { id: true } });
+    const ownedIds = new Set(owned.map((s) => s.id));
+    if (!input.orderedIds.every((id) => ownedIds.has(id))) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "قسمٌ لا يخصّ متجرك" });
+    }
+    await ctx.prisma.$transaction(
+      input.orderedIds.map((id, i) => ctx.prisma.vendorSection.update({ where: { id }, data: { sortOrder: i } })),
+    );
+    return { ok: true };
+  }),
+
   products: vendorProcedure
     .input(z.object({ q: z.string().optional(), status: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
@@ -163,7 +226,9 @@ export const vendorRouter = router({
       title: product.title,
       description: product.description,
       categoryId: product.categoryId,
+      sectionId: product.sectionId,
       basePrice: Number(product.basePrice),
+      compareAtPrice: product.compareAtPrice != null ? Number(product.compareAtPrice) : null,
       status: product.status,
       images: product.images.map((i) => i.url),
       variants: product.variants.map((v) => ({
@@ -181,16 +246,19 @@ export const vendorRouter = router({
     const vendor = await requireVendor(ctx.prisma, ctx.user.id);
     assertApproved(vendor.status);
     assertImagesStorable(input.images);
+    await assertSectionOwned(ctx.prisma, vendor.id, input.sectionId);
     const slug = `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`;
     const product = await ctx.prisma.product.create({
       data: {
         vendorId: vendor.id,
         categoryId: input.categoryId,
+        sectionId: input.sectionId ?? null,
         title: input.title,
         titleNorm: normalizeArabic(input.title),
         slug,
         description: input.description,
         basePrice: new Prisma.Decimal(input.basePrice),
+        compareAtPrice: input.compareAtPrice != null ? new Prisma.Decimal(input.compareAtPrice) : null,
         status: "DRAFT",
         images: { create: input.images.map((url, i) => ({ url, sortOrder: i })) },
         variants: {
@@ -211,6 +279,7 @@ export const vendorRouter = router({
     const owned = await ctx.prisma.product.findFirst({ where: { id: input.id, vendorId: vendor.id } });
     if (!owned) throw new TRPCError({ code: "NOT_FOUND", message: "المنتج غير موجود" });
     assertImagesStorable(input.images);
+    await assertSectionOwned(ctx.prisma, vendor.id, input.sectionId);
 
     await ctx.prisma.$transaction(async (tx) => {
       await tx.product.update({
@@ -220,7 +289,15 @@ export const vendorRouter = router({
           titleNorm: input.title ? normalizeArabic(input.title) : undefined,
           description: input.description,
           categoryId: input.categoryId,
+          // undefined = لا تغيير، null = إزالة من القسم.
+          sectionId: input.sectionId === undefined ? undefined : input.sectionId,
           basePrice: input.basePrice !== undefined ? new Prisma.Decimal(input.basePrice) : undefined,
+          compareAtPrice:
+            input.compareAtPrice === undefined
+              ? undefined
+              : input.compareAtPrice === null
+                ? null
+                : new Prisma.Decimal(input.compareAtPrice),
           // أي تعديل جوهري يعيد المنتج للمراجعة
           status: owned.status === "ACTIVE" ? "PENDING_REVIEW" : owned.status,
         },

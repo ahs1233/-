@@ -5,11 +5,13 @@ import { Card, CardBody, OrderStatusBadge, ORDER_STATUS_LABEL } from "@al-souq/u
 import { formatIQD } from "@al-souq/utils";
 import { trpc } from "@/src/trpc/react";
 import { QueryError } from "@/src/components/query-error";
+import { useAdminGov } from "@/src/components/admin/admin-gov";
 
 const ORDER_STATES = ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "RETURNED"] as const;
 
 export default function AdminDashboard() {
-  const kpi = trpc.admin.dashboard.useQuery(undefined, { retry: false, refetchInterval: 60_000 });
+  const { govId } = useAdminGov();
+  const kpi = trpc.admin.dashboard.useQuery({ governorateId: govId ?? undefined }, { retry: false, refetchInterval: 60_000 });
 
   if (kpi.isLoading) return <DashboardSkeleton />;
   if (kpi.isError || !kpi.data) return <QueryError message={kpi.error?.message} onRetry={() => kpi.refetch()} />;
@@ -60,6 +62,9 @@ export default function AdminDashboard() {
         <KpiCard label="إيراد العمولات (كلّي)" value={formatIQD(d.commissionRevenue)} />
         <KpiCard label="المستخدمون" value={String(d.users)} sub={`${d.realizedOrders} طلب مُنجز إجمالاً`} />
       </div>
+
+      {/* صحّة الكتالوج — بناءً على أحدث البيانات (توثيق/عروض/مخزون/موقع) */}
+      <CatalogHealth c={d.catalog} />
 
       {/* رسم المبيعات — آخر ١٤ يوماً */}
       <SalesChart series={d.salesSeries} />
@@ -122,6 +127,46 @@ export default function AdminDashboard() {
         </CardBody>
       </Card>
     </div>
+  );
+}
+
+/** صحّة الكتالوج — مؤشّراتٌ مشتقّة من أحدث البيانات: التوثيق، العروض، المخزون، الموقع. */
+function CatalogHealth({
+  c,
+}: {
+  c: {
+    storesApproved: number;
+    storesVerified: number;
+    storesLocated: number;
+    newStores7: number;
+    offersActive: number;
+    outOfStock: number;
+    activeProducts: number;
+  };
+}) {
+  const cells = [
+    { label: "متجر معتمد", value: c.storesApproved, sub: `${c.storesVerified} موثّق ✓`, href: "/admin/vendors" },
+    { label: "منتج نشط", value: c.activeProducts, sub: "معروضٌ للبيع", href: "/admin/products" },
+    { label: "عرض فعّال", value: c.offersActive, sub: "منتجٌ عليه خصم", href: "/admin/products", accent: "gold" as const },
+    { label: "نافد المخزون", value: c.outOfStock, sub: "يحتاج متابعة", href: "/admin/products", accent: c.outOfStock > 0 ? ("danger" as const) : undefined },
+    { label: "متجر جديد", value: c.newStores7, sub: "آخر ٧ أيّام", href: "/admin/vendors" },
+    { label: "على الخريطة", value: c.storesLocated, sub: "له موقعٌ محدّد", href: "/admin/vendors" },
+  ];
+  return (
+    <Card>
+      <CardBody>
+        <h2 className="mb-3 font-bold">صحّة الكتالوج</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {cells.map((x) => (
+            <Link key={x.label} href={x.href} className="rounded-xl border border-neutral-100 bg-neutral-50/60 p-3 transition hover:border-gold-300 hover:bg-gold-50/40">
+              <p className={`text-2xl font-extrabold nums ${x.accent === "danger" ? "text-danger" : x.accent === "gold" ? "text-gold-600" : "text-brand-700"}`}>{x.value}</p>
+              <p className="mt-0.5 text-xs font-semibold text-neutral-700">{x.label}</p>
+              <p className="text-[11px] text-neutral-400">{x.sub}</p>
+            </Link>
+          ))}
+        </div>
+      </CardBody>
+    </Card>
   );
 }
 

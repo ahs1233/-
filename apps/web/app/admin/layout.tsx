@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut, ArrowRight } from "lucide-react";
 import { ar } from "@al-souq/i18n";
 import { trpc } from "@/src/trpc/react";
+import { AdminGovProvider, AdminGovSelect } from "@/src/components/admin/admin-gov";
 
 // أقسام لوحة الإدارة — تُعرض في شريط علوي عرضي، وتُقيَّد حسب صلاحية الموظف.
 const NAV: { href: string; label: string; perm: string }[] = [
@@ -19,6 +20,7 @@ const NAV: { href: string; label: string; perm: string }[] = [
   { href: "/admin/users", label: "المستخدمون", perm: "users" },
   { href: "/admin/staff", label: "الموظفون", perm: "staff" },
   { href: "/admin/settings", label: "الإعدادات", perm: "settings" },
+  { href: "/admin/appearance", label: "المظهر", perm: "settings" },
   { href: "/admin/audit", label: "التدقيق", perm: "audit" },
 ];
 
@@ -45,6 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isDetail = !NAV.some((i) => i.href === pathname);
 
   return (
+    <AdminGovProvider>
     <div className="flex min-h-screen flex-col bg-neutral-50">
       {/* شريط علوي: العلامة + العنوان + الخروج */}
       <header className="sticky top-0 z-30 bg-neutral-900 text-white">
@@ -65,10 +68,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {me.data.staffTitle}
             </span>
           )}
+          {/* فلتر المحافظة العامّ — يخصّص كلّ اللوحة لمحافظةٍ أو لكلّ العراق */}
+          <div className="ms-auto">
+            {me.data && <AdminGovSelect scopeName={me.data.scopeGovernorateId ? "محافظتي" : null} />}
+          </div>
           <button
             onClick={() => logout.mutate({})}
             aria-label="تسجيل الخروج"
-            className="ms-auto flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-neutral-300 hover:bg-white/10 hover:text-white"
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-neutral-300 hover:bg-white/10 hover:text-white"
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">{ar.auth.logout}</span>
@@ -97,5 +104,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <main className="container-app flex-1 py-4">{children}</main>
     </div>
+    </AdminGovProvider>
   );
 }

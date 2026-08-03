@@ -52,10 +52,14 @@ export interface DiscoveryProductCard {
   title: string;
   slug: string;
   price: number;
+  compareAtPrice: number | null;
   ratingAvg: number;
   ratingCount: number;
+  soldCount: number; // عدد عمليّات الشراء — عنصر ثقة في «الأكثر مبيعاً»
+  available: number; // المخزون المتاح — لشارة «متوفّر/غير متوفّر»
   image: string | null;
-  vendor: { storeName: string; slug: string };
+  category: string; // اسم الفئة العليا — لشرائح التصفية في صفحات «عرض الكل»
+  vendor: { storeName: string; slug: string; governorate: string | null };
   reasons: ReasonCode[];
 }
 
@@ -64,6 +68,8 @@ export interface DiscoveryStoreCard {
   storeName: string;
   slug: string;
   logoUrl: string | null;
+  bannerUrl: string | null;
+  verified: boolean;
   productCount: number;
   ratingAvg: number;
   ratingCount: number;
@@ -93,9 +99,13 @@ async function distinctBuyerSales7(prisma: PrismaClient): Promise<Map<string, nu
   return new Map(rows.map((r) => [r.productId, Number(r.buyers)]));
 }
 
-async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<Candidate[]> {
+async function loadPool(prisma: PrismaClient, governorateId?: string, channel?: string, categoryIds?: string[]): Promise<Candidate[]> {
   const products = await prisma.product.findMany({
-    where: { status: "ACTIVE", vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}) } },
+    where: {
+      status: "ACTIVE",
+      ...(categoryIds && categoryIds.length ? { categoryId: { in: categoryIds } } : {}),
+      vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) },
+    },
     take: POOL_SIZE,
     orderBy: { createdAt: "desc" },
     select: {
@@ -103,6 +113,7 @@ async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<C
       title: true,
       slug: true,
       basePrice: true,
+      compareAtPrice: true,
       ratingAvg: true,
       ratingCount: true,
       soldCount: true,
@@ -111,7 +122,10 @@ async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<C
       vendorId: true,
       images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
       variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
-      vendor: { select: { storeName: true, slug: true, ratingAvg: true, ratingCount: true } },
+      category: { select: { nameAr: true, parent: { select: { nameAr: true } } } },
+      vendor: {
+        select: { storeName: true, slug: true, ratingAvg: true, ratingCount: true, governorate: { select: { nameAr: true } } },
+      },
     },
   });
   const sales7 = await distinctBuyerSales7(prisma);
@@ -136,10 +150,14 @@ async function loadPool(prisma: PrismaClient, governorateId?: string): Promise<C
         title: p.title,
         slug: p.slug,
         price: Number(p.basePrice),
+        compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
+        soldCount: p.soldCount,
+        available,
         image: p.images[0]?.url ?? null,
-        vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug },
+        category: p.category.parent?.nameAr ?? p.category.nameAr,
+        vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },
       },
     };
   });
@@ -179,11 +197,186 @@ function offerSourceFromPool(pool: Candidate[], trust: TrustProvider): Candidate
   };
 }
 
-async function newStores(prisma: PrismaClient, governorateId?: string): Promise<DiscoveryStoreCard[]> {
+/** كلّ متاجر السوق (محافظة + قناة [+ أقسام السوق]) — المعتمدة التي لديها منتجٌ نشط.
+ *  هذه هي «متاجر السوق» الحقيقيّة (لا «الجديدة» فقط). categoryIds تحصر متاجر أسواق الفئات
+ *  (كالمطاعم) بالبائعين الذين لديهم منتجٌ ضمن أقسام السوق — «متاجره الخاصّة تلقائياً». */
+export async function getMarketStores(
+  prisma: PrismaClient,
+  governorateId?: string,
+  channel?: string,
+  categoryIds?: string[],
+  limit = 24,
+): Promise<DiscoveryStoreCard[]> {
+  const productWhere = { status: "ACTIVE" as const, ...(categoryIds && categoryIds.length ? { categoryId: { in: categoryIds } } : {}) };
   const vendors = await prisma.vendorProfile.findMany({
     where: {
       status: "APPROVED",
       ...(governorateId ? { governorateId } : {}),
+      ...(channel ? { channel } : {}),
+      products: { some: productWhere },
+    },
+    orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }, { createdAt: "desc" }],
+    take: limit,
+    select: {
+      id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true, ratingAvg: true, ratingCount: true,
+      _count: { select: { products: { where: productWhere } } },
+    },
+  });
+  return vendors.map((v) => ({
+    id: v.id,
+    storeName: v.storeName,
+    slug: v.slug,
+    logoUrl: v.logoUrl,
+    bannerUrl: v.bannerUrl,
+    verified: v.verified,
+    productCount: v._count.products,
+    ratingAvg: Number(v.ratingAvg),
+    ratingCount: v.ratingCount,
+  }));
+}
+
+// ─── إحصاءات المدينة + عدّاد كلّ سوق (لبطل الرئيسية والدليل المدمج) ───
+
+export interface CityStats {
+  openStores: number;   // متجرٌ مفتوح الآن (معتمد) — يطابق صفحة المتاجر
+  newStores: number;    // متجرٌ افتتح — يطابق «المتاجر الجديدة» (١٤ يوم + ≥٥ منتجات)
+  newProducts: number;  // منتجٌ وصل — يطابق «وصل حديثاً» (نافذة ٧ أيام)
+  offers: number;       // عرضٌ — يطابق «العروض» (منتجاتٌ لها خصم)
+}
+
+/** أرقامٌ حيّةٌ تجعل المدينة تنبض — كلّ رقمٍ يطابق تماماً عدد عناصر صفحته (بوّابة الاتساق). */
+export async function getCityStats(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<CityStats> {
+  const govWhere = { ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) };
+  const now = Date.now();
+  const d7 = new Date(now - W.newWindowDays * 86_400_000);
+  const d14 = new Date(now - W.newStore.windowDays * 86_400_000);
+  const [openStores, newProducts, offers, recentVendors] = await Promise.all([
+    prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere } }),
+    prisma.product.count({ where: { status: "ACTIVE", createdAt: { gte: d7 }, vendor: { status: "APPROVED", ...govWhere } } }),
+    prisma.product.count({ where: { status: "ACTIVE", compareAtPrice: { not: null }, vendor: { status: "APPROVED", ...govWhere } } }),
+    prisma.vendorProfile.findMany({
+      where: { status: "APPROVED", ...govWhere, createdAt: { gte: d14 } },
+      select: { _count: { select: { products: { where: { status: "ACTIVE" } } } } },
+    }),
+  ]);
+  const newStores = recentVendors.filter((v) => v._count.products >= W.newStore.minProducts).length;
+  return { openStores, newStores, newProducts, offers };
+}
+
+export interface MarketCountSpec {
+  id: string;
+  channel?: string;
+  categoryIds?: string[];
+}
+
+/** عدد المتاجر المعتمدة داخل نطاق كلّ سوق (قناة أو أقسام) — لعرض «٤٢ متجر» بجانب كلّ سوق. */
+export async function getMarketCounts(
+  prisma: PrismaClient,
+  governorateId: string | undefined,
+  specs: MarketCountSpec[],
+): Promise<Record<string, number>> {
+  const entries = await Promise.all(
+    specs.map(async (s) => {
+      const hasCats = !!s.categoryIds && s.categoryIds.length > 0;
+      const count = await prisma.vendorProfile.count({
+        where: {
+          status: "APPROVED",
+          ...(governorateId ? { governorateId } : {}),
+          ...(s.channel ? { channel: s.channel } : {}),
+          ...(hasCats ? { products: { some: { status: "ACTIVE", categoryId: { in: s.categoryIds } } } } : {}),
+        },
+      });
+      return [s.id, count] as const;
+    }),
+  );
+  return Object.fromEntries(entries);
+}
+
+export interface NearbyStore extends DiscoveryStoreCard {
+  latitude: number;
+  longitude: number;
+  governorate: string | null;
+}
+
+/** متاجر لها إحداثيّات على الخريطة — لصفحة «قريب منك» (الترتيب بالمسافة يتمّ في المتصفّح). */
+export async function getNearbyStores(prisma: PrismaClient, governorateId?: string, limit = 80): Promise<NearbyStore[]> {
+  const vendors = await prisma.vendorProfile.findMany({
+    where: {
+      status: "APPROVED",
+      ...(governorateId ? { governorateId } : {}),
+      latitude: { not: null },
+      longitude: { not: null },
+    },
+    take: limit,
+    orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }],
+    select: {
+      id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true, ratingAvg: true, ratingCount: true,
+      latitude: true, longitude: true,
+      governorate: { select: { nameAr: true } },
+      _count: { select: { products: { where: { status: "ACTIVE" } } } },
+    },
+  });
+  return vendors.map((v) => ({
+    id: v.id,
+    storeName: v.storeName,
+    slug: v.slug,
+    logoUrl: v.logoUrl,
+    bannerUrl: v.bannerUrl,
+    verified: v.verified,
+    productCount: v._count.products,
+    ratingAvg: Number(v.ratingAvg),
+    ratingCount: v.ratingCount,
+    latitude: v.latitude!,
+    longitude: v.longitude!,
+    governorate: v.governorate?.nameAr ?? null,
+  }));
+}
+
+/** منتجات العروض — التي لها «سعر قبل الخصم» أعلى من السعر الحاليّ، مرتّبةً بأكبر خصم. */
+export async function getOffers(prisma: PrismaClient, governorateId?: string, limit = 24): Promise<DiscoveryProductCard[]> {
+  const products = await prisma.product.findMany({
+    where: {
+      status: "ACTIVE",
+      compareAtPrice: { not: null },
+      vendor: { status: "APPROVED", ...(governorateId ? { governorateId } : {}) },
+    },
+    take: 120,
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true, title: true, slug: true, basePrice: true, compareAtPrice: true, ratingAvg: true, ratingCount: true, soldCount: true,
+      images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
+      variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
+      category: { select: { nameAr: true, parent: { select: { nameAr: true } } } },
+      vendor: { select: { storeName: true, slug: true, governorate: { select: { nameAr: true } } } },
+    },
+  });
+  return products
+    .map((p) => ({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      price: Number(p.basePrice),
+      compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
+      ratingAvg: Number(p.ratingAvg),
+      ratingCount: p.ratingCount,
+      soldCount: p.soldCount,
+      available: p.variants.reduce((s, v) => s + Math.max(0, v.stock - v.reservedStock), 0),
+      image: p.images[0]?.url ?? null,
+      category: p.category.parent?.nameAr ?? p.category.nameAr,
+      vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug, governorate: p.vendor.governorate?.nameAr ?? null },
+      reasons: [] as ReasonCode[],
+    }))
+    .filter((p) => p.compareAtPrice != null && p.compareAtPrice > p.price)
+    .sort((a, b) => (1 - a.price / a.compareAtPrice!) - (1 - b.price / b.compareAtPrice!) > 0 ? -1 : 1)
+    .slice(0, limit);
+}
+
+async function newStores(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<DiscoveryStoreCard[]> {
+  const vendors = await prisma.vendorProfile.findMany({
+    where: {
+      status: "APPROVED",
+      ...(governorateId ? { governorateId } : {}),
+      ...(channel ? { channel } : {}),
       createdAt: { gte: new Date(Date.now() - W.newStore.windowDays * 86_400_000) },
     },
     orderBy: { createdAt: "desc" },
@@ -193,6 +386,8 @@ async function newStores(prisma: PrismaClient, governorateId?: string): Promise<
       storeName: true,
       slug: true,
       logoUrl: true,
+      bannerUrl: true,
+      verified: true,
       ratingAvg: true,
       ratingCount: true,
       _count: { select: { products: { where: { status: "ACTIVE" } } } },
@@ -205,6 +400,8 @@ async function newStores(prisma: PrismaClient, governorateId?: string): Promise<
       storeName: v.storeName,
       slug: v.slug,
       logoUrl: v.logoUrl,
+      bannerUrl: v.bannerUrl,
+      verified: v.verified,
       productCount: v._count.products,
       ratingAvg: Number(v.ratingAvg),
       ratingCount: v.ratingCount,
@@ -212,11 +409,12 @@ async function newStores(prisma: PrismaClient, governorateId?: string): Promise<
 }
 
 /** يبني كل أقسام الصفحة الرئيسية من مجموعة مرشّحين واحدة (استعلام أدنى). */
-export async function getHomeSections(prisma: PrismaClient, governorateId?: string): Promise<DiscoverySection[]> {
-  let pool = await loadPool(prisma, governorateId);
-  // احتياط كل-العراق عند شحّ عرض المحافظة (يحافظ على العزل أولاً).
-  if (pool.length < MIN_POOL_BEFORE_FALLBACK && governorateId) {
-    pool = await loadPool(prisma, undefined);
+export async function getHomeSections(prisma: PrismaClient, governorateId?: string, channel?: string, categoryIds?: string[], strict = false): Promise<DiscoverySection[]> {
+  let pool = await loadPool(prisma, governorateId, channel, categoryIds);
+  // احتياط كل-العراق عند شحّ عرض المحافظة — إلا في وضع «صارم» (صفحة السوق): منتجات
+  // السوق تخصّ متاجر المحافظة حصراً، فلا نُظهر منتجات محافظاتٍ أخرى.
+  if (!strict && pool.length < MIN_POOL_BEFORE_FALLBACK && governorateId) {
+    pool = await loadPool(prisma, undefined, channel, categoryIds);
   }
   const now = new Date();
   const inStock = pool.filter((p) => p.available > 0);
@@ -272,8 +470,191 @@ export async function getHomeSections(prisma: PrismaClient, governorateId?: stri
   );
 
   // متاجر جديدة
-  const stores = await newStores(prisma, governorateId);
+  const stores = await newStores(prisma, governorateId, channel);
   if (stores.length) sections.push({ key: "new_stores", kind: "stores", items: stores });
 
   return sections;
+}
+
+// ─── نبض السوق + إحصاءات + جهة موصى بها (بيانات حقيقية، لا أرقام ملفّقة) ───
+
+export interface HomeStats {
+  openStores: number;
+  newStoresToday: number;
+  newOffersToday: number;
+}
+
+export interface FeaturedEntity {
+  storeName: string;
+  slug: string;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+  description: string | null;
+  governorate: string | null;
+  category: string | null;
+  ratingAvg: number;
+  ratingCount: number;
+  productCount: number;
+  memberSinceYear: number;
+}
+
+export type PulseKind = "live" | "trend" | "new_store" | "offer" | "milestone";
+export interface PulseEvent {
+  id: string;
+  kind: PulseKind;
+  text: string;
+  when: string;
+}
+
+export interface HomeExtras {
+  stats: HomeStats;
+  featured: FeaturedEntity | null;
+  pulse: PulseEvent[];
+}
+
+function arRelative(from: Date, now = Date.now()): string {
+  const mins = Math.max(0, Math.round((now - from.getTime()) / 60000));
+  if (mins < 1) return "الآن";
+  if (mins < 60) return `قبل ${mins} د`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `قبل ${hours} س`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return "أمس";
+  return `قبل ${days} يوم`;
+}
+
+/** إضافات الرئيسية: إحصاءات حيّة + جهة موصى بها + نبض السوق — كلّها مشتقّة من DB. */
+export async function getHomeExtras(prisma: PrismaClient, governorateId?: string, channel?: string): Promise<HomeExtras> {
+  // العزل بالمحافظة + القناة (واقعيّ/إلكترونيّ) — كي يعكس النبض بائعي هذا العالم فقط.
+  const govWhere = { ...(governorateId ? { governorateId } : {}), ...(channel ? { channel } : {}) };
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const weekAgo = new Date(Date.now() - 7 * 86_400_000);
+
+  const [openStores, newStoresToday, newOffersToday, topVendor, newestVendor, newestProduct, ordersThisWeek, topCatGroup] =
+    await Promise.all([
+      prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere } }),
+      prisma.vendorProfile.count({ where: { status: "APPROVED", ...govWhere, createdAt: { gte: startOfDay } } }),
+      prisma.product.count({
+        where: { status: "ACTIVE", createdAt: { gte: startOfDay }, vendor: { status: "APPROVED", ...govWhere } },
+      }),
+      prisma.vendorProfile.findFirst({
+        where: { status: "APPROVED", ...govWhere, products: { some: { status: "ACTIVE" } } },
+        orderBy: [{ ratingAvg: "desc" }, { ratingCount: "desc" }],
+        select: {
+          storeName: true,
+          slug: true,
+          logoUrl: true,
+          bannerUrl: true,
+          description: true,
+          ratingAvg: true,
+          ratingCount: true,
+          createdAt: true,
+          governorate: { select: { nameAr: true } },
+          products: {
+            where: { status: "ACTIVE" },
+            take: 1,
+            orderBy: { createdAt: "desc" },
+            select: { category: { select: { nameAr: true } } },
+          },
+          _count: { select: { products: { where: { status: "ACTIVE" } } } },
+        },
+      }),
+      prisma.vendorProfile.findFirst({
+        where: { status: "APPROVED", ...govWhere },
+        orderBy: { createdAt: "desc" },
+        select: { storeName: true, createdAt: true },
+      }),
+      prisma.product.findFirst({
+        where: { status: "ACTIVE", vendor: { status: "APPROVED", ...govWhere } },
+        orderBy: { createdAt: "desc" },
+        select: { title: true, createdAt: true, vendor: { select: { storeName: true } } },
+      }),
+      prisma.order.count({ where: { placedAt: { gte: weekAgo } } }),
+      prisma.product.groupBy({
+        by: ["categoryId"],
+        where: { status: "ACTIVE", vendor: { status: "APPROVED", ...govWhere } },
+        _count: { categoryId: true },
+        orderBy: { _count: { categoryId: "desc" } },
+        take: 1,
+      }),
+    ]);
+
+  const topCatName =
+    topCatGroup[0]?.categoryId != null
+      ? (await prisma.category.findUnique({ where: { id: topCatGroup[0].categoryId }, select: { nameAr: true } }))?.nameAr
+      : undefined;
+
+  const featured: FeaturedEntity | null = topVendor
+    ? {
+        storeName: topVendor.storeName,
+        slug: topVendor.slug,
+        logoUrl: topVendor.logoUrl,
+        bannerUrl: topVendor.bannerUrl,
+        description: topVendor.description,
+        governorate: topVendor.governorate?.nameAr ?? null,
+        category: topVendor.products[0]?.category?.nameAr ?? null,
+        ratingAvg: Number(topVendor.ratingAvg),
+        ratingCount: topVendor.ratingCount,
+        productCount: topVendor._count.products,
+        memberSinceYear: topVendor.createdAt.getFullYear(),
+      }
+    : null;
+
+  // نبض السوق — حياةٌ لا منتجات: افتتاحٌ، توثيق، وصول بضاعة، رواج، نشاط.
+  const pulse: PulseEvent[] = [];
+  if (newestVendor) {
+    pulse.push({
+      id: "new_store",
+      kind: "new_store",
+      text: `افتتح «${newestVendor.storeName}» أبوابه في السوق`,
+      when: arRelative(newestVendor.createdAt),
+    });
+  }
+  if (topVendor && topVendor.ratingCount > 0) {
+    pulse.push({
+      id: "milestone",
+      kind: "milestone",
+      text: `متجر «${topVendor.storeName}» موثّقٌ وبين الأعلى تقييماً`,
+      when: "هذا الأسبوع",
+    });
+  }
+  if (newestProduct) {
+    pulse.push({
+      id: "new_product",
+      kind: "live",
+      text: `وصلت بضاعةٌ جديدة: ${newestProduct.title} في ${newestProduct.vendor.storeName}`,
+      when: arRelative(newestProduct.createdAt),
+    });
+  }
+  if (topCatName) {
+    pulse.push({
+      id: "rawaj",
+      kind: "trend",
+      text: `رواجٌ على ${topCatName} اليوم`,
+      when: "الآن",
+    });
+  }
+  if (newOffersToday > 0) {
+    pulse.push({
+      id: "offers_today",
+      kind: "offer",
+      text: `${newOffersToday} عرضاً جديداً في أسواق ${topVendor?.governorate?.nameAr ?? "العراق"}`,
+      when: "اليوم",
+    });
+  }
+  if (ordersThisWeek > 0) {
+    pulse.push({
+      id: "orders_week",
+      kind: "trend",
+      text: `${ordersThisWeek} طلباً هذا الأسبوع${governorateId ? " في محافظتك" : ""}`,
+      when: "هذا الأسبوع",
+    });
+  }
+
+  return {
+    stats: { openStores, newStoresToday, newOffersToday },
+    featured,
+    pulse,
+  };
 }

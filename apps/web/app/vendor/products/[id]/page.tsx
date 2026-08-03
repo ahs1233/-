@@ -10,6 +10,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const router = useRouter();
   const product = trpc.vendor.productById.useQuery({ id: params.id }, { retry: false });
   const categories = trpc.catalog.categories.useQuery();
+  const sections = trpc.vendor.sections.useQuery();
   const utils = trpc.useUtils();
 
   const update = trpc.vendor.productUpdate.useMutation({ onSuccess: refresh });
@@ -25,7 +26,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [sectionId, setSectionId] = useState("");
   const [basePrice, setBasePrice] = useState("");
+  const [compareAtPrice, setCompareAtPrice] = useState("");
   const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
@@ -33,7 +36,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setTitle(product.data.title);
       setDescription(product.data.description ?? "");
       setCategoryId(product.data.categoryId);
+      setSectionId(product.data.sectionId ?? "");
       setBasePrice(String(product.data.basePrice));
+      setCompareAtPrice(product.data.compareAtPrice != null ? String(product.data.compareAtPrice) : "");
       setImages(product.data.images);
     }
   }, [product.data]);
@@ -72,12 +77,28 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               ),
             )}
           </Select>
+          <Select value={sectionId} onChange={(e) => setSectionId(e.target.value)}>
+            <option value="">بلا قسم داخليّ</option>
+            {sections.data?.map((s) => (
+              <option key={s.id} value={s.id}>{s.nameAr}</option>
+            ))}
+          </Select>
           <Input inputMode="numeric" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} placeholder="السعر الأساسي" />
+          <Input inputMode="numeric" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} placeholder="السعر قبل الخصم (اختياري)" />
           <ImageUploader value={images} onChange={setImages} />
           <Button
             loading={update.isPending}
             onClick={() =>
-              update.mutate({ id: p.id, title, description: description || undefined, categoryId, basePrice: Number(basePrice), images })
+              update.mutate({
+                id: p.id,
+                title,
+                description: description || undefined,
+                categoryId,
+                sectionId: sectionId || null,
+                basePrice: Number(basePrice),
+                compareAtPrice: compareAtPrice.trim() && Number(compareAtPrice) > 0 ? Number(compareAtPrice) : null,
+                images,
+              })
             }
           >
             حفظ التعديلات

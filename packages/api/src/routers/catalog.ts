@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Prisma } from "@al-souq/db";
 import { normalizeArabic, tokenize } from "@al-souq/utils";
 import { productListQuerySchema } from "@al-souq/validators";
+import { placementScore } from "@al-souq/domain";
 import { router, publicProcedure } from "../trpc";
 
 // ── مخططات الإخراج (مطلوبة لتوليد OpenAPI للـ native) ──
@@ -15,8 +16,10 @@ const productCardOut = z.object({
   title: z.string(),
   slug: z.string(),
   price: z.number(),
+  compareAtPrice: z.number().nullable(),
   ratingAvg: z.number(),
   ratingCount: z.number(),
+  available: z.number(),
   image: z.string().nullable(),
   vendor: z.object({ storeName: z.string(), slug: z.string() }),
 });
@@ -38,6 +41,7 @@ const productDetailOut = z
     slug: z.string(),
     description: z.string().nullable(),
     basePrice: z.number(),
+    compareAtPrice: z.number().nullable(),
     ratingAvg: z.number(),
     ratingCount: z.number(),
     images: z.array(z.object({ url: z.string(), alt: z.string().nullable() })),
@@ -70,8 +74,34 @@ const storeOut = z
       logoUrl: z.string().nullable(),
       bannerUrl: z.string().nullable(),
       governorate: z.object({ nameAr: z.string() }).nullable(),
+      channel: z.string(),
+      verified: z.boolean(),
+      instagramUrl: z.string().nullable(),
+      facebookUrl: z.string().nullable(),
+      tiktokUrl: z.string().nullable(),
+      ratingAvg: z.number(),
+      ratingCount: z.number(),
+      productCount: z.number(),
+      memberSince: z.string(),
+      // الظهور المدفوع
+      plan: z.string(),
+      featured: z.boolean(),
+      // شخصيّة المتجر
+      establishedYear: z.number().nullable(),
+      responseMins: z.number().nullable(),
+      opensAt: z.string().nullable(),
+      closesAt: z.string().nullable(),
+      deliveryInfo: z.string().nullable(),
+      addressText: z.string().nullable(),
+      ordersCount: z.number(),
+      latitude: z.number().nullable(),
+      longitude: z.number().nullable(),
     }),
-    products: z.array(productCardOut),
+    // أقسام المتجر الداخليّة (رفوف/خدمات) بترتيبها، مع عدد منتجات كلٍّ منها.
+    sections: z.array(z.object({ id: z.string(), nameAr: z.string(), slug: z.string(), icon: z.string().nullable(), productCount: z.number() })),
+    products: z.array(productCardOut.extend({ sectionId: z.string().nullable() })),
+    // نبض المتجر — آخر أحداثه الحيّة.
+    activities: z.array(z.object({ id: z.string(), kind: z.string(), message: z.string(), at: z.string() })),
   })
   .nullable();
 
@@ -80,9 +110,11 @@ function serializeProduct(p: {
   title: string;
   slug: string;
   basePrice: Prisma.Decimal;
+  compareAtPrice: Prisma.Decimal | null;
   ratingAvg: Prisma.Decimal;
   ratingCount: number;
   images: { url: string }[];
+  variants?: { stock: number; reservedStock: number }[];
   vendor: { storeName: string; slug: string };
 }) {
   return {
@@ -90,10 +122,54 @@ function serializeProduct(p: {
     title: p.title,
     slug: p.slug,
     price: Number(p.basePrice),
+    compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
     ratingAvg: Number(p.ratingAvg),
     ratingCount: p.ratingCount,
+    available: (p.variants ?? []).reduce((s, v) => s + Math.max(0, v.stock - v.reservedStock), 0),
     image: p.images[0]?.url ?? null,
     vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug },
+  };
+}
+
+/* ── بطاقة متجرٍ موحّدة (مع الظهور المدفوع: الطبقة + مميّز) ── */
+const storeCardOut = z.object({
+  id: z.string(),
+  storeName: z.string(),
+  slug: z.string(),
+  logoUrl: z.string().nullable(),
+  bannerUrl: z.string().nullable(),
+  verified: z.boolean(),
+  plan: z.string(),
+  featured: z.boolean(),
+  productCount: z.number(),
+  ratingAvg: z.number(),
+  ratingCount: z.number(),
+});
+type StoreCardRow = {
+  id: string; storeName: string; slug: string; logoUrl: string | null; bannerUrl: string | null;
+  verified: boolean; plan: string; featuredUntil: Date | null; ratingAvg: Prisma.Decimal; ratingCount: number;
+  _count: { products: number };
+};
+const storeCardSelect = (productWhere: Prisma.ProductWhereInput) => ({
+  id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true,
+  plan: true, featuredUntil: true, ratingAvg: true, ratingCount: true,
+  _count: { select: { products: { where: productWhere } } },
+});
+/** ترتيبٌ بالظهور المدفوع (مميّز → ذهبيّ → فضّيّ)، ثمّ التقييم. */
+function sortByPlacement<T extends { plan: string; featuredUntil: Date | null; ratingAvg: Prisma.Decimal; ratingCount: number }>(rows: T[]): T[] {
+  const now = new Date();
+  return [...rows].sort(
+    (a, b) =>
+      placementScore(b, now) - placementScore(a, now) ||
+      Number(b.ratingAvg) - Number(a.ratingAvg) ||
+      b.ratingCount - a.ratingCount,
+  );
+}
+function mapStoreCard(v: StoreCardRow) {
+  return {
+    id: v.id, storeName: v.storeName, slug: v.slug, logoUrl: v.logoUrl, bannerUrl: v.bannerUrl,
+    verified: v.verified, plan: v.plan, featured: v.featuredUntil != null && v.featuredUntil.getTime() > Date.now(),
+    productCount: v._count.products, ratingAvg: Number(v.ratingAvg), ratingCount: v.ratingCount,
   };
 }
 
@@ -164,17 +240,43 @@ export const catalogRouter = router({
           id: z.string(),
           nameAr: z.string(),
           slug: z.string(),
+          icon: z.string().nullable(),
+          imageUrl: z.string().nullable(),
+          parent: z.object({ nameAr: z.string(), slug: z.string() }).nullable(),
           childIds: z.array(z.string()),
+          // الفئات الفرعيّة (أقسام هذا «السوق») — لعرضها كبوّاباتٍ مستقلّة.
+          children: z.array(z.object({ id: z.string(), nameAr: z.string(), slug: z.string(), icon: z.string().nullable(), imageUrl: z.string().nullable() })),
         })
         .nullable(),
     )
     .query(async ({ ctx, input }) => {
       const cat = await ctx.prisma.category.findUnique({
         where: { slug: input.slug },
-        select: { id: true, nameAr: true, slug: true, children: { select: { id: true } } },
+        select: {
+          id: true,
+          nameAr: true,
+          slug: true,
+          icon: true,
+          imageUrl: true,
+          parent: { select: { nameAr: true, slug: true } },
+          children: {
+            where: { isActive: true },
+            orderBy: { sortOrder: "asc" },
+            select: { id: true, nameAr: true, slug: true, icon: true, imageUrl: true },
+          },
+        },
       });
       if (!cat) return null;
-      return { id: cat.id, nameAr: cat.nameAr, slug: cat.slug, childIds: cat.children.map((c) => c.id) };
+      return {
+        id: cat.id,
+        nameAr: cat.nameAr,
+        slug: cat.slug,
+        icon: cat.icon,
+        imageUrl: cat.imageUrl,
+        parent: cat.parent ? { nameAr: cat.parent.nameAr, slug: cat.parent.slug } : null,
+        childIds: cat.children.map((c) => c.id),
+        children: cat.children.map((c) => ({ id: c.id, nameAr: c.nameAr, slug: c.slug, icon: c.icon, imageUrl: c.imageUrl })),
+      };
     }),
 
   products: publicProcedure
@@ -231,8 +333,10 @@ export const catalogRouter = router({
           title: true,
           slug: true,
           basePrice: true,
+          compareAtPrice: true,
           ratingAvg: true,
           ratingCount: true,
+          variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
           images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
           vendor: { select: { storeName: true, slug: true } },
         },
@@ -266,6 +370,7 @@ export const catalogRouter = router({
         slug: p.slug,
         description: p.description,
         basePrice: Number(p.basePrice),
+        compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
         ratingAvg: Number(p.ratingAvg),
         ratingCount: p.ratingCount,
         images: p.images.map((i) => ({ url: i.url, alt: i.alt })),
@@ -296,25 +401,78 @@ export const catalogRouter = router({
           logoUrl: true,
           bannerUrl: true,
           governorate: { select: { nameAr: true } },
+          channel: true,
+          verified: true,
+          instagramUrl: true,
+          facebookUrl: true,
+          tiktokUrl: true,
+          ratingAvg: true,
+          ratingCount: true,
+          createdAt: true,
+          establishedYear: true,
+          responseMins: true,
+          opensAt: true,
+          closesAt: true,
+          deliveryInfo: true,
+          addressText: true,
+          ordersCount: true,
+          latitude: true,
+          longitude: true,
+          plan: true,
+          featuredUntil: true,
+          _count: { select: { products: { where: { status: "ACTIVE" } } } },
         },
       });
       if (!vendor) return null;
-      const products = await ctx.prisma.product.findMany({
-        where: { vendorId: vendor.id, status: "ACTIVE" },
-        orderBy: { createdAt: "desc" },
-        take: 24,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          basePrice: true,
-          ratingAvg: true,
-          ratingCount: true,
-          images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
-          vendor: { select: { storeName: true, slug: true } },
+      const [products, sections, activities] = await Promise.all([
+        ctx.prisma.product.findMany({
+          where: { vendorId: vendor.id, status: "ACTIVE" },
+          orderBy: { createdAt: "desc" },
+          take: 60,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            basePrice: true,
+            compareAtPrice: true,
+            ratingAvg: true,
+            ratingCount: true,
+            sectionId: true,
+            variants: { where: { isActive: true }, select: { stock: true, reservedStock: true } },
+            images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
+            vendor: { select: { storeName: true, slug: true } },
+          },
+        }),
+        ctx.prisma.vendorSection.findMany({
+          where: { vendorId: vendor.id },
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, nameAr: true, slug: true, icon: true, _count: { select: { products: { where: { status: "ACTIVE" } } } } },
+        }),
+        ctx.prisma.storeActivity.findMany({
+          where: { vendorId: vendor.id },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+          select: { id: true, kind: true, message: true, createdAt: true },
+        }),
+      ]);
+      const { createdAt, _count, ratingAvg, latitude, longitude, featuredUntil, ...rest } = vendor;
+      return {
+        vendor: {
+          ...rest,
+          ratingAvg: Number(ratingAvg),
+          latitude: latitude ?? null,
+          longitude: longitude ?? null,
+          featured: featuredUntil != null && featuredUntil.getTime() > Date.now(),
+          productCount: _count.products,
+          memberSince: createdAt.toISOString(),
         },
-      });
-      return { vendor, products: products.map(serializeProduct) };
+        // نُظهر فقط الأقسام التي تحتوي منتجاتٍ فعّالة.
+        sections: sections
+          .filter((s) => s._count.products > 0)
+          .map((s) => ({ id: s.id, nameAr: s.nameAr, slug: s.slug, icon: s.icon, productCount: s._count.products })),
+        products: products.map((p) => ({ ...serializeProduct(p), sectionId: p.sectionId })),
+        activities: activities.map((a) => ({ id: a.id, kind: a.kind, message: a.message, at: a.createdAt.toISOString() })),
+      };
     }),
 
   // قائمة المتاجر (اختياري حسب المحافظة) — لتصفّح سوق كل محافظة
@@ -328,38 +486,175 @@ export const catalogRouter = router({
           storeName: z.string(),
           slug: z.string(),
           logoUrl: z.string().nullable(),
+          bannerUrl: z.string().nullable(),
+          verified: z.boolean(),
+          plan: z.string(),
+          featured: z.boolean(),
+          category: z.string().nullable(),
           governorate: z.string().nullable(),
           ratingAvg: z.number(),
           ratingCount: z.number(),
           productCount: z.number(),
+          salesCount: z.number(),
+          createdAt: z.string(),
         }),
       ),
     )
     .query(async ({ ctx, input }) => {
-      const vendors = await ctx.prisma.vendorProfile.findMany({
-        where: { status: "APPROVED", ...(input.governorateId ? { governorateId: input.governorateId } : {}) },
-        orderBy: { ratingAvg: "desc" },
-        take: 60,
-        select: {
-          id: true,
-          storeName: true,
-          slug: true,
-          logoUrl: true,
-          ratingAvg: true,
-          ratingCount: true,
-          governorate: { select: { nameAr: true } },
-          _count: { select: { products: { where: { status: "ACTIVE" } } } },
-        },
-      });
+      const vendorWhere = { status: "APPROVED" as const, ...(input.governorateId ? { governorateId: input.governorateId } : {}) };
+      const [vendors, salesGroups] = await Promise.all([
+        ctx.prisma.vendorProfile.findMany({
+          where: vendorWhere,
+          orderBy: { ratingAvg: "desc" },
+          take: 60,
+          select: {
+            id: true,
+            storeName: true,
+            slug: true,
+            logoUrl: true,
+            bannerUrl: true,
+            verified: true,
+            plan: true,
+            featuredUntil: true,
+            ratingAvg: true,
+            ratingCount: true,
+            createdAt: true,
+            governorate: { select: { nameAr: true } },
+            _count: { select: { products: { where: { status: "ACTIVE" } } } },
+            // فئةُ المتجر = فئة أكثر منتجاته مبيعاً (عليا إن وُجدت).
+            products: { where: { status: "ACTIVE" }, orderBy: { soldCount: "desc" }, take: 1, select: { category: { select: { nameAr: true, parent: { select: { nameAr: true } } } } } },
+          },
+        }),
+        // مبيعات كلّ متجر = مجموع مبيعات منتجاته — لفرز «الأكثر مبيعاً».
+        ctx.prisma.product.groupBy({ by: ["vendorId"], where: { vendor: vendorWhere }, _sum: { soldCount: true } }),
+      ]);
+      const salesByVendor = new Map(salesGroups.map((g) => [g.vendorId, g._sum.soldCount ?? 0]));
+      const now = Date.now();
       return vendors.map((v) => ({
         id: v.id,
         storeName: v.storeName,
         slug: v.slug,
         logoUrl: v.logoUrl,
+        bannerUrl: v.bannerUrl,
+        verified: v.verified,
+        plan: v.plan,
+        featured: v.featuredUntil != null && v.featuredUntil.getTime() > now,
+        category: v.products[0]?.category.parent?.nameAr ?? v.products[0]?.category.nameAr ?? null,
         governorate: v.governorate?.nameAr ?? null,
         ratingAvg: Number(v.ratingAvg),
         ratingCount: v.ratingCount,
         productCount: v._count.products,
+        salesCount: salesByVendor.get(v.id) ?? 0,
+        createdAt: v.createdAt.toISOString(),
+      }));
+    }),
+
+  // متاجر فئةٍ بعينها — كلّ متجرٍ له منتجٌ فعّالٌ في الفئة (أو إحدى فئاتها الفرعيّة).
+  // تُعرض في صدر صفحة الفئة: «المتاجر أوّلاً، ثمّ المنتجات».
+  storesByCategory: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/categories/{categoryId}/stores", tags: ["catalog"] } })
+    .input(
+      z.object({
+        categoryId: z.string().cuid(),
+        governorateId: z.string().cuid().optional(),
+        limit: z.number().int().min(1).max(30).default(12),
+      }),
+    )
+    .output(z.array(storeCardOut))
+    .query(async ({ ctx, input }) => {
+      // فئة أب → اشمل متاجر فئاتها الفرعيّة أيضاً.
+      const children = await ctx.prisma.category.findMany({
+        where: { parentId: input.categoryId },
+        select: { id: true },
+      });
+      const catIds = [input.categoryId, ...children.map((c) => c.id)];
+      const productInCat = { status: "ACTIVE" as const, categoryId: { in: catIds } };
+      const vendors = await ctx.prisma.vendorProfile.findMany({
+        where: {
+          status: "APPROVED",
+          ...(input.governorateId ? { governorateId: input.governorateId } : {}),
+          products: { some: productInCat },
+        },
+        orderBy: [{ verified: "desc" }, { ratingAvg: "desc" }, { ratingCount: "desc" }],
+        take: Math.max(input.limit * 3, 30), // نجلب أكثر ثمّ نرتّب بالظهور المدفوع
+        select: storeCardSelect(productInCat),
+      });
+      // الظهور المدفوع أوّلاً (مميّز → ذهبيّ → فضّيّ)، ثمّ التقييم.
+      return sortByPlacement(vendors).slice(0, input.limit).map(mapStoreCard);
+    }),
+
+  // متاجرُ «من نفس البيئة» — متاجرُ محافظةِ المتجرِ التي تشاركه فئاتِه، عدا نفسه.
+  // «من يدخل شاومي النجف يُقترح عليه آبل ستور والأوّل للحاسبات وبوّابة السعد».
+  relatedStores: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/stores/{slug}/related", tags: ["catalog"] } })
+    .input(z.object({ slug: z.string(), limit: z.number().int().min(1).max(20).default(8) }))
+    .output(z.array(storeCardOut))
+    .query(async ({ ctx, input }) => {
+      const store = await ctx.prisma.vendorProfile.findFirst({
+        where: { slug: input.slug, status: "APPROVED" },
+        select: {
+          id: true,
+          governorateId: true,
+          // فئات منتجات المتجر (مع الأب) — تُحدّد «بيئته».
+          products: { where: { status: "ACTIVE" }, select: { categoryId: true, category: { select: { parentId: true } } }, take: 100 },
+        },
+      });
+      if (!store) return [];
+      const catIds = new Set<string>();
+      for (const p of store.products) {
+        catIds.add(p.categoryId);
+        if (p.category.parentId) catIds.add(p.category.parentId);
+      }
+      // نشمل الأبناء أيضاً كي يتقاطع متجرٌ يبيع في فئةٍ أبٍ مع آخرَ في فئةٍ فرعيّة.
+      if (catIds.size) {
+        const children = await ctx.prisma.category.findMany({ where: { parentId: { in: [...catIds] } }, select: { id: true } });
+        children.forEach((c) => catIds.add(c.id));
+      }
+      const vendors = await ctx.prisma.vendorProfile.findMany({
+        where: {
+          status: "APPROVED",
+          id: { not: store.id },
+          ...(store.governorateId ? { governorateId: store.governorateId } : {}),
+          ...(catIds.size ? { products: { some: { status: "ACTIVE", categoryId: { in: [...catIds] } } } } : {}),
+        },
+        orderBy: [{ verified: "desc" }, { ratingAvg: "desc" }, { ratingCount: "desc" }],
+        take: Math.max(input.limit * 3, 24),
+        select: storeCardSelect({ status: "ACTIVE" }),
+      });
+      return sortByPlacement(vendors).slice(0, input.limit).map(mapStoreCard);
+    }),
+
+  // نبض السوق — آخر أحداث المتاجر الحيّة (وصول دفعة، افتتاح قسم، الأكثر زيارة…).
+  marketPulse: publicProcedure
+    .meta({ openapi: { method: "GET", path: "/catalog/pulse", tags: ["catalog"] } })
+    .input(z.object({ governorateId: z.string().cuid().optional(), limit: z.number().int().min(1).max(30).default(12) }))
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          kind: z.string(),
+          message: z.string(),
+          sponsored: z.boolean(),
+          at: z.string(),
+          store: z.object({ storeName: z.string(), slug: z.string(), logoUrl: z.string().nullable() }),
+        }),
+      ),
+    )
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.prisma.storeActivity.findMany({
+        where: input.governorateId ? { vendor: { governorateId: input.governorateId, status: "APPROVED" } } : { vendor: { status: "APPROVED" } },
+        // المموّل يتصدّر النبض، ثمّ الأحدث.
+        orderBy: [{ sponsored: "desc" }, { createdAt: "desc" }],
+        take: input.limit,
+        select: { id: true, kind: true, message: true, sponsored: true, createdAt: true, vendor: { select: { storeName: true, slug: true, logoUrl: true } } },
+      });
+      return rows.map((r) => ({
+        id: r.id,
+        kind: r.kind,
+        message: r.message,
+        sponsored: r.sponsored,
+        at: r.createdAt.toISOString(),
+        store: { storeName: r.vendor.storeName, slug: r.vendor.slug, logoUrl: r.vendor.logoUrl },
       }));
     }),
 });

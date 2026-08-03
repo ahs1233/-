@@ -5,6 +5,37 @@
 @layer base {
   :root {
     color-scheme: light;
+
+    /* ── أسطح الثيم الداكن (نيليّ ليليّ + ذهب) ── */
+    --c-bg: 8 12 22; /* خلفية الصفحة — نيليّ شبه أسود */
+    --c-card: 19 27 47; /* البطاقات */
+    --c-card-2: 27 37 61; /* بطاقةٌ أفتح قليلاً */
+    --c-line: 40 52 82; /* الحدود */
+
+    /* لوحة السوگ — قنوات RGB قابلة للتغيير وقت التشغيل من لوحة الإدارة (المظهر) */
+    --c-brand-50: 238 241 247;
+    --c-brand-100: 212 220 237;
+    --c-brand-200: 174 189 216;
+    --c-brand-300: 130 150 189;
+    --c-brand-400: 85 109 154;
+    --c-brand-500: 47 66 102;
+    --c-brand-600: 36 52 80;
+    --c-brand-700: 26 39 64;
+    --c-brand-800: 19 29 49;
+    --c-brand-900: 14 22 38;
+    --c-gold-50: 248 239 214;
+    --c-gold-100: 239 224 187;
+    --c-gold-200: 228 205 151;
+    --c-gold-300: 216 185 120;
+    --c-gold-400: 204 167 95;
+    --c-gold-500: 193 151 78;
+    --c-gold-600: 162 121 58;
+    --c-gold-700: 127 93 43;
+    --c-sand-50: 244 236 217;
+    --c-sand-100: 236 224 200;
+    --c-sand-200: 226 211 180;
+    --c-sand-300: 213 193 156;
+    --c-petrol: 46 125 91;
   }
 
   html {
@@ -13,7 +44,11 @@
   }
 
   body {
-    @apply bg-sand-50 text-neutral-900 antialiased;
+    /* خلفيّةٌ داكنة عامّة؛ النصّ الافتراضيّ داكنٌ كي تبقى صفحات البطاقات البيضاء
+       (تسجيل الدخول، السلّة…) مقروءةً أثناء التحويل التدريجيّ للثيم الداكن.
+       الرئيسية والقشرة يضبطان نصّهما الفاتح صراحةً. */
+    @apply text-neutral-900 antialiased;
+    background-color: rgb(var(--c-bg));
     font-family: var(--font-sans), "Tajawal", "Cairo", system-ui, sans-serif;
   }
 
@@ -27,5 +62,81 @@
 @layer components {
   .container-app {
     @apply mx-auto w-full max-w-screen-md px-4;
+  }
+
+  /* ── أسطح الثيم الداكن ── */
+  .bg-page { background-color: rgb(var(--c-bg)); }
+  .bg-card { background-color: rgb(var(--c-card)); }
+  .bg-card2 { background-color: rgb(var(--c-card-2)); }
+  .border-line { border-color: rgb(var(--c-line)); }
+
+  /* زرّ نحاسيّ — لمعة معدنٍ لا لونٌ مسطّح (قانون الكانون: الذهب معدن) */
+  .btn-brass {
+    background-image: linear-gradient(
+      160deg,
+      #f0d9a0 0%,
+      #dcbd7c 32%,
+      #c1974e 64%,
+      #a2793a 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -2px 5px rgba(127, 93, 43, 0.45),
+      0 8px 22px -10px rgba(162, 121, 58, 0.9);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   قشرة السوق الداكنة (souq-dark): شبكةُ أمانٍ تُحوّل الأسطح البيضاء
+   المشتركة (بطاقات UI، الحقول، الحدود الفاتحة) إلى أسطحٍ ليليّة داخل
+   واجهة المشتري فقط — دون لمس لوحتي الإدارة/التاجر. قواعدُ غير مُطبَّقة
+   ضمن @layer كي تتفوّق في الأولويّة على أدوات Tailwind أحاديّة الصنف.
+   النصوص الداكنة الافتراضيّة تُرفع إلى فاتحة كي تُقرأ على الليل.
+   ───────────────────────────────────────────────────────────── */
+.souq-dark .bg-white { background-color: rgb(var(--c-card)); }
+.souq-dark .bg-neutral-50,
+.souq-dark .bg-neutral-100,
+.souq-dark .bg-sand-50,
+.souq-dark .bg-sand-100,
+.souq-dark .bg-brand-50,
+.souq-dark .bg-gold-50 { background-color: rgb(var(--c-card-2)); }
+.souq-dark .border-neutral-100,
+.souq-dark .border-neutral-200,
+.souq-dark .border-neutral-300,
+.souq-dark .border-sand-200 { border-color: rgb(var(--c-line)); }
+.souq-dark .text-neutral-900,
+.souq-dark .text-neutral-800,
+.souq-dark .text-neutral-700,
+.souq-dark .text-neutral-600 { color: rgb(212 212 212); } /* neutral-300 */
+.souq-dark .text-brand-800,
+.souq-dark .text-brand-700,
+.souq-dark .text-brand-600 { color: rgb(var(--c-gold-300)); }
+
+@layer utilities {
+  /* الفانوس لا يضيء بالكامل — الضوء يهتزّ (قانون السلوك) */
+  @keyframes souq-flicker {
+    0%, 100% { opacity: 0.85; }
+    25% { opacity: 1; }
+    50% { opacity: 0.7; }
+    72% { opacity: 0.95; }
+  }
+  .animate-flicker {
+    animation: souq-flicker 4.5s ease-in-out infinite;
+  }
+
+  /* كِن-بيرنز بطيء — المكان يتنفّس، لا صورةٌ جامدة */
+  @keyframes souq-drift {
+    from { transform: scale(1.06) translate3d(0, 0, 0); }
+    to { transform: scale(1.12) translate3d(-1.5%, -1.5%, 0); }
+  }
+  .animate-drift {
+    animation: souq-drift 26s ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-flicker,
+    .animate-drift {
+      animation: none;
+    }
   }
 }
