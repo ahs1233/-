@@ -420,6 +420,31 @@ export const storeActivityUpsertSchema = z.object({
   kind: z.enum(STORE_ACTIVITY_KINDS),
   message: z.string().trim().min(3, "الرسالة قصيرة").max(160),
   minutesAgo: z.number().int().min(0).max(20160).optional(), // متى وقع (حتى ١٤ يوماً)
+  sponsored: z.boolean().optional(), // حدثٌ مموّل (يتصدّر النبض)
+});
+
+// ─────────── تحصيل الدخل: طبقات الاشتراك والظهور المدفوع ───────────
+export const VENDOR_PLAN_KEYS = ["free", "silver", "gold"] as const;
+
+// تعيين طبقة/ظهور متجرٍ بعينه (لوحة الإدارة).
+export const setStorePlanSchema = z.object({
+  id: z.string().cuid(),
+  plan: z.enum(VENDOR_PLAN_KEYS).optional(),
+  planExpiresAt: z.string().datetime().nullish(), // ISO أو null
+  featuredUntil: z.string().datetime().nullish(),
+});
+
+// تحرير تعريفات الطبقات القابلة للتعديل من الإدارة.
+const planConfigEntry = z.object({
+  label: z.string().trim().min(1).max(30),
+  priceIQD: z.number().int().min(0).max(100_000_000),
+  badge: z.string().trim().max(20).nullish(),
+  benefits: z.array(z.string().trim().min(1).max(80)).max(12),
+});
+export const vendorPlansConfigSchema = z.object({
+  free: planConfigEntry,
+  silver: planConfigEntry,
+  gold: planConfigEntry,
 });
 
 // ─────────────────────────── Cart / Order ───────────────────────────

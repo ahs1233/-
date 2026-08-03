@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Palette, LayoutList, LayoutGrid, Tags, MapPin, Megaphone, Newspaper, Store } from "lucide-react";
+import { Palette, LayoutList, LayoutGrid, Tags, MapPin, Megaphone, Newspaper, Store, BadgeDollarSign } from "lucide-react";
 
 // تبويبات «المظهر» — شريطٌ ثابت يجعل كلّ محرّرٍ (ومنه «الإعلانات» و«المحتوى») على بُعد نقرةٍ واحدة.
 const TABS: { href: string; label: string; icon: typeof Palette; match: string }[] = [
@@ -10,6 +10,7 @@ const TABS: { href: string; label: string; icon: typeof Palette; match: string }
   { href: "/admin/appearance/sections", label: "التخطيط", icon: LayoutList, match: "/admin/appearance/sections" },
   { href: "/admin/appearance/markets", label: "الأسواق", icon: LayoutGrid, match: "/admin/appearance/markets" },
   { href: "/admin/appearance/stores", label: "المتاجر", icon: Store, match: "/admin/appearance/stores" },
+  { href: "/admin/appearance/plans", label: "الاشتراكات", icon: BadgeDollarSign, match: "/admin/appearance/plans" },
   { href: "/admin/categories", label: "الفئات", icon: Tags, match: "/admin/categories" },
   { href: "/admin/appearance/governorates", label: "المحافظات", icon: MapPin, match: "/admin/appearance/governorates" },
   { href: "/admin/appearance/ads", label: "الإعلانات", icon: Megaphone, match: "/admin/appearance/ads" },

@@ -107,6 +107,11 @@ export default async function StorePage({ params }: { params: { slug: string } }
               <h1 className="flex items-center gap-1.5 text-xl font-extrabold text-neutral-100">
                 {vendor.storeName}
                 {vendor.verified && <BadgeCheck className="h-5 w-5 text-gold-400" aria-label="متجر موثّق" />}
+                {vendor.featured && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gold-500/90 px-2 py-0.5 text-[10px] font-extrabold text-brand-900">
+                    <Sparkles className="h-3 w-3" /> مميّز
+                  </span>
+                )}
               </h1>
               <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-neutral-400">
                 {(vendor.addressText || vendor.governorate) && (

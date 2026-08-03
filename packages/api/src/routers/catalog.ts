@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Prisma } from "@al-souq/db";
 import { normalizeArabic, tokenize } from "@al-souq/utils";
 import { productListQuerySchema } from "@al-souq/validators";
+import { placementScore } from "@al-souq/domain";
 import { router, publicProcedure } from "../trpc";
 
 // ── مخططات الإخراج (مطلوبة لتوليد OpenAPI للـ native) ──
@@ -82,6 +83,9 @@ const storeOut = z
       ratingCount: z.number(),
       productCount: z.number(),
       memberSince: z.string(),
+      // الظهور المدفوع
+      plan: z.string(),
+      featured: z.boolean(),
       // شخصيّة المتجر
       establishedYear: z.number().nullable(),
       responseMins: z.number().nullable(),
@@ -124,6 +128,48 @@ function serializeProduct(p: {
     available: (p.variants ?? []).reduce((s, v) => s + Math.max(0, v.stock - v.reservedStock), 0),
     image: p.images[0]?.url ?? null,
     vendor: { storeName: p.vendor.storeName, slug: p.vendor.slug },
+  };
+}
+
+/* ── بطاقة متجرٍ موحّدة (مع الظهور المدفوع: الطبقة + مميّز) ── */
+const storeCardOut = z.object({
+  id: z.string(),
+  storeName: z.string(),
+  slug: z.string(),
+  logoUrl: z.string().nullable(),
+  bannerUrl: z.string().nullable(),
+  verified: z.boolean(),
+  plan: z.string(),
+  featured: z.boolean(),
+  productCount: z.number(),
+  ratingAvg: z.number(),
+  ratingCount: z.number(),
+});
+type StoreCardRow = {
+  id: string; storeName: string; slug: string; logoUrl: string | null; bannerUrl: string | null;
+  verified: boolean; plan: string; featuredUntil: Date | null; ratingAvg: Prisma.Decimal; ratingCount: number;
+  _count: { products: number };
+};
+const storeCardSelect = (productWhere: Prisma.ProductWhereInput) => ({
+  id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true,
+  plan: true, featuredUntil: true, ratingAvg: true, ratingCount: true,
+  _count: { select: { products: { where: productWhere } } },
+});
+/** ترتيبٌ بالظهور المدفوع (مميّز → ذهبيّ → فضّيّ)، ثمّ التقييم. */
+function sortByPlacement<T extends { plan: string; featuredUntil: Date | null; ratingAvg: Prisma.Decimal; ratingCount: number }>(rows: T[]): T[] {
+  const now = new Date();
+  return [...rows].sort(
+    (a, b) =>
+      placementScore(b, now) - placementScore(a, now) ||
+      Number(b.ratingAvg) - Number(a.ratingAvg) ||
+      b.ratingCount - a.ratingCount,
+  );
+}
+function mapStoreCard(v: StoreCardRow) {
+  return {
+    id: v.id, storeName: v.storeName, slug: v.slug, logoUrl: v.logoUrl, bannerUrl: v.bannerUrl,
+    verified: v.verified, plan: v.plan, featured: v.featuredUntil != null && v.featuredUntil.getTime() > Date.now(),
+    productCount: v._count.products, ratingAvg: Number(v.ratingAvg), ratingCount: v.ratingCount,
   };
 }
 
@@ -372,6 +418,8 @@ export const catalogRouter = router({
           ordersCount: true,
           latitude: true,
           longitude: true,
+          plan: true,
+          featuredUntil: true,
           _count: { select: { products: { where: { status: "ACTIVE" } } } },
         },
       });
@@ -407,13 +455,14 @@ export const catalogRouter = router({
           select: { id: true, kind: true, message: true, createdAt: true },
         }),
       ]);
-      const { createdAt, _count, ratingAvg, latitude, longitude, ...rest } = vendor;
+      const { createdAt, _count, ratingAvg, latitude, longitude, featuredUntil, ...rest } = vendor;
       return {
         vendor: {
           ...rest,
           ratingAvg: Number(ratingAvg),
           latitude: latitude ?? null,
           longitude: longitude ?? null,
+          featured: featuredUntil != null && featuredUntil.getTime() > Date.now(),
           productCount: _count.products,
           memberSince: createdAt.toISOString(),
         },
@@ -439,6 +488,8 @@ export const catalogRouter = router({
           logoUrl: z.string().nullable(),
           bannerUrl: z.string().nullable(),
           verified: z.boolean(),
+          plan: z.string(),
+          featured: z.boolean(),
           category: z.string().nullable(),
           governorate: z.string().nullable(),
           ratingAvg: z.number(),
@@ -463,6 +514,8 @@ export const catalogRouter = router({
             logoUrl: true,
             bannerUrl: true,
             verified: true,
+            plan: true,
+            featuredUntil: true,
             ratingAvg: true,
             ratingCount: true,
             createdAt: true,
@@ -476,6 +529,7 @@ export const catalogRouter = router({
         ctx.prisma.product.groupBy({ by: ["vendorId"], where: { vendor: vendorWhere }, _sum: { soldCount: true } }),
       ]);
       const salesByVendor = new Map(salesGroups.map((g) => [g.vendorId, g._sum.soldCount ?? 0]));
+      const now = Date.now();
       return vendors.map((v) => ({
         id: v.id,
         storeName: v.storeName,
@@ -483,6 +537,8 @@ export const catalogRouter = router({
         logoUrl: v.logoUrl,
         bannerUrl: v.bannerUrl,
         verified: v.verified,
+        plan: v.plan,
+        featured: v.featuredUntil != null && v.featuredUntil.getTime() > now,
         category: v.products[0]?.category.parent?.nameAr ?? v.products[0]?.category.nameAr ?? null,
         governorate: v.governorate?.nameAr ?? null,
         ratingAvg: Number(v.ratingAvg),
@@ -504,21 +560,7 @@ export const catalogRouter = router({
         limit: z.number().int().min(1).max(30).default(12),
       }),
     )
-    .output(
-      z.array(
-        z.object({
-          id: z.string(),
-          storeName: z.string(),
-          slug: z.string(),
-          logoUrl: z.string().nullable(),
-          bannerUrl: z.string().nullable(),
-          verified: z.boolean(),
-          productCount: z.number(),
-          ratingAvg: z.number(),
-          ratingCount: z.number(),
-        }),
-      ),
-    )
+    .output(z.array(storeCardOut))
     .query(async ({ ctx, input }) => {
       // فئة أب → اشمل متاجر فئاتها الفرعيّة أيضاً.
       const children = await ctx.prisma.category.findMany({
@@ -533,32 +575,12 @@ export const catalogRouter = router({
           ...(input.governorateId ? { governorateId: input.governorateId } : {}),
           products: { some: productInCat },
         },
-        // الموثّق أوّلاً، ثمّ الأعلى تقييماً — ليتصدّر السوقَ أفضلُ متاجره.
         orderBy: [{ verified: "desc" }, { ratingAvg: "desc" }, { ratingCount: "desc" }],
-        take: input.limit,
-        select: {
-          id: true,
-          storeName: true,
-          slug: true,
-          logoUrl: true,
-          bannerUrl: true,
-          verified: true,
-          ratingAvg: true,
-          ratingCount: true,
-          _count: { select: { products: { where: productInCat } } },
-        },
+        take: Math.max(input.limit * 3, 30), // نجلب أكثر ثمّ نرتّب بالظهور المدفوع
+        select: storeCardSelect(productInCat),
       });
-      return vendors.map((v) => ({
-        id: v.id,
-        storeName: v.storeName,
-        slug: v.slug,
-        logoUrl: v.logoUrl,
-        bannerUrl: v.bannerUrl,
-        verified: v.verified,
-        productCount: v._count.products,
-        ratingAvg: Number(v.ratingAvg),
-        ratingCount: v.ratingCount,
-      }));
+      // الظهور المدفوع أوّلاً (مميّز → ذهبيّ → فضّيّ)، ثمّ التقييم.
+      return sortByPlacement(vendors).slice(0, input.limit).map(mapStoreCard);
     }),
 
   // متاجرُ «من نفس البيئة» — متاجرُ محافظةِ المتجرِ التي تشاركه فئاتِه، عدا نفسه.
@@ -566,21 +588,7 @@ export const catalogRouter = router({
   relatedStores: publicProcedure
     .meta({ openapi: { method: "GET", path: "/catalog/stores/{slug}/related", tags: ["catalog"] } })
     .input(z.object({ slug: z.string(), limit: z.number().int().min(1).max(20).default(8) }))
-    .output(
-      z.array(
-        z.object({
-          id: z.string(),
-          storeName: z.string(),
-          slug: z.string(),
-          logoUrl: z.string().nullable(),
-          bannerUrl: z.string().nullable(),
-          verified: z.boolean(),
-          productCount: z.number(),
-          ratingAvg: z.number(),
-          ratingCount: z.number(),
-        }),
-      ),
-    )
+    .output(z.array(storeCardOut))
     .query(async ({ ctx, input }) => {
       const store = await ctx.prisma.vendorProfile.findFirst({
         where: { slug: input.slug, status: "APPROVED" },
@@ -610,16 +618,10 @@ export const catalogRouter = router({
           ...(catIds.size ? { products: { some: { status: "ACTIVE", categoryId: { in: [...catIds] } } } } : {}),
         },
         orderBy: [{ verified: "desc" }, { ratingAvg: "desc" }, { ratingCount: "desc" }],
-        take: input.limit,
-        select: {
-          id: true, storeName: true, slug: true, logoUrl: true, bannerUrl: true, verified: true,
-          ratingAvg: true, ratingCount: true, _count: { select: { products: { where: { status: "ACTIVE" } } } },
-        },
+        take: Math.max(input.limit * 3, 24),
+        select: storeCardSelect({ status: "ACTIVE" }),
       });
-      return vendors.map((v) => ({
-        id: v.id, storeName: v.storeName, slug: v.slug, logoUrl: v.logoUrl, bannerUrl: v.bannerUrl,
-        verified: v.verified, productCount: v._count.products, ratingAvg: Number(v.ratingAvg), ratingCount: v.ratingCount,
-      }));
+      return sortByPlacement(vendors).slice(0, input.limit).map(mapStoreCard);
     }),
 
   // نبض السوق — آخر أحداث المتاجر الحيّة (وصول دفعة، افتتاح قسم، الأكثر زيارة…).
@@ -632,6 +634,7 @@ export const catalogRouter = router({
           id: z.string(),
           kind: z.string(),
           message: z.string(),
+          sponsored: z.boolean(),
           at: z.string(),
           store: z.object({ storeName: z.string(), slug: z.string(), logoUrl: z.string().nullable() }),
         }),
@@ -640,14 +643,16 @@ export const catalogRouter = router({
     .query(async ({ ctx, input }) => {
       const rows = await ctx.prisma.storeActivity.findMany({
         where: input.governorateId ? { vendor: { governorateId: input.governorateId, status: "APPROVED" } } : { vendor: { status: "APPROVED" } },
-        orderBy: { createdAt: "desc" },
+        // المموّل يتصدّر النبض، ثمّ الأحدث.
+        orderBy: [{ sponsored: "desc" }, { createdAt: "desc" }],
         take: input.limit,
-        select: { id: true, kind: true, message: true, createdAt: true, vendor: { select: { storeName: true, slug: true, logoUrl: true } } },
+        select: { id: true, kind: true, message: true, sponsored: true, createdAt: true, vendor: { select: { storeName: true, slug: true, logoUrl: true } } },
       });
       return rows.map((r) => ({
         id: r.id,
         kind: r.kind,
         message: r.message,
+        sponsored: r.sponsored,
         at: r.createdAt.toISOString(),
         store: { storeName: r.vendor.storeName, slug: r.vendor.slug, logoUrl: r.vendor.logoUrl },
       }));

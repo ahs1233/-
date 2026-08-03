@@ -34,6 +34,13 @@ const STORE_ASSETS: Record<string, { logo: string; banner: string }> = {
   "عزّوز للأزياء": { logo: "/stores/azoz/logo.png", banner: "/stores/azoz/banner.jpg" },
   "بوّابة السعد": { logo: "/stores/saad/logo.png", banner: "/stores/saad/banner.jpg" },
 };
+// طبقات/ظهورٌ تجريبيّ للعرض (قابلٌ للتعديل بالكامل من المظهر ← الاشتراكات/المتاجر).
+const STORE_PLANS: Record<string, { plan: string; featuredDays?: number }> = {
+  "بوّابة السعد": { plan: "gold", featuredDays: 30 },
+  "أسواق شمسة": { plan: "gold", featuredDays: 30 },
+  "عزّوز للأزياء": { plan: "silver" },
+  "هوم سنتر": { plan: "silver" },
+};
 // صور المنتجات المستخرجة: storeName → sectionName → [مسارات مرتّبة].
 const PRODUCT_IMAGES: Record<string, Record<string, string[]>> = (() => {
   for (const p of [
@@ -834,6 +841,7 @@ async function main() {
     const vCatName = catNameBySlug[v.catSlug] ?? v.storeName;
     const profile = NAJAF_PROFILES[v.storeName]; // شخصيّة المتجر (لمتاجر النجف)
     const assets = STORE_ASSETS[v.storeName]; // شعار/واجهة حقيقيّان من دليل الهوية (إن وُجد)
+    const planSeed = STORE_PLANS[v.storeName]; // طبقة/ظهور تجريبيّ (قابل للتعديل من الإدارة)
     const canonicalVendorFields = {
       channel: vv.channel ?? "physical",
       instagramUrl: vv.instagramUrl ?? null,
@@ -844,6 +852,8 @@ async function main() {
       longitude: profile?.lng ?? vv.lng ?? null,
       logoUrl: assets?.logo ?? ph(v.storeName, vCatName, "logo"),
       bannerUrl: assets?.banner ?? ph(v.storeName, vCatName, "banner"),
+      plan: planSeed?.plan ?? "free",
+      featuredUntil: planSeed?.featuredDays ? new Date(Date.now() + planSeed.featuredDays * 86_400_000) : null,
       ...(vv.rating ? { ratingAvg: new Prisma.Decimal(vv.rating[0]), ratingCount: vv.rating[1] } : {}),
       // شخصيّة المتجر — تُفرَض في كلّ بذرة كي يبقى المتجر كياناً حيّاً متّسقاً.
       ...(profile
@@ -1204,7 +1214,7 @@ async function main() {
   const vendorIdByName = new Map(najafVendors.map((v) => [v.storeName, v.id]));
   await prisma.storeActivity.deleteMany({ where: { vendorId: { in: najafVendors.map((v) => v.id) } } });
   const min = 60_000;
-  const ACTIVITIES: { store: string; kind: string; message: string; minsAgo: number }[] = [
+  const ACTIVITIES: { store: string; kind: string; message: string; minsAgo: number; sponsored?: boolean }[] = [
     { store: "شاومي النجف", kind: "restock", message: "وصلت دفعة جديدة من شاومي ريدمي نوت ١٣", minsAgo: 30 },
     { store: "دعافيس", kind: "new_section", message: "افتتح قسمًا جديدًا: سجّاد مودرن", minsAgo: 95 },
     { store: "وجه الشمس للتسوق", kind: "most_visited", message: "أكثر متجرٍ زيارةً اليوم في الغذائية", minsAgo: 20 },
@@ -1212,7 +1222,7 @@ async function main() {
     { store: "سامسونج النجف", kind: "promo", message: "خصمٌ على تلفزيون سامسونج ٥٥ بوصة هذا الأسبوع", minsAgo: 240 },
     { store: "الشريك للموبايلات", kind: "restock", message: "وصلت دفعة جديدة من سامسونج جالكسي A54", minsAgo: 55 },
     { store: "آي تيك", kind: "new_section", message: "افتتح قسم الطاقة الشمسية", minsAgo: 320 },
-    { store: "بوّابة السعد", kind: "new_arrival", message: "وصل حديثًا: آيفون ١٥ برو ماكس وماك بوك اير M3", minsAgo: 12 },
+    { store: "بوّابة السعد", kind: "new_arrival", message: "وصل حديثًا: آيفون ١٥ برو ماكس وماك بوك اير M3", minsAgo: 12, sponsored: true },
     { store: "بوّابة السعد", kind: "promo", message: "عروض نهاية الأسبوع — خصمٌ حتى ٣٠٪ + خصم خاصّ للطلاب", minsAgo: 130 },
     { store: "هوم سنتر", kind: "restock", message: "وصل حديثًا: تصاميم جلسات معيشةٍ عصريّة", minsAgo: 40 },
     { store: "هوم سنتر", kind: "promo", message: "خصمٌ حتى ٣٠٪ على جلسات المعيشة", minsAgo: 200 },
@@ -1222,7 +1232,7 @@ async function main() {
     { store: "ريحانة للتجميل", kind: "restock", message: "وصلت تشكيلة مكياجٍ جديدة", minsAgo: 75 },
     { store: "الجزيرة للتقنية", kind: "restock", message: "توفّر بلي ستيشن ٥ بكمّيّاتٍ محدودة", minsAgo: 45 },
     { store: "أسواق شمسة", kind: "restock", message: "خضارٌ وفواكهُ طازجة وصلت اليوم من مزارع النجف", minsAgo: 15 },
-    { store: "أسواق شمسة", kind: "promo", message: "عروض نهاية الأسبوع — خصوماتٌ تصل إلى ٣٠٪", minsAgo: 90 },
+    { store: "أسواق شمسة", kind: "promo", message: "عروض نهاية الأسبوع — خصوماتٌ تصل إلى ٣٠٪", minsAgo: 90, sponsored: true },
     { store: "أسواق شمسة", kind: "promo", message: "اشترِ ٢ واحصل على ١ مجّاناً على منتجاتٍ مختارة", minsAgo: 300 },
   ];
   let activityCount = 0;
@@ -1230,7 +1240,7 @@ async function main() {
     const vid = vendorIdByName.get(a.store);
     if (!vid) continue;
     await prisma.storeActivity.create({
-      data: { vendorId: vid, kind: a.kind, message: a.message, createdAt: new Date(Date.now() - a.minsAgo * min) },
+      data: { vendorId: vid, kind: a.kind, message: a.message, sponsored: a.sponsored ?? false, createdAt: new Date(Date.now() - a.minsAgo * min) },
     });
     activityCount++;
   }

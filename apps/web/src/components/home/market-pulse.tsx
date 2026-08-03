@@ -6,6 +6,7 @@ export interface PulseItem {
   id: string;
   kind: string;
   message: string;
+  sponsored?: boolean;
   at: string;
   store: { storeName: string; slug: string; logoUrl: string | null };
 }
@@ -43,7 +44,10 @@ export function MarketPulse({ items }: { items: PulseItem[] }) {
                 <KindIcon kind={a.kind} />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-neutral-200">{a.message}</p>
+                <p className="flex items-center gap-1.5 truncate text-sm text-neutral-200">
+                  <span className="truncate">{a.message}</span>
+                  {a.sponsored && <span className="flex-shrink-0 rounded-full bg-gold-500/20 px-1.5 py-0.5 text-[9px] font-bold text-gold-300">مموّل</span>}
+                </p>
                 <p className="truncate text-[11px] text-neutral-500">
                   <span className="font-semibold text-gold-400">{a.store.storeName}</span> · {timeAgoAr(a.at)}
                 </p>

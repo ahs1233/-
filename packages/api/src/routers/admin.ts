@@ -35,8 +35,11 @@ import {
   adminSectionUpsertSchema,
   adminSectionReorderSchema,
   storeActivityUpsertSchema,
+  setStorePlanSchema,
+  vendorPlansConfigSchema,
   idSchema,
 } from "@al-souq/validators";
+import { normalizePlansConfig } from "@al-souq/domain";
 import { getStorage } from "@al-souq/storage";
 import { effectivePermissions, isSuperAdmin, sanitizePermissions } from "@al-souq/auth";
 import { router, adminProcedure, adminPerm } from "../trpc";
@@ -1282,14 +1285,16 @@ export const adminRouter = router({
         orderBy: [{ governorateId: "asc" }, { storeName: "asc" }],
         select: {
           id: true, storeName: true, slug: true, logoUrl: true, verified: true,
-          ratingAvg: true, ratingCount: true, ordersCount: true,
+          ratingAvg: true, ratingCount: true, ordersCount: true, plan: true, featuredUntil: true,
           governorate: { select: { nameAr: true } },
           _count: { select: { products: true, sections: true, activities: true } },
         },
       });
+      const now = Date.now();
       return vendors.map((v) => ({
         id: v.id, storeName: v.storeName, slug: v.slug, logoUrl: v.logoUrl, verified: v.verified,
         ratingAvg: Number(v.ratingAvg), ratingCount: v.ratingCount, ordersCount: v.ordersCount,
+        plan: v.plan, featured: v.featuredUntil != null && v.featuredUntil.getTime() > now,
         governorate: v.governorate?.nameAr ?? null,
         productCount: v._count.products, sectionCount: v._count.sections, activityCount: v._count.activities,
       }));
@@ -1302,19 +1307,21 @@ export const adminRouter = router({
         id: true, storeName: true, slug: true, description: true, logoUrl: true, bannerUrl: true,
         verified: true, establishedYear: true, responseMins: true, opensAt: true, closesAt: true,
         deliveryInfo: true, addressText: true, ordersCount: true, latitude: true, longitude: true,
-        ratingAvg: true, ratingCount: true,
+        ratingAvg: true, ratingCount: true, plan: true, planExpiresAt: true, featuredUntil: true,
         governorate: { select: { nameAr: true } },
         sections: { orderBy: { sortOrder: "asc" }, select: { id: true, nameAr: true, icon: true, sortOrder: true, _count: { select: { products: true } } } },
-        activities: { orderBy: { createdAt: "desc" }, select: { id: true, kind: true, message: true, createdAt: true } },
+        activities: { orderBy: { createdAt: "desc" }, select: { id: true, kind: true, message: true, sponsored: true, createdAt: true } },
       },
     });
     if (!v) throw new TRPCError({ code: "NOT_FOUND", message: "المتجر غير موجود" });
     return {
       ...v,
       ratingAvg: Number(v.ratingAvg),
+      planExpiresAt: v.planExpiresAt ? v.planExpiresAt.toISOString() : null,
+      featuredUntil: v.featuredUntil ? v.featuredUntil.toISOString() : null,
       governorate: v.governorate?.nameAr ?? null,
       sections: v.sections.map((s) => ({ id: s.id, nameAr: s.nameAr, icon: s.icon, sortOrder: s.sortOrder, productCount: s._count.products })),
-      activities: v.activities.map((a) => ({ id: a.id, kind: a.kind, message: a.message, at: a.createdAt.toISOString() })),
+      activities: v.activities.map((a) => ({ id: a.id, kind: a.kind, message: a.message, sponsored: a.sponsored, at: a.createdAt.toISOString() })),
     };
   }),
 
@@ -1371,17 +1378,42 @@ export const adminRouter = router({
     if (input.id) {
       await ctx.prisma.storeActivity.update({
         where: { id: input.id },
-        data: { kind: input.kind, message: input.message, ...(createdAt ? { createdAt } : {}) },
+        data: { kind: input.kind, message: input.message, ...(input.sponsored !== undefined ? { sponsored: input.sponsored } : {}), ...(createdAt ? { createdAt } : {}) },
       });
       return { id: input.id };
     }
     const created = await ctx.prisma.storeActivity.create({
-      data: { vendorId: input.vendorId, kind: input.kind, message: input.message, ...(createdAt ? { createdAt } : {}) },
+      data: { vendorId: input.vendorId, kind: input.kind, message: input.message, sponsored: input.sponsored ?? false, ...(createdAt ? { createdAt } : {}) },
     });
     return { id: created.id };
   }),
   storeActivityDelete: adminPerm("settings").input(idSchema).mutation(async ({ ctx, input }) => {
     await ctx.prisma.storeActivity.delete({ where: { id: input.id } });
+    return { ok: true };
+  }),
+
+  // ── تحصيل الدخل: طبقات الاشتراك (تعريفٌ قابلٌ للتعديل) + تعيين طبقة/ظهور متجر ──
+  getVendorPlans: adminPerm("settings").query(async ({ ctx }) => {
+    const row = await ctx.prisma.platformSetting.findUnique({ where: { key: "vendor_plans" } });
+    return normalizePlansConfig(row?.value);
+  }),
+  updateVendorPlans: adminPerm("settings").input(vendorPlansConfigSchema).mutation(async ({ ctx, input }) => {
+    const value = normalizePlansConfig(input) as unknown as Prisma.InputJsonValue;
+    await ctx.prisma.platformSetting.upsert({
+      where: { key: "vendor_plans" },
+      update: { value },
+      create: { key: "vendor_plans", value },
+    });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "plans.update", entityType: "PlatformSetting", entityId: "vendor_plans", ip: ctx.reqIp });
+    return { ok: true };
+  }),
+  setStorePlan: adminPerm("settings").input(setStorePlanSchema).mutation(async ({ ctx, input }) => {
+    const data: Prisma.VendorProfileUpdateInput = {};
+    if (input.plan !== undefined) data.plan = input.plan;
+    if (input.planExpiresAt !== undefined) data.planExpiresAt = input.planExpiresAt ? new Date(input.planExpiresAt) : null;
+    if (input.featuredUntil !== undefined) data.featuredUntil = input.featuredUntil ? new Date(input.featuredUntil) : null;
+    await ctx.prisma.vendorProfile.update({ where: { id: input.id }, data });
+    await writeAudit(ctx.prisma, { actorId: ctx.user.id, action: "store.plan.update", entityType: "VendorProfile", entityId: input.id, ip: ctx.reqIp });
     return { ok: true };
   }),
 

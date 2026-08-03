@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Store, Star, BadgeCheck } from "lucide-react";
+import { Store, Star, BadgeCheck, Sparkles } from "lucide-react";
 import { AppImage } from "@/src/components/app-image";
 
 export interface StoreRailData {
@@ -9,21 +9,30 @@ export interface StoreRailData {
   logoUrl: string | null;
   bannerUrl?: string | null;
   verified?: boolean;
+  featured?: boolean;
+  plan?: string;
   productCount: number;
   ratingAvg: number;
   ratingCount: number;
 }
 
-/** بطاقة متجرٍ للشريط الأفقيّ — صورةُ غلافٍ + شعار + توثيق. */
+/** بطاقة متجرٍ للشريط الأفقيّ — صورةُ غلافٍ + شعار + توثيق + «مميّز» للمدفوع. */
 export function StoreRailCard({ store }: { store: StoreRailData }) {
   return (
     <Link
       href={`/store/${store.slug}`}
-      className="bg-card group flex flex-col overflow-hidden rounded-2xl border border-line shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-md"
+      className={`bg-card group flex flex-col overflow-hidden rounded-2xl border shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+        store.featured ? "border-gold-500/60 ring-1 ring-gold-500/30" : "border-line hover:border-gold-500/40"
+      }`}
     >
       <div className="relative h-24 overflow-hidden bg-gradient-to-br from-brand-600 to-brand-800">
         {store.bannerUrl && (
           <AppImage src={store.bannerUrl} alt={store.storeName} sizes="180px" className="h-full w-full object-cover" />
+        )}
+        {store.featured && (
+          <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-gold-500/90 px-2 py-0.5 text-[10px] font-extrabold text-brand-900 backdrop-blur">
+            <Sparkles className="h-3 w-3" /> مميّز
+          </span>
         )}
         <span className="bg-card2 absolute -bottom-6 right-3 grid h-14 w-14 place-items-center overflow-hidden rounded-2xl border-2 border-[rgb(var(--c-card))] text-gold-300 shadow ring-1 ring-gold-500/30">
           {store.logoUrl ? (

@@ -179,6 +179,10 @@ model VendorProfile {
   deliveryInfo    String?     // وصف التوصيل (مثال: توصيل داخل النجف خلال ٢٤ ساعة)
   addressText     String?     // العنوان النصّي داخل المحافظة (منطقة/شارع)
   ordersCount     Int         @default(0) // عدّاد الطلبات المُنجَزة (مصداقيّة)
+  // ── تحصيل الدخل: طبقة الاشتراك + الظهور المدفوع ──
+  plan          String       @default("free") // free | silver | gold — تُدار من لوحة الإدارة
+  planExpiresAt DateTime? // انتهاء الاشتراك (null = دائم/مجّاني)
+  featuredUntil DateTime? // «متجرٌ مميّز» مدفوع حتى هذا التاريخ (يرفع الترتيب)
   // تفاصيل التسوية المالية (طريقة الدفع للبائع) — يملؤها البائع
   payoutDetails  Json?
   rejectionNote  String?
@@ -205,6 +209,7 @@ model StoreActivity {
   vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   kind      String // restock | new_section | most_visited | new_arrival | promo
   message   String
+  sponsored Boolean       @default(false) // حدثٌ مموّل — يتصدّر النبض بوسم «مموّل»
   createdAt DateTime      @default(now())
 
   @@index([vendorId])

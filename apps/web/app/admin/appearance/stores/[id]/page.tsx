@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Plus, Trash2, Pencil, ArrowUp, ArrowDown, Layers, Radio, BadgeCheck } from "lucide-react";
+import { ArrowRight, Plus, Trash2, Pencil, ArrowUp, ArrowDown, Layers, Radio, BadgeCheck, BadgeDollarSign, Star } from "lucide-react";
 import { Button, Card, CardBody, Input, Select, Textarea, useToast } from "@al-souq/ui";
 import { trpc } from "@/src/trpc/react";
 import { ImageField } from "../../_image-field";
@@ -35,11 +35,13 @@ export default function AdminStoreEditor({ params }: { params: { id: string } })
   const secReorder = trpc.admin.storeSectionReorder.useMutation({ onSuccess: refresh, onError: (e) => error(e.message) });
   const actUpsert = trpc.admin.storeActivityUpsert.useMutation({ onSuccess: refresh, onError: (e) => error(e.message) });
   const actDelete = trpc.admin.storeActivityDelete.useMutation({ onSuccess: refresh, onError: (e) => error(e.message) });
+  const setPlan = trpc.admin.setStorePlan.useMutation({ onSuccess: () => { refresh(); success("حُفظ الاشتراك"); }, onError: (e) => error(e.message) });
 
   const [p, setP] = useState<Profile | null>(null);
   const [newSection, setNewSection] = useState("");
   const [editSec, setEditSec] = useState<{ id: string; name: string } | null>(null);
-  const [newAct, setNewAct] = useState({ kind: "restock", message: "", minutesAgo: "" });
+  const [newAct, setNewAct] = useState({ kind: "restock", message: "", minutesAgo: "", sponsored: false });
+  const [plan, setPlanState] = useState<{ plan: string; planExpiresAt: string; featuredUntil: string } | null>(null);
 
   useEffect(() => {
     const d = store.data;
@@ -51,10 +53,12 @@ export default function AdminStoreEditor({ params }: { params: { id: string } })
         ordersCount: d.ordersCount.toString(), latitude: d.latitude?.toString() ?? "", longitude: d.longitude?.toString() ?? "",
         ratingAvg: d.ratingAvg.toString(), ratingCount: d.ratingCount.toString(),
       });
+      const iso = (s: string | null) => (s ? s.slice(0, 10) : "");
+      setPlanState({ plan: d.plan, planExpiresAt: iso(d.planExpiresAt), featuredUntil: iso(d.featuredUntil) });
     }
   }, [store.data, p]);
 
-  if (store.isLoading || !p) return <p className="text-sm text-neutral-400">…جارٍ التحميل</p>;
+  if (store.isLoading || !p || !plan) return <p className="text-sm text-neutral-400">…جارٍ التحميل</p>;
   if (store.isError || !store.data) return <p className="text-sm text-neutral-500">المتجر غير موجود.</p>;
   const d = store.data;
 
@@ -144,6 +148,37 @@ export default function AdminStoreEditor({ params }: { params: { id: string } })
         </CardBody>
       </Card>
 
+      {/* ── الاشتراك والظهور المدفوع ── */}
+      <Card>
+        <CardBody className="space-y-3">
+          <h2 className="flex items-center gap-2 font-bold text-neutral-800"><BadgeDollarSign className="h-4 w-4 text-brand-600" /> الاشتراك والظهور</h2>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <F label="طبقة الاشتراك">
+              <Select value={plan.plan} onChange={(e) => setPlanState({ ...plan, plan: e.target.value })}>
+                <option value="free">مجّاني</option>
+                <option value="silver">فضّي</option>
+                <option value="gold">ذهبيّ</option>
+              </Select>
+            </F>
+            <F label="انتهاء الاشتراك">
+              <Input type="date" value={plan.planExpiresAt} onChange={(e) => setPlanState({ ...plan, planExpiresAt: e.target.value })} />
+            </F>
+            <F label="مميّز حتى (ظهور مدفوع)">
+              <Input type="date" value={plan.featuredUntil} onChange={(e) => setPlanState({ ...plan, featuredUntil: e.target.value })} />
+            </F>
+          </div>
+          <p className="flex items-center gap-1.5 text-xs text-neutral-500"><Star className="h-3.5 w-3.5 text-amber-500" /> «مميّز حتى» يرفع ترتيب المتجر في السوق ويُظهر شارة «مميّز» للمشتري. اترك الحقل فارغًا لإلغائه.</p>
+          <div className="flex justify-end">
+            <Button loading={setPlan.isPending} onClick={() => setPlan.mutate({
+              id: params.id,
+              plan: plan.plan as "free" | "silver" | "gold",
+              planExpiresAt: plan.planExpiresAt ? new Date(plan.planExpiresAt + "T23:59:59Z").toISOString() : null,
+              featuredUntil: plan.featuredUntil ? new Date(plan.featuredUntil + "T23:59:59Z").toISOString() : null,
+            })}>حفظ الاشتراك</Button>
+          </div>
+        </CardBody>
+      </Card>
+
       {/* ── الأقسام الداخليّة ── */}
       <Card>
         <CardBody className="space-y-3">
@@ -193,8 +228,12 @@ export default function AdminStoreEditor({ params }: { params: { id: string } })
             </Select>
             <Input value={newAct.message} onChange={(e) => setNewAct({ ...newAct, message: e.target.value })} placeholder="نصّ الحدث — مثل: وصلت دفعة جديدة من…" maxLength={160} />
             <Input inputMode="numeric" value={newAct.minutesAgo} onChange={(e) => setNewAct({ ...newAct, minutesAgo: e.target.value })} placeholder="قبل (دقيقة)" />
-            <Button disabled={newAct.message.trim().length < 3} loading={actUpsert.isPending} onClick={() => { actUpsert.mutate({ vendorId: params.id, kind: newAct.kind as never, message: newAct.message.trim(), minutesAgo: newAct.minutesAgo.trim() ? Number(newAct.minutesAgo) : undefined }); setNewAct({ kind: newAct.kind, message: "", minutesAgo: "" }); }}><Plus className="h-4 w-4" /></Button>
+            <Button disabled={newAct.message.trim().length < 3} loading={actUpsert.isPending} onClick={() => { actUpsert.mutate({ vendorId: params.id, kind: newAct.kind as never, message: newAct.message.trim(), minutesAgo: newAct.minutesAgo.trim() ? Number(newAct.minutesAgo) : undefined, sponsored: newAct.sponsored }); setNewAct({ kind: newAct.kind, message: "", minutesAgo: "", sponsored: false }); }}><Plus className="h-4 w-4" /></Button>
           </div>
+          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+            <input type="checkbox" checked={newAct.sponsored} onChange={(e) => setNewAct({ ...newAct, sponsored: e.target.checked })} className="h-4 w-4 accent-amber-500" />
+            حدثٌ مموّل (يتصدّر النبض بوسم «مموّل»)
+          </label>
           {d.activities.length === 0 ? (
             <p className="text-sm text-neutral-400">لا أحداث بعد.</p>
           ) : (
@@ -202,8 +241,10 @@ export default function AdminStoreEditor({ params }: { params: { id: string } })
               {d.activities.map((a) => (
                 <li key={a.id} className="flex items-center gap-2 rounded-xl border border-neutral-200 p-2">
                   <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-600">{kindLabel(a.kind)}</span>
+                  {a.sponsored && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">مموّل</span>}
                   <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">{a.message}</span>
                   <span className="text-[11px] text-neutral-400">{new Date(a.at).toLocaleString("ar-IQ", { dateStyle: "short", timeStyle: "short" })}</span>
+                  <button aria-label={a.sponsored ? "إلغاء التمويل" : "تمويل"} title="تبديل التمويل" onClick={() => actUpsert.mutate({ vendorId: params.id, id: a.id, kind: a.kind as never, message: a.message, sponsored: !a.sponsored })} className={`grid h-8 w-8 place-items-center rounded-lg ${a.sponsored ? "text-amber-600 hover:bg-amber-50" : "text-neutral-400 hover:bg-neutral-100"}`}><Star className="h-4 w-4" /></button>
                   <button aria-label="حذف" onClick={() => actDelete.mutate({ id: a.id })} className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-danger/10"><Trash2 className="h-4 w-4" /></button>
                 </li>
               ))}

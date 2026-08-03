@@ -12,6 +12,8 @@ export interface StoreListItem {
   logoUrl: string | null;
   bannerUrl: string | null;
   verified: boolean;
+  featured?: boolean;
+  plan?: string;
   category: string | null;
   governorate: string | null;
   ratingAvg: number;
@@ -22,7 +24,8 @@ export interface StoreListItem {
 }
 
 const SORTS: { key: string; label: string; cmp: (a: StoreListItem, b: StoreListItem) => number }[] = [
-  { key: "featured", label: "المميّزة", cmp: (a, b) => b.ratingAvg - a.ratingAvg || b.ratingCount - a.ratingCount },
+  // «المميّزة»: المتاجر المدفوعة أوّلاً، ثمّ الأعلى تقييماً.
+  { key: "featured", label: "المميّزة", cmp: (a, b) => Number(!!b.featured) - Number(!!a.featured) || b.ratingAvg - a.ratingAvg || b.ratingCount - a.ratingCount },
   { key: "rating", label: "الأعلى تقييماً", cmp: (a, b) => b.ratingAvg - a.ratingAvg || b.ratingCount - a.ratingCount },
   { key: "sales", label: "الأكثر مبيعاً", cmp: (a, b) => b.salesCount - a.salesCount },
   { key: "new", label: "حديثة", cmp: (a, b) => b.createdAt.localeCompare(a.createdAt) },
@@ -70,6 +73,7 @@ export function StoresList({ stores }: { stores: StoreListItem[] }) {
                   <p className="flex items-center gap-1 truncate font-bold text-neutral-100">
                     {s.storeName}
                     {s.verified && <BadgeCheck className="h-4 w-4 flex-shrink-0 text-gold-400" aria-label="موثّق" />}
+                    {s.featured && <span className="flex-shrink-0 rounded-full bg-gold-500/90 px-1.5 py-0.5 text-[9px] font-extrabold text-brand-900">مميّز</span>}
                   </p>
                   <p className="truncate text-xs text-neutral-400">{s.category ?? "متجر"}{s.governorate ? ` · ${s.governorate}` : ""}</p>
                   {s.ratingCount > 0 && (
