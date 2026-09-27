@@ -22,7 +22,7 @@ export const DEFAULTS = Object.freeze({
   mitAlpha: 0.6, rejAtrK: 1.0, breakBufK: 0.10, dispBodyK: 0.80, legEff: 0.55, eventEpsK: 0.15,
   pivotLen: 3, maxAge: [720, 96, 64], flipWindow: 60,
   L_ENTRY: 40, N_LEG: 10, M_ORIGIN: 3, BREAK_WINDOW: 3, RING_LEN: 64,
-  LOCAL_CAP: 48, ANCHOR_CAP: 24, ZONE_CAP: 64, SLOT_KEYS: 6, ATR_ENG_LEN: 20,
+  LOCAL_CAP: 48, ANCHOR_FEED_MAX: 6, ZONE_CAP: 64, ATR_ENG_LEN: 20,
   useDOZ: true,
 });
 
@@ -383,10 +383,10 @@ export function selectSlots(zones, slots, ctx, P = DEFAULTS) {
     if (z < 0) return emptySlot();
     const zn = zones[z];
     const keys = zn.members.map((m) => m.key);
-    const lastKeys = keys.slice(0, P.SLOT_KEYS);
+    const lastKeys = keys.slice(); // no cap: every member key is kept
     let entryKeys;
     if (zn.privSlot >= 0) entryKeys = slots[zn.privSlot].entryKeys.filter((k) => keys.includes(k));
-    else entryKeys = keys.slice(0, P.SLOT_KEYS);
+    else entryKeys = keys.slice();
     return {
       active: true, containing: zn.side === SIDE.CONTAIN, lo: zn.lo, hi: zn.hi, side: zn.side,
       quality: zn.displayQ, entryKeys, lastKeys, zoneIndex: z, isRes: si < 2,
@@ -470,7 +470,7 @@ export class Engine {
     this.startBar = opts.startBar ?? 0;
     this.anchorFeed = opts.anchorFeed ?? null; // (i) => { now: [null, a1Now, a2Now], atrA1, atrA2, items: [...] }
     this.a1Sec = opts.a1Sec ?? 300; this.a2Sec = opts.a2Sec ?? 900;
-    this.local = []; this.anchors = [];
+    this.local = []; this.anchorsA1 = []; this.anchorsA2 = [];
     this.slots = [emptySlot(), emptySlot(), emptySlot(), emptySlot()];
     this.ring = [];
     this.lastSwingHigh = { px: null, bar: null, broken: true };
@@ -479,6 +479,8 @@ export class Engine {
     this.suppressedTotal = 0;
     this.lastZones = [];
   }
+
+  allLevels() { return [...this.local, ...this.anchorsA1, ...this.anchorsA2]; }
 
   inPrevSlots(k) { return this.slots.some((s) => s.active && s.lastKeys.includes(k)); }
 
@@ -497,7 +499,7 @@ export class Engine {
     this.ring.unshift(b); if (this.ring.length > P.RING_LEN) this.ring.pop();
 
     // Phase 1: aging + state machine
-    for (const pool of [this.local, this.anchors]) {
+    for (const pool of [this.local, this.anchorsA1, this.anchorsA2]) {
       for (const lv of pool) {
         const nowN = lv.tfRank === TF.LOCAL ? i : feed.now[lv.tfRank];
         if (nowN != null) {
@@ -509,7 +511,6 @@ export class Engine {
       }
     }
     this.local = this.local.filter((l) => l.state !== ST.DEAD);
-    this.anchors = this.anchors.filter((l) => !(l.state === ST.DEAD && l.ageNative > P.maxAge[l.tfRank]));
 
     // DOZ
     const ringO = this.ring.map((r) => r.o), ringH = this.ring.map((r) => r.h), ringL = this.ring.map((r) => r.l), ringC = this.ring.map((r) => r.c);
@@ -551,25 +552,20 @@ export class Engine {
       Object.assign(sl, { px, bar: p, broken: false });
     }
 
-    // ANCHOR upserts
-    for (const it of feed.items) {
-      const nowN = feed.now[it.tfRank];
-      const atrA = it.tfRank === TF.A1 ? feed.atrA1 : feed.atrA2;
-      if (it.price == null || nowN == null || atrA == null) continue;
-      const age = nowN - it.nb;
-      if (age < 0 || age > P.maxAge[it.tfRank]) continue;
-      const k = memberKeyOf(it.bt, SRC.ANCHOR, it.tfRank, it.typ);
-      if (this.anchors.some((x) => x.key === k)) continue;
-      const w = Math.max(0.15 * atr, Math.min(0.60 * atr, 0.10 * atrA));
-      this.anchors.push(makeLevel({ key: k, lo: it.typ === TYP.HIGH ? it.price - w : it.price, hi: it.typ === TYP.HIGH ? it.price : it.price + w, price: it.price, source: SRC.ANCHOR, tfRank: it.tfRank, typ: it.typ, birthNativeBar: it.nb, birthTime: it.bt, birthAtr: atr, s: it.tfRank === TF.A1 ? 70 : 78, lastTestChartBar: i, stateChartBar: i, ageNative: age }));
+    // ANCHOR lifecycle: feed keys → sync → upsert (per timeframe, bounded by the feed)
+    for (const [tf, pool] of [[TF.A1, this.anchorsA1], [TF.A2, this.anchorsA2]]) {
+      const items = feed.items.filter((it) => it.tfRank === tf);
+      const keys = feedKeysOf(items);
+      syncAnchorPool(pool, keys, feed.now[tf] != null, P);
+      for (const it of items) upsertAnchor(pool, it, feed.now[tf], tf === TF.A1 ? feed.atrA1 : feed.atrA2, atr, i, P);
+      if (pool.length > P.ANCHOR_FEED_MAX) this.violations.push('ANCHOR_POOL_SIZE');
     }
     evictOldest(this.local, P.LOCAL_CAP);
-    evictOldest(this.anchors, P.ANCHOR_CAP);
-    for (const lv of [...this.local, ...this.anchors]) lv.q = lv.state === ST.DEAD ? 0 : levelQuality(lv, P);
+    for (const lv of this.allLevels()) lv.q = lv.state === ST.DEAD ? 0 : levelQuality(lv, P);
 
     // Phase 2 + 3
     const ctx = { close: b.c, atr, atrA1: feed.atrA1, atrA2: feed.atrA2, a1Sec: this.a1Sec, a2Sec: this.a2Sec, ringC };
-    const built = buildZones([...this.local, ...this.anchors], ctx, P);
+    const built = buildZones(this.allLevels(), ctx, P);
     this.suppressedTotal += built.suppressed.length;
     const sel = selectSlots(built.zones, this.slots, ctx, P);
     this.violations.push(...built.violations, ...sel.violations);
@@ -577,6 +573,31 @@ export class Engine {
     this.lastZones = built.zones;
     return { events: ev, slots: this.slots, zones: built.zones, sel };
   }
+}
+
+// Anchor lifecycle follows the feed: a record lives while its key is one of the
+// feed's current keys; a DEAD record stays as a tombstone for exactly that period.
+export function feedKeysOf(items) {
+  return items.filter((it) => it.price != null && it.bt != null).map((it) => memberKeyOf(it.bt, SRC.ANCHOR, it.tfRank, it.typ));
+}
+
+export function syncAnchorPool(pool, feedKeys, feedOk, P = DEFAULTS) {
+  for (let i = pool.length - 1; i >= 0; i--) {
+    const lv = pool[i];
+    const agedOut = lv.state === ST.DEAD && lv.ageNative > P.maxAge[lv.tfRank];
+    if (agedOut || (feedOk && !feedKeys.includes(lv.key))) pool.splice(i, 1);
+  }
+}
+
+export function upsertAnchor(pool, it, nowN, atrA, atr, i, P = DEFAULTS) {
+  if (it.price == null || it.nb == null || it.bt == null || nowN == null || atrA == null) return false;
+  const age = nowN - it.nb;
+  if (age < 0 || age > P.maxAge[it.tfRank]) return false;
+  const k = memberKeyOf(it.bt, SRC.ANCHOR, it.tfRank, it.typ);
+  if (pool.some((x) => x.key === k)) return false;
+  const w = Math.max(0.15 * atr, Math.min(0.60 * atr, 0.10 * atrA));
+  pool.push(makeLevel({ key: k, lo: it.typ === TYP.HIGH ? it.price - w : it.price, hi: it.typ === TYP.HIGH ? it.price : it.price + w, price: it.price, source: SRC.ANCHOR, tfRank: it.tfRank, typ: it.typ, birthNativeBar: it.nb, birthTime: it.bt, birthAtr: atr, s: it.tfRank === TF.A1 ? 70 : 78, lastTestChartBar: i, stateChartBar: i, ageNative: age }));
+  return true;
 }
 
 function evictOldest(pool, cap) {

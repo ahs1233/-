@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {
   DEFAULTS, SRC, TF, TYP, ST, KEY_BASE, memberKeyOf, makeLevel, buildZones, selectSlots,
   emptySlot, runEpisode, levelQuality, computeSeries, engineWindowFor, Engine, syntheticBars, checkSelectionInvariants,
+  feedKeysOf, syncAnchorPool, upsertAnchor,
 } from './engine.mjs';
 
 const T0 = 1_700_000_000_000;
@@ -224,7 +225,7 @@ test('T7 reload determinism: same trailing W bars → same map (local + DOZ + A1
     A.step(i);
     B.step(i);
     if (A.local.some((l) => l.source === SRC.DOZ)) dozSeen++;
-    if (A.anchors.length > 0) anchorSeen++;
+    if (A.anchorsA1.length + A.anchorsA2.length > 0) anchorSeen++;
     if (i >= startB + W) {
       compared++;
       if (signatureSlots(A.slots) !== signatureSlots(B.slots) || signature({ zones: A.lastZones, suppressed: [] }) !== signature({ zones: B.lastZones, suppressed: [] })) mismatches++;
@@ -256,4 +257,58 @@ test('T7b a start inside the window can differ, which is why W is required', () 
   }
   assert.ok(early === 100);
   assert.ok(diff > 0, 'expected divergence immediately after a late start (warm-up is real)');
+});
+
+test('T8 anchor lifecycle follows the feed: no live eviction, tombstones only while in feed', () => {
+  const P = DEFAULTS;
+  const a2Item = { price: 105, nb: 100, bt: T0, typ: TYP.HIGH, tfRank: TF.A2 };
+  const poolA2 = [];
+  const poolA1 = [];
+  upsertAnchor(poolA2, a2Item, 110, 6, 1, 0, P);
+  const record = poolA2[0];
+  record.mitigation = 0.4; record.tests = 3;
+  // A1 churns out many new pivots; A2's record is untouched (separate pools, no capacity race).
+  for (let c = 0; c < 50; c++) {
+    const items = [0, 1, 2].map((k) => ({ price: 100 + c + k, nb: 1000 + 3 * c + k, bt: T0 + (c * 3 + k + 1) * 300_000, typ: TYP.LOW, tfRank: TF.A1 }));
+    syncAnchorPool(poolA1, feedKeysOf(items), true, P);
+    for (const it of items) upsertAnchor(poolA1, it, 1000 + 3 * c + 3, 2, 1, c, P);
+    assert.ok(poolA1.length <= P.ANCHOR_FEED_MAX);
+    syncAnchorPool(poolA2, feedKeysOf([a2Item]), true, P);
+    upsertAnchor(poolA2, a2Item, 110, 6, 1, c, P);
+    assert.equal(poolA2.length, 1);
+    assert.equal(poolA2[0], record); // same object: state preserved
+  }
+  assert.equal(record.tests, 3);
+  // A DEAD record still in the feed is a tombstone: not re-admitted fresh.
+  record.state = ST.DEAD;
+  syncAnchorPool(poolA2, feedKeysOf([a2Item]), true, P);
+  upsertAnchor(poolA2, a2Item, 110, 6, 1, 60, P);
+  assert.equal(poolA2.length, 1);
+  assert.equal(poolA2[0].state, ST.DEAD);
+  // Once the key leaves the feed the record is removed.
+  syncAnchorPool(poolA2, feedKeysOf([]), true, P);
+  assert.equal(poolA2.length, 0);
+  // Feed unavailable (na): nothing is removed.
+  upsertAnchor(poolA2, a2Item, 110, 6, 1, 70, P);
+  syncAnchorPool(poolA2, [], false, P);
+  assert.equal(poolA2.length, 1);
+});
+
+test('T9 zones with more than 6 members: privilege and last keys are never truncated', () => {
+  const ctx = { ...baseCtx, close: 100, atr: 1 };
+  // Eight overlapping members inside one zone; the 8th in precedes order is weakest.
+  const members = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => lvl({ lo: 101 + i * 0.01, hi: 101.3 + i * 0.01, q: 70 - i, t: T0 + i * 60_000 }));
+  const built = buildZones(members, ctx);
+  assert.equal(built.zones.length, 1);
+  assert.equal(built.zones[0].members.length, 8);
+  const sel = selectSlots(built.zones, [emptySlot(), emptySlot(), emptySlot(), emptySlot()], ctx);
+  assert.equal(sel.next[0].lastKeys.length, 8);
+  assert.equal(sel.next[0].entryKeys.length, 8);
+  // Only the weakest (8th) entry member survives, with q between Q_stay and Q_enter.
+  const survivor = members[7];
+  survivor.q = 50; survivor.s = 50;
+  const later = buildZones([survivor], ctx);
+  const sel2 = selectSlots(later.zones, sel.next, ctx);
+  assert.equal(sel2.pick[0], 0); // privilege kept through the 8th key
+  assert.deepEqual(sel2.next[0].entryKeys, [survivor.key]);
 });

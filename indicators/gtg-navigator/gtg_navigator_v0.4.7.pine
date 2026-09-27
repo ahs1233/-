@@ -20,7 +20,7 @@ indicator(
 //            components, component packing, MTF event groups, gateQ/displayQ.
 //   Phase 3  Spatial selection: global progressive horizon R* / R_eff, nearest
 //            first, containing zone, Q_enter / Q_stay through slot entry keys.
-//   Slots    Four persistent SlotStates holding scalars only.
+//   Slots    Four persistent SlotStates (scalars) + eight slot-owned int key arrays.
 //
 // Free-data only: OHLC, standard volume/tick activity when available, MTF price.
 // 0..100 values are relative strengths, NOT win probabilities. Zones are
@@ -482,13 +482,13 @@ SIDE_ABOVE = 1
 // src ∈ [0,2], tfRank ∈ [0,2], typ ∈ [0,1]  ⇒  disc ∈ [0,17] ⊂ [0, KEY_BASE).
 // Because 0 ≤ disc < KEY_BASE, birthTime = floor(key / KEY_BASE) and
 // disc = key mod KEY_BASE, so distinct (birthTime, src, tfRank, typ) tuples can
-// never share a key. birthTime is epoch ms (< 2^42), so key < 2^47: exact in int.
+// never share a key. birthTime is epoch ms (< 2^42), so key < 2^47: well inside
+// Pine's 64-bit int. Keys are int end to end (fields, arrays, equality tests).
 KEY_BASE = 32
 EMPTY_KEY = -1
 LOCAL_CAP = 48
-ANCHOR_CAP = 24
+ANCHOR_FEED_MAX = 6
 ZONE_CAP = 64
-SLOT_KEYS = 6
 ATR_ENG_LEN = 20
 ANCHOR_PIVOT_LEN = 3
 RING_LEN = 64
@@ -624,7 +624,8 @@ type Zone
     bool eligible = false
     int entrySide = 0
 
-// Persistent slot state: scalars only (no collections, no UDT references).
+// Persistent slot state: scalars only (no collections, no UDT references). Its entry
+// and last-member keys live in dedicated int arrays owned by the slot (see below).
 type SlotState
     bool active = false
     bool containing = false
@@ -638,18 +639,6 @@ type SlotState
     string roleType = "—"
     string navTag = ""
     string shortTag = ""
-    int e0 = -1
-    int e1 = -1
-    int e2 = -1
-    int e3 = -1
-    int e4 = -1
-    int e5 = -1
-    int l0 = -1
-    int l1 = -1
-    int l2 = -1
-    int l3 = -1
-    int l4 = -1
-    int l5 = -1
 
 type Telemetry
     int violations = 0
@@ -661,7 +650,7 @@ type Telemetry
     int supTotal = 0
     float supMaxQ = na
     float supNearestAtr = na
-    int entryOverflow = 0
+    int maxSlotKeys = 0
     int zoneCapHits = 0
     float rEffUpAtr = na
     float rEffDnAtr = na
@@ -678,7 +667,11 @@ type Events
     bool rejectS = false
 
 var array<Level> localPool = array.new<Level>()
-var array<Level> anchorPool = array.new<Level>()
+// Anchor records per timeframe. Each pool holds at most the feed's six keys.
+var array<Level> anchorPoolA1 = array.new<Level>()
+var array<Level> anchorPoolA2 = array.new<Level>()
+var array<int> feedKeysA1 = array.new_int()
+var array<int> feedKeysA2 = array.new_int()
 var array<Zone> zonePool = array.new<Zone>()
 if array.size(zonePool) == 0
     for i = 0 to ZONE_CAP - 1
@@ -713,8 +706,26 @@ var array<int> gA1 = array.new_int()
 var array<int> gA2 = array.new_int()
 var array<int> rList = array.new_int()
 var array<int> sList = array.new_int()
-var array<int> newEntry = array.new_int()
-var array<int> newLast = array.new_int()
+// Slot key storage: eight int arrays, each owned by exactly one slot. They are only
+// ever updated with clear + push (never copied, never reassigned between slots),
+// so there is no aliasing and no cap on the number of keys a slot can carry.
+var array<int> keysEntryR1 = array.new_int()
+var array<int> keysEntryR2 = array.new_int()
+var array<int> keysEntryS1 = array.new_int()
+var array<int> keysEntryS2 = array.new_int()
+var array<int> keysLastR1 = array.new_int()
+var array<int> keysLastR2 = array.new_int()
+var array<int> keysLastS1 = array.new_int()
+var array<int> keysLastS2 = array.new_int()
+// Per-bar scratch for the next slot keys (filled before any slot is written).
+var array<int> nextEntryR1 = array.new_int()
+var array<int> nextEntryR2 = array.new_int()
+var array<int> nextEntryS1 = array.new_int()
+var array<int> nextEntryS2 = array.new_int()
+var array<int> nextLastR1 = array.new_int()
+var array<int> nextLastR2 = array.new_int()
+var array<int> nextLastS1 = array.new_int()
+var array<int> nextLastS2 = array.new_int()
 
 // DOZ bookkeeping: most recent confirmed swing in chart coordinates.
 var float lastSwingHighPx = na
@@ -766,52 +777,38 @@ levelQuality(Level lv) =>
 precedes(Level a, Level b) =>
     a.q != b.q ? a.q > b.q : a.lo != b.lo ? a.lo < b.lo : a.hi != b.hi ? a.hi < b.hi : a.birthTime != b.birthTime ? a.birthTime < b.birthTime : a.source != b.source ? a.source < b.source : a.tfRank != b.tfRank ? a.tfRank < b.tfRank : a.key < b.key
 
-slotHasEntry(SlotState ss, int k) =>
-    ss.active and (k == ss.e0 or k == ss.e1 or k == ss.e2 or k == ss.e3 or k == ss.e4 or k == ss.e5)
-
-slotHasLast(SlotState ss, int k) =>
-    ss.active and (k == ss.l0 or k == ss.l1 or k == ss.l2 or k == ss.l3 or k == ss.l4 or k == ss.l5)
-
-slotEntryAt(SlotState ss, int i) =>
-    i == 0 ? ss.e0 : i == 1 ? ss.e1 : i == 2 ? ss.e2 : i == 3 ? ss.e3 : i == 4 ? ss.e4 : ss.e5
-
-setSlotEntry(SlotState ss, int i, int k) =>
-    if i == 0
-        ss.e0 := k
-    else if i == 1
-        ss.e1 := k
-    else if i == 2
-        ss.e2 := k
-    else if i == 3
-        ss.e3 := k
-    else if i == 4
-        ss.e4 := k
-    else
-        ss.e5 := k
-    k
-
-setSlotLast(SlotState ss, int i, int k) =>
-    if i == 0
-        ss.l0 := k
-    else if i == 1
-        ss.l1 := k
-    else if i == 2
-        ss.l2 := k
-    else if i == 3
-        ss.l3 := k
-    else if i == 4
-        ss.l4 := k
-    else
-        ss.l5 := k
-    k
-
 slotAt(int i) =>
     i == 0 ? slotR1 : i == 1 ? slotR2 : i == 2 ? slotS1 : slotS2
+
+entryKeysOf(int si) =>
+    si == 0 ? keysEntryR1 : si == 1 ? keysEntryR2 : si == 2 ? keysEntryS1 : keysEntryS2
+
+lastKeysOf(int si) =>
+    si == 0 ? keysLastR1 : si == 1 ? keysLastR2 : si == 2 ? keysLastS1 : keysLastS2
+
+nextEntryOf(int si) =>
+    si == 0 ? nextEntryR1 : si == 1 ? nextEntryR2 : si == 2 ? nextEntryS1 : nextEntryS2
+
+nextLastOf(int si) =>
+    si == 0 ? nextLastR1 : si == 1 ? nextLastR2 : si == 2 ? nextLastS1 : nextLastS2
+
+slotHasEntry(int si, int k) =>
+    slotAt(si).active and array.includes(entryKeysOf(si), k)
 
 // Event filter: a level belongs to a displayed zone if its key was among the
 // member keys of any active slot at the previous confirmed bar.
 keyInPrevSlots(int k) =>
-    slotHasLast(slotR1, k) or slotHasLast(slotR2, k) or slotHasLast(slotS1, k) or slotHasLast(slotS2, k)
+    (slotR1.active and array.includes(keysLastR1, k)) or (slotR2.active and array.includes(keysLastR2, k)) or (slotS1.active and array.includes(keysLastS1, k)) or (slotS2.active and array.includes(keysLastS2, k))
+
+// Overwrites dst with the contents of src element by element (no array.copy, no
+// reference assignment between slot-owned arrays).
+replaceKeys(array<int> dst, array<int> src) =>
+    array.clear(dst)
+    int n = array.size(src)
+    if n > 0
+        for i = 0 to n - 1
+            array.push(dst, array.get(src, i))
+    n
 
 keyExists(array<Level> pool, int k) =>
     bool found = false
@@ -962,21 +959,30 @@ compactLocal(array<Level> pool) =>
                 removed += 1
     removed
 
-// Anchors that died from mitigation/breaks stay as tombstones until they age out,
-// otherwise the HTF feed (last three pivots) would re-admit them fresh.
-compactAnchors(array<Level> pool) =>
+// Anchor lifecycle follows the HTF feed. A record lives while its key is one of
+// the feed's current keys (last three confirmed highs + lows of its timeframe).
+// A DEAD record stays as a tombstone for exactly that period, so the feed cannot
+// re-admit it fresh; once its key leaves the feed (or it has aged out) it is
+// removed. A1 and A2 have separate pools and never compete for capacity.
+feedKeyPush(array<int> keys, float px, int bt, int typ, int tfRank) =>
+    if not na(px) and not na(bt)
+        array.push(keys, memberKeyOf(bt, SRC_ANCHOR, tfRank, typ))
+    array.size(keys)
+
+syncAnchorPool(array<Level> pool, array<int> feedKeys, bool feedOk) =>
     int n = array.size(pool)
     int removed = 0
     if n > 0
         for i = n - 1 to 0
             Level lv = array.get(pool, i)
-            if lv.state == ST_DEAD and lv.ageNative > maxAgeOf(lv.tfRank)
+            bool agedOut = lv.state == ST_DEAD and lv.ageNative > maxAgeOf(lv.tfRank)
+            if agedOut or (feedOk and not array.includes(feedKeys, lv.key))
                 array.remove(pool, i)
                 removed += 1
     removed
 
-// Capacity is a safety valve. Eviction is oldest-birth first (key breaks ties),
-// which depends only on births and therefore keeps the map start-point independent.
+// Local-pool capacity is a safety valve. Eviction is oldest-birth first (key breaks
+// ties), which depends only on births and keeps the map start-point independent.
 evictOldest(array<Level> pool, int cap) =>
     int evicted = 0
     while array.size(pool) > cap
@@ -1079,8 +1085,8 @@ if engineStep
     ringPush(ringC, close)
 
     // State machine + aging for every live level.
-    for p = 0 to 1
-        array<Level> pool = p == 0 ? localPool : anchorPool
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
         int n = array.size(pool)
         if n > 0
             for i = 0 to n - 1
@@ -1097,7 +1103,6 @@ if engineStep
                 if lv.state != ST_DEAD
                     updateLevel(lv, open, high, low, close, prevClose, atrEng, bar_index, ev, keyInPrevSlots(lv.key))
     compactLocal(localPool)
-    compactAnchors(anchorPool)
 
     // DOZ: displacement close through the latest unbroken, non-expired swing.
     if not na(lastSwingHighPx) and not lastSwingHighBroken and close > lastSwingHighPx
@@ -1133,26 +1138,44 @@ if engineStep
         lastSwingLowBar := bar_index - pivotLen
         lastSwingLowBroken := false
 
-    // ANCHOR upserts (keyed by native pivot time; dead anchors stay as tombstones).
-    upsertAnchor(anchorPool, a1H0, a1HB0, a1HT0, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
-    upsertAnchor(anchorPool, a1H1, a1HB1, a1HT1, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
-    upsertAnchor(anchorPool, a1H2, a1HB2, a1HT2, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
-    upsertAnchor(anchorPool, a1L0, a1LB0, a1LT0, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
-    upsertAnchor(anchorPool, a1L1, a1LB1, a1LT1, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
-    upsertAnchor(anchorPool, a1L2, a1LB2, a1LT2, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
-    upsertAnchor(anchorPool, a2H0, a2HB0, a2HT0, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
-    upsertAnchor(anchorPool, a2H1, a2HB1, a2HT1, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
-    upsertAnchor(anchorPool, a2H2, a2HB2, a2HT2, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
-    upsertAnchor(anchorPool, a2L0, a2LB0, a2LT0, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
-    upsertAnchor(anchorPool, a2L1, a2LB1, a2LT1, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
-    upsertAnchor(anchorPool, a2L2, a2LB2, a2LT2, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    // ANCHOR lifecycle: current feed keys → sync (drop keys that left the feed or
+    // aged-out records) → upsert missing keys. Pools are bounded by the feed.
+    array.clear(feedKeysA1)
+    feedKeyPush(feedKeysA1, a1H0, a1HT0, TYP_HIGH, TF_A1)
+    feedKeyPush(feedKeysA1, a1H1, a1HT1, TYP_HIGH, TF_A1)
+    feedKeyPush(feedKeysA1, a1H2, a1HT2, TYP_HIGH, TF_A1)
+    feedKeyPush(feedKeysA1, a1L0, a1LT0, TYP_LOW, TF_A1)
+    feedKeyPush(feedKeysA1, a1L1, a1LT1, TYP_LOW, TF_A1)
+    feedKeyPush(feedKeysA1, a1L2, a1LT2, TYP_LOW, TF_A1)
+    array.clear(feedKeysA2)
+    feedKeyPush(feedKeysA2, a2H0, a2HT0, TYP_HIGH, TF_A2)
+    feedKeyPush(feedKeysA2, a2H1, a2HT1, TYP_HIGH, TF_A2)
+    feedKeyPush(feedKeysA2, a2H2, a2HT2, TYP_HIGH, TF_A2)
+    feedKeyPush(feedKeysA2, a2L0, a2LT0, TYP_LOW, TF_A2)
+    feedKeyPush(feedKeysA2, a2L1, a2LT1, TYP_LOW, TF_A2)
+    feedKeyPush(feedKeysA2, a2L2, a2LT2, TYP_LOW, TF_A2)
+    syncAnchorPool(anchorPoolA1, feedKeysA1, not na(a1Now))
+    syncAnchorPool(anchorPoolA2, feedKeysA2, not na(a2Now))
+    upsertAnchor(anchorPoolA1, a1H0, a1HB0, a1HT0, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1H1, a1HB1, a1HT1, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1H2, a1HB2, a1HT2, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1L0, a1LB0, a1LT0, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1L1, a1LB1, a1LT1, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1L2, a1LB2, a1LT2, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA2, a2H0, a2HB0, a2HT0, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2H1, a2HB1, a2HT1, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2H2, a2HB2, a2HT2, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2L0, a2LB0, a2LT0, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2L1, a2LB1, a2LT1, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2L2, a2LB2, a2LT2, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    if array.size(anchorPoolA1) > ANCHOR_FEED_MAX or array.size(anchorPoolA2) > ANCHOR_FEED_MAX
+        reportViolation(tel, "ANCHOR_POOL_SIZE", true)
 
     evictOldest(localPool, LOCAL_CAP)
-    evictOldest(anchorPool, ANCHOR_CAP)
 
     // Effective quality for this bar (s × f), after all transitions and admissions.
-    for p = 0 to 1
-        array<Level> pool = p == 0 ? localPool : anchorPool
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
         int n = array.size(pool)
         if n > 0
             for i = 0 to n - 1
@@ -1315,8 +1338,8 @@ if engineStep
     tel.supNearestAtr := na
     array.clear(work)
     array.clear(workLo)
-    for p = 0 to 1
-        array<Level> pool = p == 0 ? localPool : anchorPool
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
         int n = array.size(pool)
         if n > 0
             for i = 0 to n - 1
@@ -1451,7 +1474,7 @@ zonePrivSlot(Zone zn, array<Level> s, array<int> mi) =>
             SlotState ss = slotAt(si)
             if ss.active
                 for j = 0 to zn.memberCount - 1
-                    if ps < 0 and slotHasEntry(ss, array.get(s, array.get(mi, zn.memberStart + j)).key)
+                    if ps < 0 and slotHasEntry(si, array.get(s, array.get(mi, zn.memberStart + j)).key)
                         ps := si
     ps
 
@@ -1610,42 +1633,40 @@ if engineStep
                 if zn.dist < maxSelDn
                     reportViolation(tel, "I11_SKIP_DN", true)
 
-    // New entry keys and last-member keys for all four slots, computed before any
-    // slot is written (old entry keys are read from the untouched slot state).
-    array.clear(newEntry)
-    array.clear(newLast)
-    for i = 0 to 4 * SLOT_KEYS - 1
-        array.push(newEntry, EMPTY_KEY)
-        array.push(newLast, EMPTY_KEY)
+    // Next entry keys and last-member keys for all four slots, computed into scratch
+    // arrays before any slot is written (old entry keys stay untouched until then).
+    // Privileged zones carry old entry keys ∩ live members; new entries take all
+    // current member keys (precedes order). No cap on the number of keys.
     for si = 0 to 3
         int z = si == 0 ? nR1 : si == 1 ? nR2 : si == 2 ? nS1 : nS2
+        array<int> ne = nextEntryOf(si)
+        array<int> nl = nextLastOf(si)
+        array.clear(ne)
+        array.clear(nl)
         if z >= 0
             Zone zn = array.get(zonePool, z)
-            int take = math.min(SLOT_KEYS, zn.memberCount)
-            for j = 0 to take - 1
-                array.set(newLast, si * SLOT_KEYS + j, array.get(srt, array.get(zmi, zn.memberStart + j)).key)
+            for j = 0 to zn.memberCount - 1
+                array.push(nl, array.get(srt, array.get(zmi, zn.memberStart + j)).key)
             if zn.privSlot >= 0
-                SlotState old = slotAt(zn.privSlot)
-                int cnt = 0
-                for j = 0 to SLOT_KEYS - 1
-                    int k = slotEntryAt(old, j)
-                    if k != EMPTY_KEY and zoneHasKey(zn, srt, zmi, k)
-                        array.set(newEntry, si * SLOT_KEYS + cnt, k)
-                        cnt += 1
+                array<int> oldE = entryKeysOf(zn.privSlot)
+                int on = array.size(oldE)
+                if on > 0
+                    for j = 0 to on - 1
+                        int k = array.get(oldE, j)
+                        if zoneHasKey(zn, srt, zmi, k)
+                            array.push(ne, k)
             else
-                if zn.memberCount > SLOT_KEYS
-                    tel.entryOverflow := tel.entryOverflow + 1
-                for j = 0 to take - 1
-                    array.set(newEntry, si * SLOT_KEYS + j, array.get(srt, array.get(zmi, zn.memberStart + j)).key)
+                for j = 0 to zn.memberCount - 1
+                    array.push(ne, array.get(srt, array.get(zmi, zn.memberStart + j)).key)
+            tel.maxSlotKeys := math.max(tel.maxSlotKeys, zn.memberCount)
 
     // Write the four slots (scalar fields only).
     for si = 0 to 3
         int z = si == 0 ? nR1 : si == 1 ? nR2 : si == 2 ? nS1 : nS2
         SlotState ss = slotAt(si)
         bool isRes = si < 2
-        for j = 0 to SLOT_KEYS - 1
-            setSlotEntry(ss, j, array.get(newEntry, si * SLOT_KEYS + j))
-            setSlotLast(ss, j, array.get(newLast, si * SLOT_KEYS + j))
+        replaceKeys(entryKeysOf(si), nextEntryOf(si))
+        replaceKeys(lastKeysOf(si), nextLastOf(si))
         if z < 0
             ss.active := false
             ss.containing := false
@@ -1999,7 +2020,7 @@ if barstate.islast
             string normalBand = na(speedNaturalLow) or na(speedNaturalHigh) ? "جارٍ المعايرة" : fmtPrice(speedNaturalLow) + "–" + fmtPrice(speedNaturalHigh)
             string d2 = not na(dest2Low) ? dest2Type + " " + fmtZone(dest2Low, dest2High) : "—"
             string d3 = not na(dest3Low) ? dest3Type + " " + fmtZone(dest3Low, dest3High) : "—"
-            string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • ovf " + str.tostring(tel.entryOverflow) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr)
+            string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • keys " + str.tostring(tel.maxSlotKeys) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr)
             table.cell(dash, 0, 8, normalBand + " • فوري " + fmtScore(instantSpeedScore), text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
             table.cell(dash, 1, 8, "المعايرة", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
             table.cell(dash, 0, 9, d2 + " | " + d3, text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
