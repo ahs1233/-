@@ -127,6 +127,7 @@ useDOZ = input.bool(true, "Displacement Origin Zones (DOZ)", group = groupEngine
 groupDebug = "DEBUG"
 strictDebug = input.bool(false, "strictDebug — إيقاف المؤشر عند كسر invariant حرج", group = groupDebug)
 validationMode = input.bool(false, "validationMode — مقاييس التحقق في Data Window فقط", group = groupDebug)
+studyExtraBars = input.int(0, "studyExtraBars — شموع إحماء إضافية للدراسة (فعّالة فقط مع validationMode)", minval = 0, maxval = 20000, group = groupDebug)
 
 
 // ============================================================================
@@ -521,7 +522,10 @@ if barstate.isfirst and not (chartSec < a1Sec and a1Sec < a2Sec)
 // makes the zone map a function of the trailing W closed bars only.
 float tMaxChart = math.max(maxAgeLocal * 1.0, math.max(maxAgeA1 * a1Sec * 1.0 / chartSec, maxAgeA2 * a2Sec * 1.0 / chartSec))
 int engineWindow = 2 * math.ceil(tMaxChart) + L_ENTRY + N_LEG + pivotLen + 10
-bool engineOn = bar_index >= last_bar_index - engineWindow
+// Study-only extension: the last studyExtraBars bars become fully warmed. It is
+// ignored unless validationMode is on, so production behaviour cannot change.
+int engineWindowRun = engineWindow + (validationMode ? studyExtraBars : 0)
+bool engineOn = bar_index >= last_bar_index - engineWindowRun
 bool engineStep = engineOn and barstate.isconfirmed
 
 // Finite-memory volatility: the only volatility measure used by the Zone Engine.
