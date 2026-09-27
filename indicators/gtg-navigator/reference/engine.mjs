@@ -14,11 +14,11 @@ export const SIDE = Object.freeze({ BELOW: -1, CONTAIN: 0, ABOVE: 1 });
 export const KEY_BASE = 32;
 export const EMPTY_KEY = -1;
 
-// Initial values of the frozen architecture (M1 profile for chart-bar constants).
+// Defaults mirror the Pine inputs (G5 first-pass calibration; M1 profile for chart-bar constants).
 export const DEFAULTS = Object.freeze({
   qEnter: 55, qStay: 45,
-  kLocal: 10, kA1: 3, kA2: 2.5, kTact: 6,
-  mergeGapK: 0.25, maxWidthK: 1.0,
+  kLocal: 8, kA1: 2.5, kA2: 2.0, kTact: 6,
+  mergeGapK: 0.35, maxWidthK: 1.0,
   mitAlpha: 0.6, rejAtrK: 1.0, breakBufK: 0.10, dispBodyK: 0.80, legEff: 0.55, eventEpsK: 0.15,
   pivotLen: 3, maxAge: [720, 96, 64], flipWindow: 60,
   L_ENTRY: 40, N_LEG: 10, M_ORIGIN: 3, BREAK_WINDOW: 3, RING_LEN: 64,
