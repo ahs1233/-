@@ -663,6 +663,7 @@ type Telemetry
     int violationsCritical = 0
     int engineBars = 0
     float slotChecksum = 0.0
+    float slotDigestBar = na
     int deathsBar = 0
     int largestCompBar = 0
     int zonesBuiltBar = 0
@@ -1740,13 +1741,25 @@ CHECKSUM_MOD = 1000000007
 slotDigest(SlotState ss) =>
     ss.active ? (ss.primaryKey % CHECKSUM_MOD + math.round(ss.lo / syminfo.mintick) % CHECKSUM_MOD * 7 + math.round(ss.hi / syminfo.mintick) % CHECKSUM_MOD * 13) % CHECKSUM_MOD : 0
 
+// slotDigestBar is the same combination for this bar only (not cumulative): equal
+// values at the same bar mean the same four slots with the same keys and bounds,
+// whatever bar the engine started on.
 if engineStep
+    int d1 = slotDigest(slotR1)
+    int d2 = slotDigest(slotR2)
+    int d3 = slotDigest(slotS1)
+    int d4 = slotDigest(slotS2)
     int cs = int(tel.slotChecksum)
-    cs := (cs * 31 + slotDigest(slotR1)) % CHECKSUM_MOD
-    cs := (cs * 31 + slotDigest(slotR2)) % CHECKSUM_MOD
-    cs := (cs * 31 + slotDigest(slotS1)) % CHECKSUM_MOD
-    cs := (cs * 31 + slotDigest(slotS2)) % CHECKSUM_MOD
+    cs := (cs * 31 + d1) % CHECKSUM_MOD
+    cs := (cs * 31 + d2) % CHECKSUM_MOD
+    cs := (cs * 31 + d3) % CHECKSUM_MOD
+    cs := (cs * 31 + d4) % CHECKSUM_MOD
     tel.slotChecksum := cs
+    int db = d1
+    db := (db * 31 + d2) % CHECKSUM_MOD
+    db := (db * 31 + d3) % CHECKSUM_MOD
+    db := (db * 31 + d4) % CHECKSUM_MOD
+    tel.slotDigestBar := db
 
 if engineStep and validationMode
     tel.zonesBuiltBar := zoneCount
@@ -2174,8 +2187,8 @@ alertcondition(flipConfirmedEvent, "GTG — Flip Confirmed", "GTG Navigator: إ�
 // ============================================================================
 // 18. VALIDATION EXPORT — DATA WINDOW ONLY (validationMode)
 // Nothing here is drawn on the chart; values are na unless validationMode is on and
-// the engine ran on this confirmed bar. slotChecksum is exported in both settings
-// (N2 parity check). Export via TradingView "Export chart data".
+// the engine ran on this confirmed bar. slotChecksum (cumulative) and slotDigestBar
+// (this bar only) are exported in both settings for parity checks. Export via TradingView "Export chart data".
 // ============================================================================
 
 bool vOn = validationMode and engineStep
@@ -2217,3 +2230,4 @@ plot(vOn ? tel.deathsBar : na, "v_deaths", display = display.data_window)
 plot(vOn ? tel.violations : na, "v_invTotal", display = display.data_window)
 plot(vOn ? tel.violationsCritical : na, "v_invCritical", display = display.data_window)
 plot(engineStep ? tel.slotChecksum : na, "v_slotChecksum", display = display.data_window)
+plot(engineStep ? tel.slotDigestBar : na, "v_slotDigestBar", display = display.data_window, precision = 0)
