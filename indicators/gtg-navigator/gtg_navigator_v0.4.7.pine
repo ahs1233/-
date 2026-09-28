@@ -2518,18 +2518,45 @@ if validationMode and barstate.isconfirmed
 
 // Validation-only diagnostic table (bottom-left; the HUD uses top-right). Machine-readable,
 // fixed order; cleared when validationMode is off.
+// R5 reload fingerprint (E41; validation only). Over the confirmed engine bars of the
+// capture window (captureFrom ≤ time ≤ captureTo, so hashStateOn holds and hashState is
+// computed): n warmed bars (tel.engineBars > engineWindow, as in the rolling window), cold =
+// engine bars in the window that are not yet warmed, the first/last warmed bar time, and
+// three hash folds (hashStep from 0, bar order) of hashSlots, hashState and the event bits
+// (engine + alerts·128). Two loads agree on the window iff their tuples are identical (hash
+// equality is strong evidence, not proof; GTGSNAP localises a difference). Nothing here is
+// read by the engine; outside the capture window it does no work.
+var int r5N = 0
+var int r5Cold = 0
+var int r5From = na
+var int r5To = na
+var int r5HSlots = 0
+var int r5HState = 0
+var int r5HEvents = 0
+if captureOn
+    if tel.engineBars > engineWindow
+        r5N += 1
+        r5HSlots := hashStep(r5HSlots, tel.hashSlots)
+        r5HState := hashStep(r5HState, tel.hashState)
+        r5HEvents := hashStep(r5HEvents, engineEventBits + alertBits * 128)
+        if na(r5From)
+            r5From := time
+        r5To := time
+    else
+        r5Cold += 1
+
 var table diagTable = table.new(position.bottom_left, 1, 1, border_width = 1, frame_width = 1)
 diagText(int v) =>
     na(v) ? "na" : str.tostring(v, "#")
 if barstate.islast
     table.clear(diagTable, 0, 0, 0, 0)
     if validationMode
-        table.cell(diagTable, 0, 0, "GTGDIAG v1\nBAR=" + diagText(diagBarTime) + "\nEVT=" + diagText(diagEvtV) + "\nMISMATCH=" + diagText(diagMismatchV) + "\nCAUSAL=" + diagText(diagCausalV) + "\nINV=" + diagText(diagInvV), text_color = color.white, bgcolor = color.new(color.black, 20), text_size = size.tiny, text_halign = text.align_left)
+        table.cell(diagTable, 0, 0, "GTGDIAG v1\nBAR=" + diagText(diagBarTime) + "\nEVT=" + diagText(diagEvtV) + "\nMISMATCH=" + diagText(diagMismatchV) + "\nCAUSAL=" + diagText(diagCausalV) + "\nINV=" + diagText(diagInvV) + "\nR5=" + (captureFrom > 0 ? diagText(r5N) + "," + diagText(r5Cold) + "," + diagText(r5From) + "," + diagText(r5To) + "," + diagText(r5HSlots) + "," + diagText(r5HState) + "," + diagText(r5HEvents) : "na"), text_color = color.white, bgcolor = color.new(color.black, 20), text_size = size.tiny, text_halign = text.align_left)
 
 // Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
 // "GTGSNAP v3" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
 // ≤ captureTo. Parse with reference/capture.mjs. Read-only; off when captureFrom = 0.
-// Keep the range short (about 20 bars): Pine Logs keeps at most 10,000 historical
+// Keep the range short (at most about 40 bars): Pine Logs keeps at most 10,000 historical
 // messages per script and one bar costs 9 + levels + ring chunks (at most ~73).
 // compare-captures.mjs checks completeness per bar and coverage of the expected bars.
 f10(float x) =>

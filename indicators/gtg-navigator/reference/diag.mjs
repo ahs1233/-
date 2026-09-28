@@ -16,6 +16,8 @@
 //   reject engine 48 (16|32)  alert 16384  (Obstacle Rejection)
 //   flip   engine 64          alert 65536  (Flip Confirmed)
 //   strong obstacle alert 2048;  v_obsState event bit 8.
+import { hashInts } from './snapshot.mjs';
+
 export const DIAG_WIN = 1000;
 export const DIAG_BASE = 1024;
 // Invariant counters (tel.violations / tel.violationsCritical) are cumulative and
@@ -138,3 +140,62 @@ export function formatDiagTable(barTime, v) {
   return `GTGDIAG v1\nBAR=${f(barTime)}\nEVT=${f(v.EVT)}\nMISMATCH=${f(v.MISMATCH)}\nCAUSAL=${f(v.CAUSAL)}\nINV=${f(v.INV)}`;
 }
 
+
+// ---------------------------------------------------------------------------
+// R5 reload fingerprint (E41). Pine: section 18b, "R5=" line of the GTGDIAG cell.
+// rows: the confirmed engine bars inside the capture window, oldest first:
+//   { time, warmed, hashSlots, hashState, eventBits }   (eventBits = engine + alerts·128)
+// Returns { n, cold, from, to, hSlots, hState, hEvents }; from/to are null when n = 0.
+// ---------------------------------------------------------------------------
+
+export const R5_FIELDS = Object.freeze(['n', 'cold', 'from', 'to', 'hSlots', 'hState', 'hEvents']);
+
+export function r5Fingerprint(rows) {
+  const w = rows.filter((r) => r.warmed);
+  return {
+    n: w.length,
+    cold: rows.length - w.length,
+    from: w.length ? w[0].time : null,
+    to: w.length ? w[w.length - 1].time : null,
+    hSlots: hashInts(w.map((r) => r.hashSlots)),
+    hState: hashInts(w.map((r) => r.hashState)),
+    hEvents: hashInts(w.map((r) => r.eventBits)),
+  };
+}
+
+export function formatR5(fp) {
+  if (fp == null) return 'R5=na';
+  return `R5=${R5_FIELDS.map((k) => (fp[k] == null ? 'na' : String(fp[k]))).join(',')}`;
+}
+
+// Reads the R5 tuple from a pasted GTGDIAG cell (or a bare "R5=…" line). Returns null for
+// "R5=na" (capture off); refuses anything that is not exactly seven fields.
+export function parseR5(text) {
+  const m = String(text).match(/\bR5=(na|[0-9na,]+)(?=\s|$)/);
+  if (!m) throw new Error('no R5= line');
+  if (m[1] === 'na') return null;
+  const parts = m[1].split(',');
+  if (parts.length !== R5_FIELDS.length) throw new Error(`R5 has ${parts.length} fields, expected ${R5_FIELDS.length}`);
+  const fp = {};
+  R5_FIELDS.forEach((k, i) => {
+    if (parts[i] === 'na') { fp[k] = null; return; }
+    if (!/^[0-9]+$/.test(parts[i])) throw new Error(`R5 field ${k} is not an integer: ${parts[i]}`);
+    fp[k] = Number(parts[i]);
+  });
+  return fp;
+}
+
+// E41 verdict over several loads: PASS only if every tuple is present and identical,
+// cold = 0 and n > 0.
+export function r5Verdict(fps) {
+  const problems = [];
+  if (fps.length < 2) problems.push('need at least two readings');
+  fps.forEach((fp, i) => {
+    if (fp == null) { problems.push(`reading ${i + 1}: R5=na (capture off)`); return; }
+    if (!(fp.n > 0)) problems.push(`reading ${i + 1}: n = ${fp.n}`);
+    if (fp.cold !== 0) problems.push(`reading ${i + 1}: cold = ${fp.cold} (window not warmed)`);
+  });
+  const ref = fps[0] ? formatR5(fps[0]) : null;
+  fps.forEach((fp, i) => { if (i > 0 && fp && ref && formatR5(fp) !== ref) problems.push(`reading ${i + 1} differs from reading 1: ${formatR5(fp)} ≠ ${ref}`); });
+  return { pass: problems.length === 0, problems };
+}

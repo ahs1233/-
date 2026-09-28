@@ -243,3 +243,32 @@ test('C18 G2 cost gate: the state-level hash and snapshot collection run only fo
     if (i < sec12a && !l.trimStart().startsWith('//')) assert.doesNotMatch(l, /tel\.hash(State|Slots)|snapLevels|snapOrd|hashStateOn/, `line ${i + 1} reads telemetry before 12a`);
   });
 });
+
+test('C19 E41 R5 fingerprint: capture-window only, warmed rule, fold order, table field order, no plot', async () => {
+  const { R5_FIELDS } = await import('./diag.mjs');
+  assert.deepEqual([...R5_FIELDS], ['n', 'cold', 'from', 'to', 'hSlots', 'hState', 'hEvents']);
+  const lines = pine.split('\n');
+  const blockStart = lines.findIndex((l, i) => l === 'if captureOn' && lines[i + 1] === '    if tel.engineBars > engineWindow');
+  assert.ok(blockStart > 0, 'R5 block "if captureOn / if tel.engineBars > engineWindow" not found');
+  assert.deepEqual(lines.slice(blockStart, blockStart + 11), [
+    'if captureOn',
+    '    if tel.engineBars > engineWindow',
+    '        r5N += 1',
+    '        r5HSlots := hashStep(r5HSlots, tel.hashSlots)',
+    '        r5HState := hashStep(r5HState, tel.hashState)',
+    '        r5HEvents := hashStep(r5HEvents, engineEventBits + alertBits * 128)',
+    '        if na(r5From)',
+    '            r5From := time',
+    '        r5To := time',
+    '    else',
+    '        r5Cold += 1',
+  ]);
+  for (const v of ['r5N = 0', 'r5Cold = 0', 'r5From = na', 'r5To = na', 'r5HSlots = 0', 'r5HState = 0', 'r5HEvents = 0']) assert.match(pine, new RegExp(`^var int ${v}$`, 'm'));
+  // Every write to an r5 variable is inside that block; the only read outside it is the table cell.
+  lines.forEach((l, i) => {
+    if (/\br5[A-Z]\w* (:=|\+=)/.test(l)) assert.ok(i > blockStart && i < blockStart + 11, `r5 write outside the block at line ${i + 1}`);
+    if (/\br5[A-Z]/.test(l) && !l.startsWith('var int r5') && !(i >= blockStart && i < blockStart + 11)) assert.match(l, /table\.cell\(diagTable, 0, 0, "GTGDIAG v1/, `r5 read at line ${i + 1}`);
+  });
+  assert.doesNotMatch(pine, /^\s*plot\([^\n]*r5/m);
+  assert.match(pine, /\+ "\\nINV=" \+ diagText\(diagInvV\) \+ "\\nR5=" \+ \(captureFrom > 0 \? diagText\(r5N\) \+ "," \+ diagText\(r5Cold\) \+ "," \+ diagText\(r5From\) \+ "," \+ diagText\(r5To\) \+ "," \+ diagText\(r5HSlots\) \+ "," \+ diagText\(r5HState\) \+ "," \+ diagText\(r5HEvents\) : "na"\)/);
+});
