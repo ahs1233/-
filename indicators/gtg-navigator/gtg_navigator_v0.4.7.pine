@@ -2434,13 +2434,15 @@ plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_wi
 // 18b. ROLLING VALIDATION DIAGNOSTICS — validationMode only; measurement, not state
 // Window = the last DIAG_WIN confirmed chart bars; every count is over the warmed
 // engine bars inside it (engineStep and more than W engine bars already run). Four
-// exact packed plots (reference/diag.mjs decodes them), na on the open bar and when
-// validationMode is off. Nothing in the engine or the consumers reads any of this.
+// exact packed integers (reference/diag.mjs decodes them), shown in a validation-only
+// table — no plot() calls, so the diagnostics consume no plot counts (a plot-based
+// version hit RE10140 on TradingView). Values are stored on confirmed bars, so the
+// open bar shows the last confirmed values. Nothing in the engine reads any of this.
 // Masks over v_eventBits (engine bits + alert bits·128): break 3 / 8192, accept 12 /
 // 32768, reject 48 / 16384, flip 64 / 65536, Strong Obstacle alert 2048, obs event 8.
 // ============================================================================
 DIAG_WIN = 1000
-DIAG_N = 15
+DIAG_N = 13
 
 diagBit(int x, int m) =>
     math.floor(x / m) % 2 == 1
@@ -2459,8 +2461,16 @@ int diagSinceAcc = ta.barssince(diagAccE)
 var array<int> diagRing = array.new_int(DIAG_N * DIAG_WIN, 0)
 var array<int> diagSum = array.new_int(DIAG_N, 0)
 var int diagPos = 0
-var int diagPrevTot = 0
-var int diagPrevCrit = 0
+var int diagEvtV = na
+var int diagMismatchV = na
+var int diagCausalV = na
+var int diagInvV = na
+var int diagBarTime = na
+INV_BASE = 67108864
+
+dS(int k) =>
+    array.get(diagSum, k)
+
 if validationMode and barstate.isconfirmed
     bool w = engineStep and tel.engineBars > engineWindow
     array<int> fl = array.from(
@@ -2476,26 +2486,33 @@ if validationMode and barstate.isconfirmed
          w and diagBit(diagObs, 8) != diagObsAlert ? 1 : 0,
          w and diagAccE and (na(diagSinceBrk) or diagSinceBrk > 3) ? 1 : 0,
          w and diagFlpE and (na(diagSinceAcc) or diagSinceAcc > 60) ? 1 : 0,
-         w ? 1 : 0,
-         w and tel.violations > diagPrevTot ? 1 : 0,
-         w and tel.violationsCritical > diagPrevCrit ? 1 : 0)
+         w ? 1 : 0)
     for k = 0 to DIAG_N - 1
         int idx = k * DIAG_WIN + diagPos
         array.set(diagSum, k, array.get(diagSum, k) - array.get(diagRing, idx) + array.get(fl, k))
         array.set(diagRing, idx, array.get(fl, k))
     diagPos := (diagPos + 1) % DIAG_WIN
-    diagPrevTot := tel.violations
-    diagPrevCrit := tel.violationsCritical
+    // Exact: every field ≤ 1000 < 1024, so the largest value is < 2^50 (< 2^53).
+    diagEvtV := dS(0) + dS(1) * 1024 + dS(2) * 1048576 + dS(3) * 1073741824 + dS(4) * 1099511627776
+    diagMismatchV := dS(5) + dS(6) * 1024 + dS(7) * 1048576 + dS(8) * 1073741824 + dS(9) * 1099511627776
+    diagCausalV := dS(10) + dS(11) * 1024 + dS(12) * 1048576
+    // Invariant counters are cumulative and non-decreasing, so their maximum over the window
+    // is their value on this confirmed bar (a violation before the window still shows).
+    // Base 2^26, largest valid value 2^52 − 1; outside [0, 2^26) the value is na (no clamp,
+    // no modulo) and the raw v_invTotal / v_invCritical plots remain available.
+    bool diagInvOk = tel.violations >= 0 and tel.violations < INV_BASE and tel.violationsCritical >= 0 and tel.violationsCritical < INV_BASE
+    diagInvV := diagInvOk ? tel.violations + tel.violationsCritical * INV_BASE : na
+    diagBarTime := time
 
-dS(int k) =>
-    array.get(diagSum, k)
-
-bool diagOn = validationMode and barstate.isconfirmed
-// Exact: every field ≤ 1000 < 1024, so the largest value is < 2^50 (< 2^53).
-plot(diagOn ? dS(0) + dS(1) * 1024 + dS(2) * 1048576 + dS(3) * 1073741824 + dS(4) * 1099511627776 : na, "v_diagEvt1000", display = display.data_window, precision = 0)
-plot(diagOn ? dS(5) + dS(6) * 1024 + dS(7) * 1048576 + dS(8) * 1073741824 + dS(9) * 1099511627776 : na, "v_diagMismatch1000", display = display.data_window, precision = 0)
-plot(diagOn ? dS(10) + dS(11) * 1024 + dS(12) * 1048576 : na, "v_diagCausal1000", display = display.data_window, precision = 0)
-plot(diagOn ? dS(13) + dS(14) * 1024 : na, "v_diagInv1000", display = display.data_window, precision = 0)
+// Validation-only diagnostic table (bottom-left; the HUD uses top-right). Machine-readable,
+// fixed order; cleared when validationMode is off.
+var table diagTable = table.new(position.bottom_left, 1, 1, border_width = 1, frame_width = 1)
+diagText(int v) =>
+    na(v) ? "na" : str.tostring(v, "#")
+if barstate.islast
+    table.clear(diagTable, 0, 0, 0, 0)
+    if validationMode
+        table.cell(diagTable, 0, 0, "GTGDIAG v1\nBAR=" + diagText(diagBarTime) + "\nEVT=" + diagText(diagEvtV) + "\nMISMATCH=" + diagText(diagMismatchV) + "\nCAUSAL=" + diagText(diagCausalV) + "\nINV=" + diagText(diagInvV), text_color = color.white, bgcolor = color.new(color.black, 20), text_size = size.tiny, text_halign = text.align_left)
 
 // Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
 // "GTGSNAP v3" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time

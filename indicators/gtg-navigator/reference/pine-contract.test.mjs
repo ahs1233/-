@@ -70,10 +70,10 @@ test('C9 capture prints GTGSNAP v3 with the identity fields, RING, OBS and navAr
   assert.match(pine, /^RING_CHUNK = 16$/m);
 });
 
-test('C5 plot budget and export names', () => {
+test('C5 source plot-type calls ≤ 64 and export names (a call count, not the actual TradingView plot count)', () => {
   const plots = pine.match(/^\s*(plot|plotshape|plotchar|plotarrow|plotcandle|plotbar|bgcolor|barcolor|fill|hline)\(/gm) || [];
   assert.ok(plots.length <= 64, `plot-type outputs: ${plots.length}`);
-  for (const name of ['v_diagEvt1000', 'v_diagMismatch1000', 'v_diagCausal1000', 'v_diagInv1000', 'v_hashSlots', 'v_hashState', 'v_eventBits', 'v_obsState', 'v_loR1', 'v_hiR1', 'v_loR2', 'v_hiR2', 'v_loS1', 'v_hiS1', 'v_loS2', 'v_hiS2']) {
+  for (const name of ['v_hashSlots', 'v_hashState', 'v_eventBits', 'v_obsState', 'v_loR1', 'v_hiR1', 'v_loR2', 'v_hiR2', 'v_loS1', 'v_hiS1', 'v_loS2', 'v_hiS2']) {
     assert.ok(pine.includes(`"${name}"`), `missing export ${name}`);
   }
 });
@@ -168,10 +168,13 @@ test('C16 roadStatus for accepted breaks is neutral; "Flip محتمل" stays onl
   assert.match(uses[0], /ss\.navTag := zn\.hasFlip \? "Flip مؤكد" : prim\.state == ST_BROKEN \? "Flip محتمل"/);
 });
 
-test('C17 rolling diagnostics (18b): window 1000, analyzer masks, field order, validationMode + confirmed gating', async () => {
-  const { LAYOUT, DIAG_WIN } = await import('./diag.mjs');
+test('C17 rolling diagnostics (18b): no plot counts, window 1000, analyzer masks, field order, validation-only table', async () => {
+  const { LAYOUT, DIAG_WIN, INV_BASE } = await import('./diag.mjs');
   assert.equal(DIAG_WIN, 1000);
   assert.match(pine, /^DIAG_WIN = 1000$/m);
+  assert.match(pine, /^DIAG_N = 13$/m);
+  // No diagnostic plot: the plot-based version hit RE10140 on TradingView.
+  assert.doesNotMatch(pine, /^\s*plot\([^\n]*(diag|v_diag)/m);
   assert.match(pine, /^int diagEvBits = engineEventBits \+ alertBits \* 128$/m);
   assert.match(pine, /^bool diagBrkE = engineStep and \(diagBit\(diagEvBits, 1\) or diagBit\(diagEvBits, 2\)\)$/m);
   assert.match(pine, /^bool diagAccE = engineStep and \(diagBit\(diagEvBits, 4\) or diagBit\(diagEvBits, 8\)\)$/m);
@@ -185,14 +188,25 @@ test('C17 rolling diagnostics (18b): window 1000, analyzer masks, field order, v
   assert.ok(pine.includes('w and diagAccE and (na(diagSinceBrk) or diagSinceBrk > 3) ? 1 : 0'));
   assert.ok(pine.includes('w and diagFlpE and (na(diagSinceAcc) or diagSinceAcc > 60) ? 1 : 0'));
   assert.match(pine, /^if validationMode and barstate\.isconfirmed\n    bool w = engineStep and tel\.engineBars > engineWindow$/m);
-  assert.match(pine, /^bool diagOn = validationMode and barstate\.isconfirmed$/m);
-  // Field order of each plot = LAYOUT (sum indices 0..14 in order), base 1024.
-  const order = { v_diagEvt1000: [0, 1, 2, 3, 4], v_diagMismatch1000: [5, 6, 7, 8, 9], v_diagCausal1000: [10, 11, 12], v_diagInv1000: [13, 14] };
+  // Field order of each packed value = LAYOUT (ring sums 0..12 in order), base 1024, stored on confirmed bars.
+  const order = { EVT: ['diagEvtV', [0, 1, 2, 3, 4]], MISMATCH: ['diagMismatchV', [5, 6, 7, 8, 9]], CAUSAL: ['diagCausalV', [10, 11, 12]] };
   const mul = [1, 1024, 1048576, 1073741824, 1099511627776];
-  for (const [name, idx] of Object.entries(order)) {
-    assert.equal(LAYOUT[name].length, idx.length);
+  for (const [key, [v, idx]] of Object.entries(order)) {
+    assert.equal(LAYOUT[key].length, idx.length);
     const expr = idx.map((k, i) => (i === 0 ? `dS(${k})` : `dS(${k}) * ${mul[i]}`)).join(' + ');
-    assert.ok(pine.includes(`plot(diagOn ? ${expr} : na, "${name}", display = display.data_window, precision = 0)`), name);
+    assert.ok(pine.includes(`    ${v} := ${expr}\n`), key);
   }
+  // INV: cumulative max = current counters, base 2^26, overflow → na (no clamp, no modulo).
+  assert.equal(INV_BASE, 2 ** 26);
+  assert.match(pine, new RegExp(`^INV_BASE = ${INV_BASE}$`, 'm'));
+  assert.ok(pine.includes('bool diagInvOk = tel.violations >= 0 and tel.violations < INV_BASE and tel.violationsCritical >= 0 and tel.violationsCritical < INV_BASE'));
+  assert.ok(pine.includes('diagInvV := diagInvOk ? tel.violations + tel.violationsCritical * INV_BASE : na'));
+  assert.deepEqual(LAYOUT.INV, ['maxInvTotal1000', 'maxInvCritical1000']);
+  // Validation-only table at bottom-left; the production HUD stays alone at top-right.
+  assert.match(pine, /^var table diagTable = table\.new\(position\.bottom_left, 1, 1, /m);
+  assert.equal((pine.match(/table\.new\(/g) || []).length, 2);
+  assert.match(pine, /^var table dash = table\.new\(\n     position\.top_right,/m);
+  assert.match(pine, /^if barstate\.islast\n    table\.clear\(diagTable, 0, 0, 0, 0\)\n    if validationMode\n        table\.cell\(diagTable, 0, 0, "GTGDIAG v1\\nBAR=" \+ diagText\(diagBarTime\) \+ "\\nEVT=" \+ diagText\(diagEvtV\) \+ "\\nMISMATCH=" \+ diagText\(diagMismatchV\) \+ "\\nCAUSAL=" \+ diagText\(diagCausalV\) \+ "\\nINV=" \+ diagText\(diagInvV\)/m);
+  assert.doesNotMatch(pine, /diagPrevTot|diagPrevCrit|v_diagInv1000/);
 });
 

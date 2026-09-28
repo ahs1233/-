@@ -176,21 +176,25 @@ Input-derived series (`ta.pivothigh`, `ta.sma`, the HTF `request.security` feed)
 
 ## 8. Rolling validation diagnostics (Pine 18b ↔ `reference/diag.mjs`)
 
-These are measurement outputs only. They are not engine state and are not part of the canonical snapshot, and nothing in the engine or the consumers reads them. They exist because TradingView's Table View no longer exposes off-screen columns to automation.
+These are measurement values only. They are not engine state, are not part of the canonical snapshot, and nothing in the engine or the consumers reads them. They exist because TradingView's Table View no longer exposes off-screen columns to automation.
 
-**Window.** The window is the last 1000 confirmed chart bars, and only while `validationMode` is on.
-- Every count is taken over the **warmed** engine bars inside the window: `engineStep` is true and `tel.engineBars > W`.
-- The open bar is never pushed into the window.
-- The plots are `na` on the open bar and whenever `validationMode` is off.
+**Where the values appear (message 59).** The values are shown in a **validation-only table** at `position.bottom_left`, with **no `plot()` calls**.
+- The first version of 18b added four `plot()` calls (commit `98177c2`, blob `461ca64`). TradingView raised **RE10140**, which is the plot-count limit.
+- The earlier statement that "52 → 56 of 64 is safe" was wrong. It counted **source calls**, and a call can produce more than one plot count. The actual plot count of `7f97c41` was not observable before the error, and it is not estimated here.
+- `7f97c41`, with 52 source plot-type calls, was verified to run on TradingView. The table version is back to those same 52 calls.
+- The HUD table stays alone at `position.top_right`. The diagnostic table is cleared when `validationMode` is off.
+- Values are stored on confirmed validation bars. On the open bar, the table shows the values of the last confirmed bar, and `BAR=` gives that bar's open time.
 
-**Exactness.** Every field is at most 1000, which is below the base of 1024. The largest packed value is therefore below 2^50, well inside 2^53, so it is exact in double.
+**Table text** (fixed order): `GTGDIAG v1`, `BAR=<ms>`, `EVT=<int>`, `MISMATCH=<int>`, `CAUSAL=<int>`, `INV=<int|na>`.
 
-| Plot | Fields (least significant first, base 1024) |
-|---|---|
-| `v_diagEvt1000` | breakBars, acceptBars, rejectBars, flipBars, strongObstacleAlerts |
-| `v_diagMismatch1000` | breakAlertMismatch, acceptAlertMismatch, rejectAlertMismatch, flipAlertMismatch, obsEventMismatch |
-| `v_diagCausal1000` | acceptWithoutBreakWithin3Bars, flipWithoutAcceptedWithin60Bars, warmedConfirmedCount |
-| `v_diagInv1000` | invViolationBars, invCriticalBars |
+**Window.** The window is the last 1000 confirmed chart bars. Every count is taken over the **warmed** engine bars inside it, meaning `engineStep` and `tel.engineBars > W`. The open bar is never pushed into the window.
+
+| Key | Fields (least significant first) | Base | Bound |
+|---|---|---|---|
+| `EVT` | breakBars, acceptBars, rejectBars, flipBars, strongObstacleAlerts | 1024 | < 2^50 |
+| `MISMATCH` | breakAlertMismatch, acceptAlertMismatch, rejectAlertMismatch, flipAlertMismatch, obsEventMismatch | 1024 | < 2^50 |
+| `CAUSAL` | acceptWithoutBreakWithin3Bars, flipWithoutAcceptedWithin60Bars, warmedConfirmedCount | 1024 | < 2^31 |
+| `INV` | maxInvTotal1000, maxInvCritical1000 | 2^26 | ≤ 2^52 − 1 |
 
 **Masks.** These are the analyzer's masks, applied to `v_eventBits`:
 
@@ -204,12 +208,26 @@ These are measurement outputs only. They are not engine state and are not part o
 - Strong Obstacle uses alert mask 2048, and the `v_obsState` event bit is 8.
 - A mismatch is counted when the engine bit and the alert bit disagree.
 
-**Lookbacks (chart bars, counted with `ta.barssince` on every bar):**
-- an accept is an orphan when no engine break occurred in [i−3, i];
-- a flip is an orphan when no engine accept occurred in [i−60, i].
+**Lookbacks.** Both are measured in chart bars with `ta.barssince` on every bar:
+- an accept is an orphan when no engine break falls in [i−3, i];
+- a flip is an orphan when no engine accept falls in [i−60, i].
 
-**Deviation from the request.** `v_diagInv1000` replaces the requested `v_diagInvMax1000`. The request was the maximum of `invTotal` / `invCritical`, packed in base 65536. Those counters are cumulative since the engine started, so a window maximum would carry history from before the window. A per-window total of violations could also exceed 65535 in a pathological case (up to 64 zones × several checks × 1000 bars). The plot therefore counts **bars in the window with at least one new violation**, and separately **bars with at least one new critical violation**. Each count is at most 1000, so it stays exact in base 1024. A value of 0 means no violation occurred in the window.
+**INV (message 59).** `tel.violations` and `tel.violationsCritical` are cumulative and never decrease. Their maximum over the window is therefore their value on the last confirmed bar, so a violation that happened *before* the window still shows.
+- The earlier metric ("bars with a new violation in the window") was withdrawn. It read 0 in exactly that case, which is a false clean (`artifacts/diag-table-checks.txt`).
+- If a counter falls outside [0, 2^26), `INV=na`. There is no clamp and no modulo, and the raw `v_invTotal` / `v_invCritical` plots remain available.
 
-**Decoding.** `tools/decode-diag.mjs` decodes the four values. The decoder refuses non-integers, too many fields, and any field above 1000, which catches a mis-read. For example, the Data Window may abbreviate a large number, and this is **NOT_VERIFIED**: the value must be copied exactly.
+**Decoding.** `tools/decode-diag.mjs` accepts either the pasted table text or the four numbers. It refuses non-integers, too many fields, and any field above its bound.
 
-**Tests.** D1–D7 check the round trip at 0 and 1000, the field order (negative control), the decoder guards, the rolling model against a brute-force oracle, the open bar, the lookback boundaries (3/4 and 60/61), and the window edge and warm-up. C17 pins the Pine masks, the field order, the window and the gating. Three negative controls fail C17 as intended (`artifacts/diag-18b-checks.txt`).
+**Tests.**
+- D1–D9:
+  - round trip at 0 and 1000, including 2^26 − 1;
+  - the field order (negative control);
+  - the decoder guards;
+  - the rolling model against a brute-force oracle;
+  - the open bar;
+  - the lookback boundaries;
+  - the window edge and warm-up;
+  - INV, with the pre-window counterexample;
+  - the table text.
+- C17 pins the absence of diagnostic plots, the masks, field order, window and gating, and the table position.
+- Four negative controls fail C17 as intended: a diagnostic plot re-added, packing order swapped, the table moved onto the HUD position, and INV clamped.

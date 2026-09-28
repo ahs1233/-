@@ -3,7 +3,7 @@
 // Run: node --test indicators/gtg-navigator/reference/diag.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DIAG_WIN, DIAG_BASE, MASKS, LAYOUT, pack, unpack, decodeDiag, diagSeries } from './diag.mjs';
+import { DIAG_WIN, DIAG_BASE, INV_BASE, MASKS, LAYOUT, pack, unpack, packInv, decodeDiag, diagSeries, parseDiagTable, formatDiagTable } from './diag.mjs';
 
 test('D1 exact round trip at the bounds (0 and 1000) and packed values stay below 2^53', () => {
   for (const fields of [[0, 0, 0, 0, 0], [1000, 1000, 1000, 1000, 1000], [1, 0, 1000, 7, 999], [1000, 0, 0, 0, 1]]) {
@@ -19,12 +19,12 @@ test('D1 exact round trip at the bounds (0 and 1000) and packed values stay belo
 
 test('D2 field order is part of the contract: a swapped layout decodes to different counts (negative control)', () => {
   const v = pack([110, 90, 70, 27, 131]);
-  const d = decodeDiag({ v_diagEvt1000: v });
+  const d = decodeDiag({ EVT: v });
   assert.deepEqual([d.breakBars, d.acceptBars, d.rejectBars, d.flipBars, d.strongObstacleAlerts], [110, 90, 70, 27, 131]);
   const swapped = pack([90, 110, 70, 27, 131]);
   assert.notEqual(swapped, v);
   assert.notDeepEqual(unpack(swapped, 5), [110, 90, 70, 27, 131]);
-  assert.deepEqual(Object.keys(LAYOUT), ['v_diagEvt1000', 'v_diagMismatch1000', 'v_diagCausal1000', 'v_diagInv1000']);
+  assert.deepEqual(Object.keys(LAYOUT), ['EVT', 'MISMATCH', 'CAUSAL', 'INV']);
 });
 
 test('D3 the decoder rejects values that cannot be exact reads', () => {
@@ -62,20 +62,22 @@ function randomRows(n, seed) {
 function oracle(rows, t) {
   const idx = [];
   for (let i = t; i >= 0 && idx.length < DIAG_WIN; i--) if (rows[i].confirmed) idx.push(i);
-  const c = new Array(15).fill(0);
+  const c = new Array(13).fill(0);
   const engineHas = (i, m) => rows[i].engineStep && (rows[i].eventBits & m) !== 0;
-  const prevConfirmed = (i) => { for (let j = i - 1; j >= 0; j--) if (rows[j].confirmed) return rows[j]; return { violationsTotal: 0, violationsCritical: 0 }; };
   for (const i of idx) {
     const r = rows[i]; if (!r.warmed) continue;
-    const ev = r.eventBits; const p = prevConfirmed(i);
+    const ev = r.eventBits;
     const brk = engineHas(i, 3), acc = engineHas(i, 12), rej = engineHas(i, 48), flp = engineHas(i, 64);
     const fl = [brk, acc, rej, flp, (ev & 2048) !== 0, brk !== ((ev & 8192) !== 0), acc !== ((ev & 32768) !== 0), rej !== ((ev & 16384) !== 0), flp !== ((ev & 65536) !== 0), ((r.obsState & 8) !== 0) !== ((ev & 2048) !== 0),
       acc && ![0, 1, 2, 3].some((k) => i - k >= 0 && engineHas(i - k, 3)),
       flp && !Array.from({ length: 61 }, (_, k) => k).some((k) => i - k >= 0 && engineHas(i - k, 12)),
-      true, r.violationsTotal > p.violationsTotal, r.violationsCritical > p.violationsCritical];
+      true];
     fl.forEach((b, k) => { c[k] += b ? 1 : 0; });
   }
-  return { v_diagEvt1000: pack(c.slice(0, 5)), v_diagMismatch1000: pack(c.slice(5, 10)), v_diagCausal1000: pack([c[10], c[11], c[12]]), v_diagInv1000: pack([c[13], c[14]]) };
+  // Oracle for invariants: the maximum of the cumulative counters over the window rows.
+  const maxTot = Math.max(0, ...idx.map((i) => rows[i].violationsTotal));
+  const maxCrit = Math.max(0, ...idx.map((i) => rows[i].violationsCritical));
+  return { EVT: pack(c.slice(0, 5)), MISMATCH: pack(c.slice(5, 10)), CAUSAL: pack([c[10], c[11], c[12]]), INV: maxTot + maxCrit * INV_BASE };
 }
 
 test('D4 rolling model equals the brute-force oracle (random series, several end points)', () => {
@@ -123,3 +125,49 @@ test('D7 window edge and warm-up: an event 1000 confirmed bars back is outside; 
   assert.equal(d.warmedConfirmedCount, 10);
   assert.deepEqual(Object.values(MASKS), [3, 8192, 12, 32768, 48, 16384, 64, 65536, 2048, 8]);
 });
+
+test('D8 INV: cumulative maximum, exact base 2^26, overflow is na (not clamped), and the pre-window counterexample', () => {
+  const M = INV_BASE - 1;
+  for (const [t, c] of [[0, 0], [1, 0], [M, M], [5, 2]]) {
+    const v = packInv(t, c);
+    assert.ok(Number.isSafeInteger(v) && v < 2 ** 52);
+    assert.deepEqual(decodeDiag({ INV: v }), { maxInvTotal1000: t, maxInvCritical1000: c });
+  }
+  assert.equal(packInv(M, M), 2 ** 52 - 1);
+  // Overflow: no clamp, no modulo — the value is withheld (Pine plots na).
+  assert.equal(packInv(INV_BASE, 0), null);
+  assert.equal(packInv(0, INV_BASE), null);
+  assert.equal(packInv(-1, 0), null);
+  assert.throws(() => decodeDiag({ INV: 2 ** 52 }), /more than 2 fields/);
+  // Counterexample (message 59): a violation before the window must still read as 1.
+  const quiet = { confirmed: true, engineStep: true, warmed: true, eventBits: 0, obsState: 0 };
+  const rows = [
+    ...Array.from({ length: 10 }, () => ({ ...quiet, violationsTotal: 0, violationsCritical: 0 })),
+    { ...quiet, violationsTotal: 1, violationsCritical: 1 },
+    ...Array.from({ length: DIAG_WIN + 500 }, () => ({ ...quiet, violationsTotal: 1, violationsCritical: 1 })),
+  ];
+  const d = decodeDiag(diagSeries(rows).at(-1));
+  assert.equal(d.maxInvTotal1000, 1);
+  assert.equal(d.maxInvCritical1000, 1);
+  // Negative control: the previous 'new violation bars in the window' metric reads 0 here.
+  const windowRows = rows.slice(-DIAG_WIN);
+  const newViolationBars = windowRows.filter((r, i) => r.violationsTotal > (i === 0 ? rows[rows.length - DIAG_WIN - 1].violationsTotal : windowRows[i - 1].violationsTotal)).length;
+  assert.equal(newViolationBars, 0);
+});
+
+test('D9 table text: exact round trip, INV=na on overflow, and malformed cells are refused', () => {
+  const v = { EVT: pack([110, 90, 70, 27, 131]), MISMATCH: 0, CAUSAL: pack([0, 0, 999]), INV: packInv(0, 0) };
+  const text = formatDiagTable(1_790_000_000_000, v);
+  assert.equal(text.split('\n')[0], 'GTGDIAG v1');
+  const p = parseDiagTable(text);
+  assert.deepEqual(p, { bar: 1_790_000_000_000, ...v });
+  assert.deepEqual(parseDiagTable(text.replace(/\n/g, ' ')), p); // pasted on one line
+  const d = decodeDiag(p);
+  assert.equal(d.breakBars, 110);
+  assert.equal(d.warmedConfirmedCount, 999);
+  const over = parseDiagTable(formatDiagTable(1, { ...v, INV: packInv(INV_BASE, 0) }));
+  assert.equal(over.INV, null);
+  assert.throws(() => parseDiagTable('EVT=1'), /GTGDIAG/);
+  assert.throws(() => parseDiagTable('GTGDIAG v1\nBAR=1\nEVT=1\nMISMATCH=0\nINV=0'), /CAUSAL/);
+});
+

@@ -50,7 +50,7 @@
 **مستويات التكافؤ** (تعريفها الكامل في `validation/REVIEW_FINDINGS.md`): geometry (حدود الخانات وجهتها)، identity (+ المفاتيح والجودة)، state (+ كل سجلات الـpools)، events (أحداث المحرك والتنبيهات). **المقارنة الكاملة تكون بالحقول الخام وبتسامح معلن، لا بالبصمة.**
 - `v_hashSlots` (مستوى identity) و`v_hashState` (مستوى state: السجلات بهويتها المصدرية وحقل `navArmed` + متتبعات السوينغ + ring الأسعار + latch تنبيه Strong Obstacle) و`v_eventBits` (أحداث المحرك في البتات 0–6 + التنبيهات العشرة في البتات 7–16) و`v_obsState` (حالة Strong Obstacle: 1 مؤهل، 2 latch قبل الشمعة، 4 نفس العائق، 8 حدث) تُصدَّر في الوضعين، وهي **غير تراكمية**. البصمة مساعدة فقط: اختلافها يثبت الاختلاف، وتساويها **لا يثبت** التساوي.
 - `v_loR1..v_hiS2` (مع `validationMode`): حدود الخانات الأربع خامًا للمقارنة بالتسامح وبالـticks.
-- `v_diagEvt1000` و`v_diagMismatch1000` و`v_diagCausal1000` و`v_diagInv1000` (مع `validationMode`): عدّادات متدحرجة لآخر 1000 شمعة مؤكدة (معدلات الأحداث، التطابق مع التنبيهات، السببية، الـinvariants)، مضغوطة بدقة؛ تُفك بـ`validation/tools/decode-diag.mjs` (التفصيل في `PINE_JS_PARITY.md` §8).
+- جدول تشخيص للتحقق فقط (أسفل اليسار، مع `validationMode`؛ بلا أي `plot()`): `GTGDIAG v1` ثم `BAR=` و`EVT=` و`MISMATCH=` و`CAUSAL=` و`INV=` — عدّادات آخر 1000 شمعة مؤكدة (معدلات الأحداث، التطابق مع التنبيهات، السببية) وأقصى عدّادَي الـinvariants؛ تُفك بـ`validation/tools/decode-diag.mjs` (التفصيل في `PINE_JS_PARITY.md` §8).
 - `captureFrom` / `captureTo` (DEBUG): التقاط snapshot كامل بالمستويات الأربعة في **Pine Logs** بصيغة `GTGSNAP v3` لمدى زمني قصير (نحو 20 شمعة؛ Pine Logs تحتفظ بـ10,000 رسالة تاريخية كحد أقصى لكل script)؛ يُحلَّل ويُقارن بـ`validation/tools/compare-captures.mjs`، الذي يفشل إن نقصت شمعة كاملة أو سطر من شمعة، ويتحقق من تطابق بصمات Pine مع البصمات المحسوبة في JS من نفس الحقول.
 - أُزيلت `v_slotChecksum` و`v_slotDigestBar` (بصمة خطية كانت تتصادم: [100,101] و[100.13,100.93] بنفس المفتاح أعطتا نفس القيمة). النتائج السابقة المبنية عليها وحدها مُعلَّمة «مُضعَفة» في مصفوفة الأدلة.
 لوحة DEBUG تعرض `cap` (zoneCapHits) و`eng` (عدد شموع المحرك) و`hs` (`hashSlots`).
@@ -94,7 +94,7 @@ node --test indicators/gtg-navigator/reference/*.test.mjs
 | K1–K6 | عقود `headingStrong > headingClear`، `routeStrong > routeClear`، `speedExtreme ≥ speedFast`: لا يظهر «بقوة» مع إشارة محايدة، ولا لون/تنبيه استثنائي مع فئة أدنى (`consumers.test.mjs`) |
 | P1–P6 | أرضيات mintick في المرجع كما في Pine (`parity.test.mjs`)، مقابل oracle يدوي مستقل + negative control |
 | S1–S15 | snapshot canonical ومستويات التكافؤ وصيغة الالتقاط (`snapshot.test.mjs`، `snapshot-coverage.test.mjs`)، بما فيها مثال التصادم والتكرار وring الأسعار والشمعة الناقصة |
-| D1–D7 | التشخيص المتدحرج (1000 شمعة): packing دقيق، فك مع حراسة، ومطابقة oracle brute-force (`diag.test.mjs`) |
+| D1–D9 | التشخيص المتدحرج (1000 شمعة): packing دقيق، فك مع حراسة، مطابقة oracle brute-force، INV التراكمي، ونص الجدول (`diag.test.mjs`) |
 | C1–C17 | فحوص نصية ثابتة على ملف Pine: ترتيب حقول البصمة، ميزانية الـplots، بقاء أرضيات mintick، وعدم تغيّر v0.4.6 |
 
 الاختبارات تثبت منطق المرجع لا تشغيل Pine: ملف Pine ترجمة يدوية لنفس الخطوات. حالة التطابق لكل معادلة، والتسامحات، والفجوات المفتوحة (قاعدة تعادل pivot، أزمنة HTF، ملفات الفريمات غير M1، طبقة المستهلك) في `validation/PINE_JS_PARITY.md`. ادعاء «التطابق روجع» السابق **سُحب** بعد اكتشاف اختلاف أرضية mintick (R2) الذي أُصلح في المرجع.

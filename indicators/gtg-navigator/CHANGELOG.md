@@ -121,13 +121,25 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
 - **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
 
-### Rolling validation diagnostics (review message 57, second version; measurement only)
+### Diagnostics moved to a validation-only table; INV corrected (review message 59; measurement only)
+- **Problem**: the four 18b `plot()` calls (commit `98177c2`, blob `461ca64`) caused **RE10140** on TradingView, the plot-count limit.
+  - The earlier "52 → 56 of 64" statement was a *source call* count, not a plot-count measurement. That claim is withdrawn.
+  - The actual count was not observable before the error.
+- **Change**:
+  - The four values are now shown in a validation-only table at `position.bottom_left`, with no `plot()` calls. The table is cleared when validationMode is off.
+  - On the open bar the table shows the values of the last confirmed bar.
+  - Source plot-type calls are back to 52, the same as `7f97c41`, which ran.
+- **INV (message 59)**: INV is now the cumulative maximum of `tel.violations` / `tel.violationsCritical`, packed in base 2^26, with overflow → `na`.
+  - The previous "new violation bars in the window" metric read 0 for a violation before the window, which is a false clean.
+- **Tests**: D8 (INV and the counterexample), D9 (table text), C17 rewritten with four negative controls. The engine, consumers and event outputs are unchanged: the Pine diff against `7f97c41` is one additive hunk in section 18b.
+
+### Rolling validation diagnostics (review message 57, second version; measurement only) — superseded by the entry above
 - **Pine section 18b** adds four packed Data Window plots, validationMode only, `na` on the open bar:
   - `v_diagEvt1000`, `v_diagMismatch1000`, `v_diagCausal1000`, `v_diagInv1000`;
   - they cover the last 1000 confirmed bars, counted over warmed engine bars;
   - they use the analyzer masks.
   - There is no engine, selection, calibration or event change.
-  - Plot outputs: 52 → 56 of 64.
+  - ~~Plot outputs: 52 → 56 of 64~~. This was a source-call count, and TradingView rejected the version with RE10140 (see the entry above).
 - **Reference and tooling**: `reference/diag.mjs` (packing, decoder and rolling model), `validation/tools/decode-diag.mjs`, tests D1–D7 and C17.
 - **Deviation**: `v_diagInv1000` counts bars with a new violation or a new critical violation. The requested windowed maximum of the cumulative counters was dropped: it would carry pre-window history, and its base 65536 is not safely bounded. See `PINE_JS_PARITY.md` §8.
 
