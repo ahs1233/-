@@ -189,8 +189,8 @@ function htfFeedFactory(bars, factor, tfRank, plen = 3, atrLen = 20) {
     const p = j - plen;
     let isH = true, isL = true;
     for (let k = 1; k <= plen; k++) {
-      if (!(htf[p].h > htf[p - k].h && htf[p].h >= htf[p + k].h)) isH = false;
-      if (!(htf[p].l < htf[p - k].l && htf[p].l <= htf[p + k].l)) isL = false;
+      if (!(htf[p].h >= htf[p - k].h && htf[p].h > htf[p + k].h)) isH = false;
+      if (!(htf[p].l <= htf[p - k].l && htf[p].l < htf[p + k].l)) isL = false;
     }
     if (isH) highs.push({ conf: j, price: htf[p].h, nb: p, bt: htf[p].t });
     if (isL) lows.push({ conf: j, price: htf[p].l, nb: p, bt: htf[p].t });

@@ -1,0 +1,20 @@
+E16 — pivot tie rule of ta.pivothigh / ta.pivotlow in TradingView
+Probe: validation/tools/pivot_tie_probe.pine, blob 715c7b07bbc499100b80b4d3783c1a496e635bee (editor content hashed before "Add to chart").
+Added as an unsaved untitled script (nothing saved to the account), removed from the chart after the read.
+Surface: TradingView Desktop over CDP. Chart OANDA:XAUUSD, 1m, 2026-09-28 ~21:52 UTC (gold daily break; last bar fixed). L = 3 (= pivotLen).
+Values: the study's Data Window on the last bar, read through CDP (data_get_study_values).
+
+bars                       8256
+pivot highs / lows         748 / 771
+bars with a high tie        118
+bars with a low tie          80
+
+variant  rule (older neighbours | newer neighbours)   mismatch high  mismatch low
+A        strict  |  non-strict   (JS reference)        10             11
+B        strict  |  strict                              6              6
+C        non-strict | strict                            0              0
+D        non-strict | non-strict                        4              5
+
+Result: Pine uses variant C: centre >= every older bar and > every newer bar (lows: <= older, < newer).
+The JS reference assumed A. FAILED for the reference (the indicator itself calls ta.pivothigh/ta.pivotlow and is correct by definition).
+Affected reference code: reference/engine.mjs computeSeries (swingPH/swingPL), reference/history.mjs htfFeedValues, engine.test.mjs HTF fixture.

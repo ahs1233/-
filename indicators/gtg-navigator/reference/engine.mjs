@@ -500,8 +500,8 @@ export function computeSeries(bars, P = DEFAULTS) {
     const p = i - L;
     let isH = true, isL = true;
     for (let k = 1; k <= L; k++) {
-      if (!(bars[p].h > bars[p - k].h && bars[p].h >= bars[p + k].h)) isH = false;
-      if (!(bars[p].l < bars[p - k].l && bars[p].l <= bars[p + k].l)) isL = false;
+      if (!(bars[p].h >= bars[p - k].h && bars[p].h > bars[p + k].h)) isH = false;
+      if (!(bars[p].l <= bars[p - k].l && bars[p].l < bars[p + k].l)) isL = false;
     }
     if (isH) swingPH[i] = bars[p].h;
     if (isL) swingPL[i] = bars[p].l;
