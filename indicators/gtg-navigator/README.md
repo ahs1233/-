@@ -88,11 +88,12 @@ node --test indicators/gtg-navigator/reference/*.test.mjs
 | Q1–Q4 | عقد `Q_stay ≤ Q_enter`: الزوج المعكوس مرفوض، والأزواج الصالحة لا تتناوب أبدًا (`params.test.mjs`) |
 | O1–O9 | تنبيه Strong Obstacle: دخول حالة Strong+Near لعائق محدد، بلا تكرار عند تبدّل الـprimary أو التسمية (`obstacle.test.mjs`) |
 | B1–B8 | سلسلة `navArmed`: Break Accepted وFlip Confirmed يتبعان تسليح بداية الكسر (`lifecycle.test.mjs`) |
+| I13 | هوية الخانة المحتفظ بها تنكمش فقط وتعود جديدة بعد انقطاع التقاطع (`identity.test.mjs`) |
 | A1–A6 | التنبيهات العشرة: العبور، بوابة الإغلاق المؤكد، No Chase، موت عضو الدخول (`alerts.test.mjs`) |
 | K1–K6 | عقود `headingStrong > headingClear`، `routeStrong > routeClear`، `speedExtreme ≥ speedFast`: لا يظهر «بقوة» مع إشارة محايدة، ولا لون/تنبيه استثنائي مع فئة أدنى (`consumers.test.mjs`) |
 | P1–P6 | أرضيات mintick في المرجع كما في Pine (`parity.test.mjs`)، مقابل oracle يدوي مستقل + negative control |
 | S1–S15 | snapshot canonical ومستويات التكافؤ وصيغة الالتقاط (`snapshot.test.mjs`، `snapshot-coverage.test.mjs`)، بما فيها مثال التصادم والتكرار وring الأسعار والشمعة الناقصة |
-| C1–C14 | فحوص نصية ثابتة على ملف Pine: ترتيب حقول البصمة، ميزانية الـplots، بقاء أرضيات mintick، وعدم تغيّر v0.4.6 |
+| C1–C15 | فحوص نصية ثابتة على ملف Pine: ترتيب حقول البصمة، ميزانية الـplots، بقاء أرضيات mintick، وعدم تغيّر v0.4.6 |
 
 الاختبارات تثبت منطق المرجع لا تشغيل Pine: ملف Pine ترجمة يدوية لنفس الخطوات. حالة التطابق لكل معادلة، والتسامحات، والفجوات المفتوحة (قاعدة تعادل pivot، أزمنة HTF، ملفات الفريمات غير M1، طبقة المستهلك) في `validation/PINE_JS_PARITY.md`. ادعاء «التطابق روجع» السابق **سُحب** بعد اكتشاف اختلاف أرضية mintick (R2) الذي أُصلح في المرجع.
 

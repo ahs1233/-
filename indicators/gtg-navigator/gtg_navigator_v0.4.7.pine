@@ -2361,7 +2361,7 @@ alertcondition(nearStrongObstacle, "GTG — Strong Obstacle", "GTG Navigator: ا
 alertcondition(noChaseEvent, "GTG — No Chase", "GTG Navigator: اندفاع سريع قرب عائق مع دفع غير متحسن — لا تطارد الحركة.")
 alertcondition(obstacleBreakEvent, "GTG — Obstacle Break", "GTG Navigator: حدث اختراق/كسر لعائق سعري معروض (قيد التأكيد).")
 alertcondition(obstacleRejectEvent, "GTG — Obstacle Rejection", "GTG Navigator: ظهر رفض/ارتداد واضح من عائق سعري معروض.")
-alertcondition(breakAcceptedEvent, "GTG — Break Accepted", "GTG Navigator: الكسر أصبح مقبولًا — المستوى الآن Flip محتمل.")
+alertcondition(breakAcceptedEvent, "GTG — Break Accepted", "GTG Navigator: الكسر أصبح مقبولًا وفق محرك المناطق.")
 alertcondition(flipConfirmedEvent, "GTG — Flip Confirmed", "GTG Navigator: إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد.")
 
 

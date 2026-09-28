@@ -56,3 +56,6 @@
 | 49 | R3b | فُتح: `headingStrong > headingClear`، `routeStrong > routeClear`، `speedExtreme ≥ speedFast`؛ لا حارس لـmediumQ/strongQ أو fuel أو المسافات | منفّذ؛ بانتظار المراجعة. |
 | 51 | R3b | ACCEPTED على مستوى source/reference/static validation؛ Pine runtime: NOT_RUN | — |
 | 51 | R4 | وصلت نسختان من الرسالة 51: (1) الهوية تبدأ بـprimaryKey مع اختبار churn، وتدقيق التنبيهات بلا تغيير semantics؛ (2) الهوية = primaryKey، وR4-B (سلسلة navArmed) مطلوب تنفيذه. نُفّذت (2) الأحدث لـR4-B/R4-C. **الهوية حسمها الدليل:** O8 يثبت churn الـprimaryKey داخل نفس المنطقة في المحرك الفعلي (primaryKey ⇒ 11، entryKeys ⇒ 10)، فاستُخدمت entryKeys | منفّذ؛ بانتظار المراجعة؛ **الانحراف عن النص الحرفي لـ(2) معروض للقرار** |
+| 53 | R4-A | ACCEPTED على مستوى source/reference/static؛ الهوية entryKeys معتمدة (O8)؛ مطلوب I13 | I13 منفّذ (5 اختبارات + negative control) |
+| 53 | R4-B | ACCEPTED مبدئيًا؛ NOT FINAL حتى قياس XAU حقيقي في TradingView (GPT) | لا تغيير |
+| 53 | Q-A / Q-B | Q-A: نص Break Accepted محايد؛ Q-B: DESIGN_DECISION | النص صُحّح (C15)؛ Q-B موثّق |

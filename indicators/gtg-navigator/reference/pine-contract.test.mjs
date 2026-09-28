@@ -155,3 +155,9 @@ test('C14 R4-B lifecycle: arm at break start, Accepted/Flip follow the arm, ever
   assert.match(pine, /if age > maxAgeOf\(lv\.tfRank\)\n                        lv\.state := ST_DEAD\n                        lv\.navArmed := false/);
 });
 
+test('C15 Q-A: Break Accepted message is neutral (a FLIP whose break is accepted dies, it is not a potential flip)', () => {
+  assert.match(pine, /^alertcondition\(breakAcceptedEvent, "GTG — Break Accepted", "GTG Navigator: الكسر أصبح مقبولًا وفق محرك المناطق\."\)$/m);
+  assert.doesNotMatch(pine, /المستوى الآن Flip محتمل/);
+  assert.equal((pine.match(/^alertcondition\(/gm) || []).length, 10); // count unchanged
+});
+

@@ -108,6 +108,18 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
   - Capture moves to `GTGSNAP v3`: `navArmed` on LVL lines, plus an OBS line.
   - New export `v_obsState`. Plot outputs: 52 of 64.
 
+### After review message 53 (tests + one alert message; no engine change)
+- **I13 identity continuity.** Five tests pin the property that makes the entry-key intersection safe:
+  - A held slot's entry keys only shrink (prev ∩ current).
+  - An empty intersection ends the privilege; a re-entry is a fresh identity.
+  - No active slot has empty entry keys.
+  - Merge and split do not add keys.
+  - The property holds across three seeds × 4000 bars.
+  - Negative control: an injected defect (a held slot taking all members) fails 4 of 5 (`validation/artifacts/i13-identity-negative-control.txt`).
+- **Q-A.** The Break Accepted alert message is now neutral: «الكسر أصبح مقبولًا وفق محرك المناطق.». The condition is unchanged and there are still 10 alerts (C15).
+- **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
+- **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
+
 ### Documentation (R7, partial)
 - README:
   - The test list now includes T7b, P, S and C.
