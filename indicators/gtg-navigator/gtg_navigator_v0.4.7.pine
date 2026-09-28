@@ -1,12 +1,14 @@
 //@version=6
 indicator(
      "GTG Navigator v0.4.7 — Structural Zone Engine",
-     shorttitle = "GTG Nav v0.4.7",
+     shorttitle = "GTGv0.4.7",
      overlay = true,
      max_labels_count = 20,
      max_lines_count = 10,
      max_boxes_count = 10
 )
+
+plot(na, title = "GTG_OUTPUT_ANCHOR", display = display.none)
 
 // ============================================================================
 // GTG NAVIGATOR v0.4.7 — STRUCTURAL ZONE ENGINE
