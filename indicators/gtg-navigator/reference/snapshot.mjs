@@ -5,7 +5,10 @@
 // Levels:
 //   geometry — per slot: active, side, containing, lo, hi
 //   identity — geometry + primaryKey, sorted lastKeys, sorted entryKeys, gateQ, displayQ
-//   state    — identity + every pool record (sorted by key) + DOZ swing trackers
+//   state    — identity + every pool record (sorted by key, with its source identity)
+//              + DOZ swing trackers + the OHLC ring (age 0 = newest). Together with the
+//              slots this is every persistent engine variable a later decision reads
+//              (inventory in validation/PINE_JS_PARITY.md §7).
 //   events   — the seven engine events (Pine adds the ten alert conditions)
 //
 // The snapshot contains no absolute bar index: chart-bar fields are stored as ages
@@ -34,9 +37,12 @@ export function snapshotSlot(name, s) {
   };
 }
 
+// birthNativeBar is omitted (absolute index; ageNative is its relative form) and
+// birthAtr is omitted (written at admission, never read afterwards).
 export function snapshotLevel(lv, bi) {
   return {
-    key: lv.key, state: lv.state, polarity: lv.polarity, lo: lv.lo, hi: lv.hi, s: lv.s,
+    key: lv.key, source: lv.source, tfRank: lv.tfRank, typ: lv.typ, birthTime: lv.birthTime, price: lv.price,
+    state: lv.state, polarity: lv.polarity, lo: lv.lo, hi: lv.hi, s: lv.s,
     mitigation: lv.mitigation, evidence: lv.evidence, tests: lv.tests, ageNative: lv.ageNative,
     epActive: !!lv.epActive, epSide: lv.epSide, epMaxDepth: lv.epMaxDepth,
     breakDir: lv.breakDir, breakCloses: lv.breakCloses, breakFromFlip: !!lv.breakFromFlip, backCloses: lv.backCloses,
@@ -44,6 +50,7 @@ export function snapshotLevel(lv, bi) {
   };
 }
 
+const byKey = (a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
 const snapshotTracker = (t, bi) => (t.px == null ? { has: false } : { has: true, px: t.px, since: since(bi, t.bar), broken: !!t.broken });
 
 // engine: reference Engine after step(bi); result: the object step(bi) returned.
@@ -52,8 +59,9 @@ export function canonicalSnapshot(engine, result, bi, meta) {
   return {
     meta: { symbol: meta?.symbol ?? null, timeframe: meta?.timeframe ?? null, mintick, time: engine.bars[bi].t },
     slots: engine.slots.map((s, i) => snapshotSlot(SLOT_NAMES[i], s)),
-    levels: engine.allLevels().map((lv) => snapshotLevel(lv, bi)).sort((a, b) => (a.key < b.key ? -1 : 1)),
+    levels: engine.allLevels().map((lv) => snapshotLevel(lv, bi)).sort(byKey),
     trackers: { high: snapshotTracker(engine.lastSwingHigh, bi), low: snapshotTracker(engine.lastSwingLow, bi) },
+    ring: engine.ring.map((r) => ({ o: r.o, h: r.h, l: r.l, c: r.c })), // index = age, 0 = newest
     events: Object.fromEntries(EVENT_NAMES.map((k) => [k, !!result.events[k]])),
   };
 }
@@ -80,9 +88,9 @@ function cmpKeys(path, a, b, out) {
   if (a.length !== b.length || a.some((k, i) => k !== b[i])) out.push({ path, kind: 'exact', a: a.join(','), b: b.join(',') });
 }
 
-const LEVEL_PRICE = ['lo', 'hi'];
+const LEVEL_PRICE = ['lo', 'hi', 'price'];
 const LEVEL_QTY = ['s', 'mitigation', 'evidence', 'epMaxDepth'];
-const LEVEL_EXACT = ['state', 'polarity', 'tests', 'ageNative', 'epActive', 'epSide', 'breakDir', 'breakCloses', 'breakFromFlip', 'backCloses', 'sinceTest', 'sinceState', 'sinceBack'];
+const LEVEL_EXACT = ['source', 'tfRank', 'typ', 'birthTime', 'state', 'polarity', 'tests', 'ageNative', 'epActive', 'epSide', 'breakDir', 'breakCloses', 'breakFromFlip', 'backCloses', 'sinceTest', 'sinceState', 'sinceBack'];
 
 // Returns the list of differences at the requested levels (empty list = equal).
 export function compareSnapshots(a, b, levels = ['state', 'events']) {
@@ -114,21 +122,36 @@ export function compareSnapshots(a, b, levels = ['state', 'events']) {
     }
   }
   if (want.has('state')) {
-    const mb = new Map(b.levels.map((l) => [l.key, l]));
-    const ma = new Map(a.levels.map((l) => [l.key, l]));
-    for (const la of a.levels) {
-      const lb = mb.get(la.key);
-      if (!lb) { out.push({ path: `levels.${la.key}`, kind: 'missing', a: 'present', b: 'absent' }); continue; }
-      for (const f of LEVEL_PRICE) cmpPrice(`levels.${la.key}.${f}`, la[f], lb[f], mintick, out);
-      for (const f of LEVEL_QTY) cmpQty(`levels.${la.key}.${f}`, la[f], lb[f], out);
-      for (const f of LEVEL_EXACT) cmpExact(`levels.${la.key}.${f}`, la[f], lb[f], out);
+    // Group by key so that a repeated key (itself an invariant violation) can never be
+    // hidden: record counts per key must match before records are compared pairwise.
+    const group = (levels) => {
+      const g = new Map();
+      for (const l of levels) { if (!g.has(l.key)) g.set(l.key, []); g.get(l.key).push(l); }
+      for (const v of g.values()) v.sort((x, y) => { const sx = JSON.stringify(x), sy = JSON.stringify(y); return sx < sy ? -1 : sx > sy ? 1 : 0; });
+      return g;
+    };
+    if (a.levels.length !== b.levels.length) out.push({ path: 'levels.length', kind: 'exact', a: a.levels.length, b: b.levels.length });
+    const ga = group(a.levels), gb = group(b.levels);
+    const allKeys = [...new Set([...ga.keys(), ...gb.keys()])].sort((x, y) => (x < y ? -1 : x > y ? 1 : 0));
+    for (const k of allKeys) {
+      const xa = ga.get(k) ?? [], xb = gb.get(k) ?? [];
+      if (xa.length === 0 || xb.length === 0) { out.push({ path: `levels.${k}`, kind: 'missing', a: xa.length ? 'present' : 'absent', b: xb.length ? 'present' : 'absent' }); continue; }
+      if (xa.length !== xb.length) { out.push({ path: `levels.${k}`, kind: 'multiplicity', a: xa.length, b: xb.length }); continue; }
+      for (let r = 0; r < xa.length; r++) {
+        const la = xa[r], lb = xb[r], p = xa.length > 1 ? `levels.${k}#${r}` : `levels.${k}`;
+        for (const f of LEVEL_PRICE) cmpPrice(`${p}.${f}`, la[f], lb[f], mintick, out);
+        for (const f of LEVEL_QTY) cmpQty(`${p}.${f}`, la[f], lb[f], out);
+        for (const f of LEVEL_EXACT) cmpExact(`${p}.${f}`, la[f], lb[f], out);
+      }
     }
-    for (const lb of b.levels) if (!ma.has(lb.key)) out.push({ path: `levels.${lb.key}`, kind: 'missing', a: 'absent', b: 'present' });
     for (const side of ['high', 'low']) {
       const x = a.trackers[side], y = b.trackers[side], p = `trackers.${side}`;
       cmpExact(`${p}.has`, x.has, y.has, out);
       if (x.has && y.has) { cmpPrice(`${p}.px`, x.px, y.px, mintick, out); cmpExact(`${p}.since`, x.since, y.since, out); cmpExact(`${p}.broken`, x.broken, y.broken, out); }
     }
+    const ra = a.ring ?? [], rb = b.ring ?? [];
+    cmpExact('ring.length', ra.length, rb.length, out);
+    for (let k = 0; k < Math.min(ra.length, rb.length); k++) for (const f of ['o', 'h', 'l', 'c']) cmpPrice(`ring.${k}.${f}`, ra[k][f], rb[k][f], mintick, out);
   }
   if (want.has('events')) {
     for (const k of Object.keys({ ...a.events, ...b.events })) cmpExact(`events.${k}`, !!a.events[k], !!b.events[k], out);
@@ -166,11 +189,11 @@ export function encodeSlots(snap) {
   return e;
 }
 
-export function encodeLevels(snap) {
+export function encodeState(snap) {
   const t = snap.meta.mintick;
   const e = [2, snap.levels.length];
   for (const l of snap.levels) {
-    e.push(l.key, l.state, l.polarity, Math.round(l.lo / t), Math.round(l.hi / t), q6(l.s), q6(l.mitigation), q6(l.evidence),
+    e.push(l.key, l.source, l.tfRank, l.typ, l.birthTime, Math.round(l.price / t), l.state, l.polarity, Math.round(l.lo / t), Math.round(l.hi / t), q6(l.s), q6(l.mitigation), q6(l.evidence),
       l.tests, l.ageNative, b01(l.epActive), l.epSide, q6(l.epMaxDepth), l.breakDir, l.breakCloses, b01(l.breakFromFlip),
       l.backCloses, orNeg(l.sinceTest), orNeg(l.sinceState), orNeg(l.sinceBack));
   }
@@ -178,6 +201,9 @@ export function encodeLevels(snap) {
     const k = snap.trackers[side];
     if (k.has) e.push(1, Math.round(k.px / t), k.since, b01(k.broken)); else e.push(0);
   }
+  const ring = snap.ring ?? [];
+  e.push(ring.length);
+  for (const r of ring) e.push(Math.round(r.o / t), Math.round(r.h / t), Math.round(r.l / t), Math.round(r.c / t));
   return e;
 }
 
@@ -188,5 +214,5 @@ export function hashInts(ints) {
 }
 
 export const hashSlots = (snap) => hashInts(encodeSlots(snap));
-export const hashLevels = (snap) => hashInts(encodeLevels(snap));
+export const hashState = (snap) => hashInts(encodeState(snap));
 export const eventBits = (snap) => EVENT_NAMES.reduce((acc, k, i) => acc + (snap.events[k] ? 2 ** i : 0), 0);

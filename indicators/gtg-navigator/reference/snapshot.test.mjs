@@ -2,13 +2,11 @@
 // Run: node --test indicators/gtg-navigator/reference/snapshot.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULTS, SRC, TF, TYP, ST, memberKeyOf, computeSeries, Engine, syntheticBars, withSymbol } from './engine.mjs';
-import { canonicalSnapshot, compareSnapshots, hashSlots, hashLevels, encodeSlots, hashInts } from './snapshot.mjs';
+import { DEFAULTS, TYP, ST, computeSeries, Engine, syntheticBars, withSymbol } from './engine.mjs';
+import { canonicalSnapshot, compareSnapshots, hashSlots, hashState, encodeSlots, hashInts } from './snapshot.mjs';
 import { formatCapture, parseCapture } from './capture.mjs';
 
-const T0 = 1_700_000_000_000;
-const MINTICK = 0.01;
-const key = (i, typ = TYP.HIGH) => memberKeyOf(T0 + i * 60_000, SRC.SWING, TF.LOCAL, typ);
+import { T0, MINTICK, key, baseSnap } from './fixtures.mjs';
 
 // Baseline Pine slotDigest (pine:1741-1742 at cdf1a8a), kept only as a negative control.
 function legacySlotDigest(slot) {
@@ -19,22 +17,6 @@ function legacySlotDigest(slot) {
   return (BigInt(slot.primaryKey) % M + (lo % M) * 7n + (hi % M) * 13n) % M;
 }
 
-function baseSnap() {
-  const slot = (name, lo, hi, keys, side) => ({ name, active: true, containing: false, side, lo, hi, primaryKey: keys[0], lastKeys: [...keys].sort((a, b) => a - b), entryKeys: [...keys].sort((a, b) => a - b), gateQ: 66, displayQ: 69 });
-  const lvl = (k, lo, hi) => ({ key: k, state: ST.ACTIVE, polarity: 1, lo, hi, s: 70, mitigation: 0.1, evidence: 0.5, tests: 1, ageNative: 12, epActive: false, epSide: 0, epMaxDepth: 0, breakDir: 0, breakCloses: 0, breakFromFlip: false, backCloses: 0, sinceTest: 4, sinceState: 12, sinceBack: null });
-  return {
-    meta: { symbol: 'TEST:XAUUSD', timeframe: '1', mintick: MINTICK, time: T0 },
-    slots: [
-      slot('R1', 100, 101, [key(1), key(2), key(3)], 1),
-      slot('R2', 103, 103.5, [key(4)], 1),
-      slot('S1', 98, 98.5, [key(5, TYP.LOW)], -1),
-      { name: 'S2', active: false },
-    ],
-    levels: [lvl(key(1), 100, 100.6), lvl(key(2), 100.2, 101), lvl(key(3), 100.4, 100.9), lvl(key(4), 103, 103.5)],
-    trackers: { high: { has: true, px: 103.5, since: 30, broken: false }, low: { has: false } },
-    events: { breakingUp: false, breakingDn: false, acceptedUp: false, acceptedDn: false, rejectR: false, rejectS: false, flipConfirmed: false },
-  };
-}
 const clone = (x) => structuredClone(x);
 const paths = (diffs) => diffs.map((d) => `${d.path}:${d.kind}`);
 
@@ -76,9 +58,9 @@ test('S4 level state change with identical slots: only the state level detects i
   assert.deepEqual(compareSnapshots(a, b, ['identity']), []);
   assert.equal(hashSlots(a), hashSlots(b));
   assert.deepEqual(paths(compareSnapshots(a, b, ['state'])).sort(), [`levels.${key(2)}.breakCloses:exact`, `levels.${key(2)}.breakDir:exact`, `levels.${key(2)}.state:exact`].sort());
-  assert.notEqual(hashLevels(a), hashLevels(b));
+  assert.notEqual(hashState(a), hashState(b));
   const gone = clone(a); gone.levels.pop();
-  assert.deepEqual(paths(compareSnapshots(a, gone, ['state'])), [`levels.${key(4)}:missing`]);
+  assert.deepEqual(paths(compareSnapshots(a, gone, ['state'])), ['levels.length:exact', `levels.${key(4)}:missing`]);
 });
 
 test('S5 events are their own level', () => {
@@ -128,7 +110,7 @@ test('S8 snapshot is independent of the absolute bar index (history prepended be
     assert.ok(b, `missing snapshot at ${t}`);
     const d = compareSnapshots(a, b, ['state', 'events']);
     assert.deepEqual(d, [], `diff at ${t}: ${JSON.stringify(d.slice(0, 3))}`);
-    assert.equal(hashLevels(a), hashLevels(b));
+    assert.equal(hashState(a), hashState(b));
     compared++;
     if (a.levels.length) withLevels++;
     if (L.absTest.get(t) != null && L.absTest.get(t) !== S.absTest.get(t)) absDiffer++;
@@ -146,7 +128,7 @@ test('S9 capture text round-trips and reports truncation', () => {
   assert.deepEqual(compareSnapshots(a, parsed.snapshot, ['state', 'events']), []);
   assert.equal(parsed.alertBits, 16);
   assert.equal(parsed.declared.hashSlots, hashSlots(a));
-  assert.equal(parsed.declared.hashLevels, hashLevels(a));
+  assert.equal(parsed.declared.hashState, hashState(a));
   const cut = text.split('\n').filter((l) => !l.includes('|LVL|')).join('\n');
   const bad = parseCapture(cut).get(T0);
   assert.ok(!bad.complete && bad.problems.some((p) => p.includes('LVL')));
@@ -156,7 +138,7 @@ test('S10 hash encoding is pinned: regression guard for the Pine↔JS encoding c
   const a = baseSnap();
   assert.deepEqual(encodeSlots(a).slice(0, 9), [1, 1, 0, 1, 10000, 10100, key(1), 6600, 6900]);
   assert.equal(hashSlots(a), 480443048);
-  assert.equal(hashLevels(a), 1500221615);
+  assert.equal(hashState(a), 38480016);
 });
 
 test('S11 hash arithmetic matches an independent implementation (Python int, vectors below)', () => {
