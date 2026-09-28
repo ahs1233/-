@@ -1,0 +1,13 @@
+# Strong Obstacle: baseline rule (pine:2288 up to 06a61a2) vs R4-A contract, per case; 1 = alert on that confirmed bar | node v22.22.2 | 2026-09-28T08:04:13Z
+# baseline source line at 06a61a2:
+2304:nearStrongObstacle = barstate.isconfirmed and nearestObstacleStrong and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr and (na(nearestObstacleAtr[1]) or nearestObstacleAtr[1] > nearObstacleAtr)
+1 far→strong+near                    baseline=01  contract=01
+2 weak+near→strong+near              baseline=00  contract=01   <- differs
+3 A→B strong+near                    baseline=10  contract=11   <- differs
+4 A persists                         baseline=100  contract=100
+5a exit(dist)→re-entry               baseline=101  contract=101
+5b exit(quality)→re-entry            baseline=100  contract=101   <- differs
+5c unavailable→re-entry              baseline=101  contract=101
+6 intrabar strong then confirmed     baseline=001  contract=001
+7 boundary q=72,d=0.35               baseline=01  contract=01
+# identity token: O8 (real selectSlots) — primaryKey churns within one zone; primaryKey token = 11, entryKeys token = 10.

@@ -96,3 +96,26 @@ test('S14 compare-captures: a whole missing bar fails (two files strict, and sin
   assert.match(partial.stdout, /INCOMPLETE BAR/);
   assert.doesNotMatch(partial.stdout, /MISSING BAR/);
 });
+
+test('S16 new continuation state (R4): the arm and the Strong Obstacle latch are state-level differences', async () => {
+  const { formatCapture: fmt, parseCapture: parse } = await import('./capture.mjs');
+  const { hashState } = await import('./snapshot.mjs');
+  const a = baseSnap();
+  const armed = clone(a); armed.levels[2].navArmed = true;
+  assert.deepEqual(paths(compareSnapshots(a, armed, ['state'])), [`levels.${key(3)}.navArmed:exact`]);
+  assert.notEqual(hashState(a), hashState(armed));
+  const latched = clone(a); latched.obstacle = { state: true, keys: [key(1), key(2)] };
+  const other = clone(latched); other.obstacle.keys = [key(4)];
+  assert.deepEqual(paths(compareSnapshots(a, latched, ['state'])), ['obstacle:exact']);
+  assert.deepEqual(paths(compareSnapshots(latched, other, ['state'])), ['obstacle.keys:exact']);
+  assert.deepEqual(compareSnapshots(latched, other, ['identity', 'events']), []);
+  assert.notEqual(hashState(latched), hashState(other));
+  // Round trip through the v3 capture, with and without a modelled latch.
+  for (const s of [a, armed, latched]) {
+    const r = parse(fmt(s, 16, s.obstacle ? { available: true, strength: 80, distAtr: 0.2, qualifying: true, same: false, event: true } : null)).get(s.meta.time);
+    assert.ok(r.complete, r.problems.join('; '));
+    assert.deepEqual(compareSnapshots(s, r.snapshot, ['state', 'events']), []);
+    assert.equal(r.declared.hashState, hashState(s));
+  }
+});
+

@@ -84,6 +84,7 @@ export function makeLevel(f) {
     stateChartBar: f.stateChartBar ?? 0, breakDir: 0, breakCloses: 0, breakFromFlip: false,
     backCloses: 0, backStartChartBar: null, epActive: false, epSide: 0, epMaxDepth: 0,
     ageNative: f.ageNative ?? 0, q: f.q ?? 0,
+    navArmed: false, // R4-B: navigation chain armed at break start while displayed
   };
 }
 
@@ -141,9 +142,10 @@ export function runEpisode(lv, h, l, c, pc, atr, bi, P = DEFAULTS) {
   return rej;
 }
 
-function acceptBreak(lv, bi, ev, inSlot) {
-  if (inSlot) { if (lv.breakDir > 0) ev.acceptedUp = true; else ev.acceptedDn = true; }
-  if (lv.breakFromFlip) lv.state = ST.DEAD;
+// Break Accepted follows the arm set at break start (R4-B), not the current slot.
+function acceptBreak(lv, bi, ev) {
+  if (lv.navArmed) { if (lv.breakDir > 0) ev.acceptedUp = true; else ev.acceptedDn = true; }
+  if (lv.breakFromFlip) { lv.state = ST.DEAD; lv.navArmed = false; }
   else { lv.state = ST.BROKEN; lv.stateChartBar = bi; lv.epActive = false; lv.backCloses = 0; }
 }
 
@@ -166,13 +168,14 @@ export function updateLevel(lv, bar, pc, atr, bi, ev, inSlot, P = DEFAULTS) {
       if (lv.epActive) { lv.epActive = false; lv.tests += 1; lv.lastTestChartBar = bi; }
       lv.breakDir = dir; lv.breakFromFlip = st === ST.FLIP; lv.breakCloses = 1; lv.stateChartBar = bi;
       lv.state = ST.BREAKING;
+      lv.navArmed = inSlot;
       if (inSlot) { if (dir > 0) ev.breakingUp = true; else ev.breakingDn = true; }
       const strongBody = Math.abs(c - o) >= P.dispBodyK * atr && (dir > 0 ? c > o : c < o);
-      if (strongBody) acceptBreak(lv, bi, ev, inSlot);
+      if (strongBody) acceptBreak(lv, bi, ev);
     } else {
       const rej = runEpisode(lv, h, l, c, pc, atr, bi, P);
       markRejection(lv, rej, ev, inSlot);
-      if (lv.mitigation >= 1) lv.state = ST.DEAD;
+      if (lv.mitigation >= 1) { lv.state = ST.DEAD; lv.navArmed = false; }
     }
   } else if (st === ST.BREAKING) {
     const dir = lv.breakDir;
@@ -180,26 +183,30 @@ export function updateLevel(lv, bar, pc, atr, bi, ev, inSlot, P = DEFAULTS) {
     const back = dir > 0 ? c < lv.lo : c > lv.hi;
     if (beyond && bi > lv.stateChartBar) {
       lv.breakCloses += 1;
-      if (lv.breakCloses >= 2) acceptBreak(lv, bi, ev, inSlot);
+      if (lv.breakCloses >= 2) acceptBreak(lv, bi, ev);
     } else if (back) {
       lv.state = lv.breakFromFlip ? ST.FLIP : ST.ACTIVE;
       lv.tests += 1; lv.evidence = Math.min(3, lv.evidence + 0.5); lv.lastTestChartBar = bi;
+      lv.navArmed = false;
     } else if (bi - lv.stateChartBar >= P.BREAK_WINDOW) {
       lv.state = lv.breakFromFlip ? ST.FLIP : ST.ACTIVE;
+      lv.navArmed = false;
     }
   } else if (st === ST.BROKEN) {
     const dir = lv.breakDir;
+    if (lv.navArmed && bi - lv.stateChartBar > P.flipWindow) lv.navArmed = false;
     const backBeyond = dir > 0 ? c < lv.lo - buf : c > lv.hi + buf;
     if (backBeyond) {
       const strongBack = Math.abs(c - o) >= P.dispBodyK * atr && (dir > 0 ? c < o : c > o);
       if (lv.backCloses === 0 || bi - (lv.backStartChartBar ?? bi) > P.BREAK_WINDOW) { lv.backCloses = 1; lv.backStartChartBar = bi; }
       else lv.backCloses += 1;
-      if (strongBack || lv.backCloses >= 2) lv.state = ST.DEAD;
+      if (strongBack || lv.backCloses >= 2) { lv.state = ST.DEAD; lv.navArmed = false; }
     } else {
       const rej = runEpisode(lv, h, l, c, pc, atr, bi, P);
       if (rej !== null && rej >= 0.5 && lv.epSide === dir && bi - lv.stateChartBar <= P.flipWindow) {
         lv.polarity = -lv.polarity; lv.s = Math.min(100, lv.s + 8); lv.state = ST.FLIP;
-        if (inSlot) ev.flipConfirmed = true;
+        if (lv.navArmed) ev.flipConfirmed = true; // follows the arm (R4-B)
+        lv.navArmed = false;
       }
       markRejection(lv, rej, ev, inSlot);
     }
@@ -551,7 +558,7 @@ export class Engine {
         if (nowN != null) {
           lv.ageNative = nowN - lv.birthNativeBar;
           if (lv.ageNative < 0) this.violations.push('AGE_NEGATIVE');
-          if (lv.ageNative > P.maxAge[lv.tfRank]) lv.state = ST.DEAD;
+          if (lv.ageNative > P.maxAge[lv.tfRank]) { lv.state = ST.DEAD; lv.navArmed = false; }
         }
         if (lv.state !== ST.DEAD) updateLevel(lv, b, pc, atr, i, ev, this.inPrevSlots(lv.key), P);
       }

@@ -1,4 +1,4 @@
-// Compares Pine log captures (GTGSNAP v2) bar by bar at the requested equivalence
+// Compares Pine log captures (GTGSNAP v3) bar by bar at the requested equivalence
 // levels, checks coverage, and checks the hashes Pine printed against the hashes the
 // JS reference computes from the same captured raw fields (a check of the Pine hash
 // code on real data).
@@ -17,7 +17,7 @@
 // --expect-times: one bar-open time in ms per line (use it for sessions with gaps).
 // --expect-from/--expect-to/--step-ms: a continuous window (24/7 symbols only).
 // GTGSNAP is a short-window diagnostic (Pine Logs keeps at most 10,000 historical
-// messages per script; one bar costs 8 + nLevels + ceil(ring/16) messages). It is not a
+// messages per script; one bar costs 9 + nLevels + ceil(ring/16) messages). It is not a
 // substitute for the long-range CSV export.
 import { readFileSync } from 'node:fs';
 import { parseCapture } from '../../reference/capture.mjs';

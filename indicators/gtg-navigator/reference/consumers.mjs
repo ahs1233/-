@@ -48,3 +48,24 @@ export function routeView(score, C = CONSUMER_DEFAULTS) {
 
 // Direction a text claims: +1 up, −1 down, 0 undecided / weak lean.
 export const textDirection = (text) => (text.startsWith('↑') || text === '↗ صاعد' ? 1 : text.startsWith('↓') || text === '↘ هابط' ? -1 : 0);
+
+export const CONSUMER_DEFAULTS_FUEL = Object.freeze({ fuelLowThreshold: 25, fuelHighThreshold: 70, fuelExtremeThreshold: 90 });
+
+// --- The remaining alert conditions (R4-C), transcribed verbatim; pinned by C11. ---
+// pine: fuelSurge = barstate.isconfirmed and fuelScore >= fuelHighThreshold and fuelScore[1] < fuelHighThreshold
+export const fuelSurge = (confirmed, fuel, prevFuel, C = CONSUMER_DEFAULTS_FUEL) => confirmed && fuel >= C.fuelHighThreshold && prevFuel < C.fuelHighThreshold;
+// pine: headingUp = barstate.isconfirmed and headingScore > headingClearThreshold and headingScore[1] <= headingClearThreshold
+export const headingUp = (confirmed, h, prevH, C = CONSUMER_DEFAULTS) => confirmed && h > C.headingClearThreshold && prevH <= C.headingClearThreshold;
+// pine: headingDown = barstate.isconfirmed and headingScore < -headingClearThreshold and headingScore[1] >= -headingClearThreshold
+export const headingDown = (confirmed, h, prevH, C = CONSUMER_DEFAULTS) => confirmed && h < -C.headingClearThreshold && prevH >= -C.headingClearThreshold;
+// pine: speedBurst (see speedView), with the confirmed gate made explicit.
+export const speedBurstAlert = (confirmed, s, prevS, C = CONSUMER_DEFAULTS) => confirmed && speedView(s, prevS, C).burst;
+// pine: noChaseEvent = barstate.isconfirmed and noChase and not noChase[1]
+export const noChaseEvent = (confirmed, noChase, prevNoChase) => confirmed && noChase && !prevNoChase;
+// pine: obstacleBreakEvent = breakResistance or breakSupport (= ev.breakingUp or ev.breakingDn), and alike
+export const engineAlerts = (ev) => ({
+  obstacleBreak: ev.breakingUp || ev.breakingDn,
+  obstacleReject: ev.rejectR || ev.rejectS,
+  breakAccepted: ev.acceptedUp || ev.acceptedDn,
+  flipConfirmed: ev.flipConfirmed,
+});

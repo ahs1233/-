@@ -138,7 +138,7 @@ test('S10 hash encoding is pinned: regression guard for the Pine↔JS encoding c
   const a = baseSnap();
   assert.deepEqual(encodeSlots(a).slice(0, 9), [1, 1, 0, 1, 10000, 10100, key(1), 6600, 6900]);
   assert.equal(hashSlots(a), 480443048);
-  assert.equal(hashState(a), 38480016);
+  assert.equal(hashState(a), 544944316);
 });
 
 test('S11 hash arithmetic matches an independent implementation (Python int, vectors below)', () => {

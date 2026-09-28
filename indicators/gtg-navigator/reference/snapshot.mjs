@@ -47,6 +47,7 @@ export function snapshotLevel(lv, bi) {
     epActive: !!lv.epActive, epSide: lv.epSide, epMaxDepth: lv.epMaxDepth,
     breakDir: lv.breakDir, breakCloses: lv.breakCloses, breakFromFlip: !!lv.breakFromFlip, backCloses: lv.backCloses,
     sinceTest: since(bi, lv.lastTestChartBar), sinceState: since(bi, lv.stateChartBar), sinceBack: since(bi, lv.backStartChartBar),
+    navArmed: !!lv.navArmed,
   };
 }
 
@@ -54,7 +55,9 @@ const byKey = (a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
 const snapshotTracker = (t, bi) => (t.px == null ? { has: false } : { has: true, px: t.px, since: since(bi, t.bar), broken: !!t.broken });
 
 // engine: reference Engine after step(bi); result: the object step(bi) returned.
-export function canonicalSnapshot(engine, result, bi, meta) {
+// obstacleLatch: the consumer's Strong Obstacle latch { state, keys } after this bar, or
+// null when the consumer layer is not modelled (JS engine-only runs).
+export function canonicalSnapshot(engine, result, bi, meta, obstacleLatch = null) {
   const mintick = requireMintick(engine.P);
   return {
     meta: { symbol: meta?.symbol ?? null, timeframe: meta?.timeframe ?? null, mintick, time: engine.bars[bi].t },
@@ -62,6 +65,7 @@ export function canonicalSnapshot(engine, result, bi, meta) {
     levels: engine.allLevels().map((lv) => snapshotLevel(lv, bi)).sort(byKey),
     trackers: { high: snapshotTracker(engine.lastSwingHigh, bi), low: snapshotTracker(engine.lastSwingLow, bi) },
     ring: engine.ring.map((r) => ({ o: r.o, h: r.h, l: r.l, c: r.c })), // index = age, 0 = newest
+    obstacle: obstacleLatch ? { state: !!obstacleLatch.state, keys: sortedKeys(obstacleLatch.keys) } : null,
     events: Object.fromEntries(EVENT_NAMES.map((k) => [k, !!result.events[k]])),
   };
 }
@@ -90,7 +94,7 @@ function cmpKeys(path, a, b, out) {
 
 const LEVEL_PRICE = ['lo', 'hi', 'price'];
 const LEVEL_QTY = ['s', 'mitigation', 'evidence', 'epMaxDepth'];
-const LEVEL_EXACT = ['source', 'tfRank', 'typ', 'birthTime', 'state', 'polarity', 'tests', 'ageNative', 'epActive', 'epSide', 'breakDir', 'breakCloses', 'breakFromFlip', 'backCloses', 'sinceTest', 'sinceState', 'sinceBack'];
+const LEVEL_EXACT = ['navArmed', 'source', 'tfRank', 'typ', 'birthTime', 'state', 'polarity', 'tests', 'ageNative', 'epActive', 'epSide', 'breakDir', 'breakCloses', 'breakFromFlip', 'backCloses', 'sinceTest', 'sinceState', 'sinceBack'];
 
 // Returns the list of differences at the requested levels (empty list = equal).
 export function compareSnapshots(a, b, levels = ['state', 'events']) {
@@ -152,6 +156,9 @@ export function compareSnapshots(a, b, levels = ['state', 'events']) {
     const ra = a.ring ?? [], rb = b.ring ?? [];
     cmpExact('ring.length', ra.length, rb.length, out);
     for (let k = 0; k < Math.min(ra.length, rb.length); k++) for (const f of ['o', 'h', 'l', 'c']) cmpPrice(`ring.${k}.${f}`, ra[k][f], rb[k][f], mintick, out);
+    const oa = a.obstacle ?? null, ob = b.obstacle ?? null;
+    if ((oa === null) !== (ob === null)) out.push({ path: 'obstacle', kind: 'exact', a: oa ? 'latch' : 'not modelled', b: ob ? 'latch' : 'not modelled' });
+    else if (oa) { cmpExact('obstacle.state', oa.state, ob.state, out); cmpKeys('obstacle.keys', oa.keys, ob.keys, out); }
   }
   if (want.has('events')) {
     for (const k of Object.keys({ ...a.events, ...b.events })) cmpExact(`events.${k}`, !!a.events[k], !!b.events[k], out);
@@ -195,7 +202,7 @@ export function encodeState(snap) {
   for (const l of snap.levels) {
     e.push(l.key, l.source, l.tfRank, l.typ, l.birthTime, Math.round(l.price / t), l.state, l.polarity, Math.round(l.lo / t), Math.round(l.hi / t), q6(l.s), q6(l.mitigation), q6(l.evidence),
       l.tests, l.ageNative, b01(l.epActive), l.epSide, q6(l.epMaxDepth), l.breakDir, l.breakCloses, b01(l.breakFromFlip),
-      l.backCloses, orNeg(l.sinceTest), orNeg(l.sinceState), orNeg(l.sinceBack));
+      l.backCloses, orNeg(l.sinceTest), orNeg(l.sinceState), orNeg(l.sinceBack), b01(l.navArmed));
   }
   for (const side of ['high', 'low']) {
     const k = snap.trackers[side];
@@ -204,6 +211,8 @@ export function encodeState(snap) {
   const ring = snap.ring ?? [];
   e.push(ring.length);
   for (const r of ring) e.push(Math.round(r.o / t), Math.round(r.h / t), Math.round(r.l / t), Math.round(r.c / t));
+  const o = snap.obstacle ?? null;
+  if (o === null) e.push(-1); else e.push(b01(o.state), o.keys.length, ...o.keys);
   return e;
 }
 
