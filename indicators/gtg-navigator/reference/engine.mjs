@@ -337,7 +337,7 @@ export function checkBuilderInvariants(zones, suppressed, n, mg, tol) {
 // ---------------------------------------------------------------------------
 
 export function emptySlot() {
-  return { active: false, containing: false, lo: null, hi: null, side: 0, quality: 0, entryKeys: [], lastKeys: [] };
+  return { active: false, containing: false, lo: null, hi: null, side: 0, quality: 0, gateQ: 0, primaryKey: 0, entryKeys: [], lastKeys: [] };
 }
 
 function containEntrySide(zn, ringC, P) {
@@ -409,7 +409,7 @@ export function selectSlots(zones, slots, ctx, P = DEFAULTS) {
     else entryKeys = keys.slice();
     return {
       active: true, containing: zn.side === SIDE.CONTAIN, lo: zn.lo, hi: zn.hi, side: zn.side,
-      quality: zn.displayQ, entryKeys, lastKeys, zoneIndex: z, isRes: si < 2,
+      quality: zn.displayQ, gateQ: zn.gateQ, primaryKey: zn.primary.key, entryKeys, lastKeys, zoneIndex: z, isRes: si < 2,
     };
   });
   return { next, pick, rEffUp, rEffDn, rStarUp, rStarDn, containEntry, violations: v };
