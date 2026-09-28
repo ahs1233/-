@@ -84,7 +84,7 @@ const has = (x, mask) => (x & mask) !== 0;
 
 // Reference model of Pine 18b. rows: one per chart bar, oldest first:
 // { confirmed, engineStep, warmed, eventBits, obsState, violationsTotal, violationsCritical }
-// (violations* are the engine's cumulative counters, used only as per-bar deltas).
+// (violations* are the engine's cumulative counters; INV packs their values on this row).
 // Returns, per row, the four packed values (null on unconfirmed rows: nothing new is pushed).
 export function diagSeries(rows, W = DIAG_WIN) {
   let sinceBreak = null, sinceAccept = null; // ta.barssince over engine events, every bar
