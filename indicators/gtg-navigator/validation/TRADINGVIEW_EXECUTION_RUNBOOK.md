@@ -13,7 +13,7 @@ Status: mandatory operating procedure for all GTG Navigator TradingView validati
 
 ## 2. One controlled TradingView surface
 
-Controller (Ahmed's decision, review message 70): ChatGPT is the only agent that operates the Desktop and TradingView. Claude does not operate them unless explicitly asked; its role is repo, code, evidence and review.
+Controller (Ahmed's latest decision, after review message 70): Claude is the only agent that operates the Desktop and TradingView. ChatGPT's role has ended. Earlier, ChatGPT was the sole executor.
 
 Before validation:
 - One TradingView chart surface only.
@@ -164,6 +164,31 @@ Cause (static, not yet confirmed on TradingView): state-level hash in section 12
 Fix: a123ad6 gates it behind validationMode or the capture. Verified on TradingView: the Profiler now completes in production mode (E44).
 Prevention: static contract C18; re-profile the candidate before any other G2 claim.
 
+### E-17 — Claude Code tab takes focus on every approval
+Symptom: a screenshot showed the Claude Code tab instead of TradingView.
+Cause: the Claude Code session runs in a tab of the same Chrome window, and each tool approval brings it forward.
+Fix: every action and screenshot helper first re-selects the TradingView tab with SelectionItemPattern.
+Prevention: never assume the active tab; select it explicitly at the start of every UI step.
+
+### E-18 — UIA full-tree dump blocks during a profiled calculation
+Symptom: a descendant dump did not return for more than a minute right after Profiler mode was enabled.
+Cause: Chrome's accessibility tree is busy while the Profiler recalculates and renders per-line results.
+Fix: take screenshots from a separate process (no UIA) while profiling.
+Prevention: no full-tree UIA dumps during a Profiler run; wait for the results first.
+
+### E-19 — Localised Chrome UI
+Symptom: the address bar was not found by its English name.
+Cause: the Chrome UI language is Arabic.
+Fix and prevention: find the omnibox as the Edit control whose value contains tradingview.com.
+
+### E-20 — Menu items without a working pattern
+Symptom: ExpandCollapsePattern.Expand() threw on the Pine Editor More menu and on the Profiler mode item.
+Fix and prevention: fall back to a click at the centre of the element's current bounding rectangle (§5, level 3), then verify the switch state visually.
+
+### E-21 — GTGDIAG text is not exposed to UIA
+Symptom: no UIA element carries the GTGDIAG cell text, and the TradingView logo can cover its bottom lines.
+Fix and prevention: read the cell from a zoomed screenshot of the pane's bottom-left, with the cursor over the logo.
+
 ## 8. Evidence separation
 
 Never conflate:
@@ -190,7 +215,7 @@ Current known completed evidence:
 - On 680fb20 (blob 8cdddd1), OANDA:XAUUSD: M1 runtime PASS (Runtime=0), H1 sanity PASS, N2 ON/OFF zone geometry PASS, GTGDIAG window PASS (E39).
 - G2 on 680fb20: FAILED — PROFILER_TIMEOUT (normal runtime still PASS). Kept as regression evidence.
 - G2 on a123ad6 (blob 4b5234e), XAU M1, production mode: Profiler completes, with no RE10110 and no timeout (E44). TradingView showed no reliable total time, so there is no numeric comparison with cdf1a8a.
-- G2 numeric total-runtime comparison: NOT_OBSERVABLE / NUMERIC_SUBCHECK_OPEN (TradingView exposes no reliable total). This does not block the matrix; the timeout gate is VERIFIED (E44).
+- G2 numeric (E46): the Profiler tooltip reports the total. XAU M1 production mode, blob 27f3bba: 9 s total, and the engineStep block takes 2.8 s (31.5%). Two readings agree. A comparison with cdf1a8a was not measured.
 - E41 (R5 reload determinism on TradingView), helper 6d62bee (blob 27f3bba), XAU M1, window 2026-09-28 15:00–15:39 UTC: A/B/C identical R5 tuples, n=40, cold=0; compare-r5.mjs RESULT OK (exit 0).
 - Do not rerun these merely because a later UI action fails.
 
