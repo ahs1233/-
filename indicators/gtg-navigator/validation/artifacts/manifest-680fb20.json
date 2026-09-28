@@ -1,0 +1,554 @@
+{
+  "schema": "gtg-navigator/baseline-manifest@1",
+  "generated_utc": "2026-09-28T11:10:04.471Z",
+  "timezone_of_timestamps": "UTC",
+  "repository": "https://github.com/ahs1233/-",
+  "branch": "claude/gtg-navigator-indicator-8nn31m",
+  "commit": "680fb2056090f1a686099d6745dabbc8637074db",
+  "commit_subject": "GTG Navigator — rolling diagnostics in a validation-only table (no plots); INV = cumulative max (review 59)",
+  "branch_vs_origin_main": {
+    "ahead": 32,
+    "behind": 0
+  },
+  "files": {
+    "current": {
+      "pine": {
+        "path": "indicators/gtg-navigator/gtg_navigator_v0.4.7.pine",
+        "blob": "8cdddd18f15995d4723a64ff1c2f2725cc2daef5",
+        "lines": 2580
+      },
+      "reference": {
+        "path": "indicators/gtg-navigator/reference/engine.mjs",
+        "blob": "25a53498fe9a18c5791e3de35d7e86dd4a9b4608"
+      },
+      "tests": {
+        "path": "indicators/gtg-navigator/reference/engine.test.mjs",
+        "blob": "697d84772c372c8eaae33c43a5f2802c1981f21a"
+      },
+      "readme": {
+        "path": "indicators/gtg-navigator/README.md",
+        "blob": "132552a7001f9b18aeb9ef104c57bf1ab1ff11da"
+      }
+    },
+    "legacy": {
+      "pine": {
+        "path": "indicators/gtg-navigator/gtg_navigator_v0.4.6.pine",
+        "blob": "3dab279af76fc0dbf65fb2bcc1498b32f613c117"
+      }
+    }
+  },
+  "runtime": {
+    "node": "v22.22.2",
+    "platform": "linux"
+  },
+  "pine_static": {
+    "version_directive": "6",
+    "request_security_calls": 3,
+    "plot_calls": 52,
+    "alertconditions": 10
+  },
+  "inputs": [
+    {
+      "name": "showDashboard",
+      "kind": "bool",
+      "default": true,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "dashboardMode",
+      "kind": "string",
+      "default": "COMPACT",
+      "group": "groupGeneral"
+    },
+    {
+      "name": "dashboardTextSize",
+      "kind": "string",
+      "default": "TINY",
+      "group": "groupGeneral"
+    },
+    {
+      "name": "showMAs",
+      "kind": "bool",
+      "default": true,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "showFastMAs",
+      "kind": "bool",
+      "default": false,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "showObstacleMarkers",
+      "kind": "bool",
+      "default": false,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "showSmartZones",
+      "kind": "bool",
+      "default": true,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "zonesPerSide",
+      "kind": "int",
+      "default": 2,
+      "minval": 1,
+      "maxval": 2,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "autoZoneSpan",
+      "kind": "bool",
+      "default": true,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "manualZoneForwardBars",
+      "kind": "int",
+      "default": 36,
+      "minval": 8,
+      "maxval": 160,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "manualZoneBackBars",
+      "kind": "int",
+      "default": 36,
+      "minval": 8,
+      "maxval": 200,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "showZoneLabels",
+      "kind": "bool",
+      "default": true,
+      "group": "groupGeneral"
+    },
+    {
+      "name": "maType",
+      "kind": "string",
+      "default": "EMA",
+      "group": "groupMA"
+    },
+    {
+      "name": "rankMode",
+      "kind": "string",
+      "default": "AUTO",
+      "group": "groupCalibration"
+    },
+    {
+      "name": "manualRankLen",
+      "kind": "int",
+      "default": 300,
+      "minval": 80,
+      "maxval": 2000,
+      "group": "groupCalibration"
+    },
+    {
+      "name": "normalLowPct",
+      "kind": "float",
+      "default": 25,
+      "minval": 5,
+      "maxval": 45,
+      "group": "groupCalibration"
+    },
+    {
+      "name": "normalHighPct",
+      "kind": "float",
+      "default": 75,
+      "minval": 55,
+      "maxval": 95,
+      "group": "groupCalibration"
+    },
+    {
+      "name": "speedSmooth",
+      "kind": "int",
+      "default": 3,
+      "minval": 1,
+      "maxval": 20,
+      "group": "groupSpeed"
+    },
+    {
+      "name": "speedFlowMode",
+      "kind": "string",
+      "default": "AUTO",
+      "group": "groupSpeed"
+    },
+    {
+      "name": "manualSpeedFlowLen",
+      "kind": "int",
+      "default": 5,
+      "minval": 2,
+      "maxval": 20,
+      "group": "groupSpeed"
+    },
+    {
+      "name": "speedAccelLookback",
+      "kind": "int",
+      "default": 3,
+      "minval": 1,
+      "maxval": 20,
+      "group": "groupSpeed"
+    },
+    {
+      "name": "speedSlowThreshold",
+      "kind": "float",
+      "default": 25,
+      "minval": 5,
+      "maxval": 45,
+      "group": "groupSpeed"
+    },
+    {
+      "name": "speedFastThreshold",
+      "kind": "float",
+      "default": 70,
+      "minval": 50,
+      "maxval": 90,
+      "group": "groupSpeed"
+    },
+    {
+      "name": "speedExtremeThreshold",
+      "kind": "float",
+      "default": 90,
+      "minval": 75,
+      "maxval": 99,
+      "group": "groupSpeed"
+    },
+    {
+      "name": "headingLookback",
+      "kind": "int",
+      "default": 14,
+      "minval": 5,
+      "maxval": 100,
+      "group": "groupHeading"
+    },
+    {
+      "name": "headingSlopeLookback",
+      "kind": "int",
+      "default": 8,
+      "minval": 2,
+      "maxval": 50,
+      "group": "groupHeading"
+    },
+    {
+      "name": "headingClearThreshold",
+      "kind": "float",
+      "default": 20,
+      "minval": 5,
+      "maxval": 45,
+      "group": "groupHeading"
+    },
+    {
+      "name": "headingStrongThreshold",
+      "kind": "float",
+      "default": 60,
+      "minval": 40,
+      "maxval": 90,
+      "group": "groupHeading"
+    },
+    {
+      "name": "headingDeadZone",
+      "kind": "float",
+      "default": 15,
+      "minval": 5,
+      "maxval": 25,
+      "group": "groupHeading"
+    },
+    {
+      "name": "htfMode",
+      "kind": "string",
+      "default": "AUTO",
+      "group": "groupRoute"
+    },
+    {
+      "name": "manualHTF",
+      "kind": "timeframe",
+      "default": "240",
+      "group": "groupRoute"
+    },
+    {
+      "name": "routeClearThreshold",
+      "kind": "float",
+      "default": 22,
+      "minval": 5,
+      "maxval": 45,
+      "group": "groupRoute"
+    },
+    {
+      "name": "routeStrongThreshold",
+      "kind": "float",
+      "default": 62,
+      "minval": 40,
+      "maxval": 90,
+      "group": "groupRoute"
+    },
+    {
+      "name": "fuelSmooth",
+      "kind": "int",
+      "default": 3,
+      "minval": 1,
+      "maxval": 20,
+      "group": "groupFuel"
+    },
+    {
+      "name": "fuelBaselineLen",
+      "kind": "int",
+      "default": 50,
+      "minval": 20,
+      "maxval": 300,
+      "group": "groupFuel"
+    },
+    {
+      "name": "fuelLowThreshold",
+      "kind": "float",
+      "default": 25,
+      "minval": 5,
+      "maxval": 50,
+      "group": "groupFuel"
+    },
+    {
+      "name": "fuelHighThreshold",
+      "kind": "float",
+      "default": 70,
+      "minval": 50,
+      "maxval": 90,
+      "group": "groupFuel"
+    },
+    {
+      "name": "fuelExtremeThreshold",
+      "kind": "float",
+      "default": 90,
+      "minval": 75,
+      "maxval": 99,
+      "group": "groupFuel"
+    },
+    {
+      "name": "nearObstacleAtr",
+      "kind": "float",
+      "default": 0.35,
+      "minval": 0.05,
+      "maxval": 1.5,
+      "group": "groupMap"
+    },
+    {
+      "name": "awarenessObstacleAtr",
+      "kind": "float",
+      "default": 0.85,
+      "minval": 0.3,
+      "maxval": 2.5,
+      "group": "groupMap"
+    },
+    {
+      "name": "noChaseAtr",
+      "kind": "float",
+      "default": 0.3,
+      "minval": 0.05,
+      "maxval": 1,
+      "group": "groupMap"
+    },
+    {
+      "name": "noChaseFuelMax",
+      "kind": "float",
+      "default": 65,
+      "minval": 20,
+      "maxval": 90,
+      "group": "groupMap"
+    },
+    {
+      "name": "includeMA200",
+      "kind": "bool",
+      "default": true,
+      "group": "groupMap"
+    },
+    {
+      "name": "includeMA1000",
+      "kind": "bool",
+      "default": true,
+      "group": "groupMap"
+    },
+    {
+      "name": "usePsychLevels",
+      "kind": "bool",
+      "default": true,
+      "group": "groupMap"
+    },
+    {
+      "name": "qEnter",
+      "kind": "float",
+      "default": 55,
+      "minval": 0,
+      "maxval": 100,
+      "group": "groupEngine"
+    },
+    {
+      "name": "qStay",
+      "kind": "float",
+      "default": 45,
+      "minval": 0,
+      "maxval": 100,
+      "group": "groupEngine"
+    },
+    {
+      "name": "kLocal",
+      "kind": "float",
+      "default": 8,
+      "minval": 2,
+      "maxval": 40,
+      "group": "groupEngine"
+    },
+    {
+      "name": "kA1",
+      "kind": "float",
+      "default": 2.5,
+      "minval": 0.5,
+      "maxval": 10,
+      "group": "groupEngine"
+    },
+    {
+      "name": "kA2",
+      "kind": "float",
+      "default": 2,
+      "minval": 0.5,
+      "maxval": 10,
+      "group": "groupEngine"
+    },
+    {
+      "name": "kTact",
+      "kind": "float",
+      "default": 6,
+      "minval": 1,
+      "maxval": 20,
+      "group": "groupEngine"
+    },
+    {
+      "name": "mergeGapK",
+      "kind": "float",
+      "default": 0.35,
+      "minval": 0.05,
+      "maxval": 1,
+      "group": "groupEngine"
+    },
+    {
+      "name": "maxWidthK",
+      "kind": "float",
+      "default": 1,
+      "minval": 0.3,
+      "maxval": 3,
+      "group": "groupEngine"
+    },
+    {
+      "name": "mitAlpha",
+      "kind": "float",
+      "default": 0.6,
+      "minval": 0.1,
+      "maxval": 1,
+      "group": "groupEngine"
+    },
+    {
+      "name": "rejAtrK",
+      "kind": "float",
+      "default": 1,
+      "minval": 0.2,
+      "maxval": 3,
+      "group": "groupEngine"
+    },
+    {
+      "name": "breakBufK",
+      "kind": "float",
+      "default": 0.1,
+      "minval": 0.01,
+      "maxval": 0.5,
+      "group": "groupEngine"
+    },
+    {
+      "name": "dispBodyK",
+      "kind": "float",
+      "default": 0.8,
+      "minval": 0.3,
+      "maxval": 2,
+      "group": "groupEngine"
+    },
+    {
+      "name": "legEff",
+      "kind": "float",
+      "default": 0.55,
+      "minval": 0.2,
+      "maxval": 0.95,
+      "group": "groupEngine"
+    },
+    {
+      "name": "eventEpsK",
+      "kind": "float",
+      "default": 0.15,
+      "minval": 0.02,
+      "maxval": 0.5,
+      "group": "groupEngine"
+    },
+    {
+      "name": "strongQ",
+      "kind": "float",
+      "default": 72,
+      "minval": 40,
+      "maxval": 95,
+      "group": "groupEngine"
+    },
+    {
+      "name": "mediumQ",
+      "kind": "float",
+      "default": 48,
+      "minval": 20,
+      "maxval": 80,
+      "group": "groupEngine"
+    },
+    {
+      "name": "useDOZ",
+      "kind": "bool",
+      "default": true,
+      "group": "groupEngine"
+    },
+    {
+      "name": "strictDebug",
+      "kind": "bool",
+      "default": false,
+      "group": "groupDebug"
+    },
+    {
+      "name": "validationMode",
+      "kind": "bool",
+      "default": false,
+      "group": "groupDebug"
+    },
+    {
+      "name": "studyExtraBars",
+      "kind": "int",
+      "default": 0,
+      "minval": 0,
+      "maxval": 20000,
+      "group": "groupDebug"
+    }
+  ],
+  "debug_inputs_of_interest": {
+    "strictDebug": false,
+    "validationMode": false,
+    "studyExtraBars": 0
+  },
+  "tradingview_run": {
+    "status": "NOT_RUN in this task at this commit",
+    "required_fields": [
+      "feed/exchange",
+      "full ticker (syminfo.tickerid)",
+      "chart timeframe",
+      "chart type",
+      "session",
+      "exchange timezone",
+      "syminfo.mintick",
+      "first/last bar time (UTC)",
+      "chart bars loaded",
+      "A1/A2 timeframes and bars available",
+      "engine window W and engine rows",
+      "input overrides vs defaults"
+    ]
+  }
+}
