@@ -128,6 +128,8 @@ groupDebug = "DEBUG"
 strictDebug = input.bool(false, "strictDebug — إيقاف المؤشر عند كسر invariant حرج", group = groupDebug)
 validationMode = input.bool(false, "validationMode — مقاييس التحقق في Data Window فقط", group = groupDebug)
 studyExtraBars = input.int(0, "studyExtraBars — شموع إحماء إضافية للدراسة (فعّالة فقط مع validationMode)", minval = 0, maxval = 20000, group = groupDebug)
+captureFrom = input.time(0, "captureFrom — بداية التقاط snapshot كامل في Pine Logs (0 = معطّل)", group = groupDebug)
+captureTo = input.time(0, "captureTo — نهاية الالتقاط (مدى قصير فقط)", group = groupDebug)
 
 
 // ============================================================================
@@ -638,6 +640,7 @@ type SlotState
     float hi
     int side = 0
     float quality = 0.0
+    float gateQ = 0.0
     float distAtr = 0.0
     bool isFar = false
     int leftTime
@@ -662,8 +665,8 @@ type Telemetry
     float rEffDnAtr = na
     int violationsCritical = 0
     int engineBars = 0
-    float slotChecksum = 0.0
-    float slotDigestBar = na
+    int hashSlots = 0
+    int hashLevels = 0
     int deathsBar = 0
     int largestCompBar = 0
     int zonesBuiltBar = 0
@@ -1721,6 +1724,7 @@ if engineStep
             ss.hi := zn.hi
             ss.side := zn.side
             ss.quality := zn.displayQ
+            ss.gateQ := zn.gateQ
             ss.distAtr := zn.dist / atrEng
             ss.isFar := zn.dist > kTact * atrEng
             ss.leftTime := prim.birthTime
@@ -1734,32 +1738,132 @@ if engineStep
 // Writes only Telemetry fields. Nothing below is read by any engine decision.
 // ============================================================================
 
-// Deterministic running checksum of the final slot state (primary key + bounds in
-// ticks), computed in both validationMode settings: equal checksums at the same bar
-// prove that instrumentation did not change the map.
-CHECKSUM_MOD = 1000000007
-slotDigest(SlotState ss) =>
-    ss.active ? (ss.primaryKey % CHECKSUM_MOD + math.round(ss.lo / syminfo.mintick) % CHECKSUM_MOD * 7 + math.round(ss.hi / syminfo.mintick) % CHECKSUM_MOD * 13) % CHECKSUM_MOD : 0
+// Auxiliary hashes of the canonical snapshot (reference/snapshot.mjs, same integer
+// encoding and arithmetic): hashSlots covers the identity level (per slot: active,
+// containing, side, lo/hi in ticks, primaryKey, gateQ, displayQ, sorted lastKeys and
+// entryKeys), hashLevels covers the engine-state level (every pool record sorted by
+// key, ages relative to this bar, DOZ swing trackers). Per bar, never cumulative.
+// Different values prove a difference; equal values do NOT prove equality. The full
+// comparison uses raw fields (Data Window export and the log capture in section 18).
+HASH_P = 2147483647
+HASH_B = 1000003
+HASH_K = 131071
 
-// slotDigestBar is the same combination for this bar only (not cumulative): equal
-// values at the same bar mean the same four slots with the same keys and bounds,
-// whatever bar the engine started on.
+hashStep(int h, int x) =>
+    int r = ((x % HASH_P) + HASH_P) % HASH_P
+    (h * HASH_B + (r * r % HASH_P * 3 + r * HASH_K + 1) % HASH_P) % HASH_P
+
+toTicks(float x) =>
+    math.round(x / syminfo.mintick)
+
+q6(float x) =>
+    math.round(x * 1000000.0)
+
+sinceOr(int x) =>
+    na(x) ? -1 : bar_index - x
+
+// Copies a slot-owned key array into scratch (the slot array itself is never sorted).
+sortedCopy(array<int> keys, array<int> scratch) =>
+    replaceKeys(scratch, keys)
+    array.sort(scratch, order.ascending)
+    array.size(scratch)
+
+hashKeyList(int h0, array<int> keys, array<int> scratch) =>
+    int n = sortedCopy(keys, scratch)
+    int h = hashStep(h0, n)
+    if n > 0
+        for i = 0 to n - 1
+            h := hashStep(h, array.get(scratch, i))
+    h
+
+hashSlot(int h0, SlotState ss, array<int> lastK, array<int> entryK, array<int> scratch) =>
+    int h = h0
+    if not ss.active
+        h := hashStep(h, 0)
+    else
+        h := hashStep(h, 1)
+        h := hashStep(h, ss.containing ? 1 : 0)
+        h := hashStep(h, ss.side)
+        h := hashStep(h, toTicks(ss.lo))
+        h := hashStep(h, toTicks(ss.hi))
+        h := hashStep(h, ss.primaryKey)
+        h := hashStep(h, math.round(ss.gateQ * 100))
+        h := hashStep(h, math.round(ss.quality * 100))
+        h := hashKeyList(h, lastK, scratch)
+        h := hashKeyList(h, entryK, scratch)
+    h
+
+hashLevel(int h0, Level lv) =>
+    int h = hashStep(h0, lv.key)
+    h := hashStep(h, lv.state)
+    h := hashStep(h, lv.polarity)
+    h := hashStep(h, toTicks(lv.lo))
+    h := hashStep(h, toTicks(lv.hi))
+    h := hashStep(h, q6(lv.s))
+    h := hashStep(h, q6(lv.mitigation))
+    h := hashStep(h, q6(lv.evidence))
+    h := hashStep(h, lv.tests)
+    h := hashStep(h, lv.ageNative)
+    h := hashStep(h, lv.epActive ? 1 : 0)
+    h := hashStep(h, lv.epSide)
+    h := hashStep(h, q6(lv.epMaxDepth))
+    h := hashStep(h, lv.breakDir)
+    h := hashStep(h, lv.breakCloses)
+    h := hashStep(h, lv.breakFromFlip ? 1 : 0)
+    h := hashStep(h, lv.backCloses)
+    h := hashStep(h, sinceOr(lv.lastTestChartBar))
+    h := hashStep(h, sinceOr(lv.stateChartBar))
+    h := hashStep(h, sinceOr(lv.backStartChartBar))
+    h
+
+hashTracker(int h0, float px, int bar, bool broken) =>
+    int h = h0
+    if na(px)
+        h := hashStep(h, 0)
+    else
+        h := hashStep(h, 1)
+        h := hashStep(h, toTicks(px))
+        h := hashStep(h, sinceOr(bar))
+        h := hashStep(h, broken ? 1 : 0)
+    h
+
+// Snapshot scratch: all pool records and their keys (read-only views of the pools).
+var array<int> hashScratch = array.new_int()
+var array<Level> snapLevels = array.new<Level>()
+var array<int> snapKeys = array.new_int()
+var array<int> snapOrd = array.new_int()
+
 if engineStep
-    int d1 = slotDigest(slotR1)
-    int d2 = slotDigest(slotR2)
-    int d3 = slotDigest(slotS1)
-    int d4 = slotDigest(slotS2)
-    int cs = int(tel.slotChecksum)
-    cs := (cs * 31 + d1) % CHECKSUM_MOD
-    cs := (cs * 31 + d2) % CHECKSUM_MOD
-    cs := (cs * 31 + d3) % CHECKSUM_MOD
-    cs := (cs * 31 + d4) % CHECKSUM_MOD
-    tel.slotChecksum := cs
-    int db = d1
-    db := (db * 31 + d2) % CHECKSUM_MOD
-    db := (db * 31 + d3) % CHECKSUM_MOD
-    db := (db * 31 + d4) % CHECKSUM_MOD
-    tel.slotDigestBar := db
+    array.clear(snapLevels)
+    array.clear(snapKeys)
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
+        int n = array.size(pool)
+        if n > 0
+            for i = 0 to n - 1
+                Level lv = array.get(pool, i)
+                array.push(snapLevels, lv)
+                array.push(snapKeys, lv.key)
+    int nSnap = array.size(snapKeys)
+    array.clear(snapOrd)
+    if nSnap >= 2
+        snapOrd := array.sort_indices(snapKeys, order.ascending)
+    else if nSnap == 1
+        array.push(snapOrd, 0)
+    int hs = hashStep(0, 1)
+    hs := hashSlot(hs, slotR1, keysLastR1, keysEntryR1, hashScratch)
+    hs := hashSlot(hs, slotR2, keysLastR2, keysEntryR2, hashScratch)
+    hs := hashSlot(hs, slotS1, keysLastS1, keysEntryS1, hashScratch)
+    hs := hashSlot(hs, slotS2, keysLastS2, keysEntryS2, hashScratch)
+    tel.hashSlots := hs
+    int hl = hashStep(0, 2)
+    hl := hashStep(hl, nSnap)
+    if nSnap > 0
+        for i = 0 to nSnap - 1
+            hl := hashLevel(hl, array.get(snapLevels, array.get(snapOrd, i)))
+    hl := hashTracker(hl, lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken)
+    hl := hashTracker(hl, lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken)
+    tel.hashLevels := hl
 
 if engineStep and validationMode
     tel.zonesBuiltBar := zoneCount
@@ -2149,7 +2253,7 @@ if barstate.islast
             string normalBand = na(speedNaturalLow) or na(speedNaturalHigh) ? "جارٍ المعايرة" : fmtPrice(speedNaturalLow) + "–" + fmtPrice(speedNaturalHigh)
             string d2 = not na(dest2Low) ? dest2Type + " " + fmtZone(dest2Low, dest2High) : "—"
             string d3 = not na(dest3Low) ? dest3Type + " " + fmtZone(dest3Low, dest3High) : "—"
-            string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • keys " + str.tostring(tel.maxSlotKeys) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr) + " • cap " + str.tostring(tel.zoneCapHits) + " • eng " + str.tostring(tel.engineBars) + " • cs " + str.tostring(tel.slotChecksum, "#")
+            string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • keys " + str.tostring(tel.maxSlotKeys) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr) + " • cap " + str.tostring(tel.zoneCapHits) + " • eng " + str.tostring(tel.engineBars) + " • hs " + str.tostring(tel.hashSlots, "#")
             table.cell(dash, 0, 8, normalBand + " • فوري " + fmtScore(instantSpeedScore), text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
             table.cell(dash, 1, 8, "المعايرة", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
             table.cell(dash, 0, 9, d2 + " | " + d3, text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
@@ -2187,14 +2291,20 @@ alertcondition(flipConfirmedEvent, "GTG — Flip Confirmed", "GTG Navigator: إ�
 // ============================================================================
 // 18. VALIDATION EXPORT — DATA WINDOW ONLY (validationMode)
 // Nothing here is drawn on the chart; values are na unless validationMode is on and
-// the engine ran on this confirmed bar. slotChecksum (cumulative) and slotDigestBar
-// (this bar only) are exported in both settings for parity checks. Export via TradingView "Export chart data".
+// the engine ran on this confirmed bar. v_hashSlots, v_hashLevels and v_eventBits are
+// exported in both settings (instrumentation on/off comparisons); the hashes are
+// auxiliary (a difference proves a difference, equality proves nothing), so the full
+// comparison uses the raw fields: v_lo*/v_hi* (validationMode) and the log capture.
+// Export via TradingView "Export chart data".
 // ============================================================================
 
 bool vOn = validationMode and engineStep
 float vAtr = atrEng
 int cfgId = kLocal == 10.0 and kA1 == 3.0 and kA2 == 2.5 ? (mergeGapK == 0.25 ? 1 : mergeGapK == 0.35 ? 2 : 5) : kLocal == 8.0 and kA1 == 2.5 and kA2 == 2.0 ? (mergeGapK == 0.25 ? 3 : mergeGapK == 0.35 ? 4 : 5) : 5
 int flagsA = (slotR1.active ? 1 : 0) + (slotR2.active ? 2 : 0) + (slotS1.active ? 4 : 0) + (slotS2.active ? 8 : 0) + (slotR1.active and slotR1.containing ? 16 : 0) + (slotS1.active and slotS1.containing ? 32 : 0) + (reachA1 > hLocal ? 64 : 0) + (reachA2 > math.max(hLocal, reachA1) ? 128 : 0) + (rStarUp > hLocal ? 256 : 0) + (rStarDn > hLocal ? 512 : 0) + (tel.nextBeyondUpAnchor ? 1024 : 0) + (tel.nextBeyondDnAnchor ? 2048 : 0)
+// Engine events (bits 0–6, same order as flagsB) + the ten alert conditions (bits 7–16).
+int engineEventBits = (ev.breakingUp ? 1 : 0) + (ev.breakingDn ? 2 : 0) + (ev.acceptedUp ? 4 : 0) + (ev.acceptedDn ? 8 : 0) + (ev.rejectR ? 16 : 0) + (ev.rejectS ? 32 : 0) + (ev.flipConfirmed ? 64 : 0)
+int alertBits = (speedBurst ? 1 : 0) + (fuelSurge ? 2 : 0) + (headingUp ? 4 : 0) + (headingDown ? 8 : 0) + (nearStrongObstacle ? 16 : 0) + (noChaseEvent ? 32 : 0) + (obstacleBreakEvent ? 64 : 0) + (obstacleRejectEvent ? 128 : 0) + (breakAcceptedEvent ? 256 : 0) + (flipConfirmedEvent ? 512 : 0)
 int flagsB = (ev.breakingUp ? 1 : 0) + (ev.breakingDn ? 2 : 0) + (ev.acceptedUp ? 4 : 0) + (ev.acceptedDn ? 8 : 0) + (ev.rejectR ? 16 : 0) + (ev.rejectS ? 32 : 0) + (ev.flipConfirmed ? 64 : 0) + (tel.hiddenNearUp ? 128 : 0) + (tel.hiddenNearDn ? 256 : 0)
 
 plot(vOn ? cfgId : na, "v_cfg", display = display.data_window)
@@ -2229,5 +2339,61 @@ plot(vOn ? tel.slotKeysBar : na, "v_slotKeysMax", display = display.data_window)
 plot(vOn ? tel.deathsBar : na, "v_deaths", display = display.data_window)
 plot(vOn ? tel.violations : na, "v_invTotal", display = display.data_window)
 plot(vOn ? tel.violationsCritical : na, "v_invCritical", display = display.data_window)
-plot(engineStep ? tel.slotChecksum : na, "v_slotChecksum", display = display.data_window)
-plot(engineStep ? tel.slotDigestBar : na, "v_slotDigestBar", display = display.data_window, precision = 0)
+plot(engineStep ? tel.hashSlots : na, "v_hashSlots", display = display.data_window, precision = 0)
+plot(engineStep ? tel.hashLevels : na, "v_hashLevels", display = display.data_window, precision = 0)
+plot(engineStep ? engineEventBits + alertBits * 128 : na, "v_eventBits", display = display.data_window, precision = 0)
+plot(vOn and slotR1.active ? slotR1.lo : na, "v_loR1", display = display.data_window, precision = 10)
+plot(vOn and slotR1.active ? slotR1.hi : na, "v_hiR1", display = display.data_window, precision = 10)
+plot(vOn and slotR2.active ? slotR2.lo : na, "v_loR2", display = display.data_window, precision = 10)
+plot(vOn and slotR2.active ? slotR2.hi : na, "v_hiR2", display = display.data_window, precision = 10)
+plot(vOn and slotS1.active ? slotS1.lo : na, "v_loS1", display = display.data_window, precision = 10)
+plot(vOn and slotS1.active ? slotS1.hi : na, "v_hiS1", display = display.data_window, precision = 10)
+plot(vOn and slotS2.active ? slotS2.lo : na, "v_loS2", display = display.data_window, precision = 10)
+plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_window, precision = 10)
+
+// Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
+// "GTGSNAP v1" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
+// ≤ captureTo. Parse with reference/capture.mjs. Read-only; off when captureFrom = 0.
+// Keep the range short: Pine Logs keeps a limited number of messages, and a bar is
+// complete only if its END line is present with the declared LVL count.
+f10(float x) =>
+    na(x) ? "na" : str.tostring(x, "#.##########")
+
+fi(int x) =>
+    na(x) ? "na" : str.tostring(x, "#")
+
+sinceText(int x) =>
+    na(x) ? "na" : fi(bar_index - x)
+
+joinSorted(array<int> keys, array<int> scratch) =>
+    int n = sortedCopy(keys, scratch)
+    string txt = ""
+    if n > 0
+        for i = 0 to n - 1
+            txt += (i > 0 ? "," : "") + fi(array.get(scratch, i))
+    txt
+
+slotLine(string pre, string name, SlotState ss, array<int> lastK, array<int> entryK, array<int> scratch) =>
+    ss.active ? pre + "SLOT|" + name + "|1|" + (ss.containing ? "1" : "0") + "|" + fi(ss.side) + "|" + f10(ss.lo) + "|" + f10(ss.hi) + "|" + fi(ss.primaryKey) + "|" + f10(ss.gateQ) + "|" + f10(ss.quality) + "|" + joinSorted(lastK, scratch) + "|" + joinSorted(entryK, scratch) : pre + "SLOT|" + name + "|0"
+
+levelLine(string pre, Level lv) =>
+    pre + "LVL|" + fi(lv.key) + "|" + fi(lv.state) + "|" + fi(lv.polarity) + "|" + f10(lv.lo) + "|" + f10(lv.hi) + "|" + f10(lv.s) + "|" + f10(lv.mitigation) + "|" + f10(lv.evidence) + "|" + fi(lv.tests) + "|" + fi(lv.ageNative) + "|" + (lv.epActive ? "1" : "0") + "|" + fi(lv.epSide) + "|" + f10(lv.epMaxDepth) + "|" + fi(lv.breakDir) + "|" + fi(lv.breakCloses) + "|" + (lv.breakFromFlip ? "1" : "0") + "|" + fi(lv.backCloses) + "|" + sinceText(lv.lastTestChartBar) + "|" + sinceText(lv.stateChartBar) + "|" + sinceText(lv.backStartChartBar)
+
+trackerPart(float px, int bar, bool broken) =>
+    na(px) ? "0|na|na|0" : "1|" + f10(px) + "|" + fi(bar_index - bar) + "|" + (broken ? "1" : "0")
+
+bool captureOn = engineStep and captureFrom > 0 and time >= captureFrom and time <= captureTo
+if captureOn
+    string pre = "GTGSNAP|v1|" + fi(time) + "|"
+    log.info(pre + "META|" + syminfo.tickerid + "|" + timeframe.period + "|" + f10(syminfo.mintick))
+    log.info(slotLine(pre, "R1", slotR1, keysLastR1, keysEntryR1, hashScratch))
+    log.info(slotLine(pre, "R2", slotR2, keysLastR2, keysEntryR2, hashScratch))
+    log.info(slotLine(pre, "S1", slotS1, keysLastS1, keysEntryS1, hashScratch))
+    log.info(slotLine(pre, "S2", slotS2, keysLastS2, keysEntryS2, hashScratch))
+    int nCap = array.size(snapOrd)
+    if nCap > 0
+        for i = 0 to nCap - 1
+            log.info(levelLine(pre, array.get(snapLevels, array.get(snapOrd, i))))
+    log.info(pre + "TRK|" + trackerPart(lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken) + "|" + trackerPart(lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken))
+    log.info(pre + "EV|" + fi(engineEventBits) + "|" + fi(alertBits))
+    log.info(pre + "END|" + fi(nCap) + "|" + fi(tel.hashSlots) + "|" + fi(tel.hashLevels))

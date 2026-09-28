@@ -86,3 +86,36 @@ Line numbers refer to `gtg_navigator_v0.4.7.pine` at baseline `cdf1a8a`.
 The fix only changes results when the tick is comparable to zone width or ATR, which is exactly the case it targets.
 
 The synthetic data is not on the tick grid. That makes the mintick 1 case a stress test, not a realistic market.
+
+## 7. Snapshot, hash and capture contract (R1)
+
+- **Canonical snapshot**: `reference/snapshot.mjs` (`canonicalSnapshot`). There is no absolute `bar_index` in it. Chart-bar fields are replaced by their age relative to the snapshot bar (`sinceTest`, `sinceState`, `sinceBack`, and the tracker's `since`). `ageNative` is already relative.
+- **Full equality**: `compareSnapshots` compares raw fields using the tolerances in §2, level by level (geometry ⊂ identity ⊂ state; events is a separate level).
+- **Auxiliary hash** (Pine 12a ↔ `snapshot.mjs`):
+  - Arithmetic: `h ← (h·1000003 + mix(x)) mod (2^31−1)` with `mix(x) = (r²·3 + r·131071 + 1) mod p`, where `r = x mod p ≥ 0`. This is verified against an independent Python implementation (S11).
+  - The intermediate values stay below 2^62 in Pine's 64-bit `int`. JS uses BigInt.
+  - Slot encoding:
+    - Starts with tag `1`.
+    - An inactive slot → `[0]`.
+    - An active slot → `[1, containing, side, ticks(lo), ticks(hi), primaryKey, round(gateQ·100), round(displayQ·100), nLast, …sorted lastKeys, nEntry, …sorted entryKeys]`.
+  - Level encoding:
+    - Starts with `[2, nLevels]`.
+    - Then, for each record sorted by key: `[key, state, polarity, ticks(lo), ticks(hi), q6(s), q6(mitigation), q6(evidence), tests, ageNative, epActive, epSide, q6(epMaxDepth), breakDir, breakCloses, breakFromFlip, backCloses, sinceTest|−1, sinceState|−1, sinceBack|−1]`.
+    - Then each tracker: `[1, ticks(px), since, broken]` or `[0]`.
+  - Here `q6(x) = round(x·10^6)`.
+  - The field order in Pine is checked against this list by C2/C3 in `pine-contract.test.mjs`. Negative control: swapping two lines in Pine makes C2 fail.
+- **Pine exports**:
+  - In both modes: `v_hashSlots`, `v_hashLevels`, `v_eventBits` (engine events in bits 0–6, the ten alerts in bits 7–16).
+  - With `validationMode`: `v_loR1…v_hiS2` (raw, precision 10).
+  - Total plot-type outputs: 51 of 64 (checked by C5).
+- **Diagnostic capture** (`captureFrom`/`captureTo`):
+  - Pine prints the full snapshot as `GTGSNAP v1` lines through `log.info`.
+  - `tools/compare-captures.mjs` parses one or two captures. It reports incomplete bars (the END line or the LVL count), compares field by field at the requested levels, and **recomputes the hash in JS from the captured raw fields and compares it with the hash Pine printed**. That checks the Pine hash code on real data.
+  - Self-test on JS captures: `artifacts/r1-capture-tool-selftest.txt`.
+- **Coverage limits**:
+  - The Pine Logs pane keeps a limited number of messages. Each captured bar costs `8 + nLevels` messages, up to 68.
+  - The exact retention limit and the maximum message length were **not verified**: the TradingView docs could not be reached from this environment (the egress proxy blocked them).
+  - Captures are therefore meant for short ranges, and completeness is checked per bar rather than assumed.
+- **Near-boundary caveat**:
+  - Captured floats have 10 decimals, so a quantised field (`ticks`, `q6`, `q100`) recomputed from the text can differ from Pine's value when the exact value lies within ~5·10⁻⁵ of a rounding boundary.
+  - If a Pine↔JS hash mismatch occurs while every raw field matches within tolerance, check this first. It is not proof of a hash bug.
