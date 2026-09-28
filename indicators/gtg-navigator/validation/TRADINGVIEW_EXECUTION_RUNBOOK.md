@@ -189,6 +189,12 @@ Fix and prevention: fall back to a click at the centre of the element's current 
 Symptom: no UIA element carries the GTGDIAG cell text, and the TradingView logo can cover its bottom lines.
 Fix and prevention: read the cell from a zoomed screenshot of the pane's bottom-left, with the cursor over the logo.
 
+### E-22 — URL navigation on an unsaved layout
+Symptom: Chrome showed "Leave site? Changes you made may not be saved." A later scripted Enter left the page, and the layout reloaded from its saved state. The unsaved GTG input changes were lost.
+Cause: the layout had unsaved changes ("Save" shown), and navigating by URL triggers beforeunload.
+Fix: the script was killed. Inputs were re-applied, and the matrix switched to TradingView's own controls: the timeframe radio buttons ("1 minute", "5 minutes", "15 minutes", "1 hour") and the symbol button with its search dialog.
+Prevention: never navigate by URL during validation. Never send Enter outside a known dialog. After any reload, re-verify inputs before reading results.
+
 ## 8. Evidence separation
 
 Never conflate:
