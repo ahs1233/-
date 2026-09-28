@@ -59,3 +59,4 @@
 | 53 | R4-A | ACCEPTED على مستوى source/reference/static؛ الهوية entryKeys معتمدة (O8)؛ مطلوب I13 | I13 منفّذ (5 اختبارات + negative control) |
 | 53 | R4-B | ACCEPTED مبدئيًا؛ NOT FINAL حتى قياس XAU حقيقي في TradingView (GPT) | لا تغيير |
 | 53 | Q-A / Q-B | Q-A: نص Break Accepted محايد؛ Q-B: DESIGN_DECISION | النص صُحّح (C15)؛ Q-B موثّق |
+| 57 (نسخة ثانية) | أداة قياس | طلب 4 plots تشخيصية لأن Table View لم يعد يكشف الأعمدة خارج الشاشة | منفّذ؛ `v_diagInv1000` بدل `v_diagInvMax1000` (السبب في PINE_JS_PARITY §8)؛ بانتظار المراجعة |

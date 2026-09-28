@@ -2430,6 +2430,73 @@ plot(vOn and slotS1.active ? slotS1.hi : na, "v_hiS1", display = display.data_wi
 plot(vOn and slotS2.active ? slotS2.lo : na, "v_loS2", display = display.data_window, precision = 10)
 plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_window, precision = 10)
 
+// ============================================================================
+// 18b. ROLLING VALIDATION DIAGNOSTICS — validationMode only; measurement, not state
+// Window = the last DIAG_WIN confirmed chart bars; every count is over the warmed
+// engine bars inside it (engineStep and more than W engine bars already run). Four
+// exact packed plots (reference/diag.mjs decodes them), na on the open bar and when
+// validationMode is off. Nothing in the engine or the consumers reads any of this.
+// Masks over v_eventBits (engine bits + alert bits·128): break 3 / 8192, accept 12 /
+// 32768, reject 48 / 16384, flip 64 / 65536, Strong Obstacle alert 2048, obs event 8.
+// ============================================================================
+DIAG_WIN = 1000
+DIAG_N = 15
+
+diagBit(int x, int m) =>
+    math.floor(x / m) % 2 == 1
+
+int diagEvBits = engineEventBits + alertBits * 128
+int diagObs = (strongObsNow ? 1 : 0) + (strongObsPrev ? 2 : 0) + (strongObsSame ? 4 : 0) + (nearStrongObstacle ? 8 : 0)
+bool diagBrkE = engineStep and (diagBit(diagEvBits, 1) or diagBit(diagEvBits, 2))
+bool diagAccE = engineStep and (diagBit(diagEvBits, 4) or diagBit(diagEvBits, 8))
+bool diagRejE = engineStep and (diagBit(diagEvBits, 16) or diagBit(diagEvBits, 32))
+bool diagFlpE = engineStep and diagBit(diagEvBits, 64)
+bool diagObsAlert = engineStep and diagBit(diagEvBits, 2048)
+// Bars since the last engine break / accept (every bar, so the lookbacks are chart bars).
+int diagSinceBrk = ta.barssince(diagBrkE)
+int diagSinceAcc = ta.barssince(diagAccE)
+
+var array<int> diagRing = array.new_int(DIAG_N * DIAG_WIN, 0)
+var array<int> diagSum = array.new_int(DIAG_N, 0)
+var int diagPos = 0
+var int diagPrevTot = 0
+var int diagPrevCrit = 0
+if validationMode and barstate.isconfirmed
+    bool w = engineStep and tel.engineBars > engineWindow
+    array<int> fl = array.from(
+         w and diagBrkE ? 1 : 0,
+         w and diagAccE ? 1 : 0,
+         w and diagRejE ? 1 : 0,
+         w and diagFlpE ? 1 : 0,
+         w and diagObsAlert ? 1 : 0,
+         w and diagBrkE != diagBit(diagEvBits, 8192) ? 1 : 0,
+         w and diagAccE != diagBit(diagEvBits, 32768) ? 1 : 0,
+         w and diagRejE != diagBit(diagEvBits, 16384) ? 1 : 0,
+         w and diagFlpE != diagBit(diagEvBits, 65536) ? 1 : 0,
+         w and diagBit(diagObs, 8) != diagObsAlert ? 1 : 0,
+         w and diagAccE and (na(diagSinceBrk) or diagSinceBrk > 3) ? 1 : 0,
+         w and diagFlpE and (na(diagSinceAcc) or diagSinceAcc > 60) ? 1 : 0,
+         w ? 1 : 0,
+         w and tel.violations > diagPrevTot ? 1 : 0,
+         w and tel.violationsCritical > diagPrevCrit ? 1 : 0)
+    for k = 0 to DIAG_N - 1
+        int idx = k * DIAG_WIN + diagPos
+        array.set(diagSum, k, array.get(diagSum, k) - array.get(diagRing, idx) + array.get(fl, k))
+        array.set(diagRing, idx, array.get(fl, k))
+    diagPos := (diagPos + 1) % DIAG_WIN
+    diagPrevTot := tel.violations
+    diagPrevCrit := tel.violationsCritical
+
+dS(int k) =>
+    array.get(diagSum, k)
+
+bool diagOn = validationMode and barstate.isconfirmed
+// Exact: every field ≤ 1000 < 1024, so the largest value is < 2^50 (< 2^53).
+plot(diagOn ? dS(0) + dS(1) * 1024 + dS(2) * 1048576 + dS(3) * 1073741824 + dS(4) * 1099511627776 : na, "v_diagEvt1000", display = display.data_window, precision = 0)
+plot(diagOn ? dS(5) + dS(6) * 1024 + dS(7) * 1048576 + dS(8) * 1073741824 + dS(9) * 1099511627776 : na, "v_diagMismatch1000", display = display.data_window, precision = 0)
+plot(diagOn ? dS(10) + dS(11) * 1024 + dS(12) * 1048576 : na, "v_diagCausal1000", display = display.data_window, precision = 0)
+plot(diagOn ? dS(13) + dS(14) * 1024 : na, "v_diagInv1000", display = display.data_window, precision = 0)
+
 // Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
 // "GTGSNAP v3" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
 // ≤ captureTo. Parse with reference/capture.mjs. Read-only; off when captureFrom = 0.

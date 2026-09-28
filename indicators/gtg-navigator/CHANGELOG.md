@@ -121,6 +121,16 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
 - **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
 
+### Rolling validation diagnostics (review message 57, second version; measurement only)
+- **Pine section 18b** adds four packed Data Window plots, validationMode only, `na` on the open bar:
+  - `v_diagEvt1000`, `v_diagMismatch1000`, `v_diagCausal1000`, `v_diagInv1000`;
+  - they cover the last 1000 confirmed bars, counted over warmed engine bars;
+  - they use the analyzer masks.
+  - There is no engine, selection, calibration or event change.
+  - Plot outputs: 52 → 56 of 64.
+- **Reference and tooling**: `reference/diag.mjs` (packing, decoder and rolling model), `validation/tools/decode-diag.mjs`, tests D1–D7 and C17.
+- **Deviation**: `v_diagInv1000` counts bars with a new violation or a new critical violation. The requested windowed maximum of the cumulative counters was dropped: it would carry pre-window history, and its base 65536 is not safely bounded. See `PINE_JS_PARITY.md` §8.
+
 ### Documentation (R7, partial)
 - README:
   - The test list now includes T7b, P, S and C.

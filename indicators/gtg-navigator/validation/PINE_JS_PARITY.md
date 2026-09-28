@@ -173,3 +173,43 @@ Input-derived series (`ta.pivothigh`, `ta.sma`, the HTF `request.security` feed)
 - The hashes are computed on every engine bar in both modes, so that on/off comparisons stay possible. Per bar that is about (levels × 25) + (ring × 4) + slot keys hash steps, plus a sort of at most about 60 keys.
 - The logic is read-only with respect to the engine. **Its runtime cost is NOT measured.**
 - G2 must compare `cdf1a8a` with this version on the same symbol, timeframe and data. If the cost is material, the capture and hash path is moved behind a diagnostic switch in a way that keeps the on/off comparison valid (to be proposed, not assumed).
+
+## 8. Rolling validation diagnostics (Pine 18b ↔ `reference/diag.mjs`)
+
+These are measurement outputs only. They are not engine state and are not part of the canonical snapshot, and nothing in the engine or the consumers reads them. They exist because TradingView's Table View no longer exposes off-screen columns to automation.
+
+**Window.** The window is the last 1000 confirmed chart bars, and only while `validationMode` is on.
+- Every count is taken over the **warmed** engine bars inside the window: `engineStep` is true and `tel.engineBars > W`.
+- The open bar is never pushed into the window.
+- The plots are `na` on the open bar and whenever `validationMode` is off.
+
+**Exactness.** Every field is at most 1000, which is below the base of 1024. The largest packed value is therefore below 2^50, well inside 2^53, so it is exact in double.
+
+| Plot | Fields (least significant first, base 1024) |
+|---|---|
+| `v_diagEvt1000` | breakBars, acceptBars, rejectBars, flipBars, strongObstacleAlerts |
+| `v_diagMismatch1000` | breakAlertMismatch, acceptAlertMismatch, rejectAlertMismatch, flipAlertMismatch, obsEventMismatch |
+| `v_diagCausal1000` | acceptWithoutBreakWithin3Bars, flipWithoutAcceptedWithin60Bars, warmedConfirmedCount |
+| `v_diagInv1000` | invViolationBars, invCriticalBars |
+
+**Masks.** These are the analyzer's masks, applied to `v_eventBits`:
+
+| Event | Engine mask | Alert mask |
+|---|---|---|
+| Break | 3 | 8192 |
+| Accept | 12 | 32768 |
+| Reject | 48 | 16384 |
+| Flip | 64 | 65536 |
+
+- Strong Obstacle uses alert mask 2048, and the `v_obsState` event bit is 8.
+- A mismatch is counted when the engine bit and the alert bit disagree.
+
+**Lookbacks (chart bars, counted with `ta.barssince` on every bar):**
+- an accept is an orphan when no engine break occurred in [i−3, i];
+- a flip is an orphan when no engine accept occurred in [i−60, i].
+
+**Deviation from the request.** `v_diagInv1000` replaces the requested `v_diagInvMax1000`. The request was the maximum of `invTotal` / `invCritical`, packed in base 65536. Those counters are cumulative since the engine started, so a window maximum would carry history from before the window. A per-window total of violations could also exceed 65535 in a pathological case (up to 64 zones × several checks × 1000 bars). The plot therefore counts **bars in the window with at least one new violation**, and separately **bars with at least one new critical violation**. Each count is at most 1000, so it stays exact in base 1024. A value of 0 means no violation occurred in the window.
+
+**Decoding.** `tools/decode-diag.mjs` decodes the four values. The decoder refuses non-integers, too many fields, and any field above 1000, which catches a mis-read. For example, the Data Window may abbreviate a large number, and this is **NOT_VERIFIED**: the value must be copied exactly.
+
+**Tests.** D1–D7 check the round trip at 0 and 1000, the field order (negative control), the decoder guards, the rolling model against a brute-force oracle, the open bar, the lookback boundaries (3/4 and 60/61), and the window edge and warm-up. C17 pins the Pine masks, the field order, the window and the gating. Three negative controls fail C17 as intended (`artifacts/diag-18b-checks.txt`).
