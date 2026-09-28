@@ -626,6 +626,9 @@ type Level
     float epMaxDepth = 0.0
     int ageNative = 0
     float q = 0.0
+    // R4-B: navigation chain armed when the level went ACTIVE/FLIP -> BREAKING while it
+    // was a member of a displayed slot; Break Accepted / Flip Confirmed follow it.
+    bool navArmed = false
 
 // Ephemeral working zone. Objects are preallocated and rewritten on every
 // confirmed bar; no persistent state ever holds a Zone reference.
@@ -842,6 +845,15 @@ slotHasEntry(int si, int k) =>
 keyInPrevSlots(int k) =>
     (slotR1.active and array.includes(keysLastR1, k)) or (slotR2.active and array.includes(keysLastR2, k)) or (slotS1.active and array.includes(keysLastS1, k)) or (slotS2.active and array.includes(keysLastS2, k))
 
+keysIntersect(array<int> a, array<int> b) =>
+    bool found = false
+    int n = array.size(a)
+    if n > 0
+        for i = 0 to n - 1
+            if not found and array.includes(b, array.get(a, i))
+                found := true
+    found
+
 // Overwrites dst with the contents of src element by element (no array.copy, no
 // reference assignment between slot-owned arrays).
 replaceKeys(array<int> dst, array<int> src) =>
@@ -901,14 +913,16 @@ runEpisode(Level lv, float h, float l, float c, float pc, float atr, int bi) =>
             lv.epActive := false
     rej
 
-acceptBreak(Level lv, int bi, Events e, bool inSlot) =>
-    if inSlot
+// Break Accepted follows the arm set at break start (R4-B), not the current slot.
+acceptBreak(Level lv, int bi, Events e) =>
+    if lv.navArmed
         if lv.breakDir > 0
             e.acceptedUp := true
         else
             e.acceptedDn := true
     if lv.breakFromFlip
         lv.state := ST_DEAD
+        lv.navArmed := false
     else
         lv.state := ST_BROKEN
         lv.stateChartBar := bi
@@ -940,6 +954,7 @@ updateLevel(Level lv, float o, float h, float l, float c, float pc, float atr, i
             lv.breakCloses := 1
             lv.stateChartBar := bi
             lv.state := ST_BREAKING
+            lv.navArmed := inSlot
             if inSlot
                 if dir > 0
                     e.breakingUp := true
@@ -947,12 +962,13 @@ updateLevel(Level lv, float o, float h, float l, float c, float pc, float atr, i
                     e.breakingDn := true
             bool strongBody = math.abs(c - o) >= dispBodyK * atr and (dir > 0 ? c > o : c < o)
             if strongBody
-                acceptBreak(lv, bi, e, inSlot)
+                acceptBreak(lv, bi, e)
         else
             float rej = runEpisode(lv, h, l, c, pc, atr, bi)
             markRejection(lv, rej, e, inSlot)
             if lv.mitigation >= 1.0
                 lv.state := ST_DEAD
+                lv.navArmed := false
     else if st == ST_BREAKING
         int dir = lv.breakDir
         bool beyond = dir > 0 ? c > lv.hi + buf : c < lv.lo - buf
@@ -960,16 +976,20 @@ updateLevel(Level lv, float o, float h, float l, float c, float pc, float atr, i
         if beyond and bi > lv.stateChartBar
             lv.breakCloses := lv.breakCloses + 1
             if lv.breakCloses >= 2
-                acceptBreak(lv, bi, e, inSlot)
+                acceptBreak(lv, bi, e)
         else if back
             lv.state := lv.breakFromFlip ? ST_FLIP : ST_ACTIVE
             lv.tests := lv.tests + 1
             lv.evidence := math.min(3.0, lv.evidence + 0.5)
             lv.lastTestChartBar := bi
+            lv.navArmed := false
         else if bi - lv.stateChartBar >= BREAK_WINDOW
             lv.state := lv.breakFromFlip ? ST_FLIP : ST_ACTIVE
+            lv.navArmed := false
     else if st == ST_BROKEN
         int dir = lv.breakDir
+        if lv.navArmed and bi - lv.stateChartBar > flipWindow
+            lv.navArmed := false
         bool backBeyond = dir > 0 ? c < lv.lo - buf : c > lv.hi + buf
         if backBeyond
             bool strongBack = math.abs(c - o) >= dispBodyK * atr and (dir > 0 ? c < o : c > o)
@@ -980,14 +1000,16 @@ updateLevel(Level lv, float o, float h, float l, float c, float pc, float atr, i
                 lv.backCloses := lv.backCloses + 1
             if strongBack or lv.backCloses >= 2
                 lv.state := ST_DEAD
+                lv.navArmed := false
         else
             float rej = runEpisode(lv, h, l, c, pc, atr, bi)
             if not na(rej) and rej >= 0.5 and lv.epSide == dir and bi - lv.stateChartBar <= flipWindow
                 lv.polarity := -lv.polarity
                 lv.s := math.min(100.0, lv.s + 8.0)
                 lv.state := ST_FLIP
-                if inSlot
+                if lv.navArmed
                     e.flipConfirmed := true
+                lv.navArmed := false
             markRejection(lv, rej, e, inSlot)
     lv.state
 
@@ -1146,6 +1168,7 @@ if engineStep
                         reportViolation(tel, "AGE_NEGATIVE", true)
                     if age > maxAgeOf(lv.tfRank)
                         lv.state := ST_DEAD
+                        lv.navArmed := false
                 if lv.state != ST_DEAD
                     updateLevel(lv, open, high, low, close, prevClose, atrEng, bar_index, ev, keyInPrevSlots(lv.key))
                 if wasAlive and lv.state == ST_DEAD
@@ -1836,6 +1859,7 @@ hashLevel(int h0, Level lv) =>
     h := hashStep(h, sinceOr(lv.lastTestChartBar))
     h := hashStep(h, sinceOr(lv.stateChartBar))
     h := hashStep(h, sinceOr(lv.backStartChartBar))
+    h := hashStep(h, lv.navArmed ? 1 : 0)
     h
 
 hashTracker(int h0, float px, int bar, bool broken) =>
@@ -2301,7 +2325,29 @@ speedBurst = barstate.isconfirmed and speedScore >= speedExtremeThreshold and sp
 fuelSurge = barstate.isconfirmed and fuelScore >= fuelHighThreshold and fuelScore[1] < fuelHighThreshold
 headingUp = barstate.isconfirmed and headingScore > headingClearThreshold and headingScore[1] <= headingClearThreshold
 headingDown = barstate.isconfirmed and headingScore < -headingClearThreshold and headingScore[1] >= -headingClearThreshold
-nearStrongObstacle = barstate.isconfirmed and nearestObstacleStrong and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr and (na(nearestObstacleAtr[1]) or nearestObstacleAtr[1] > nearObstacleAtr)
+// Strong Obstacle (R4-A): entering, on a confirmed close, the state Strong+Near for a
+// specific obstacle. Identity = dest1's slot entryKeys (the engine's own slot identity:
+// it survives primary churn and R1/S1 relabelling); same obstacle = the entry-key sets
+// intersect. The latch (state + keys of the last confirmed bar) moves on confirmed bars
+// only; far→near, weak→strong, A→B and exit→re-entry fire, persistence does not.
+var bool strongObsLatch = false
+var array<int> strongObsKeys = array.new_int()
+array<int> dest1EntryKeys = primaryUp ? keysEntryR1 : keysEntryS1
+bool strongObsNow = obstacleAvailable and nearestObstacleStrong and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr
+bool strongObsSame = keysIntersect(strongObsKeys, dest1EntryKeys)
+bool strongObsPrev = strongObsLatch
+nearStrongObstacle = barstate.isconfirmed and strongObsNow and (not strongObsLatch or not strongObsSame)
+if barstate.isconfirmed
+    strongObsLatch := strongObsNow
+    if strongObsNow
+        replaceKeys(strongObsKeys, dest1EntryKeys)
+    else
+        array.clear(strongObsKeys)
+// The latch is continuation state: fold it into hashState after the engine part.
+if engineStep
+    int hsObs = hashStep(tel.hashState, strongObsLatch ? 1 : 0)
+    hsObs := hashKeyList(hsObs, strongObsKeys, hashScratch)
+    tel.hashState := hsObs
 noChaseEvent = barstate.isconfirmed and noChase and not noChase[1]
 obstacleBreakEvent = breakResistance or breakSupport
 obstacleRejectEvent = rejectResistance or rejectSupport
@@ -2373,6 +2419,8 @@ plot(vOn ? tel.violationsCritical : na, "v_invCritical", display = display.data_
 plot(engineStep ? tel.hashSlots : na, "v_hashSlots", display = display.data_window, precision = 0)
 plot(engineStep ? tel.hashState : na, "v_hashState", display = display.data_window, precision = 0)
 plot(engineStep ? engineEventBits + alertBits * 128 : na, "v_eventBits", display = display.data_window, precision = 0)
+// Strong Obstacle state machine (R4-A): 1 qualifying now, 2 latch before this bar, 4 same obstacle, 8 event.
+plot(engineStep ? (strongObsNow ? 1 : 0) + (strongObsPrev ? 2 : 0) + (strongObsSame ? 4 : 0) + (nearStrongObstacle ? 8 : 0) : na, "v_obsState", display = display.data_window, precision = 0)
 plot(vOn and slotR1.active ? slotR1.lo : na, "v_loR1", display = display.data_window, precision = 10)
 plot(vOn and slotR1.active ? slotR1.hi : na, "v_hiR1", display = display.data_window, precision = 10)
 plot(vOn and slotR2.active ? slotR2.lo : na, "v_loR2", display = display.data_window, precision = 10)
@@ -2383,10 +2431,10 @@ plot(vOn and slotS2.active ? slotS2.lo : na, "v_loS2", display = display.data_wi
 plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_window, precision = 10)
 
 // Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
-// "GTGSNAP v2" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
+// "GTGSNAP v3" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
 // ≤ captureTo. Parse with reference/capture.mjs. Read-only; off when captureFrom = 0.
 // Keep the range short (about 20 bars): Pine Logs keeps at most 10,000 historical
-// messages per script and one bar costs 8 + levels + ring chunks (at most ~72).
+// messages per script and one bar costs 9 + levels + ring chunks (at most ~73).
 // compare-captures.mjs checks completeness per bar and coverage of the expected bars.
 f10(float x) =>
     na(x) ? "na" : str.tostring(x, "#.##########")
@@ -2409,7 +2457,7 @@ slotLine(string pre, string name, SlotState ss, array<int> lastK, array<int> ent
     ss.active ? pre + "SLOT|" + name + "|1|" + (ss.containing ? "1" : "0") + "|" + fi(ss.side) + "|" + f10(ss.lo) + "|" + f10(ss.hi) + "|" + fi(ss.primaryKey) + "|" + f10(ss.gateQ) + "|" + f10(ss.quality) + "|" + joinSorted(lastK, scratch) + "|" + joinSorted(entryK, scratch) : pre + "SLOT|" + name + "|0"
 
 levelLine(string pre, Level lv) =>
-    pre + "LVL|" + fi(lv.key) + "|" + fi(lv.source) + "|" + fi(lv.tfRank) + "|" + fi(lv.typ) + "|" + fi(lv.birthTime) + "|" + f10(lv.price) + "|" + fi(lv.state) + "|" + fi(lv.polarity) + "|" + f10(lv.lo) + "|" + f10(lv.hi) + "|" + f10(lv.s) + "|" + f10(lv.mitigation) + "|" + f10(lv.evidence) + "|" + fi(lv.tests) + "|" + fi(lv.ageNative) + "|" + (lv.epActive ? "1" : "0") + "|" + fi(lv.epSide) + "|" + f10(lv.epMaxDepth) + "|" + fi(lv.breakDir) + "|" + fi(lv.breakCloses) + "|" + (lv.breakFromFlip ? "1" : "0") + "|" + fi(lv.backCloses) + "|" + sinceText(lv.lastTestChartBar) + "|" + sinceText(lv.stateChartBar) + "|" + sinceText(lv.backStartChartBar)
+    pre + "LVL|" + fi(lv.key) + "|" + fi(lv.source) + "|" + fi(lv.tfRank) + "|" + fi(lv.typ) + "|" + fi(lv.birthTime) + "|" + f10(lv.price) + "|" + fi(lv.state) + "|" + fi(lv.polarity) + "|" + f10(lv.lo) + "|" + f10(lv.hi) + "|" + f10(lv.s) + "|" + f10(lv.mitigation) + "|" + f10(lv.evidence) + "|" + fi(lv.tests) + "|" + fi(lv.ageNative) + "|" + (lv.epActive ? "1" : "0") + "|" + fi(lv.epSide) + "|" + f10(lv.epMaxDepth) + "|" + fi(lv.breakDir) + "|" + fi(lv.breakCloses) + "|" + (lv.breakFromFlip ? "1" : "0") + "|" + fi(lv.backCloses) + "|" + sinceText(lv.lastTestChartBar) + "|" + sinceText(lv.stateChartBar) + "|" + sinceText(lv.backStartChartBar) + "|" + (lv.navArmed ? "1" : "0")
 
 // One RING line per RING_CHUNK bars: first age, ring size, "o,h,l,c;…" (age 0 = newest).
 RING_CHUNK = 16
@@ -2426,7 +2474,7 @@ trackerPart(float px, int bar, bool broken) =>
 
 bool captureOn = engineStep and captureFrom > 0 and time >= captureFrom and time <= captureTo
 if captureOn
-    string pre = "GTGSNAP|v2|" + fi(time) + "|"
+    string pre = "GTGSNAP|v3|" + fi(time) + "|"
     log.info(pre + "META|" + syminfo.tickerid + "|" + timeframe.period + "|" + f10(syminfo.mintick))
     log.info(slotLine(pre, "R1", slotR1, keysLastR1, keysEntryR1, hashScratch))
     log.info(slotLine(pre, "R2", slotR2, keysLastR2, keysEntryR2, hashScratch))
@@ -2443,5 +2491,6 @@ if captureOn
     else
         for r0 = 0 to nRingCap - 1 by RING_CHUNK
             log.info(ringLine(pre, r0, nRingCap))
+    log.info(pre + "OBS|" + (obstacleAvailable ? "1" : "0") + "|" + f10(dest1Strength) + "|" + f10(nearestObstacleAtr) + "|" + (strongObsNow ? "1" : "0") + "|" + (strongObsSame ? "1" : "0") + "|" + (nearStrongObstacle ? "1" : "0") + "|" + (strongObsLatch ? "1" : "0") + "|" + joinSorted(strongObsKeys, hashScratch))
     log.info(pre + "EV|" + fi(engineEventBits) + "|" + fi(alertBits))
     log.info(pre + "END|" + fi(nCap) + "|" + fi(tel.hashSlots) + "|" + fi(tel.hashState))

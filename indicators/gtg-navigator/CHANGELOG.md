@@ -87,6 +87,27 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Not guarded (documentation only)**: mediumQ/strongQ, fuelHigh/fuelExtreme, and the obstacle distances. An inversion there only makes a label band unreachable.
 - **Effect**: engine impact is 0 of 8000 bars on seeds 21/7/5. The defaults satisfy every contract (K5, C12).
 
+### R4 — alert contracts (JS reference + Pine; engine geometry unchanged)
+- **R4-A Strong Obstacle.** The event means entering Strong+Near for a specific obstacle on a confirmed close.
+  - Identity is dest1's slot `entryKeys`; the same obstacle means its entry keys intersect the latch keys.
+  - The latch (`strongObsLatch` / `strongObsKeys`) moves on confirmed bars only.
+  - Before: the distance-crossing rule missed three cases: weak→strong, A→B and quality re-entry (`validation/artifacts/r4a-strong-obstacle-before-after.txt`).
+  - `primaryKey` was rejected as the token because it churns within one real zone (O8).
+  - Tests: O1–O9, C13.
+- **R4-B event provenance.**
+  - `Level.navArmed` is armed at ACTIVE/FLIP→BREAKING when the level was displayed on the previous bar.
+  - Break Accepted and Flip Confirmed now follow the arm instead of the current slot.
+  - The arm is cleared on back or expiry, on flip, on death, and at the end of flipWindow.
+  - Before: B1–B7 fail (`validation/artifacts/r4b-lifecycle-prefix-06a61a2.txt`). After: B1–B8 pass.
+  - Slot maps: 0 differing bars. Breaking and Reject: 0 differences. Every Accepted/Flip difference is attributed per level to the arm (`validation/artifacts/r4-impact-synthetic.txt`).
+  - Tests: B1–B8, C14.
+- **R4-C.** `validation/ALERT_CONTRACT.md` covers all ten alerts. `consumers.mjs` transcribes every alert source line, pinned by C11. Tests: A1–A6.
+  - Open contract questions: Q-A (the Accepted message for a FLIP that dies), Q-B (No Chase is obstacle-agnostic), Q-C (event rates on real data).
+- **Continuation state.**
+  - `navArmed` and the latch are in the canonical state level and in `hashState`.
+  - Capture moves to `GTGSNAP v3`: `navArmed` on LVL lines, plus an OBS line.
+  - New export `v_obsState`. Plot outputs: 52 of 64.
+
 ### Documentation (R7, partial)
 - README:
   - The test list now includes T7b, P, S and C.

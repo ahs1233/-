@@ -37,6 +37,7 @@ test('C2 hashLevel field order equals the per-level part of encodeState (snapsho
     'lv.key', 'lv.source', 'lv.tfRank', 'lv.typ', 'lv.birthTime', 'toTicks(lv.price)', 'lv.state', 'lv.polarity', 'toTicks(lv.lo)', 'toTicks(lv.hi)', 'q6(lv.s)', 'q6(lv.mitigation)', 'q6(lv.evidence)',
     'lv.tests', 'lv.ageNative', 'lv.epActive ? 1 : 0', 'lv.epSide', 'q6(lv.epMaxDepth)', 'lv.breakDir', 'lv.breakCloses',
     'lv.breakFromFlip ? 1 : 0', 'lv.backCloses', 'sinceOr(lv.lastTestChartBar)', 'sinceOr(lv.stateChartBar)', 'sinceOr(lv.backStartChartBar)',
+    'lv.navArmed ? 1 : 0',
   ]);
 });
 
@@ -61,8 +62,10 @@ test('C8 hashState folds trackers then the OHLC ring (age order), as encodeState
   for (const s of order) { const i = block.indexOf(s); assert.ok(i > at, `${s} missing or out of order`); at = i; }
 });
 
-test('C9 capture prints GTGSNAP v2 with the identity fields and RING lines', () => {
-  assert.match(pine, /"GTGSNAP\|v2\|"/);
+test('C9 capture prints GTGSNAP v3 with the identity fields, RING, OBS and navArmed', () => {
+  assert.match(pine, /"GTGSNAP\|v3\|"/);
+  assert.match(pine, /sinceText\(lv\.backStartChartBar\) \+ "\|" \+ \(lv\.navArmed \? "1" : "0"\)/);
+  assert.match(pine, /log\.info\(pre \+ "OBS\|" \+/);
   assert.match(pine, /"LVL\|" \+ fi\(lv\.key\) \+ "\|" \+ fi\(lv\.source\) \+ "\|" \+ fi\(lv\.tfRank\) \+ "\|" \+ fi\(lv\.typ\) \+ "\|" \+ fi\(lv\.birthTime\) \+ "\|" \+ f10\(lv\.price\)/);
   assert.match(pine, /^RING_CHUNK = 16$/m);
 });
@@ -70,7 +73,7 @@ test('C9 capture prints GTGSNAP v2 with the identity fields and RING lines', () 
 test('C5 plot budget and export names', () => {
   const plots = pine.match(/^\s*(plot|plotshape|plotchar|plotarrow|plotcandle|plotbar|bgcolor|barcolor|fill|hline)\(/gm) || [];
   assert.ok(plots.length <= 64, `plot-type outputs: ${plots.length}`);
-  for (const name of ['v_hashSlots', 'v_hashState', 'v_eventBits', 'v_loR1', 'v_hiR1', 'v_loR2', 'v_hiR2', 'v_loS1', 'v_hiS1', 'v_loS2', 'v_hiS2']) {
+  for (const name of ['v_hashSlots', 'v_hashState', 'v_eventBits', 'v_obsState', 'v_loR1', 'v_hiR1', 'v_loR2', 'v_hiR2', 'v_loS1', 'v_hiS1', 'v_loS2', 'v_hiS2']) {
     assert.ok(pine.includes(`"${name}"`), `missing export ${name}`);
   }
 });
@@ -94,6 +97,7 @@ test('C10 R3 guard: Pine refuses Q_stay > Q_enter on the first bar with runtime.
 });
 
 test('C11 consumers.mjs transcribes these Pine lines verbatim (fails if Pine changes them)', () => {
+  assert.equal((pine.match(/^alertcondition\(/gm) || []).length, 10);
   const lines = [
     'string speedClass = speedScore < speedSlowThreshold ? "بطيئة" : speedScore < speedFastThreshold ? "طبيعية" : speedScore < speedExtremeThreshold ? "سريعة" : "استثنائية"',
     'color speedColor = speedScore >= speedExtremeThreshold ? color.orange : speedScore >= speedFastThreshold ? color.yellow : color.white',
@@ -103,6 +107,15 @@ test('C11 consumers.mjs transcribes these Pine lines verbatim (fails if Pine cha
     'headingStrength = math.abs(headingScore)',
     'int routeSign = routeScore > routeClearThreshold ? 1 : routeScore < -routeClearThreshold ? -1 : 0',
     'string routeText = routeScore >= routeStrongThreshold ? "↑ صاعد بقوة" :\n     routeScore > routeClearThreshold ? "↗ صاعد" :\n     routeScore <= -routeStrongThreshold ? "↓ هابط بقوة" :\n     routeScore < -routeClearThreshold ? "↘ هابط" : "→ غير حاسم"',
+    'fuelSurge = barstate.isconfirmed and fuelScore >= fuelHighThreshold and fuelScore[1] < fuelHighThreshold',
+    'headingUp = barstate.isconfirmed and headingScore > headingClearThreshold and headingScore[1] <= headingClearThreshold',
+    'headingDown = barstate.isconfirmed and headingScore < -headingClearThreshold and headingScore[1] >= -headingClearThreshold',
+    'noChaseEvent = barstate.isconfirmed and noChase and not noChase[1]',
+    'obstacleBreakEvent = breakResistance or breakSupport',
+    'obstacleRejectEvent = rejectResistance or rejectSupport',
+    'breakAcceptedEvent = breakAcceptedUp or breakAcceptedDn',
+    'bool rejectResistance = ev.rejectR', 'bool rejectSupport = ev.rejectS', 'bool breakResistance = ev.breakingUp', 'bool breakSupport = ev.breakingDn',
+    'bool breakAcceptedUp = ev.acceptedUp', 'bool breakAcceptedDn = ev.acceptedDn', 'bool flipConfirmedEvent = ev.flipConfirmed',
   ];
   for (const l of lines) assert.ok(pine.includes(l), `Pine line changed or missing: ${l.slice(0, 60)}…`);
 });
@@ -113,5 +126,32 @@ test('C12 R3b guards: Pine refuses the three inverted pairs on the first bar wit
   assert.match(pine, /^if barstate\.isfirst and speedExtremeThreshold < speedFastThreshold\n    runtime\.error\(/m);
   // No clamp: the inputs keep their declared defaults.
   for (const d of ['speedFastThreshold = input.float(70.0,', 'speedExtremeThreshold = input.float(90.0,', 'headingClearThreshold = input.float(20.0,', 'headingStrongThreshold = input.float(60.0,', 'routeClearThreshold = input.float(22.0,', 'routeStrongThreshold = input.float(62.0,']) assert.ok(pine.includes(d), d);
+});
+
+test('C13 R4-A Strong Obstacle: latch on confirmed bars, entry-key identity, no distance-crossing rule', () => {
+  assert.doesNotMatch(pine, /nearestObstacleAtr\[1\]/);
+  assert.match(pine, /^array<int> dest1EntryKeys = primaryUp \? keysEntryR1 : keysEntryS1$/m);
+  assert.match(pine, /^bool strongObsNow = obstacleAvailable and nearestObstacleStrong and not na\(nearestObstacleAtr\) and nearestObstacleAtr <= nearObstacleAtr$/m);
+  assert.match(pine, /^nearStrongObstacle = barstate\.isconfirmed and strongObsNow and \(not strongObsLatch or not strongObsSame\)$/m);
+  assert.match(pine, /^if barstate\.isconfirmed\n    strongObsLatch := strongObsNow\n    if strongObsNow\n        replaceKeys\(strongObsKeys, dest1EntryKeys\)\n    else\n        array\.clear\(strongObsKeys\)$/m);
+  assert.match(pine, /^nearestObstacleStrong = not na\(dest1Strength\) and dest1Strength >= strongQ$/m);
+  // The latch is folded into hashState after the engine part (same order as encodeState).
+  assert.match(pine, /int hsObs = hashStep\(tel\.hashState, strongObsLatch \? 1 : 0\)\n    hsObs := hashKeyList\(hsObs, strongObsKeys, hashScratch\)/);
+});
+
+test('C14 R4-B lifecycle: arm at break start, Accepted/Flip follow the arm, every exit clears it', () => {
+  const body = (name) => fnBody(name).join('\n');
+  const acc = body('acceptBreak');
+  assert.match(pine, /^acceptBreak\(Level lv, int bi, Events e\) =>$/m);
+  assert.match(acc, /if lv\.navArmed\n        if lv\.breakDir > 0/);
+  assert.match(acc, /lv\.state := ST_DEAD\n        lv\.navArmed := false/);
+  const up = body('updateLevel');
+  assert.match(up, /lv\.state := ST_BREAKING\n            lv\.navArmed := inSlot/);
+  assert.match(up, /if lv\.navArmed\n                    e\.flipConfirmed := true\n                lv\.navArmed := false/);
+  assert.match(up, /if lv\.navArmed and bi - lv\.stateChartBar > flipWindow\n            lv\.navArmed := false/);
+  assert.equal((up.match(/lv\.navArmed := false/g) || []).length, 6); // back, window, flipWindow, back-death, flip, mitigation
+  assert.doesNotMatch(up, /acceptBreak\(lv, bi, e, inSlot\)/);
+  assert.match(up, /markRejection\(lv, rej, e, inSlot\)/); // Rejection keeps the per-bar rule
+  assert.match(pine, /if age > maxAgeOf\(lv\.tfRank\)\n                        lv\.state := ST_DEAD\n                        lv\.navArmed := false/);
 });
 

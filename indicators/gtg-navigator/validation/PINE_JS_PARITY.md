@@ -95,7 +95,7 @@ The synthetic data is not on the tick grid. That makes the mintick 1 case a stre
 |---|---|
 | geometry | per slot: `active`, `side`, `containing`, `lo`, `hi` |
 | identity | geometry + `primaryKey`, sorted `lastKeys`, sorted `entryKeys`, `gateQ`, `displayQ` |
-| state | identity + every pool record (local, A1, A2, tombstones included), each with **source identity** (`source`, `tfRank`, `typ`, `birthTime`, `price`) and its state fields; the DOZ swing trackers; the **OHLC ring** (index = age, 0 = newest) |
+| state | identity + every pool record (local, A1, A2, tombstones included), each with **source identity** (`source`, `tfRank`, `typ`, `birthTime`, `price`), its state fields and **`navArmed`** (R4-B); the DOZ swing trackers; the **OHLC ring** (index = age, 0 = newest); the **Strong Obstacle latch** `{state, keys}` (R4-A; `null` when the consumer is not modelled) |
 | events | the 7 engine events (Pine: plus the 10 alert conditions in `alertBits`) |
 
 **Persistent-variable inventory** (Pine `var` state that a later engine decision reads) and its coverage:
@@ -107,6 +107,8 @@ The synthetic data is not on the tick grid. That makes the mintick 1 case a stre
 | `SlotState` scalars | consumers, HUD, drawing | `active/containing/side/lo/hi/primaryKey/gateQ/quality` yes; `distAtr/isFar/leftTime/roleType/navTag/shortTag` are recomputed from the zone on every write and not read by the engine; `side/quality` of an inactive slot are stale values nothing reads |
 | `lastSwingHigh/Low Px/Bar/Broken` | DOZ trigger | yes (trackers, bar as relative age) |
 | `ringO/H/L/C` | `dozBuild`, `containEntrySide` | yes (ring) |
+| `Level.navArmed` (R4-B) | Break Accepted, Flip Confirmed | yes (per level) |
+| `strongObsLatch`, `strongObsKeys` (R4-A, consumer) | Strong Obstacle alert | yes (`obstacle`) |
 | `feedKeysA1/A2`, `work`, `srt`, `zonePool`, scratch arrays | — | rebuilt from scratch on every engine bar; not state |
 | `tel.*` | nothing in the engine | not state |
 
@@ -136,22 +138,23 @@ Input-derived series (`ta.pivothigh`, `ta.sma`, the HTF `request.security` feed)
   - for an active slot: `[1, containing, side, ticks(lo), ticks(hi), primaryKey, round(gateQ·100), round(displayQ·100), nLast, …sorted lastKeys, nEntry, …sorted entryKeys]`.
 - **`hashState`** (state level; `v_hashState`, formerly `v_hashLevels`) encodes:
   - the prefix `[2, nLevels]`;
-  - then, for each record sorted by key: `[key, source, tfRank, typ, birthTime, ticks(price), state, polarity, ticks(lo), ticks(hi), q6(s), q6(mitigation), q6(evidence), tests, ageNative, epActive, epSide, q6(epMaxDepth), breakDir, breakCloses, breakFromFlip, backCloses, sinceTest|−1, sinceState|−1, sinceBack|−1]`;
+  - then, for each record sorted by key: `[key, source, tfRank, typ, birthTime, ticks(price), state, polarity, ticks(lo), ticks(hi), q6(s), q6(mitigation), q6(evidence), tests, ageNative, epActive, epSide, q6(epMaxDepth), breakDir, breakCloses, breakFromFlip, backCloses, sinceTest|−1, sinceState|−1, sinceBack|−1, navArmed]`;
   - then each tracker: `[1, ticks(px), since, broken]` or `[0]`;
-  - then `[ringSize, ticks(o), ticks(h), ticks(l), ticks(c), …]` in age order.
+  - then `[ringSize, ticks(o), ticks(h), ticks(l), ticks(c), …]` in age order;
+  - then the Strong Obstacle latch: `[state, nKeys, …sorted keys]`, or `[−1]` when not modelled. In Pine this part is folded into `hashState` in section 17, after the latch update (C13).
 - **Negative controls** on the Pine field order: C2, C3, C8 and C9 in `pine-contract.test.mjs`. Swapping two lines makes C2 fail.
 - **Limitation.** If a key were repeated, Pine's `array.sort_indices` gives no order among the equal keys, so the hash could vary. The raw comparison reports the multiplicity regardless (S12).
 
 ### 7.4 Pine exports and capture
 
 - **Data Window exports:**
-  - both modes: `v_hashSlots`, `v_hashState`, `v_eventBits` (engine events in bits 0–6, the 10 alerts in bits 7–16);
+  - both modes: `v_hashSlots`, `v_hashState`, `v_eventBits` (engine events in bits 0–6, the 10 alerts in bits 7–16), `v_obsState` (Strong Obstacle: 1 qualifying, 2 latch before the bar, 4 same obstacle, 8 event);
   - with `validationMode`: `v_loR1…v_hiS2` (raw, precision 10);
-  - plot-type outputs: 51 of 64 (C5).
-- **Log capture.** `captureFrom`/`captureTo` prints `GTGSNAP v2` lines through `log.info`:
-  - `META`, 4 × `SLOT`, one `LVL` line per record (with the identity fields), `TRK`, `RING` (16 bars per line), `EV`, `END`;
-  - one bar costs `8 + nLevels + ceil(ring/16)` messages, at most about 72;
-  - `v1` captures are rejected by the parser.
+  - plot-type outputs: 52 of 64 (C5).
+- **Log capture.** `captureFrom`/`captureTo` prints `GTGSNAP v3` lines through `log.info`:
+  - `META`, 4 × `SLOT`, one `LVL` line per record (with the identity fields), `TRK`, `RING` (16 bars per line), `OBS` (Strong Obstacle inputs, event and latch), `EV`, `END`; `LVL` also carries `navArmed`;
+  - one bar costs `9 + nLevels + ceil(ring/16)` messages, at most about 73;
+  - `v1` and `v2` captures are rejected by the parser.
 - **Coverage.** Pine Logs keeps at most **10,000 historical messages per script**. GPT reported this from the official TradingView *Debugging → Pine Logs* page (message 45). Claude could not open that page from this environment.
   - A capture is therefore a **short-window, targeted** diagnostic: about 20 closed bars, far below the limit. It is not a substitute for the long-range CSV/S2 export.
 - **`tools/compare-captures.mjs`** fails (exit 1) on:
