@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | R1 | `slotDigest` لا يثبت التكافؤ | **CONFIRMED** | ترجمة حرفية لـ`pine:1741-1742`: الحدود [100,101] و[100.13,100.93] بنفس primaryKey ⇒ نفس البصمة `999820507`. مدخلات البصمة primaryKey وlo وhi فقط؛ لا entryKeys/lastKeys ولا جودة ولا حالات مستويات ولا أحداث. | **منفَّذ (بانتظار مراجعة GPT وتشغيل Pine):** `reference/snapshot.mjs` + `capture.mjs` + `tools/compare-captures.mjs`؛ Pine: `v_hashSlots`/`v_hashLevels`/`v_eventBits` + `v_lo*/v_hi*` + التقاط `log.info`؛ أُزيلت البصمة الخطية. اختبارات S1–S11، C1–C7. |
 | R2 | mintick/ATR floor مختلفان بين Pine وJS | **CONFIRMED** | fixture Astra عبر `runEpisode` في المرجع: mitigation = `0.486000` مقابل oracle يدوي لمعادلة Pine = `0.048600` (نسبة 10.000). أرضيات JS = `1e-12` في `engine.mjs:80,495,538,547`؛ أرضيات Pine = `syminfo.mintick` في `pine:532,571-572,864,1154,1162`. | **منفَّذ (بانتظار مراجعة GPT):** العقد: Pine هو المرجع الحاكم للأرضيات؛ المرجع JS يأخذ `mintick` إلزاميًا (`withSymbol`) ويطبّق نفس الأرضيات. لا تغيير في Pine. اختبارات P1–P6. فجوات مفتوحة (ties، HTF، ملفات الفريمات) في `PINE_JS_PARITY.md` §5. |
-| R3 | `qStay > qEnter` يسبب ظهورًا/اختفاءً متناوبًا | **CONFIRMED** (في المرجع JS؛ نفس الشرط في `pine:1560`، تشغيل Pine: NOT_RUN) | `qEnter=55, qStay=80`، منطقة ثابتة gateQ=70 ⇒ R1.active = `true,false,true,false,true,false`. | حارس مدخلات (بعد R1/R2، بحسب ترتيب الرسالة 43). |
+| R3 | `qStay > qEnter` يسبب ظهورًا/اختفاءً متناوبًا | **CONFIRMED** (في المرجع JS؛ نفس الشرط في `pine:1560`، تشغيل Pine: NOT_RUN) | `qEnter=55, qStay=80`، منطقة ثابتة gateQ=70 ⇒ R1.active = `true,false,true,false,true,false`. | **منفَّذ (بانتظار مراجعة GPT وتشغيل Pine):** العقد `qStay ≤ qEnter`؛ المرجع `checkParams` (في `selectSlots` و`Engine`)، وPine `runtime.error` عند `barstate.isfirst`. اختبارات Q1–Q4 وC10. أزواج العتبات الأخرى: انظر «R3 — مراجعة بقية العتبات». |
 | R4 | عقد Strong Obstacle | **CONTRACT_DECISION_NEEDED** | ترجمة `pine:2169`: الجودة 60→80 عند مسافة ثابتة 0.20 ATR ⇒ لا تنبيه؛ الشرط يراقب عبور المسافة فقط. السلوك مُعاد إنتاجه، لكن كونه عيبًا يتوقف على العقد. | يُعرض عقد مقترح قبل أي تغيير في semantics المستهلك. |
 | R5 | اختبار الحتمية أضيق من الادعاء | **CONFIRMED** | `engine.test.mjs` T7: المحركان A وB يتشاركان `series` و`anchorFeed` محسوبين مرة واحدة من كل الـ8000 شمعة؛ لا يوجد تاريخ مستقل أقصر/أطول ولا prepend. | اختبارات تعيد بناء المدخلات والـfeeds من تاريخين مستقلين (مرحلة لاحقة). |
 | R6 | اختبارات Navigator خارج CI | **CONFIRMED** | `.github/workflows/ci.yml` يشغّل `pnpm test` ← `turbo run test` (apps/packages)؛ لا ذكر لـ`indicators/gtg-navigator`. | **منفَّذ:** `.github/workflows/gtg-navigator.yml` (Node 22/24)؛ negative control: اختبار فاشل ⇒ exit 1 محليًا. نتيجة تشغيل GitHub Actions: تُسجَّل بعد الـpush. |
@@ -29,6 +29,20 @@
   - `Export chart data`: L1 كاملًا (حدود خام + أعلام) + primaryKey + `hashSlots`/`hashState` + bits أحداث L4.
   - diagnostic capture محدود عبر `log.info` لمدى زمني يحدده المستخدم: يطبع snapshot كاملًا (L1–L4) بصيغة سطرية قابلة للتحليل، لعدد محدود من الشموع (حدود Pine Logs مذكورة في `PINE_JS_PARITY.md`).
 
+## R3 — مراجعة بقية العتبات (لا حراس جديدة؛ قرار مطلوب)
+
+الحارس أُضيف فقط حيث يوجد invariant وظيفي يسبب سلوكًا ديناميكيًا خاطئًا (التناوب). بقية الأزواج:
+
+| الزوج | نطاقات المدخلات | أثر العكس | الحكم |
+|---|---|---|---|
+| `mediumQ` / `strongQ` | 20–80 / 40–95 (متداخلة) | نطاق «متوسط» في `strengthText` (pine:161) يصبح غير قابل للوصول | ترتيب تسميات فقط؛ لا تناوب. بلا حارس. |
+| `speedSlow` / `speedFast` / `speedExtreme` | 5–45 / 50–90 / 75–99 | slow<fast دائمًا؛ fast>extreme يجعل «سريعة» غير قابلة للوصول (pine:324) | ترتيب تسميات فقط. بلا حارس. |
+| `fuelLow` / `fuelHigh` / `fuelExtreme` | 5–50 / 50–90 / 75–99 | low=high=50 يُفرغ «طبيعي»؛ high>extreme يُفرغ «مرتفع» (pine:456) | ترتيب تسميات فقط. بلا حارس. |
+| `headingClear` / `headingStrong` | 5–45 / 40–90 (متداخلة) | إذا clear > strong: درجة بينهما تُعرض «↑ صاعد بقوة» (pine:378) بينما `headingSign = 0` (pine:374) | **تناقض دلالي بين النص والإشارة** — مرشح لحارس `headingStrong ≥ headingClear`؛ **يحتاج قرارًا** قبل التنفيذ. |
+| `routeClear` / `routeStrong` | 5–45 / 40–90 (متداخلة) | نفس التناقض: «صاعد بقوة» (pine:415) مع `routeSign = 0` (pine:413) | **مرشح لحارس `routeStrong ≥ routeClear`؛ يحتاج قرارًا.** |
+| `normalLowPct` / `normalHighPct` | 5–45 / 55–95 | لا يمكن عكسهما | مضمون بالنطاقات. |
+| `noChaseAtr` / `nearObstacleAtr` / `awarenessObstacleAtr` | 0.05–1.00 / 0.05–1.50 / 0.30–2.50 | مسافات لأغراض مختلفة؛ لا علاقة ترتيب مفروضة في الكود | بلا invariant واضح. بلا حارس. |
+
 ## سجل المراجعة
 
 | الرسالة | البند | قرار GPT | ما تغيّر |
@@ -36,3 +50,5 @@
 | 45 | R6 | ACCEPTED لهذه المرحلة (تحقق مستقل من run 36391388838: Node 22 و24 نجحا) | — |
 | 45 | R2 | ACCEPTED على مستوى المرجع JS/العقد الحسابي؛ parity تشغيل Pine وpivot probe: NOT_RUN | — |
 | 45 | R1 | CHANGES REQUIRED. وصلت نسختان من الرسالة 45 بملاحظات مختلفة؛ عولجت ملاحظاتهما معًا | (أ) multiplicity: المقارنة تجمع السجلات حسب المفتاح وتبلّغ عن الطول والتكرار (S12). (ب) ring الأسعار ضمن مستوى state وضمن `hashState` (S13، مع oracle سلوكي: ring مختلف يغيّر R1/S1 للمنطقة المحتوية). (ج) الهوية المصدرية source/tfRank/typ/birthTime/price صريحة في snapshot وPine وhash (S15). (د) `compare-captures` صارم: شمعة ناقصة كليًا تُفشل المقارنة الثنائية افتراضيًا، و`--expect-*` للملف الواحد، وتمييز MISSING عن INCOMPLETE (S14). (هـ) الصيغة `GTGSNAP v2`. |
+| 47 | R1 | ACCEPTED على مستوى reference/source/static validation؛ Pine runtime parity وG1/E20 والأداء: NOT_RUN | — |
+| 47 | R3 | فُتح (حارس `qStay ≤ qEnter` فقط) | منفّذ؛ بانتظار المراجعة. |

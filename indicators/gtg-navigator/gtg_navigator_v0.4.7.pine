@@ -131,6 +131,12 @@ studyExtraBars = input.int(0, "studyExtraBars — شموع إحماء إضافي
 captureFrom = input.time(0, "captureFrom — بداية التقاط snapshot كامل في Pine Logs (0 = معطّل)", group = groupDebug)
 captureTo = input.time(0, "captureTo — نهاية الالتقاط (مدى قصير فقط)", group = groupDebug)
 
+// Input contract (R3): Q_stay is the lower-or-equal hold threshold of the Q_enter /
+// Q_stay hysteresis pair. With Q_stay > Q_enter a held zone fails its own hold test
+// and is re-admitted on the next bar (flicker). Refused on the first bar, never clamped.
+if barstate.isfirst and qStay > qEnter
+    runtime.error("GTG Navigator: Q_stay (" + str.tostring(qStay) + ") يجب ألا تتجاوز Q_enter (" + str.tostring(qEnter) + "). عتبة البقاء أقل من عتبة الدخول أو تساويها.")
+
 
 // ============================================================================
 // 2. HELPERS

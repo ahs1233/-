@@ -59,6 +59,16 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Plot count**: unchanged at 51 of 64.
 - **Pine per-bar cost**: now includes the ring hash. Not measured; this is a G2 requirement.
 
+### R3 — Q_stay ≤ Q_enter input contract (JS reference + Pine)
+- **Problem**: the input ranges allow `qStay > qEnter`. A constant candidate with gateQ 70 at 55/80 then gives R1 = true,false,true,false,… because the held zone fails its own hold threshold and is re-admitted on the next bar.
+- **Fixture before the change**: `params.test.mjs` Q1 and Q4 fail against d0d4df9 (`validation/artifacts/r3-params-prefix-d0d4df9.txt`, which also records the flicker sequence). Q2 (no valid pair alternates; independent hysteresis oracle over a grid) and Q3 (the boundaries and the defaults) pass both before and after.
+- **Change**:
+  - Reference: `checkParams` refuses `qStay > qEnter` in `selectSlots` and in the `Engine` constructor.
+  - Pine: `runtime.error` on `barstate.isfirst`, with an Arabic message. Nothing is clamped and the input ranges are unchanged.
+- **After**: Q1–Q4 pass 4 of 4, and C10 pins the Pine guard (it fails when the guard is weakened).
+- **Effect**: 0 of 8000 bars differ on 3 seeds with the defaults (`validation/artifacts/r3-impact-synthetic.txt`). No calibration or selection change.
+- **Other threshold pairs**: reviewed in `validation/REVIEW_FINDINGS.md`, with no guards added. The heading and route clear/strong inversions are flagged for a decision.
+
 ### Documentation (R7, partial)
 - README:
   - The test list now includes T7b, P, S and C.

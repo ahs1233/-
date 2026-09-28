@@ -85,3 +85,10 @@ test('C7 legacy v0.4.6 file is unchanged', () => {
   const legacy = readFileSync(`${dir}/gtg_navigator_v0.4.6.pine`);
   assert.equal(gitBlob(legacy), '3dab279af76fc0dbf65fb2bcc1498b32f613c117');
 });
+
+test('C10 R3 guard: Pine refuses Q_stay > Q_enter on the first bar with runtime.error', () => {
+  assert.match(pine, /^if barstate\.isfirst and qStay > qEnter\n    runtime\.error\("GTG Navigator: Q_stay/m);
+  // The inputs themselves keep their ranges: the contract is the relation, not a clamp.
+  assert.match(pine, /^qStay = input\.float\(45\.0, /m);
+  assert.match(pine, /^qEnter = input\.float\(55\.0, /m);
+});

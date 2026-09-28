@@ -41,6 +41,15 @@ export function requireMintick(P) {
   return m;
 }
 
+// Input contract (review item R3). Q_enter admits a zone into a slot and Q_stay is the
+// lower-or-equal hold threshold of the same hysteresis pair; with Q_stay > Q_enter a
+// held zone fails its own hold test and is re-admitted on the next bar (flicker).
+// Refused, never clamped (Pine: runtime.error on the first bar).
+export function checkParams(P) {
+  if (P.qStay > P.qEnter) throw new Error(`Q_stay (${P.qStay}) must not exceed Q_enter (${P.qEnter})`);
+  return P;
+}
+
 // Pine: na(x) ? na : math.max(x, syminfo.mintick)  (pine:571-572)
 const floorTickOrNull = (x, mintick) => (x == null ? null : Math.max(x, mintick));
 
@@ -351,6 +360,7 @@ function containEntrySide(zn, ringC, P) {
 
 // slots: [R1, R2, S1, S2] from the previous confirmed bar (read-only here).
 export function selectSlots(zones, slots, ctx, P = DEFAULTS) {
+  checkParams(P);
   const close = ctx.close;
   const hLocal = P.kLocal * ctx.atr;
   const reachA1 = ctx.atrA1 == null ? 0 : P.kA1 * ctx.atrA1;
@@ -488,6 +498,7 @@ export function engineWindowFor(P = DEFAULTS, chartSec = 60, a1Sec = 300, a2Sec 
 
 export class Engine {
   constructor(bars, series, P = DEFAULTS, opts = {}) {
+    checkParams(P);
     this.bars = bars; this.series = series; this.P = P;
     this.startBar = opts.startBar ?? 0;
     this.anchorFeed = opts.anchorFeed ?? null; // (i) => { now: [null, a1Now, a2Now], atrA1, atrA2, items: [...] }
