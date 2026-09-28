@@ -1,0 +1,91 @@
+//@version=6
+// GTG Navigator — pivot tie probe (diagnostic only, not part of the indicator).
+// Question: which equality rule does ta.pivothigh / ta.pivotlow use when the centre
+// bar ties with a neighbour? The JS reference assumes variant A (left strict, right
+// non-strict). Add to a chart with many equal highs/lows (e.g. XAUUSD M1), open the
+// Data Window on the last bar and report every value below with the symbol, feed,
+// timeframe and bar count. The variant whose mismatch count is 0 while the tie
+// count is > 0 is the rule Pine uses.
+indicator("GTG pivot tie probe", overlay = false)
+
+L = input.int(3, "pivot length (left = right)", minval = 1, maxval = 10)
+
+// Centre bar is L bars back; left neighbours are older (offset > L), right are newer.
+pivotHighVariant(int v) =>
+    bool ok = bar_index >= 2 * L
+    for k = 1 to L
+        float c = high[L]
+        float lft = high[L + k]
+        float rgt = high[L - k]
+        bool leftOk = v == 0 or v == 1 ? c > lft : c >= lft
+        bool rightOk = v == 0 or v == 3 ? c >= rgt : c > rgt
+        ok := ok and leftOk and rightOk
+    ok
+
+pivotLowVariant(int v) =>
+    bool ok = bar_index >= 2 * L
+    for k = 1 to L
+        float c = low[L]
+        float lft = low[L + k]
+        float rgt = low[L - k]
+        bool leftOk = v == 0 or v == 1 ? c < lft : c <= lft
+        bool rightOk = v == 0 or v == 3 ? c <= rgt : c < rgt
+        ok := ok and leftOk and rightOk
+    ok
+
+tieHigh() =>
+    bool t = false
+    for k = 1 to L
+        t := t or high[L] == high[L + k] or high[L] == high[L - k]
+    t
+
+tieLow() =>
+    bool t = false
+    for k = 1 to L
+        t := t or low[L] == low[L + k] or low[L] == low[L - k]
+    t
+
+bool isPH = not na(ta.pivothigh(high, L, L))
+bool isPL = not na(ta.pivotlow(low, L, L))
+
+// Variants: A (0) left strict / right non-strict, B (1) both strict,
+// C (2) left non-strict / right strict, D (3) both non-strict.
+var int mhA = 0
+var int mhB = 0
+var int mhC = 0
+var int mhD = 0
+var int mlA = 0
+var int mlB = 0
+var int mlC = 0
+var int mlD = 0
+var int tiesH = 0
+var int tiesL = 0
+var int nPH = 0
+var int nPL = 0
+if bar_index >= 2 * L
+    mhA += isPH != pivotHighVariant(0) ? 1 : 0
+    mhB += isPH != pivotHighVariant(1) ? 1 : 0
+    mhC += isPH != pivotHighVariant(2) ? 1 : 0
+    mhD += isPH != pivotHighVariant(3) ? 1 : 0
+    mlA += isPL != pivotLowVariant(0) ? 1 : 0
+    mlB += isPL != pivotLowVariant(1) ? 1 : 0
+    mlC += isPL != pivotLowVariant(2) ? 1 : 0
+    mlD += isPL != pivotLowVariant(3) ? 1 : 0
+    tiesH += tieHigh() ? 1 : 0
+    tiesL += tieLow() ? 1 : 0
+    nPH += isPH ? 1 : 0
+    nPL += isPL ? 1 : 0
+
+plot(mhA, "mismatch high A (JS rule)", display = display.data_window)
+plot(mhB, "mismatch high B", display = display.data_window)
+plot(mhC, "mismatch high C", display = display.data_window)
+plot(mhD, "mismatch high D", display = display.data_window)
+plot(mlA, "mismatch low A (JS rule)", display = display.data_window)
+plot(mlB, "mismatch low B", display = display.data_window)
+plot(mlC, "mismatch low C", display = display.data_window)
+plot(mlD, "mismatch low D", display = display.data_window)
+plot(tiesH, "bars with a high tie", display = display.data_window)
+plot(tiesL, "bars with a low tie", display = display.data_window)
+plot(nPH, "pivot highs", display = display.data_window)
+plot(nPL, "pivot lows", display = display.data_window)
+plot(bar_index + 1, "bars", display = display.data_window)

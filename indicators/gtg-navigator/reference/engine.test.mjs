@@ -5,8 +5,11 @@ import assert from 'node:assert/strict';
 import {
   DEFAULTS, SRC, TF, TYP, ST, KEY_BASE, memberKeyOf, makeLevel, buildZones, selectSlots,
   emptySlot, runEpisode, levelQuality, computeSeries, engineWindowFor, Engine, syntheticBars, checkSelectionInvariants,
-  feedKeysOf, syncAnchorPool, upsertAnchor,
+  feedKeysOf, syncAnchorPool, upsertAnchor, withSymbol,
 } from './engine.mjs';
+
+// Symbol metadata for the synthetic fixtures (XAUUSD-like tick).
+const PM = withSymbol(DEFAULTS, { mintick: 0.01 });
 
 const T0 = 1_700_000_000_000;
 
@@ -59,12 +62,12 @@ test('T1 candidate permutation: 150 permutations give the same zone map', () => 
     const tf = i % 7 === 0 ? TF.A2 : i % 5 === 0 ? TF.A1 : TF.LOCAL;
     levels.push(lvl({ lo, hi: lo + w, q: 40 + Math.floor(rnd() * 6) * 8, t: T0 + i * 60_000, tf, src: tf === TF.LOCAL ? (i % 3 === 0 ? SRC.DOZ : SRC.SWING) : SRC.ANCHOR, typ: i % 2 }));
   }
-  const ref = buildZones(levels, baseCtx);
+  const ref = buildZones(levels, baseCtx, PM);
   assert.deepEqual(ref.violations, []);
   const refSig = signature(ref);
   const prnd = rng(99);
   for (let p = 0; p < 150; p++) {
-    const b = buildZones(shuffled(levels, prnd), baseCtx);
+    const b = buildZones(shuffled(levels, prnd), baseCtx, PM);
     assert.deepEqual(b.violations, []);
     assert.equal(signature(b), refSig);
   }
@@ -80,7 +83,7 @@ test('T2 connected chain wider than maxWidth: one deterministic packing, invaria
   const prnd = rng(5);
   let first = null;
   for (let p = 0; p < 120; p++) {
-    const b = buildZones(shuffled([A, B, C, D], prnd), ctx);
+    const b = buildZones(shuffled([A, B, C, D], prnd), ctx, PM);
     assert.deepEqual(b.violations, []);
     const sig = signature(b);
     if (first === null) first = sig;
@@ -100,20 +103,20 @@ test('T3 MTF duplicate: M1 swing + M15 pivot of the same event get one MTF bonus
   const swing = lvl({ lo: 99.8, hi: 100.0, price: 100.0, q: 60, t: a2Open + 7 * 60_000, tf: TF.LOCAL, src: SRC.SWING });
   const anchor = lvl({ lo: 99.7, hi: 100.05, price: 100.05, q: 70, t: a2Open, tf: TF.A2, src: SRC.ANCHOR });
   const ctx = { ...baseCtx, close: 90 };
-  const dup = buildZones([swing, anchor], ctx);
+  const dup = buildZones([swing, anchor], ctx, PM);
   assert.equal(dup.zones.length, 1);
   assert.equal(dup.zones[0].groups, 1);
   assert.equal(dup.zones[0].gateQ, 70 + 8); // best q + MTF bonus, no confluence bonus
   // Same prices but a different event (swing two hours later): two groups → confluence, no MTF bonus.
   const other = lvl({ lo: 99.8, hi: 100.0, price: 100.0, q: 60, t: a2Open + 120 * 60_000, tf: TF.LOCAL, src: SRC.SWING });
-  const distinct = buildZones([other, anchor], ctx);
+  const distinct = buildZones([other, anchor], ctx, PM);
   assert.equal(distinct.zones[0].groups, 2);
   assert.equal(distinct.zones[0].gateQ, 70 + 6);
   assert.notEqual(dup.zones[0].gateQ, 70 + 8 + 6);
 });
 
 test('T4 nearer obstacle: horizon opened by A2 reveals the nearer local zone first', () => {
-  const P = { ...DEFAULTS, kLocal: 6 };
+  const P = withSymbol({ ...DEFAULTS, kLocal: 6 }, { mintick: 0.01 });
   const local = lvl({ lo: 107.0, hi: 107.3, q: 70, t: T0 + 1, tf: TF.LOCAL });
   const a2 = lvl({ lo: 110.0, hi: 110.3, price: 110.3, q: 78, t: T0 + 2, tf: TF.A2, src: SRC.ANCHOR });
   const ctx = { ...baseCtx, close: 100, atr: 1, atrA2: 6 }; // reach(A2) = 2.5 × 6 = 15
@@ -140,17 +143,17 @@ test('T5 identity expiry: Q_stay privilege needs a live entry member', () => {
   const ctx = { ...baseCtx, close: 100 };
   const slotWith = (keys) => ({ ...emptySlot(), active: true, lo: 101, hi: 101.35, entryKeys: keys, lastKeys: keys });
   // q = 50 is between Q_stay (45) and Q_enter (55).
-  const withEntry = buildZones([k1, k2], ctx);
+  const withEntry = buildZones([k1, k2], ctx, PM);
   const s1 = selectSlots(withEntry.zones, [slotWith([k1.key]), emptySlot(), emptySlot(), emptySlot()], ctx);
   assert.equal(s1.pick[0], 0);
   assert.deepEqual(s1.next[0].entryKeys, [k1.key]); // carried = old entry keys ∩ live members
   // k1 died: the zone still exists (k2) but has lost its privilege.
-  const withoutEntry = buildZones([k2], ctx);
+  const withoutEntry = buildZones([k2], ctx, PM);
   const s2 = selectSlots(withoutEntry.zones, [slotWith([k1.key]), emptySlot(), emptySlot(), emptySlot()], ctx);
   assert.equal(s2.pick[0], -1);
   // A new entry through Q_enter resets the entry keys to the current members.
   const strong = lvl({ lo: 101.1, hi: 101.35, q: 60, t: T0 + 3 });
-  const s3 = selectSlots(buildZones([strong], ctx).zones, [slotWith([k1.key]), emptySlot(), emptySlot(), emptySlot()], ctx);
+  const s3 = selectSlots(buildZones([strong], ctx, PM).zones, [slotWith([k1.key]), emptySlot(), emptySlot(), emptySlot()], ctx);
   assert.deepEqual(s3.next[0].entryKeys, [strong.key]);
 });
 
@@ -159,8 +162,8 @@ test('T6 mitigation: deep penetration + weak rejection consumes more than + stro
   const weak = mk();
   const strong = mk();
   // Approach from below (prev close 99.5), wick to the far edge (depth 1).
-  runEpisode(weak, 101.0, 99.8, 99.95, 99.5, 1.0, 10);   // closes 0.05 below lo → rej 0.05
-  runEpisode(strong, 101.0, 98.7, 98.8, 99.5, 1.0, 10);  // closes 1.2 below lo → rej 1.0
+  runEpisode(weak, 101.0, 99.8, 99.95, 99.5, 1.0, 10, PM);   // closes 0.05 below lo → rej 0.05
+  runEpisode(strong, 101.0, 98.7, 98.8, 99.5, 1.0, 10, PM);  // closes 1.2 below lo → rej 1.0
   assert.ok(weak.mitigation > strong.mitigation);
   assert.ok(Math.abs(weak.mitigation - 0.6 * 1 * 0.95) < 1e-12);
   assert.equal(strong.mitigation, 0);
@@ -207,7 +210,7 @@ function signatureSlots(slots) {
 }
 
 test('T7 reload determinism: same trailing W bars → same map (local + DOZ + A1/A2 anchors)', () => {
-  const P = DEFAULTS;
+  const P = PM;
   const bars = syntheticBars(8000, 21);
   const series = computeSeries(bars, P);
   const f1 = htfFeedFactory(bars, 5, TF.A1);
@@ -245,7 +248,7 @@ test('T7 reload determinism: same trailing W bars → same map (local + DOZ + A1
 });
 
 test('T7b a start inside the window can differ, which is why W is required', () => {
-  const P = DEFAULTS;
+  const P = PM;
   const bars = syntheticBars(5000, 21);
   const series = computeSeries(bars, P);
   const A = new Engine(bars, series, P, { startBar: 0 });
@@ -260,7 +263,7 @@ test('T7b a start inside the window can differ, which is why W is required', () 
 });
 
 test('T8 anchor lifecycle follows the feed: no live eviction, tombstones only while in feed', () => {
-  const P = DEFAULTS;
+  const P = PM;
   const a2Item = { price: 105, nb: 100, bt: T0, typ: TYP.HIGH, tfRank: TF.A2 };
   const poolA2 = [];
   const poolA1 = [];
@@ -298,7 +301,7 @@ test('T9 zones with more than 6 members: privilege and last keys are never trunc
   const ctx = { ...baseCtx, close: 100, atr: 1 };
   // Eight overlapping members inside one zone; the 8th in precedes order is weakest.
   const members = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => lvl({ lo: 101 + i * 0.01, hi: 101.3 + i * 0.01, q: 70 - i, t: T0 + i * 60_000 }));
-  const built = buildZones(members, ctx);
+  const built = buildZones(members, ctx, PM);
   assert.equal(built.zones.length, 1);
   assert.equal(built.zones[0].members.length, 8);
   const sel = selectSlots(built.zones, [emptySlot(), emptySlot(), emptySlot(), emptySlot()], ctx);
@@ -307,7 +310,7 @@ test('T9 zones with more than 6 members: privilege and last keys are never trunc
   // Only the weakest (8th) entry member survives, with q between Q_stay and Q_enter.
   const survivor = members[7];
   survivor.q = 50; survivor.s = 50;
-  const later = buildZones([survivor], ctx);
+  const later = buildZones([survivor], ctx, PM);
   const sel2 = selectSlots(later.zones, sel.next, ctx);
   assert.equal(sel2.pick[0], 0); // privilege kept through the 8th key
   assert.deepEqual(sel2.next[0].entryKeys, [survivor.key]);

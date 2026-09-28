@@ -26,6 +26,24 @@ export const DEFAULTS = Object.freeze({
   useDOZ: true,
 });
 
+// Symbol metadata (Pine syminfo.*). There is deliberately no default: every formula
+// that Pine floors or rounds with syminfo.mintick requires the real tick of the
+// symbol, so a missing value fails loudly instead of silently using 1e-12.
+export function withSymbol(P, symbol) {
+  const mintick = symbol?.mintick;
+  if (!(Number.isFinite(mintick) && mintick > 0)) throw new Error(`symbol metadata missing: mintick must be a positive number, got ${mintick}`);
+  return Object.freeze({ ...P, mintick });
+}
+
+export function requireMintick(P) {
+  const m = P?.mintick;
+  if (!(Number.isFinite(m) && m > 0)) throw new Error('symbol metadata missing: mintick (use withSymbol(P, { mintick }))');
+  return m;
+}
+
+// Pine: na(x) ? na : math.max(x, syminfo.mintick)  (pine:571-572)
+const floorTickOrNull = (x, mintick) => (x == null ? null : Math.max(x, mintick));
+
 // memberKey = birthTime × KEY_BASE + disc, disc = src·6 + tfRank·2 + typ ∈ [0, 17].
 export function memberKeyOf(birthTime, src, tfRank, typ) {
   const disc = src * 6 + tfRank * 2 + typ;
@@ -77,7 +95,7 @@ export function precedes(a, b) {
 // ---------------------------------------------------------------------------
 
 export function runEpisode(lv, h, l, c, pc, atr, bi, P = DEFAULTS) {
-  const width = Math.max(lv.hi - lv.lo, 1e-12);
+  const width = Math.max(lv.hi - lv.lo, requireMintick(P)); // pine:864
   const touch = h >= lv.lo && l <= lv.hi;
   let rej = null;
   const lastT = lv.lastTestChartBar ?? bi - P.pivotLen - 1;
@@ -286,11 +304,13 @@ export function buildZones(levels, ctx, P = DEFAULTS) {
   for (let i = 0; i < n; i++) if (mz[i] >= 0) zones[mz[i]].members.push(srt[i]);
   for (const z of zones) aggregateZone(z, ctx, P);
   const sorted = zones.slice().sort((x, y) => x.lo - y.lo);
-  const violations = checkBuilderInvariants(sorted, tel.suppressed, n, mg);
+  // pine:1466  tol = |close|·1e-9 + mintick·1e-6 (invariant checks only)
+  const tol = Math.abs(ctx.close) * 1e-9 + requireMintick(P) * 1e-6;
+  const violations = checkBuilderInvariants(sorted, tel.suppressed, n, mg, tol);
   return { zones: sorted, suppressed: tel.suppressed, violations };
 }
 
-export function checkBuilderInvariants(zones, suppressed, n, mg) {
+export function checkBuilderInvariants(zones, suppressed, n, mg, tol) {
   const v = [];
   let contributing = 0;
   for (let i = 0; i < zones.length; i++) {
@@ -298,14 +318,14 @@ export function checkBuilderInvariants(zones, suppressed, n, mg) {
     contributing += z.members.length;
     if (z.members.length < 1) v.push('I6_NO_MEMBER');
     if (z.lo > z.hi) v.push('I1_BOUNDS');
-    if (z.hi - z.lo > z.wz + 1e-9) v.push('I3_WIDTH');
+    if (z.hi - z.lo > z.wz + tol) v.push('I3_WIDTH');
     const ulo = Math.min(...z.members.map((m) => m.lo));
     const uhi = Math.max(...z.members.map((m) => m.hi));
     if (ulo !== z.lo || uhi !== z.hi) v.push('I4_UNION');
-    for (const m of z.members) if (m.lo < z.lo || m.hi > z.hi) v.push('I5_CORE_OUTSIDE');
+    for (const m of z.members) if (m.lo < z.lo - tol || m.hi > z.hi + tol) v.push('I5_CORE_OUTSIDE');
     if (i > 0) {
       if (zones[i - 1].hi >= z.lo) v.push('I1_OVERLAP');
-      if (z.lo - zones[i - 1].hi < mg - 1e-9) v.push('I2_GAP');
+      if (z.lo - zones[i - 1].hi < mg - tol) v.push('I2_GAP');
     }
   }
   if (contributing + suppressed.length !== n) v.push('I5_ACCOUNTING');
@@ -434,6 +454,7 @@ export function checkSelectionInvariants(zones, pick, close, rEffUp, rEffDn, con
 // ---------------------------------------------------------------------------
 
 export function computeSeries(bars, P = DEFAULTS) {
+  const mintick = requireMintick(P);
   const n = bars.length;
   const tr = bars.map((b, i) => (i === 0 ? b.h - b.l : Math.max(b.h - b.l, Math.abs(b.h - bars[i - 1].c), Math.abs(b.l - bars[i - 1].c))));
   const atrEng = new Array(n);
@@ -441,7 +462,8 @@ export function computeSeries(bars, P = DEFAULTS) {
   for (let i = 0; i < n; i++) {
     sum += tr[i];
     if (i >= P.ATR_ENG_LEN) sum -= tr[i - P.ATR_ENG_LEN];
-    atrEng[i] = i >= P.ATR_ENG_LEN - 1 ? sum / P.ATR_ENG_LEN : tr[i];
+    // pine:532  atrEng = max(nz(sma(tr(true), ATR_ENG_LEN), tr(true)), mintick)
+    atrEng[i] = Math.max(i >= P.ATR_ENG_LEN - 1 ? sum / P.ATR_ENG_LEN : tr[i], mintick);
   }
   const L = P.pivotLen;
   const swingPH = new Array(n).fill(null);
@@ -492,9 +514,11 @@ export class Engine {
   step(i) {
     if (i < this.startBar) return null;
     const P = this.P, bars = this.bars, b = bars[i];
-    const atr = Math.max(this.series.atrEng[i], 1e-12);
+    const mintick = requireMintick(P);
+    const atr = this.series.atrEng[i]; // already floored at mintick by computeSeries
     const pc = i > 0 ? bars[i - 1].c : b.c;
-    const feed = this.anchorFeed ? this.anchorFeed(i) : { now: [null, null, null], atrA1: null, atrA2: null, items: [] };
+    const rawFeed = this.anchorFeed ? this.anchorFeed(i) : { now: [null, null, null], atrA1: null, atrA2: null, items: [] };
+    const feed = { ...rawFeed, atrA1: floorTickOrNull(rawFeed.atrA1, mintick), atrA2: floorTickOrNull(rawFeed.atrA2, mintick) };
     const ev = newEvents();
     this.ring.unshift(b); if (this.ring.length > P.RING_LEN) this.ring.pop();
 
@@ -535,7 +559,7 @@ export class Engine {
     const L = P.pivotLen;
     if (this.series.swingPH[i] != null) {
       const p = i - L, px = this.series.swingPH[i];
-      const sAtr = Math.max(this.series.atrEng[p], 1e-12);
+      const sAtr = Math.max(this.series.atrEng[p], mintick); // pine:1154,1162
       const bodyTop = Math.max(bars[p].o, bars[p].c);
       const w = Math.max(0.10 * sAtr, Math.min(0.50 * sAtr, px - bodyTop));
       let rightLow = Infinity; for (let k = p; k <= i; k++) rightLow = Math.min(rightLow, bars[k].l);
@@ -544,7 +568,7 @@ export class Engine {
     }
     if (this.series.swingPL[i] != null) {
       const p = i - L, px = this.series.swingPL[i];
-      const sAtr = Math.max(this.series.atrEng[p], 1e-12);
+      const sAtr = Math.max(this.series.atrEng[p], mintick); // pine:1154,1162
       const bodyBot = Math.min(bars[p].o, bars[p].c);
       const w = Math.max(0.10 * sAtr, Math.min(0.50 * sAtr, bodyBot - px));
       let rightHigh = -Infinity; for (let k = p; k <= i; k++) rightHigh = Math.max(rightHigh, bars[k].h);
@@ -571,7 +595,7 @@ export class Engine {
     this.violations.push(...built.violations, ...sel.violations);
     this.slots = sel.next;
     this.lastZones = built.zones;
-    return { events: ev, slots: this.slots, zones: built.zones, sel };
+    return { events: ev, slots: this.slots, zones: built.zones, sel, ctx };
   }
 }
 
