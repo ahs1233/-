@@ -666,7 +666,7 @@ type Telemetry
     int violationsCritical = 0
     int engineBars = 0
     int hashSlots = 0
-    int hashLevels = 0
+    int hashState = 0
     int deathsBar = 0
     int largestCompBar = 0
     int zonesBuiltBar = 0
@@ -1741,8 +1741,9 @@ if engineStep
 // Auxiliary hashes of the canonical snapshot (reference/snapshot.mjs, same integer
 // encoding and arithmetic): hashSlots covers the identity level (per slot: active,
 // containing, side, lo/hi in ticks, primaryKey, gateQ, displayQ, sorted lastKeys and
-// entryKeys), hashLevels covers the engine-state level (every pool record sorted by
-// key, ages relative to this bar, DOZ swing trackers). Per bar, never cumulative.
+// entryKeys), hashState covers the engine-state level (every pool record sorted by
+// key with its source identity and ages relative to this bar, the DOZ swing trackers
+// and the OHLC ring). Per bar, never cumulative.
 // Different values prove a difference; equal values do NOT prove equality. The full
 // comparison uses raw fields (Data Window export and the log capture in section 18).
 HASH_P = 2147483647
@@ -1795,6 +1796,11 @@ hashSlot(int h0, SlotState ss, array<int> lastK, array<int> entryK, array<int> s
 
 hashLevel(int h0, Level lv) =>
     int h = hashStep(h0, lv.key)
+    h := hashStep(h, lv.source)
+    h := hashStep(h, lv.tfRank)
+    h := hashStep(h, lv.typ)
+    h := hashStep(h, lv.birthTime)
+    h := hashStep(h, toTicks(lv.price))
     h := hashStep(h, lv.state)
     h := hashStep(h, lv.polarity)
     h := hashStep(h, toTicks(lv.lo))
@@ -1863,7 +1869,16 @@ if engineStep
             hl := hashLevel(hl, array.get(snapLevels, array.get(snapOrd, i)))
     hl := hashTracker(hl, lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken)
     hl := hashTracker(hl, lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken)
-    tel.hashLevels := hl
+    // OHLC ring (index = age, 0 = newest): read by dozBuild and containEntrySide.
+    int nRing = array.size(ringC)
+    hl := hashStep(hl, nRing)
+    if nRing > 0
+        for k = 0 to nRing - 1
+            hl := hashStep(hl, toTicks(array.get(ringO, k)))
+            hl := hashStep(hl, toTicks(array.get(ringH, k)))
+            hl := hashStep(hl, toTicks(array.get(ringL, k)))
+            hl := hashStep(hl, toTicks(array.get(ringC, k)))
+    tel.hashState := hl
 
 if engineStep and validationMode
     tel.zonesBuiltBar := zoneCount
@@ -2291,7 +2306,7 @@ alertcondition(flipConfirmedEvent, "GTG — Flip Confirmed", "GTG Navigator: إ�
 // ============================================================================
 // 18. VALIDATION EXPORT — DATA WINDOW ONLY (validationMode)
 // Nothing here is drawn on the chart; values are na unless validationMode is on and
-// the engine ran on this confirmed bar. v_hashSlots, v_hashLevels and v_eventBits are
+// the engine ran on this confirmed bar. v_hashSlots, v_hashState and v_eventBits are
 // exported in both settings (instrumentation on/off comparisons); the hashes are
 // auxiliary (a difference proves a difference, equality proves nothing), so the full
 // comparison uses the raw fields: v_lo*/v_hi* (validationMode) and the log capture.
@@ -2340,7 +2355,7 @@ plot(vOn ? tel.deathsBar : na, "v_deaths", display = display.data_window)
 plot(vOn ? tel.violations : na, "v_invTotal", display = display.data_window)
 plot(vOn ? tel.violationsCritical : na, "v_invCritical", display = display.data_window)
 plot(engineStep ? tel.hashSlots : na, "v_hashSlots", display = display.data_window, precision = 0)
-plot(engineStep ? tel.hashLevels : na, "v_hashLevels", display = display.data_window, precision = 0)
+plot(engineStep ? tel.hashState : na, "v_hashState", display = display.data_window, precision = 0)
 plot(engineStep ? engineEventBits + alertBits * 128 : na, "v_eventBits", display = display.data_window, precision = 0)
 plot(vOn and slotR1.active ? slotR1.lo : na, "v_loR1", display = display.data_window, precision = 10)
 plot(vOn and slotR1.active ? slotR1.hi : na, "v_hiR1", display = display.data_window, precision = 10)
@@ -2352,10 +2367,11 @@ plot(vOn and slotS2.active ? slotS2.lo : na, "v_loS2", display = display.data_wi
 plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_window, precision = 10)
 
 // Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
-// "GTGSNAP v1" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
+// "GTGSNAP v2" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
 // ≤ captureTo. Parse with reference/capture.mjs. Read-only; off when captureFrom = 0.
-// Keep the range short: Pine Logs keeps a limited number of messages, and a bar is
-// complete only if its END line is present with the declared LVL count.
+// Keep the range short (about 20 bars): Pine Logs keeps at most 10,000 historical
+// messages per script and one bar costs 8 + levels + ring chunks (at most ~72).
+// compare-captures.mjs checks completeness per bar and coverage of the expected bars.
 f10(float x) =>
     na(x) ? "na" : str.tostring(x, "#.##########")
 
@@ -2377,14 +2393,24 @@ slotLine(string pre, string name, SlotState ss, array<int> lastK, array<int> ent
     ss.active ? pre + "SLOT|" + name + "|1|" + (ss.containing ? "1" : "0") + "|" + fi(ss.side) + "|" + f10(ss.lo) + "|" + f10(ss.hi) + "|" + fi(ss.primaryKey) + "|" + f10(ss.gateQ) + "|" + f10(ss.quality) + "|" + joinSorted(lastK, scratch) + "|" + joinSorted(entryK, scratch) : pre + "SLOT|" + name + "|0"
 
 levelLine(string pre, Level lv) =>
-    pre + "LVL|" + fi(lv.key) + "|" + fi(lv.state) + "|" + fi(lv.polarity) + "|" + f10(lv.lo) + "|" + f10(lv.hi) + "|" + f10(lv.s) + "|" + f10(lv.mitigation) + "|" + f10(lv.evidence) + "|" + fi(lv.tests) + "|" + fi(lv.ageNative) + "|" + (lv.epActive ? "1" : "0") + "|" + fi(lv.epSide) + "|" + f10(lv.epMaxDepth) + "|" + fi(lv.breakDir) + "|" + fi(lv.breakCloses) + "|" + (lv.breakFromFlip ? "1" : "0") + "|" + fi(lv.backCloses) + "|" + sinceText(lv.lastTestChartBar) + "|" + sinceText(lv.stateChartBar) + "|" + sinceText(lv.backStartChartBar)
+    pre + "LVL|" + fi(lv.key) + "|" + fi(lv.source) + "|" + fi(lv.tfRank) + "|" + fi(lv.typ) + "|" + fi(lv.birthTime) + "|" + f10(lv.price) + "|" + fi(lv.state) + "|" + fi(lv.polarity) + "|" + f10(lv.lo) + "|" + f10(lv.hi) + "|" + f10(lv.s) + "|" + f10(lv.mitigation) + "|" + f10(lv.evidence) + "|" + fi(lv.tests) + "|" + fi(lv.ageNative) + "|" + (lv.epActive ? "1" : "0") + "|" + fi(lv.epSide) + "|" + f10(lv.epMaxDepth) + "|" + fi(lv.breakDir) + "|" + fi(lv.breakCloses) + "|" + (lv.breakFromFlip ? "1" : "0") + "|" + fi(lv.backCloses) + "|" + sinceText(lv.lastTestChartBar) + "|" + sinceText(lv.stateChartBar) + "|" + sinceText(lv.backStartChartBar)
+
+// One RING line per RING_CHUNK bars: first age, ring size, "o,h,l,c;…" (age 0 = newest).
+RING_CHUNK = 16
+ringLine(string pre, int a0, int n) =>
+    string txt = pre + "RING|" + fi(a0) + "|" + fi(n) + "|"
+    int a1 = math.min(a0 + RING_CHUNK, n) - 1
+    if a1 >= a0
+        for k = a0 to a1
+            txt += (k > a0 ? ";" : "") + f10(array.get(ringO, k)) + "," + f10(array.get(ringH, k)) + "," + f10(array.get(ringL, k)) + "," + f10(array.get(ringC, k))
+    txt
 
 trackerPart(float px, int bar, bool broken) =>
     na(px) ? "0|na|na|0" : "1|" + f10(px) + "|" + fi(bar_index - bar) + "|" + (broken ? "1" : "0")
 
 bool captureOn = engineStep and captureFrom > 0 and time >= captureFrom and time <= captureTo
 if captureOn
-    string pre = "GTGSNAP|v1|" + fi(time) + "|"
+    string pre = "GTGSNAP|v2|" + fi(time) + "|"
     log.info(pre + "META|" + syminfo.tickerid + "|" + timeframe.period + "|" + f10(syminfo.mintick))
     log.info(slotLine(pre, "R1", slotR1, keysLastR1, keysEntryR1, hashScratch))
     log.info(slotLine(pre, "R2", slotR2, keysLastR2, keysEntryR2, hashScratch))
@@ -2395,5 +2421,11 @@ if captureOn
         for i = 0 to nCap - 1
             log.info(levelLine(pre, array.get(snapLevels, array.get(snapOrd, i))))
     log.info(pre + "TRK|" + trackerPart(lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken) + "|" + trackerPart(lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken))
+    int nRingCap = array.size(ringC)
+    if nRingCap == 0
+        log.info(pre + "RING|0|0|")
+    else
+        for r0 = 0 to nRingCap - 1 by RING_CHUNK
+            log.info(ringLine(pre, r0, nRingCap))
     log.info(pre + "EV|" + fi(engineEventBits) + "|" + fi(alertBits))
-    log.info(pre + "END|" + fi(nCap) + "|" + fi(tel.hashSlots) + "|" + fi(tel.hashLevels))
+    log.info(pre + "END|" + fi(nCap) + "|" + fi(tel.hashSlots) + "|" + fi(tel.hashState))

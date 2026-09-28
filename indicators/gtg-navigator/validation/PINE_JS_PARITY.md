@@ -87,35 +87,86 @@ The fix only changes results when the tick is comparable to zone width or ATR, w
 
 The synthetic data is not on the tick grid. That makes the mintick 1 case a stress test, not a realistic market.
 
-## 7. Snapshot, hash and capture contract (R1)
+## 7. Snapshot, hash and capture contract (R1, revised after review message 45)
 
-- **Canonical snapshot**: `reference/snapshot.mjs` (`canonicalSnapshot`). There is no absolute `bar_index` in it. Chart-bar fields are replaced by their age relative to the snapshot bar (`sinceTest`, `sinceState`, `sinceBack`, and the tracker's `since`). `ageNative` is already relative.
-- **Full equality**: `compareSnapshots` compares raw fields using the tolerances in §2, level by level (geometry ⊂ identity ⊂ state; events is a separate level).
-- **Auxiliary hash** (Pine 12a ↔ `snapshot.mjs`):
-  - Arithmetic: `h ← (h·1000003 + mix(x)) mod (2^31−1)` with `mix(x) = (r²·3 + r·131071 + 1) mod p`, where `r = x mod p ≥ 0`. This is verified against an independent Python implementation (S11).
-  - The intermediate values stay below 2^62 in Pine's 64-bit `int`. JS uses BigInt.
-  - Slot encoding:
-    - Starts with tag `1`.
-    - An inactive slot → `[0]`.
-    - An active slot → `[1, containing, side, ticks(lo), ticks(hi), primaryKey, round(gateQ·100), round(displayQ·100), nLast, …sorted lastKeys, nEntry, …sorted entryKeys]`.
-  - Level encoding:
-    - Starts with `[2, nLevels]`.
-    - Then, for each record sorted by key: `[key, state, polarity, ticks(lo), ticks(hi), q6(s), q6(mitigation), q6(evidence), tests, ageNative, epActive, epSide, q6(epMaxDepth), breakDir, breakCloses, breakFromFlip, backCloses, sinceTest|−1, sinceState|−1, sinceBack|−1]`.
-    - Then each tracker: `[1, ticks(px), since, broken]` or `[0]`.
-  - Here `q6(x) = round(x·10^6)`.
-  - The field order in Pine is checked against this list by C2/C3 in `pine-contract.test.mjs`. Negative control: swapping two lines in Pine makes C2 fail.
-- **Pine exports**:
-  - In both modes: `v_hashSlots`, `v_hashLevels`, `v_eventBits` (engine events in bits 0–6, the ten alerts in bits 7–16).
-  - With `validationMode`: `v_loR1…v_hiS2` (raw, precision 10).
-  - Total plot-type outputs: 51 of 64 (checked by C5).
-- **Diagnostic capture** (`captureFrom`/`captureTo`):
-  - Pine prints the full snapshot as `GTGSNAP v1` lines through `log.info`.
-  - `tools/compare-captures.mjs` parses one or two captures. It reports incomplete bars (the END line or the LVL count), compares field by field at the requested levels, and **recomputes the hash in JS from the captured raw fields and compares it with the hash Pine printed**. That checks the Pine hash code on real data.
-  - Self-test on JS captures: `artifacts/r1-capture-tool-selftest.txt`.
-- **Coverage limits**:
-  - The Pine Logs pane keeps a limited number of messages. Each captured bar costs `8 + nLevels` messages, up to 68.
-  - The exact retention limit and the maximum message length were **not verified**: the TradingView docs could not be reached from this environment (the egress proxy blocked them).
-  - Captures are therefore meant for short ranges, and completeness is checked per bar rather than assumed.
-- **Near-boundary caveat**:
-  - Captured floats have 10 decimals, so a quantised field (`ticks`, `q6`, `q100`) recomputed from the text can differ from Pine's value when the exact value lies within ~5·10⁻⁵ of a rounding boundary.
-  - If a Pine↔JS hash mismatch occurs while every raw field matches within tolerance, check this first. It is not proof of a hash bug.
+### 7.1 What each level contains
+
+| Level | Content |
+|---|---|
+| geometry | per slot: `active`, `side`, `containing`, `lo`, `hi` |
+| identity | geometry + `primaryKey`, sorted `lastKeys`, sorted `entryKeys`, `gateQ`, `displayQ` |
+| state | identity + every pool record (local, A1, A2, tombstones included), each with **source identity** (`source`, `tfRank`, `typ`, `birthTime`, `price`) and its state fields; the DOZ swing trackers; the **OHLC ring** (index = age, 0 = newest) |
+| events | the 7 engine events (Pine: plus the 10 alert conditions in `alertBits`) |
+
+**Persistent-variable inventory** (Pine `var` state that a later engine decision reads) and its coverage:
+
+| Variable | Read by | In `state`? |
+|---|---|---|
+| `localPool`, `anchorPoolA1/A2` (all `Level` fields) | every phase | yes, except `birthNativeBar` (absolute index; `ageNative` is its relative form) and `birthAtr` (written at admission, never read afterwards: `grep birthAtr` finds only the type field and the `Level.new` calls) |
+| slot `entryKeys` / `lastKeys` | privilege (`zonePrivSlot`), event filter (`keyInPrevSlots`) | yes (identity) |
+| `SlotState` scalars | consumers, HUD, drawing | `active/containing/side/lo/hi/primaryKey/gateQ/quality` yes; `distAtr/isFar/leftTime/roleType/navTag/shortTag` are recomputed from the zone on every write and not read by the engine; `side/quality` of an inactive slot are stale values nothing reads |
+| `lastSwingHigh/Low Px/Bar/Broken` | DOZ trigger | yes (trackers, bar as relative age) |
+| `ringO/H/L/C` | `dozBuild`, `containEntrySide` | yes (ring) |
+| `feedKeysA1/A2`, `work`, `srt`, `zonePool`, scratch arrays | — | rebuilt from scratch on every engine bar; not state |
+| `tel.*` | nothing in the engine | not state |
+
+Input-derived series (`ta.pivothigh`, `ta.sma`, the HTF `request.security` feed) are functions of the bars, not engine state. Their equality is what the conditions of a determinism claim (same OHLC, same feed, same settings, sufficient warm-up) require.
+
+`memberKey = birthTime·32 + src·6 + tfRank·2 + typ` is injective within its contract (T0). The state level nevertheless compares `source`, `tfRank`, `typ`, `birthTime` and `price` explicitly, so a wrong key encoding cannot hide a different identity (S15).
+
+### 7.2 Comparison rules
+
+- `compareSnapshots` groups records by key. Every one of these is reported, and none is resolved through a map lookup:
+  - a different record count (`levels.length`);
+  - a key present on one side only (`missing`);
+  - a key present a different number of times (`multiplicity`, S12).
+- A repeated key is itself a critical invariant violation (`DUP_KEY`). The comparison must never hide it.
+- Prices use the tolerance in §2, and ticks are compared separately. The ring uses the same price rules.
+
+### 7.3 Auxiliary hash (Pine 12a ↔ `snapshot.mjs`)
+
+- **Arithmetic.** For each input `x`, with `p = 2^31 − 1`:
+  - `r = x mod p`, kept ≥ 0;
+  - `mix(x) = (r²·3 + r·131071 + 1) mod p`;
+  - `h ← (h·1000003 + mix(x)) mod p`.
+  - This was checked against an independent Python implementation (S11). Every intermediate value stays below 2^62.
+- **`hashSlots`** (identity level) encodes:
+  - the tag `1`;
+  - for an inactive slot: `[0]`;
+  - for an active slot: `[1, containing, side, ticks(lo), ticks(hi), primaryKey, round(gateQ·100), round(displayQ·100), nLast, …sorted lastKeys, nEntry, …sorted entryKeys]`.
+- **`hashState`** (state level; `v_hashState`, formerly `v_hashLevels`) encodes:
+  - the prefix `[2, nLevels]`;
+  - then, for each record sorted by key: `[key, source, tfRank, typ, birthTime, ticks(price), state, polarity, ticks(lo), ticks(hi), q6(s), q6(mitigation), q6(evidence), tests, ageNative, epActive, epSide, q6(epMaxDepth), breakDir, breakCloses, breakFromFlip, backCloses, sinceTest|−1, sinceState|−1, sinceBack|−1]`;
+  - then each tracker: `[1, ticks(px), since, broken]` or `[0]`;
+  - then `[ringSize, ticks(o), ticks(h), ticks(l), ticks(c), …]` in age order.
+- **Negative controls** on the Pine field order: C2, C3, C8 and C9 in `pine-contract.test.mjs`. Swapping two lines makes C2 fail.
+- **Limitation.** If a key were repeated, Pine's `array.sort_indices` gives no order among the equal keys, so the hash could vary. The raw comparison reports the multiplicity regardless (S12).
+
+### 7.4 Pine exports and capture
+
+- **Data Window exports:**
+  - both modes: `v_hashSlots`, `v_hashState`, `v_eventBits` (engine events in bits 0–6, the 10 alerts in bits 7–16);
+  - with `validationMode`: `v_loR1…v_hiS2` (raw, precision 10);
+  - plot-type outputs: 51 of 64 (C5).
+- **Log capture.** `captureFrom`/`captureTo` prints `GTGSNAP v2` lines through `log.info`:
+  - `META`, 4 × `SLOT`, one `LVL` line per record (with the identity fields), `TRK`, `RING` (16 bars per line), `EV`, `END`;
+  - one bar costs `8 + nLevels + ceil(ring/16)` messages, at most about 72;
+  - `v1` captures are rejected by the parser.
+- **Coverage.** Pine Logs keeps at most **10,000 historical messages per script**. GPT reported this from the official TradingView *Debugging → Pine Logs* page (message 45). Claude could not open that page from this environment.
+  - A capture is therefore a **short-window, targeted** diagnostic: about 20 closed bars, far below the limit. It is not a substitute for the long-range CSV/S2 export.
+- **`tools/compare-captures.mjs`** fails (exit 1) on:
+  - an **INCOMPLETE BAR**: a line of a captured bar is missing or duplicated, or the LVL or RING count differs from the declared one;
+  - a **MISSING BAR**: an expected bar with no line at all. This is checked with `--expect-times <file>`, or with `--expect-from/--expect-to/--step-ms` for 24/7 symbols;
+  - an **UNEXPECTED BAR**;
+  - two files whose bar sets differ (`ONLY_A`/`ONLY_B`), unless the explicit opt-in `--intersection-ok` is given;
+  - any field difference or alert-bit difference;
+  - a Pine hash that differs from the JS hash computed from the same captured fields.
+  - Negative controls: S14 and `artifacts/r1b-capture-tool-selftest.txt`.
+- **Near-boundary caveat.** Captured floats have 10 decimals. A quantised field recomputed from the text can differ from Pine's value when the exact value lies within about 5·10⁻⁵ of a rounding boundary. If every raw field matches but the hashes do not, check this first.
+- **TradingView acceptance (G1/E20)** must confirm that large keys such as `54405343360000` print in full through `str.tostring(x, "#")`, with no scientific notation and no separators.
+
+### 7.5 Cost (G2 requirement, not measured)
+
+- The hashes are computed on every engine bar in both modes, so that on/off comparisons stay possible. Per bar that is about (levels × 25) + (ring × 4) + slot keys hash steps, plus a sort of at most about 60 keys.
+- The logic is read-only with respect to the engine. **Its runtime cost is NOT measured.**
+- G2 must compare `cdf1a8a` with this version on the same symbol, timeframe and data. If the cost is material, the capture and hash path is moved behind a diagnostic switch in a way that keeps the on/off comparison valid (to be proposed, not assumed).

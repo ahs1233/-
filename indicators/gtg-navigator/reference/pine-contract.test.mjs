@@ -29,12 +29,12 @@ test('C1 hash constants match the JS reference', () => {
   assert.match(pine, /^HASH_K = 131071$/m);
 });
 
-test('C2 hashLevel field order equals encodeLevels (snapshot.mjs)', () => {
-  // Same order as encodeLevels: key, state, polarity, lo/hi ticks, s, mitigation, evidence,
-  // tests, ageNative, epActive, epSide, epMaxDepth, breakDir, breakCloses, breakFromFlip,
-  // backCloses, sinceTest, sinceState, sinceBack.
+test('C2 hashLevel field order equals the per-level part of encodeState (snapshot.mjs)', () => {
+  // Same order as encodeState: key, source, tfRank, typ, birthTime, price ticks, state,
+  // polarity, lo/hi ticks, s, mitigation, evidence, tests, ageNative, epActive, epSide,
+  // epMaxDepth, breakDir, breakCloses, breakFromFlip, backCloses, sinceTest, sinceState, sinceBack.
   assert.deepEqual(stepArgs(fnBody('hashLevel')), [
-    'lv.key', 'lv.state', 'lv.polarity', 'toTicks(lv.lo)', 'toTicks(lv.hi)', 'q6(lv.s)', 'q6(lv.mitigation)', 'q6(lv.evidence)',
+    'lv.key', 'lv.source', 'lv.tfRank', 'lv.typ', 'lv.birthTime', 'toTicks(lv.price)', 'lv.state', 'lv.polarity', 'toTicks(lv.lo)', 'toTicks(lv.hi)', 'q6(lv.s)', 'q6(lv.mitigation)', 'q6(lv.evidence)',
     'lv.tests', 'lv.ageNative', 'lv.epActive ? 1 : 0', 'lv.epSide', 'q6(lv.epMaxDepth)', 'lv.breakDir', 'lv.breakCloses',
     'lv.breakFromFlip ? 1 : 0', 'lv.backCloses', 'sinceOr(lv.lastTestChartBar)', 'sinceOr(lv.stateChartBar)', 'sinceOr(lv.backStartChartBar)',
   ]);
@@ -50,13 +50,27 @@ test('C3 hashSlot field order equals encodeSlots (snapshot.mjs)', () => {
 });
 
 test('C4 the linear slotDigest and cumulative checksum are gone', () => {
-  assert.doesNotMatch(pine, /slotDigest|CHECKSUM_MOD|slotChecksum/);
+  assert.doesNotMatch(pine, /slotDigest|CHECKSUM_MOD|slotChecksum|hashLevels/);
+});
+
+test('C8 hashState folds trackers then the OHLC ring (age order), as encodeState does', () => {
+  const block = pine.slice(pine.indexOf('hl := hashTracker(hl, lastSwingHighPx'), pine.indexOf('tel.hashState := hl'));
+  const order = ['hashTracker(hl, lastSwingHighPx', 'hashTracker(hl, lastSwingLowPx', 'hashStep(hl, nRing)',
+    'toTicks(array.get(ringO, k))', 'toTicks(array.get(ringH, k))', 'toTicks(array.get(ringL, k))', 'toTicks(array.get(ringC, k))'];
+  let at = -1;
+  for (const s of order) { const i = block.indexOf(s); assert.ok(i > at, `${s} missing or out of order`); at = i; }
+});
+
+test('C9 capture prints GTGSNAP v2 with the identity fields and RING lines', () => {
+  assert.match(pine, /"GTGSNAP\|v2\|"/);
+  assert.match(pine, /"LVL\|" \+ fi\(lv\.key\) \+ "\|" \+ fi\(lv\.source\) \+ "\|" \+ fi\(lv\.tfRank\) \+ "\|" \+ fi\(lv\.typ\) \+ "\|" \+ fi\(lv\.birthTime\) \+ "\|" \+ f10\(lv\.price\)/);
+  assert.match(pine, /^RING_CHUNK = 16$/m);
 });
 
 test('C5 plot budget and export names', () => {
   const plots = pine.match(/^\s*(plot|plotshape|plotchar|plotarrow|plotcandle|plotbar|bgcolor|barcolor|fill|hline)\(/gm) || [];
   assert.ok(plots.length <= 64, `plot-type outputs: ${plots.length}`);
-  for (const name of ['v_hashSlots', 'v_hashLevels', 'v_eventBits', 'v_loR1', 'v_hiR1', 'v_loR2', 'v_hiR2', 'v_loS1', 'v_hiS1', 'v_loS2', 'v_hiS2']) {
+  for (const name of ['v_hashSlots', 'v_hashState', 'v_eventBits', 'v_loR1', 'v_hiR1', 'v_loR2', 'v_hiR2', 'v_loS1', 'v_hiS1', 'v_loS2', 'v_hiS2']) {
     assert.ok(pine.includes(`"${name}"`), `missing export ${name}`);
   }
 });

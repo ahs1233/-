@@ -24,7 +24,15 @@
 | L3 | engine state | كل سجلات الـpools (محلي + A1 + A2، بما فيها tombstones) مرتبة بالمفتاح: الحالة والقطبية والحدود وs وmitigation وevidence وtests وageNative وحقول الحلقة والكسر، مع الأعمار **النسبية** للشمعة الحالية بدل أي `bar_index` مطلق؛ + متتبعا السوينغ لـDOZ | نفس قواعد L1/L2 لكل حقل. |
 | L4 | consumer events | أحداث المحرك السبعة (`Events`)؛ في Pine أيضًا الشروط العشرة للتنبيهات | مساواة تامة لكل bit. |
 
-- المقارنة الكاملة = الحقول الخام، وليست الـhash. الـhash (`hashSlots` لـL2، `hashLevels` لـL3) مساعد: **اختلافه يثبت الاختلاف؛ تساويه لا يثبت التساوي.**
+- المقارنة الكاملة = الحقول الخام، وليست الـhash. الـhash (`hashSlots` لـL2، `hashState` لـL3) مساعد: **اختلافه يثبت الاختلاف؛ تساويه لا يثبت التساوي.**
 - Pine لا يستطيع تصدير كل L2/L3 عبر plots (حد 64). التغطية في Pine:
-  - `Export chart data`: L1 كاملًا (حدود خام + أعلام) + primaryKey + `hashSlots`/`hashLevels` + bits أحداث L4.
+  - `Export chart data`: L1 كاملًا (حدود خام + أعلام) + primaryKey + `hashSlots`/`hashState` + bits أحداث L4.
   - diagnostic capture محدود عبر `log.info` لمدى زمني يحدده المستخدم: يطبع snapshot كاملًا (L1–L4) بصيغة سطرية قابلة للتحليل، لعدد محدود من الشموع (حدود Pine Logs مذكورة في `PINE_JS_PARITY.md`).
+
+## سجل المراجعة
+
+| الرسالة | البند | قرار GPT | ما تغيّر |
+|---|---|---|---|
+| 45 | R6 | ACCEPTED لهذه المرحلة (تحقق مستقل من run 36391388838: Node 22 و24 نجحا) | — |
+| 45 | R2 | ACCEPTED على مستوى المرجع JS/العقد الحسابي؛ parity تشغيل Pine وpivot probe: NOT_RUN | — |
+| 45 | R1 | CHANGES REQUIRED. وصلت نسختان من الرسالة 45 بملاحظات مختلفة؛ عولجت ملاحظاتهما معًا | (أ) multiplicity: المقارنة تجمع السجلات حسب المفتاح وتبلّغ عن الطول والتكرار (S12). (ب) ring الأسعار ضمن مستوى state وضمن `hashState` (S13، مع oracle سلوكي: ring مختلف يغيّر R1/S1 للمنطقة المحتوية). (ج) الهوية المصدرية source/tfRank/typ/birthTime/price صريحة في snapshot وPine وhash (S15). (د) `compare-captures` صارم: شمعة ناقصة كليًا تُفشل المقارنة الثنائية افتراضيًا، و`--expect-*` للملف الواحد، وتمييز MISSING عن INCOMPLETE (S14). (هـ) الصيغة `GTGSNAP v2`. |
