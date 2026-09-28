@@ -210,3 +210,36 @@ test('C17 rolling diagnostics (18b): no plot counts, window 1000, analyzer masks
   assert.doesNotMatch(pine, /diagPrevTot|diagPrevCrit|v_diagInv1000/);
 });
 
+
+// Top-level statement that owns line i (its nearest non-indented, non-comment line above).
+function ownerOf(lines, i) {
+  for (let j = i; j >= 0; j--) if (lines[j] !== '' && !lines[j].startsWith(' ') && !lines[j].startsWith('//')) return lines[j];
+  return '';
+}
+
+test('C18 G2 cost gate: the state-level hash and snapshot collection run only for validationMode or the capture', () => {
+  const lines = pine.split('\n');
+  assert.match(pine, /^bool hashStateOn = engineStep and \(validationMode or captureOn\)$/m);
+  const capDefs = lines.map((l, i) => (l.startsWith('bool captureOn = ') ? i : -1)).filter((i) => i >= 0);
+  assert.equal(capDefs.length, 1, 'captureOn defined once');
+  assert.equal(lines[capDefs[0]], 'bool captureOn = engineStep and captureFrom > 0 and time >= captureFrom and time <= captureTo');
+  assert.ok(capDefs[0] < lines.indexOf('bool hashStateOn = engineStep and (validationMode or captureOn)'), 'captureOn before hashStateOn');
+  // Heavy work (per pool record and per ring bar) sits only under "if hashStateOn".
+  const heavy = [/\bhashLevel\(hl,/, /hashStep\(hl, toTicks\(array\.get\(ringO, k\)\)\)/, /array\.push\(snapLevels, lv\)/, /array\.sort_indices\(snapKeys/, /^\s+tel\.hashState := /, /hashKeyList\(hsObs, strongObsKeys/];
+  for (const re of heavy) {
+    const at = lines.map((l, i) => (re.test(l) ? i : -1)).filter((i) => i >= 0);
+    assert.ok(at.length > 0, `${re} not found`);
+    for (const i of at) assert.equal(ownerOf(lines, i), 'if hashStateOn', `${re} at line ${i + 1} is outside "if hashStateOn"`);
+  }
+  // The slot level stays on every engine step (cheap; v_hashSlots and DEBUG "hs").
+  const hsAt = lines.findIndex((l) => /^\s+tel\.hashSlots := hs$/.test(l));
+  assert.equal(ownerOf(lines, hsAt), 'if engineStep');
+  assert.match(pine, /^plot\(hashStateOn \? tel\.hashState : na, "v_hashState"/m);
+  assert.match(pine, /^plot\(engineStep \? tel\.hashSlots : na, "v_hashSlots"/m);
+  // Write-only telemetry: nothing before section 12a reads the hashes or the snapshot scratch.
+  const sec12a = lines.findIndex((l) => l.startsWith('// 12a. VALIDATION TELEMETRY'));
+  assert.ok(sec12a > 0);
+  lines.forEach((l, i) => {
+    if (i < sec12a && !l.trimStart().startsWith('//')) assert.doesNotMatch(l, /tel\.hash(State|Slots)|snapLevels|snapOrd|hashStateOn/, `line ${i + 1} reads telemetry before 12a`);
+  });
+});
