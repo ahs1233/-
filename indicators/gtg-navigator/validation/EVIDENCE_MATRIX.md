@@ -1,0 +1,20 @@
+# EVIDENCE_MATRIX — GTG Navigator v0.4.7
+
+الحالات: `VERIFIED_THIS_RUN` (نُفّذ في هذه المهمة وله artifact)، `REPORTED_PREVIOUSLY` (منقول من تقرير سابق دون artifact في المستودع)، `FAILED`، `NOT_RUN`، `NOT_OBSERVABLE`.
+لا تتحول `NOT_RUN` أو `REPORTED_PREVIOUSLY` إلى PASS دون artifact مرتبط بـcommit. عبارة «PASS» في التقارير السابقة تُنقل هنا كـ`REPORTED_PREVIOUSLY` مع حدودها.
+
+| ID | Claim | Source | Commit | Symbol/TF/Data range | Method | Expected | Actual | Artifact | Status | Limitation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| E01 | اختبارات المرجع الأصلية تنجح | Claude | `cdf1a8a` | synthetic (seeds في الاختبارات) | `node --test …/engine.test.mjs` على Node v22.22.2 | 11/11 | 11/11 | `artifacts/node-tests-cdf1a8a.txt` | VERIFIED_THIS_RUN | تثبت منطق المرجع JS فقط، لا Pine ولا الحتمية على بيانات حقيقية. المراجعة السابقة شغّلتها على Node v24.21.0. |
+| E02 | R1–R4 تُعاد إنتاجًا | Claude | `cdf1a8a` | fixtures يدوية | `repro/baseline-repro.mjs` | إعادة إنتاج | R1 تصادم، R2 نسبة 10، R3 تناوب، R4 لا تنبيه | `artifacts/baseline-repro-cdf1a8a.txt` | VERIFIED_THIS_RUN | R1/R4 ترجمة لسطور Pine وليست تشغيل Pine. |
+| E03 | تطابق Pine↔JS لمعادلات المحرك (11 نقطة) | Claude (تدقيق نصي سابق) | قبل `cdf1a8a` | — | مراجعة يدوية | تطابق | خطأ في أرضية العرض/ATR (R2) | `artifacts/baseline-repro-cdf1a8a.txt` | FAILED | الادعاء السابق سُحب؛ يُستبدل بـ`PINE_JS_PARITY.md`. |
+| E04 | G1: الترجمة في TradingView بلا Compiler Error | GPT | غير مسجّل في الأدلة | — | Add to chart | لا خطأ | PASS (مبلّغ) | لا يوجد | REPORTED_PREVIOUSLY | Pine تغيّر بعده؛ يجب إعادة G1 على الـSHA النهائي. |
+| E05 | G3: strictDebug بلا Runtime Error على XAUUSD M1/M5/M15/H1 | GPT | غير مسجّل | XAUUSD، المزوّد غير مسجّل | strictDebug=true | لا خطأ | PASS (مبلّغ) | لا يوجد | REPORTED_PREVIOUSLY | لا BTCUSDT؛ لا مدى زمني مسجّل. |
+| E06 | G2 الأداء | GPT | غير مسجّل | BTCUSDT M1 فقط لبند G2g/N5 | Pine Profiler | ضمن الحدود | جزئي (مبلّغ) | لا يوجد | REPORTED_PREVIOUSLY (جزئي) / باقي المصفوفة NOT_RUN | لا أرقام محفوظة في المستودع. |
+| E07 | N2: validationMode on/off لا يغيّر الخريطة | GPT | غير مسجّل | غير مسجّل | تساوي `v_slotChecksum` | تساوٍ | تساوٍ (مبلّغ) | لا يوجد | REPORTED_PREVIOUSLY — **مُضعَف** | دليل hash فقط (R1)؛ يُعاد بالحقول الخام. |
+| E08 | S1b: نفس الخانات عند نفس الشمعة مع studyExtraBars 0 مقابل 5000 | GPT | غير مسجّل | XAUUSD M1 | 8 قيم خام (`v_sig*`, `v_d*`) | تساوٍ | تساوٍ (مبلّغ) | لا يوجد | REPORTED_PREVIOUSLY | لا حدود خام ولا entry/last keys؛ شمعة واحدة. |
+| E09 | G4: الترتيب والحتمية | Claude | `cdf1a8a` | synthetic | T1، T7 | تطابق | تطابق | `artifacts/node-tests-cdf1a8a.txt` | VERIFIED_THIS_RUN (المرجع فقط) | T7 يشارك series/feed بين التشغيلين (R5). |
+| E10 | G5: معايرة D | GPT | `4e45184` (commit المعايرة) | XAUUSD | مقارنة بصرية | 2+2 أوضح | مبلّغ | لا يوجد | REPORTED_PREVIOUSLY — PROVISIONAL | لا عينة تحقق منفصلة. |
+| E11 | S2: تصدير XAUUSD M1 إعداد D | GPT | غير مسجّل | 7360 صفًا، W=1983 (مبلّغ) | Table-view extractor | F1–F6 | PASS (مبلّغ) | CSV غير موجود في المستودع | REPORTED_PREVIOUSLY | ينتظر commit الملفات. |
+| E12 | CI يشغّل اختبارات Navigator | Claude | `cdf1a8a` | — | قراءة `ci.yml` | موجود | غير موجود | `.github/workflows/ci.yml` | FAILED | يُغلق بـR6. |
+| E13 | حالة نوتشن متزامنة | Claude | — | — | Notion fetch | صفحة | 404 لهذا التكامل | لا يوجد | NOT_OBSERVABLE | يحتاج صلاحية أو نسخة نصية من أحمد/GPT. |
