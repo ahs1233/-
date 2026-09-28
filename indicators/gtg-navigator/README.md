@@ -95,8 +95,9 @@ node --test indicators/gtg-navigator/reference/*.test.mjs
 | P1–P6 | أرضيات mintick في المرجع كما في Pine (`parity.test.mjs`)، مقابل oracle يدوي مستقل + negative control |
 | S1–S15 | snapshot canonical ومستويات التكافؤ وصيغة الالتقاط (`snapshot.test.mjs`، `snapshot-coverage.test.mjs`)، بما فيها مثال التصادم والتكرار وring الأسعار والشمعة الناقصة |
 | H0–H6 | R5: إعادة التحميل من تواريخ مستقلة (تاريخ أقصر/أطول، بداية HTF، studyExtraBars، إعادة تحميل لاحقة، إعادة تشغيل، إثبات الإحماء) مع negative controls (`history.test.mjs`) |
+| R5.1–R5.3 | بصمة R5 لـE41: طيّ نافذة الالتقاط، والنص، وتطابق التحميلات المستقلة، ورفض 3 negative controls (`r5.test.mjs`) |
 | D1–D9 | التشخيص المتدحرج (1000 شمعة): packing دقيق، فك مع حراسة، مطابقة oracle brute-force، INV التراكمي، ونص الجدول (`diag.test.mjs`) |
-| C1–C18 | فحوص نصية ثابتة على ملف Pine: ترتيب حقول البصمة، ميزانية الـplots، بقاء أرضيات mintick، وعدم تغيّر v0.4.6 |
+| C1–C19 | فحوص نصية ثابتة على ملف Pine: ترتيب حقول البصمة، ميزانية الـplots، بقاء أرضيات mintick، وعدم تغيّر v0.4.6 |
 
 الاختبارات تثبت منطق المرجع لا تشغيل Pine: ملف Pine ترجمة يدوية لنفس الخطوات. حالة التطابق لكل معادلة، والتسامحات، والفجوات المفتوحة (قاعدة تعادل pivot، أزمنة HTF، ملفات الفريمات غير M1، طبقة المستهلك) في `validation/PINE_JS_PARITY.md`. ادعاء «التطابق روجع» السابق **سُحب** بعد اكتشاف اختلاف أرضية mintick (R2) الذي أُصلح في المرجع.
 

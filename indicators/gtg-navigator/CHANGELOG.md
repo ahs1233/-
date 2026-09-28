@@ -121,6 +121,14 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
 - **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
 
+### E41 helper — R5 reload fingerprint (validation only; no engine change)
+- **Why**: E41 needs a comparison of loads that avoids Table View and long UI loops.
+- **Change**: inside the capture window only, Pine folds hashSlots, hashState and the event bits over the warmed bars. The GTGDIAG cell shows the result as `R5=<n>,<cold>,<from>,<to>,<hSlots>,<hState>,<hEvents>`. There is no plot and no work outside the window.
+- **JS twin**: `diag.mjs` (`r5Fingerprint`, `parseR5`, `r5Verdict`) and `tools/compare-r5.mjs`.
+- **Tests**:
+  - R5.1–R5.3: the long warm-up, short warm-up and moved-window reload loads agree. A cold start, a position-grouped feed and a single flipped event bit are all rejected.
+  - C19, whose 4 negative controls each fail it alone (`validation/artifacts/e41-helper-checks.txt`).
+
 ### G2 — state-level hash only when read (Pine telemetry; no engine change)
 - **Problem**: G2 FAILED on 680fb20. The Profiler warns "Heavy script" and times out, while cdf1a8a profiles cleanly; normal runtime is 0 errors. Section 12a computed hashState on every engine step: about 1,776 hash steps, plus a sort and helper calls. With validationMode off and no capture, nothing reads it.
 - **Change**: `hashStateOn = engineStep and (validationMode or captureOn)` now gates the pool collection, the sort, hashState and the latch fold. hashSlots (about 57 steps) stays on every engine step.

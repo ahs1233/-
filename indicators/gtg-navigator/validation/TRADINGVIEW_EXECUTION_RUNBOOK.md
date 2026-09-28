@@ -177,7 +177,7 @@ Each gets an independent evidence line and artifact.
 ## 9. Completed evidence that must not be rerun without technical reason
 
 Current known completed evidence:
-- Reference suite: 107/107 PASS at 68cf96e (R5); 108/108 at a123ad6 (G2 candidate, C18 added).
+- Reference suite: 107/107 PASS at 68cf96e (R5); 108/108 at a123ad6 (G2, C18); 112/112 at 6d62bee (E41 helper, R5.1–R5.3 + C19).
 - GTG workflow SUCCESS.
 - General CI SUCCESS.
 - E35 real XAU M1 1000-row validation previously completed with:
