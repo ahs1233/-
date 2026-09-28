@@ -94,6 +94,7 @@ node --test indicators/gtg-navigator/reference/*.test.mjs
 | K1–K6 | عقود `headingStrong > headingClear`، `routeStrong > routeClear`، `speedExtreme ≥ speedFast`: لا يظهر «بقوة» مع إشارة محايدة، ولا لون/تنبيه استثنائي مع فئة أدنى (`consumers.test.mjs`) |
 | P1–P6 | أرضيات mintick في المرجع كما في Pine (`parity.test.mjs`)، مقابل oracle يدوي مستقل + negative control |
 | S1–S15 | snapshot canonical ومستويات التكافؤ وصيغة الالتقاط (`snapshot.test.mjs`، `snapshot-coverage.test.mjs`)، بما فيها مثال التصادم والتكرار وring الأسعار والشمعة الناقصة |
+| H0–H6 | R5: إعادة التحميل من تواريخ مستقلة (تاريخ أقصر/أطول، بداية HTF، studyExtraBars، إعادة تحميل لاحقة، إعادة تشغيل، إثبات الإحماء) مع negative controls (`history.test.mjs`) |
 | D1–D9 | التشخيص المتدحرج (1000 شمعة): packing دقيق، فك مع حراسة، مطابقة oracle brute-force، INV التراكمي، ونص الجدول (`diag.test.mjs`) |
 | C1–C17 | فحوص نصية ثابتة على ملف Pine: ترتيب حقول البصمة، ميزانية الـplots، بقاء أرضيات mintick، وعدم تغيّر v0.4.6 |
 
@@ -106,7 +107,7 @@ node --test indicators/gtg-navigator/reference/*.test.mjs
 - G1 (ترجمة بلا Compiler Error): مبلَّغ PASS سابقًا على commit أقدم — يجب إعادته.
 - G2 (الأداء): مبلَّغ جزئيًا (BTCUSDT M1)؛ باقي المصفوفة لم يُشغَّل.
 - G3 (strictDebug على XAUUSD M1/M5/M15/H1): مبلَّغ PASS سابقًا — يجب إعادته.
-- G4 (الترتيب والحتمية): مثبت في المرجع JS فقط؛ اختبار إعادة تحميل من تاريخين مستقلين (R5) لم يُنجز بعد.
+- G4 (الترتيب والحتمية): مثبت في المرجع JS، بما فيه إعادة التحميل من تواريخ مستقلة (R5، E40)؛ المقابل في TradingView (E41) لم يُشغَّل.
 - G5 (المعايرة D): مبلَّغ، مؤقت (PROVISIONAL) بلا عينة تحقق منفصلة.
 
 ## قيود معروفة

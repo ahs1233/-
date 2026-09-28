@@ -121,6 +121,28 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
 - **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
 
+### R5 — reload determinism from independent histories (JS reference and tests only; no engine or Pine change)
+- **Problem**: T7 compared two engines that shared one `series` and one `anchorFeed` computed from the whole 8000-bar array, so it could not see anything that depends on how much history a chart has. Its HTF builder also grouped bars by array position.
+- **Change**: `reference/history.mjs` builds everything a chart instance sees from its own data:
+  - an M1 market with an XAU-like session calendar (daily break, weekend);
+  - the series from the load alone;
+  - A1/A2 from time buckets of the market, starting at the load's own HTF history start, with Pine's `lookahead_on` + `[1]` semantics;
+  - the engine start from the end of the load (`last − (W + studyExtraBars)`), as in Pine.
+- **Tests** (`reference/history.test.mjs`):
+  - H0: bucket semantics on a hand fixture.
+  - H1: causality from prefixes, with a lookahead control.
+  - H2: shorter and longer history plus HTF start, 2 seeds, with a position-grouped-feed control.
+  - H3: studyExtraBars 0/700/3000.
+  - H4: live continuation against a reload with a moved window.
+  - H5: byte-identical replay.
+  - H6: the warm-up is real (617 bars differ, last at +616) and W = 1983 covers it.
+- **Negative controls**: 4 mutations, each failing at least one test (`validation/artifacts/r5-history-checks.txt`):
+  - M1: infinite-memory ATR.
+  - M2: a 600-bar warm-up.
+  - M3: unbounded HTF pivot list.
+  - M4: a feed without `[1]`.
+- **Effect**: none on the engine or Pine. TradingView counterpart: E41 (NOT_RUN).
+
 ### Diagnostics moved to a validation-only table; INV corrected (review message 59; measurement only)
 - **Problem**: the four 18b `plot()` calls (commit `98177c2`, blob `461ca64`) caused **RE10140** on TradingView, the plot-count limit.
   - The earlier "52 → 56 of 64" statement was a *source call* count, not a plot-count measurement. That claim is withdrawn.
