@@ -156,6 +156,12 @@ Prevention: never select Chrome by process alone; target the verified TradingVie
 Symptom: old extractor returned 0 usable rows after TradingView UI changes.
 Prevention: run a short smoke test before any long extraction. Stop immediately if schema/count differs from contract.
 
+### E-16 — Profiler timeout on 680fb20
+Symptom: Profiler shows "Heavy script" (production) and times out (RE10110 with validationMode ON + 5000; "Calculation timed out" with OFF + 0); normal runtime is 0 errors.
+Cause (static, not yet confirmed on TradingView): state-level hash in section 12a ran on every engine step in production.
+Fix: candidate a123ad6 gates it behind validationMode or the capture.
+Prevention: static contract C18; re-profile the candidate before any other G2 claim.
+
 ## 8. Evidence separation
 
 Never conflate:
@@ -171,7 +177,7 @@ Each gets an independent evidence line and artifact.
 ## 9. Completed evidence that must not be rerun without technical reason
 
 Current known completed evidence:
-- Reference suite reached 95/95 PASS after diagnostics addition.
+- Reference suite: 107/107 PASS at 68cf96e (R5); 108/108 at a123ad6 (G2 candidate, C18 added).
 - GTG workflow SUCCESS.
 - General CI SUCCESS.
 - E35 real XAU M1 1000-row validation previously completed with:
@@ -179,6 +185,8 @@ Current known completed evidence:
   - no Accepted without nearby Break within the tested causal contract
   - no Flip without prior Accepted within the tested causal contract
   - max invariant violations = 0
+- On 680fb20 (blob 8cdddd1), OANDA:XAUUSD: M1 runtime PASS (Runtime=0), H1 sanity PASS, N2 ON/OFF zone geometry PASS, GTGDIAG window PASS (E39).
+- G2 on 680fb20: FAILED — PROFILER_TIMEOUT (normal runtime still PASS). Candidate a123ad6 NOT_RETESTED_ON_TRADINGVIEW.
 - Do not rerun these merely because a later UI action fails.
 
 ## 10. Operational discipline

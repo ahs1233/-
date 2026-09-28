@@ -63,3 +63,5 @@
 | 59 | أداة القياس | وصلت نسختان: (1) INV غير صحيح (counterexample: مخالفة قبل النافذة ⇒ 0) ⇒ أقصى عدّاد تراكمي بقاعدة 2^26؛ (2) RE10140 على TradingView ⇒ احذف الـplots واعرض القيم في جدول للتحقق فقط. نُفّذ الاتحاد | منفّذ؛ ادعاء «52→56 آمن» سُحب؛ بانتظار المراجعة |
 | 61 | أداة القياس / TradingView | خلية OANDA:XAUUSD M1 على `680fb20`: بلا RE10140 ولا runtime error؛ mismatch/causal/INV = 0 (E39). لا يغلق المصفوفة الكاملة ولا G2 | E39 أُضيف؛ فتح R5 |
 | 61 | R5 | فُتح بعد خلية TradingView (E39) | منفَّذ في المرجع JS (E40)؛ خطة TradingView في E41؛ بانتظار المراجعة |
+| 63 | R5 | ACCEPTED على مستوى المرجع JS (15b325d) | — |
+| 63 | G2 | FAILED — PROFILER_TIMEOUT على `680fb20` (Heavy script؛ RE10110 مع validation+5000؛ timeout مع OFF+0)؛ التشغيل العادي Runtime=0؛ N2 هندسة وH1 PASS | السبب المحدد: hashState في 12a على كل engineStep (~1776 hash step مقابل ~57 لـhashSlots). candidate `a123ad6` يحجبه خلف validationMode/capture (C18)؛ NOT_RETESTED_ON_TRADINGVIEW |

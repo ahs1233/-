@@ -121,6 +121,12 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
 - **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
 
+### G2 candidate — state-level hash only when read (Pine telemetry; no engine change; NOT_RETESTED_ON_TRADINGVIEW)
+- **Problem**: G2 FAILED on 680fb20. The Profiler warns "Heavy script" and times out, while cdf1a8a profiles cleanly; normal runtime is 0 errors. Section 12a computed hashState on every engine step: about 1,776 hash steps, plus a sort and helper calls. With validationMode off and no capture, nothing reads it.
+- **Change**: `hashStateOn = engineStep and (validationMode or captureOn)` now gates the pool collection, the sort, hashState and the latch fold. hashSlots (about 57 steps) stays on every engine step.
+- **Effect**: v_hashState is na in production. Hash values are unchanged wherever they are computed. Engine, events, selection and calibration are unchanged.
+- **Tests**: C18 pins the gate and the read-only property. Its 4 negative controls each fail C18 alone (`validation/artifacts/g2-cost-gate-checks.txt`).
+
 ### R5 — reload determinism from independent histories (JS reference and tests only; no engine or Pine change)
 - **Problem**: T7 compared two engines that shared one `series` and one `anchorFeed` computed from the whole 8000-bar array, so it could not see anything that depends on how much history a chart has. Its HTF builder also grouped bars by array position.
 - **Change**: `reference/history.mjs` builds everything a chart instance sees from its own data:
