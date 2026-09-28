@@ -117,6 +117,7 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
   - The property holds across three seeds × 4000 bars.
   - Negative control: an injected defect (a held slot taking all members) fails 4 of 5 (`validation/artifacts/i13-identity-negative-control.txt`).
 - **Q-A.** The Break Accepted alert message is now neutral: «الكسر أصبح مقبولًا وفق محرك المناطق.». The condition is unchanged and there are still 10 alerts (C15).
+- HUD roadStatus for breakAcceptedUp/Dn → «اختراق مقبول» / «كسر مقبول» (message 55; text only; «Flip محتمل» kept on the BROKEN navTag, C16).
 - **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
 - **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
 

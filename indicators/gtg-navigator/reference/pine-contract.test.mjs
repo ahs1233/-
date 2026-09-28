@@ -161,3 +161,10 @@ test('C15 Q-A: Break Accepted message is neutral (a FLIP whose break is accepted
   assert.equal((pine.match(/^alertcondition\(/gm) || []).length, 10); // count unchanged
 });
 
+test('C16 roadStatus for accepted breaks is neutral; "Flip محتمل" stays only on the BROKEN navTag', () => {
+  assert.match(pine, /^if breakAcceptedUp\n    roadStatus := "اختراق مقبول"\nelse if breakAcceptedDn\n    roadStatus := "كسر مقبول"$/m);
+  const uses = pine.split('\n').filter((l) => l.includes('Flip محتمل'));
+  assert.equal(uses.length, 1, uses.join('\n'));
+  assert.match(uses[0], /ss\.navTag := zn\.hasFlip \? "Flip مؤكد" : prim\.state == ST_BROKEN \? "Flip محتمل"/);
+});
+

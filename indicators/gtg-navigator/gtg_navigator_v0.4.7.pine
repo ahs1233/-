@@ -2099,9 +2099,9 @@ string roadStatus = "حركة طبيعية"
 bool roadAboutDest1 = false
 
 if breakAcceptedUp
-    roadStatus := "اختراق مقبول — Flip محتمل"
+    roadStatus := "اختراق مقبول"
 else if breakAcceptedDn
-    roadStatus := "كسر مقبول — Flip محتمل"
+    roadStatus := "كسر مقبول"
 else if breakResistance
     roadStatus := fuelScore >= fuelHighThreshold and tacticalSign > 0 ? "اختراق مقاومة مدعوم" : "اختراق مقاومة — يحتاج تثبيت"
 else if breakSupport
