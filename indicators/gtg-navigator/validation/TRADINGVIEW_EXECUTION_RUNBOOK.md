@@ -2,14 +2,16 @@
 
 Status: mandatory operating procedure for all GTG Navigator TradingView validation work.
 
-## 1. Browser exclusivity — hard rule
+## 1. TradingView surface — hard rule
+
+Ahmed's decision (2026-09-29, after the TradingView MCP setup): validation runs on **TradingView Desktop**, driven through the Chrome DevTools Protocol by the TradingView MCP (`tradingview-mcp-jackson`) and small CDP helpers. This replaces the earlier "Google Chrome only" rule.
 
 - **Microsoft Edge is forbidden for this project unless Ahmed explicitly changes this rule.**
-- Do not open Edge for TradingView, Claude, ChatGPT, or diagnostics.
-- TradingView must exist in **one browser only** during a validation run.
-- Current allowed browser: **Google Chrome**.
-- If TradingView is already open in Chrome, never open another TradingView session in another browser.
-- If a second TradingView session is discovered, stop the run and close/ignore the duplicate before continuing.
+- Validation target: TradingView Desktop (Microsoft Store build, `TradingView.Desktop_n534cwy3pjxzj`), started with `--remote-debugging-port=9222`.
+- CDP must listen on `127.0.0.1:9222` only. Check with `Get-NetTCPConnection -LocalPort 9222` before every session; a listener on `0.0.0.0` or `::` is a stop condition.
+- Ahmed's Chrome session stays open but is **not** a validation surface. Do not touch, close, reload or drive it.
+- Launch: the repo launchers do not work for the Store build (E-23). Use `IApplicationActivationManager.ActivateApplication("TradingView.Desktop_n534cwy3pjxzj!TradingView.Desktop", "--remote-debugging-port=9222")` after a graceful close of any running instance.
+- Layout protection (E-24): the account allows one saved layout (`r1MCAX09`), with autosave. Before any change on the chart, turn autosave off, keep a JSON backup of the layout, and at the end reload the saved layout without saving and turn autosave back on.
 
 ## 2. One controlled TradingView surface
 
@@ -26,8 +28,8 @@ Before validation:
 ## 3. Preflight gate — no validation before PASS
 
 All items must be verified before reading any TradingView result:
-1. Browser = Chrome.
-2. Edge not used.
+1. Surface = TradingView Desktop over CDP on 127.0.0.1:9222; autosave off (E-24).
+2. Edge not used; Chrome not driven.
 3. Target = OANDA:XAUUSD.
 4. Timeframe = requested timeframe.
 5. GTG Navigator visible.
@@ -194,6 +196,23 @@ Symptom: Chrome showed "Leave site? Changes you made may not be saved." A later 
 Cause: the layout had unsaved changes ("Save" shown), and navigating by URL triggers beforeunload.
 Fix: the script was killed. Inputs were re-applied, and the matrix switched to TradingView's own controls: the timeframe radio buttons ("1 minute", "5 minutes", "15 minutes", "1 hour") and the symbol button with its search dialog.
 Prevention: never navigate by URL during validation. Never send Enter outside a known dialog. After any reload, re-verify inputs before reading results.
+
+### E-23 — Store build of TradingView Desktop ignores the repo launchers
+Symptom: `launch_tv_debug.bat` and `tv_launch` cannot find the exe; `launch_tv_debug.vbs` starts TradingView without the debug port; starting the exe directly gives "Access is denied".
+Cause: MSIX package. `WindowsApps` cannot be listed, direct exe start is refused, and Store activation does not pass `ELECTRON_EXTRA_LAUNCH_ARGS`.
+Fix: close the app gracefully, then start it with `IApplicationActivationManager.ActivateApplication(AUMID, "--remote-debugging-port=9222")`. The command line then carries the flag and CDP listens on `127.0.0.1:9222`.
+Prevention: use this launch path only; verify the listener address after every launch.
+
+### E-24 — Autosave on the only saved layout
+Symptom: any study, input, symbol or timeframe change on the Desktop chart would be written into Ahmed's layout `r1MCAX09`. "Create new layout" is refused ("reached the limit of saved chart layouts").
+Cause: plan limit of one saved layout, `Chart.autoSaveEnabled = true`.
+Fix: `_saveChartService.setAutoSaveEnabled(false)` after confirming `hasChanges() = false`; JSON backup via `saveToJSON()` to `Documents\tv_layout_r1MCAX09_backup_20260929.json`. Restore at the end: reload the saved layout without saving, check the four studies, turn autosave on.
+Prevention: preflight item 1 checks autosave before any chart change.
+
+### E-25 — Pine Editor controls move with the script name
+Symptom: a fixed-coordinate click on "Add to chart" opened the script menu after a longer script name shifted the header.
+Fix: click by label (`aria-label`/`title`/text), or by geometry relative to the header (the "More" button has no label; it is the rightmost header button).
+Prevention: no fixed coordinates in the editor header.
 
 ## 8. Evidence separation
 
