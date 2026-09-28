@@ -188,6 +188,7 @@ Current known completed evidence:
 - On 680fb20 (blob 8cdddd1), OANDA:XAUUSD: M1 runtime PASS (Runtime=0), H1 sanity PASS, N2 ON/OFF zone geometry PASS, GTGDIAG window PASS (E39).
 - G2 on 680fb20: FAILED — PROFILER_TIMEOUT (normal runtime still PASS). Kept as regression evidence.
 - G2 on a123ad6 (blob 4b5234e), XAU M1, production mode: Profiler completes, with no RE10110 and no timeout (E44). TradingView showed no reliable total time, so there is no numeric comparison with cdf1a8a.
+- E41 (R5 reload determinism on TradingView), helper 6d62bee (blob 27f3bba), XAU M1, window 2026-09-28 15:00–15:39 UTC: A/B/C identical R5 tuples, n=40, cold=0; compare-r5.mjs RESULT OK (exit 0).
 - Do not rerun these merely because a later UI action fails.
 
 ## 10. Operational discipline

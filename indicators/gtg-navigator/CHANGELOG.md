@@ -123,6 +123,7 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 
 ### E41 helper — R5 reload fingerprint (validation only; no engine change)
 - **Why**: E41 needs a comparison of loads that avoids Table View and long UI loops.
+- **TradingView result (GPT)**: XAU M1, 40-bar window. Readings A, B and C gave the same tuple, with n=40 and cold=0. `compare-r5.mjs` returned RESULT OK (E41).
 - **Change**: inside the capture window only, Pine folds hashSlots, hashState and the event bits over the warmed bars. The GTGDIAG cell shows the result as `R5=<n>,<cold>,<from>,<to>,<hSlots>,<hState>,<hEvents>`. There is no plot and no work outside the window.
 - **JS twin**: `diag.mjs` (`r5Fingerprint`, `parseR5`, `r5Verdict`) and `tools/compare-r5.mjs`.
 - **Tests**:
