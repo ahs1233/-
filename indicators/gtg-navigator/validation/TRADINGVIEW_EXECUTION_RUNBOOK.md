@@ -159,7 +159,7 @@ Prevention: run a short smoke test before any long extraction. Stop immediately 
 ### E-16 — Profiler timeout on 680fb20
 Symptom: Profiler shows "Heavy script" (production) and times out (RE10110 with validationMode ON + 5000; "Calculation timed out" with OFF + 0); normal runtime is 0 errors.
 Cause (static, not yet confirmed on TradingView): state-level hash in section 12a ran on every engine step in production.
-Fix: candidate a123ad6 gates it behind validationMode or the capture.
+Fix: a123ad6 gates it behind validationMode or the capture. Verified on TradingView: the Profiler now completes in production mode (E44).
 Prevention: static contract C18; re-profile the candidate before any other G2 claim.
 
 ## 8. Evidence separation
@@ -186,7 +186,8 @@ Current known completed evidence:
   - no Flip without prior Accepted within the tested causal contract
   - max invariant violations = 0
 - On 680fb20 (blob 8cdddd1), OANDA:XAUUSD: M1 runtime PASS (Runtime=0), H1 sanity PASS, N2 ON/OFF zone geometry PASS, GTGDIAG window PASS (E39).
-- G2 on 680fb20: FAILED — PROFILER_TIMEOUT (normal runtime still PASS). Candidate a123ad6 NOT_RETESTED_ON_TRADINGVIEW.
+- G2 on 680fb20: FAILED — PROFILER_TIMEOUT (normal runtime still PASS). Kept as regression evidence.
+- G2 on a123ad6 (blob 4b5234e), XAU M1, production mode: Profiler completes, with no RE10110 and no timeout (E44). TradingView showed no reliable total time, so there is no numeric comparison with cdf1a8a.
 - Do not rerun these merely because a later UI action fails.
 
 ## 10. Operational discipline

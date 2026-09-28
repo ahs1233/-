@@ -65,3 +65,4 @@
 | 61 | R5 | فُتح بعد خلية TradingView (E39) | منفَّذ في المرجع JS (E40)؛ خطة TradingView في E41؛ بانتظار المراجعة |
 | 63 | R5 | ACCEPTED على مستوى المرجع JS (15b325d) | — |
 | 63 | G2 | FAILED — PROFILER_TIMEOUT على `680fb20` (Heavy script؛ RE10110 مع validation+5000؛ timeout مع OFF+0)؛ التشغيل العادي Runtime=0؛ N2 هندسة وH1 PASS | السبب المحدد: hashState في 12a على كل engineStep (~1776 hash step مقابل ~57 لـhashSlots). candidate `a123ad6` يحجبه خلف validationMode/capture (C18)؛ NOT_RETESTED_ON_TRADINGVIEW |
+| 65 (النسخة الثانية) | G2 | بعد `a123ad6`: Profiler يكتمل بلا timeout (XAU M1، الإنتاج)؛ لا رقم كلي من TradingView | E44: بوابة الـtimeout أُغلقت؛ المقارنة الرقمية غير مغلقة؛ E23 باقٍ دليلًا على الـregression. إجراء E41 نهائي، بلا تغيير كود |
