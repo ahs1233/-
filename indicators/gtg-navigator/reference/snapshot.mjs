@@ -170,15 +170,19 @@ export function compareSnapshots(a, b, levels = ['state', 'events']) {
 // Auxiliary hash — the same integer encoding and arithmetic as Pine (section 12a)
 // ---------------------------------------------------------------------------
 
-export const HASH_P = 2147483647n; // 2^31 − 1 (prime)
-const HASH_B = 1000003n;
-const HASH_K = 131071n;
+// Pine evaluates this integer arithmetic in float64 (E20, measured on a real capture: the
+// exact BigInt version disagreed on all 60 bars; this version reproduces Pine's values).
+// r * r reaches ~4.6e18 > 2^53, so the product is rounded exactly as Pine rounds it.
+// Keep the operator order of Pine section 12a: ((r * r) % P) * 3.
+export const HASH_P = 2147483647; // 2^31 − 1 (prime)
+const HASH_B = 1000003;
+const HASH_K = 131071;
 
 function hashMix(x) {
   const r = ((x % HASH_P) + HASH_P) % HASH_P;
-  return (r * r % HASH_P * 3n + r * HASH_K + 1n) % HASH_P;
+  return (r * r % HASH_P * 3 + r * HASH_K + 1) % HASH_P;
 }
-const hashStep = (h, x) => (h * HASH_B + hashMix(BigInt(x))) % HASH_P;
+const hashStep = (h, x) => (h * HASH_B + hashMix(x)) % HASH_P;
 const q100 = (x) => Math.round(x * 100);
 const q6 = (x) => Math.round(x * 1e6);
 const b01 = (x) => (x ? 1 : 0);
@@ -217,9 +221,9 @@ export function encodeState(snap) {
 }
 
 export function hashInts(ints) {
-  let h = 0n;
+  let h = 0;
   for (const x of ints) h = hashStep(h, x);
-  return Number(h);
+  return h;
 }
 
 export const hashSlots = (snap) => hashInts(encodeSlots(snap));

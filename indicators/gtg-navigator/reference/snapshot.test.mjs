@@ -137,16 +137,29 @@ test('S9 capture text round-trips and reports truncation', () => {
 test('S10 hash encoding is pinned: regression guard for the Pine↔JS encoding contract (values taken from this implementation, not an oracle)', () => {
   const a = baseSnap();
   assert.deepEqual(encodeSlots(a).slice(0, 9), [1, 1, 0, 1, 10000, 10100, key(1), 6600, 6900]);
-  assert.equal(hashSlots(a), 480443048);
-  assert.equal(hashState(a), 544944316);
+  assert.equal(hashSlots(a), 365300996);
+  assert.equal(hashState(a), 792363856);
 });
 
-test('S11 hash arithmetic matches an independent implementation (Python int, vectors below)', () => {
-  // h = fold(h·1000003 + mix(x)) mod (2^31 − 1), mix(x) = (r²·3 + r·131071 + 1) mod p, r = x mod p ≥ 0.
-  // Expected values computed separately in Python with arbitrary-precision ints.
+test('S11 hash arithmetic matches an independent implementation (Python IEEE-754 floats, vectors below)', () => {
+  // h = fold(h·1000003 + mix(x)) mod (2^31 − 1), mix(x) = (r²·3 + r·131071 + 1) mod p, r = x mod p ≥ 0,
+  // evaluated in float64 as Pine does (E20). Expected values computed separately in Python with float.
+  // [-5] and [54400000000000] separate float64 from exact integers (exact: 2146828368, 362018686).
   assert.equal(hashInts([0]), 1);
   assert.equal(hashInts([1]), 131075);
   assert.equal(hashInts([1, 2, 3]), 1198590854);
-  assert.equal(hashInts([-5]), 2146828368);
-  assert.equal(hashInts([54400000000000]), 362018686);
+  assert.equal(hashInts([-5]), 2146828260);
+  assert.equal(hashInts([54400000000000]), 362018179);
+});
+
+test('S12 E20 oracle: hashSlots of a real TradingView bar equals the value Pine printed', () => {
+  // OANDA:XAUUSD M1, bar 1790629140000, mintick 0.001, blob 27f3bba (validation/artifacts/tv-e20-*).
+  // Slot fields as captured (GTGSNAP v3 SLOT lines); Pine printed END hashSlots = 1426211986.
+  const ints = [1,
+    1, 0, 1, 4117485, 4118690, 57300099840000, 8802, 8802, 2, 57300080640000, 57300099840000, 2, 57300080640000, 57300099840000,
+    1, 0, 1, 4122990, 4123615, 57300084480006, 9793, 9793, 4, 57300057600014, 57300063360000, 57300071040006, 57300084480006,
+    4, 57300057600014, 57300063360000, 57300071040006, 57300084480006,
+    1, 0, -1, 4110870, 4112133, 57300115200001, 8031, 8031, 2, 57299414400017, 57300115200001, 1, 57300115200001,
+    0];
+  assert.equal(hashInts(ints), 1426211986);
 });
