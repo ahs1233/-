@@ -69,6 +69,24 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Effect**: 0 of 8000 bars differ on 3 seeds with the defaults (`validation/artifacts/r3-impact-synthetic.txt`). No calibration or selection change.
 - **Other threshold pairs**: reviewed in `validation/REVIEW_FINDINGS.md`, with no guards added. The heading and route clear/strong inversions are flagged for a decision.
 
+### R3b — semantic input contracts for heading, route and speed (JS reference + Pine)
+- **Problem**: overlapping input ranges allow three states that contradict themselves:
+  - heading or route: the text reads "↑ صاعد بقوة" while the sign is 0. This happens when clear > strong, and also when clear = strong at the boundary score.
+  - speed: Speed Burst and the orange colour fire while the class is still "طبيعية" (when extreme < fast).
+- **Fixture before the change**: `consumers.test.mjs` K1–K3 fail on 466ec8b. The recorded outputs are in `validation/artifacts/r3b-consumers-prefix-466ec8b.txt`. `reference/consumers.mjs` transcribes the Pine lines verbatim, and C11 fails if Pine changes them.
+- **Change**:
+  - `checkParams` enforces `headingStrong > headingClear`, `routeStrong > routeClear` and `speedExtreme ≥ speedFast`.
+  - Pine raises `runtime.error` on `barstate.isfirst` with Arabic messages.
+  - Nothing is clamped. Defaults and ranges are unchanged.
+- **After**:
+  - K1–K6 pass 6 of 6.
+  - K4 checks consistency over a score grid with boundary configurations.
+  - K6 shows the oracle rejects the recorded contradictions.
+  - C12 pins the guards; it fails when the route guard is weakened.
+  - The full suite passes 54 of 54.
+- **Not guarded (documentation only)**: mediumQ/strongQ, fuelHigh/fuelExtreme, and the obstacle distances. An inversion there only makes a label band unreachable.
+- **Effect**: engine impact is 0 of 8000 bars on seeds 21/7/5. The defaults satisfy every contract (K5, C12).
+
 ### Documentation (R7, partial)
 - README:
   - The test list now includes T7b, P, S and C.

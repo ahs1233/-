@@ -35,11 +35,11 @@
 
 | الزوج | نطاقات المدخلات | أثر العكس | الحكم |
 |---|---|---|---|
-| `mediumQ` / `strongQ` | 20–80 / 40–95 (متداخلة) | نطاق «متوسط» في `strengthText` (pine:161) يصبح غير قابل للوصول | ترتيب تسميات فقط؛ لا تناوب. بلا حارس. |
-| `speedSlow` / `speedFast` / `speedExtreme` | 5–45 / 50–90 / 75–99 | slow<fast دائمًا؛ fast>extreme يجعل «سريعة» غير قابلة للوصول (pine:324) | ترتيب تسميات فقط. بلا حارس. |
-| `fuelLow` / `fuelHigh` / `fuelExtreme` | 5–50 / 50–90 / 75–99 | low=high=50 يُفرغ «طبيعي»؛ high>extreme يُفرغ «مرتفع» (pine:456) | ترتيب تسميات فقط. بلا حارس. |
-| `headingClear` / `headingStrong` | 5–45 / 40–90 (متداخلة) | إذا clear > strong: درجة بينهما تُعرض «↑ صاعد بقوة» (pine:378) بينما `headingSign = 0` (pine:374) | **تناقض دلالي بين النص والإشارة** — مرشح لحارس `headingStrong ≥ headingClear`؛ **يحتاج قرارًا** قبل التنفيذ. |
-| `routeClear` / `routeStrong` | 5–45 / 40–90 (متداخلة) | نفس التناقض: «صاعد بقوة» (pine:415) مع `routeSign = 0` (pine:413) | **مرشح لحارس `routeStrong ≥ routeClear`؛ يحتاج قرارًا.** |
+| `mediumQ` / `strongQ` | 20–80 / 40–95 (متداخلة) | نطاق «متوسط» في `strengthText` (pine:161) يصبح غير قابل للوصول | ترتيب تسميات فقط؛ لا تناقض ديناميكي. **موثّق فقط، بلا حارس** (قرار GPT، الرسالة 49). |
+| `speedSlow` / `speedFast` / `speedExtreme` | 5–45 / 50–90 / 75–99 | slow<fast دائمًا؛ extreme<fast: اللون البرتقالي وتنبيه Speed Burst (عند ≥ extreme) بينما `speedClass` ما زالت «طبيعية» (< fast) | **R3b منفَّذ:** `speedExtreme ≥ speedFast` (المساواة مسموحة: تطوي «سريعة» فقط بلا تعارض). |
+| `fuelLow` / `fuelHigh` / `fuelExtreme` | 5–50 / 50–90 / 75–99 | low=high=50 يُفرغ «طبيعي»؛ high>extreme يُفرغ «مرتفع» (pine:456) | ترتيب تسميات فقط. **موثّق فقط، بلا حارس** (قرار GPT، الرسالة 49). |
+| `headingClear` / `headingStrong` | 5–45 / 40–90 (متداخلة) | إذا clear > strong: درجة بينهما تُعرض «↑ صاعد بقوة» (pine:378) بينما `headingSign = 0` (pine:374) | **R3b منفَّذ:** `headingStrong > headingClear` (صارم: النص يستخدم ≥ strong والإشارة > clear، فالمساواة تُبقي التناقض عند الحد). |
+| `routeClear` / `routeStrong` | 5–45 / 40–90 (متداخلة) | نفس التناقض: «صاعد بقوة» (pine:415) مع `routeSign = 0` (pine:413) | **R3b منفَّذ:** `routeStrong > routeClear` (صارم، للسبب نفسه). |
 | `normalLowPct` / `normalHighPct` | 5–45 / 55–95 | لا يمكن عكسهما | مضمون بالنطاقات. |
 | `noChaseAtr` / `nearObstacleAtr` / `awarenessObstacleAtr` | 0.05–1.00 / 0.05–1.50 / 0.30–2.50 | مسافات لأغراض مختلفة؛ لا علاقة ترتيب مفروضة في الكود | بلا invariant واضح. بلا حارس. |
 
@@ -52,3 +52,5 @@
 | 45 | R1 | CHANGES REQUIRED. وصلت نسختان من الرسالة 45 بملاحظات مختلفة؛ عولجت ملاحظاتهما معًا | (أ) multiplicity: المقارنة تجمع السجلات حسب المفتاح وتبلّغ عن الطول والتكرار (S12). (ب) ring الأسعار ضمن مستوى state وضمن `hashState` (S13، مع oracle سلوكي: ring مختلف يغيّر R1/S1 للمنطقة المحتوية). (ج) الهوية المصدرية source/tfRank/typ/birthTime/price صريحة في snapshot وPine وhash (S15). (د) `compare-captures` صارم: شمعة ناقصة كليًا تُفشل المقارنة الثنائية افتراضيًا، و`--expect-*` للملف الواحد، وتمييز MISSING عن INCOMPLETE (S14). (هـ) الصيغة `GTGSNAP v2`. |
 | 47 | R1 | ACCEPTED على مستوى reference/source/static validation؛ Pine runtime parity وG1/E20 والأداء: NOT_RUN | — |
 | 47 | R3 | فُتح (حارس `qStay ≤ qEnter` فقط) | منفّذ؛ بانتظار المراجعة. |
+| 49 | R3 | ACCEPTED على مستوى reference/source/static validation؛ E26 (Pine runtime) NOT_RUN | — |
+| 49 | R3b | فُتح: `headingStrong > headingClear`، `routeStrong > routeClear`، `speedExtreme ≥ speedFast`؛ لا حارس لـmediumQ/strongQ أو fuel أو المسافات | منفّذ؛ بانتظار المراجعة. |

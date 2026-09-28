@@ -45,8 +45,19 @@ export function requireMintick(P) {
 // lower-or-equal hold threshold of the same hysteresis pair; with Q_stay > Q_enter a
 // held zone fails its own hold test and is re-admitted on the next bar (flicker).
 // Refused, never clamped (Pine: runtime.error on the first bar).
+//
+// R3b (consumer inputs, checked when the fields are present): a text that says
+// "strong" must never sit on a neutral sign, and the extreme speed colour / Speed
+// Burst must never sit on a class below "استثنائية":
+//   headingStrong > headingClear, routeStrong > routeClear (strict: the text uses
+//   >= strong while the sign uses > clear), speedExtreme >= speedFast (equality only
+//   folds the "سريعة" band).
+const has = (P, a, b) => typeof P[a] === 'number' && typeof P[b] === 'number';
 export function checkParams(P) {
   if (P.qStay > P.qEnter) throw new Error(`Q_stay (${P.qStay}) must not exceed Q_enter (${P.qEnter})`);
+  if (has(P, 'headingStrongThreshold', 'headingClearThreshold') && !(P.headingStrongThreshold > P.headingClearThreshold)) throw new Error(`headingStrong (${P.headingStrongThreshold}) must exceed headingClear (${P.headingClearThreshold})`);
+  if (has(P, 'routeStrongThreshold', 'routeClearThreshold') && !(P.routeStrongThreshold > P.routeClearThreshold)) throw new Error(`routeStrong (${P.routeStrongThreshold}) must exceed routeClear (${P.routeClearThreshold})`);
+  if (has(P, 'speedExtremeThreshold', 'speedFastThreshold') && !(P.speedExtremeThreshold >= P.speedFastThreshold)) throw new Error(`speedExtreme (${P.speedExtremeThreshold}) must not be below speedFast (${P.speedFastThreshold})`);
   return P;
 }
 

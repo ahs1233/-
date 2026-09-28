@@ -137,6 +137,16 @@ captureTo = input.time(0, "captureTo — نهاية الالتقاط (مدى ق�
 if barstate.isfirst and qStay > qEnter
     runtime.error("GTG Navigator: Q_stay (" + str.tostring(qStay) + ") يجب ألا تتجاوز Q_enter (" + str.tostring(qEnter) + "). عتبة البقاء أقل من عتبة الدخول أو تساويها.")
 
+// Input contracts (R3b): a text that says "strong" must never sit on a neutral sign
+// (strict: the text uses >= strong, the sign uses > clear), and the extreme speed
+// colour / Speed Burst must never sit on a class below "استثنائية" (equality allowed).
+if barstate.isfirst and headingStrongThreshold <= headingClearThreshold
+    runtime.error("GTG Navigator: حد الاتجاه القوي (" + str.tostring(headingStrongThreshold) + ") يجب أن يكون أكبر من حد الاتجاه الواضح (" + str.tostring(headingClearThreshold) + ").")
+if barstate.isfirst and routeStrongThreshold <= routeClearThreshold
+    runtime.error("GTG Navigator: حد المسار القوي (" + str.tostring(routeStrongThreshold) + ") يجب أن يكون أكبر من حد المسار الواضح (" + str.tostring(routeClearThreshold) + ").")
+if barstate.isfirst and speedExtremeThreshold < speedFastThreshold
+    runtime.error("GTG Navigator: حد السرعة الاستثنائية (" + str.tostring(speedExtremeThreshold) + ") يجب ألا يقل عن حد السرعة المرتفعة (" + str.tostring(speedFastThreshold) + ").")
+
 
 // ============================================================================
 // 2. HELPERS

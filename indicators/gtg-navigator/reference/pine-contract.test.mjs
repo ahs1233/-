@@ -92,3 +92,26 @@ test('C10 R3 guard: Pine refuses Q_stay > Q_enter on the first bar with runtime.
   assert.match(pine, /^qStay = input\.float\(45\.0, /m);
   assert.match(pine, /^qEnter = input\.float\(55\.0, /m);
 });
+
+test('C11 consumers.mjs transcribes these Pine lines verbatim (fails if Pine changes them)', () => {
+  const lines = [
+    'string speedClass = speedScore < speedSlowThreshold ? "بطيئة" : speedScore < speedFastThreshold ? "طبيعية" : speedScore < speedExtremeThreshold ? "سريعة" : "استثنائية"',
+    'color speedColor = speedScore >= speedExtremeThreshold ? color.orange : speedScore >= speedFastThreshold ? color.yellow : color.white',
+    'speedBurst = barstate.isconfirmed and speedScore >= speedExtremeThreshold and speedScore[1] < speedExtremeThreshold',
+    'int headingSign = headingScore > headingClearThreshold ? 1 : headingScore < -headingClearThreshold ? -1 : 0',
+    'string headingText = headingScore >= headingStrongThreshold ? "↑ صاعد بقوة" :\n     headingScore > headingClearThreshold ? "↗ صاعد" :\n     headingScore <= -headingStrongThreshold ? "↓ هابط بقوة" :\n     headingScore < -headingClearThreshold ? "↘ هابط" :\n     headingStrength <= headingDeadZone ? "→ غير حاسم" :\n     headingScore > 0 ? "↗ ميل صاعد ضعيف" : "↘ ميل هابط ضعيف"',
+    'headingStrength = math.abs(headingScore)',
+    'int routeSign = routeScore > routeClearThreshold ? 1 : routeScore < -routeClearThreshold ? -1 : 0',
+    'string routeText = routeScore >= routeStrongThreshold ? "↑ صاعد بقوة" :\n     routeScore > routeClearThreshold ? "↗ صاعد" :\n     routeScore <= -routeStrongThreshold ? "↓ هابط بقوة" :\n     routeScore < -routeClearThreshold ? "↘ هابط" : "→ غير حاسم"',
+  ];
+  for (const l of lines) assert.ok(pine.includes(l), `Pine line changed or missing: ${l.slice(0, 60)}…`);
+});
+
+test('C12 R3b guards: Pine refuses the three inverted pairs on the first bar with runtime.error', () => {
+  assert.match(pine, /^if barstate\.isfirst and headingStrongThreshold <= headingClearThreshold\n    runtime\.error\(/m);
+  assert.match(pine, /^if barstate\.isfirst and routeStrongThreshold <= routeClearThreshold\n    runtime\.error\(/m);
+  assert.match(pine, /^if barstate\.isfirst and speedExtremeThreshold < speedFastThreshold\n    runtime\.error\(/m);
+  // No clamp: the inputs keep their declared defaults.
+  for (const d of ['speedFastThreshold = input.float(70.0,', 'speedExtremeThreshold = input.float(90.0,', 'headingClearThreshold = input.float(20.0,', 'headingStrongThreshold = input.float(60.0,', 'routeClearThreshold = input.float(22.0,', 'routeStrongThreshold = input.float(62.0,']) assert.ok(pine.includes(d), d);
+});
+
