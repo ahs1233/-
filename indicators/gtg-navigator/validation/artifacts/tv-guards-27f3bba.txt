@@ -1,0 +1,23 @@
+# E26 / E28 — inverted inputs on TradingView (Claude via Desktop Commander), blob 27f3bba, BINANCE:BTCUSDT 1m
+# StrictDebug=On, ValidationMode=On, StudyExtraBars=1000. Each case: set the inverted pair in the GTG settings
+# dialog through UIA (values read back), Ok, wait 10 s, UIA dump of the legend; then restore and re-check.
+# Log as written on the device (UTC):
+19:54:30 E26_qStay set 'Q_stay — عتبة البقاء في الخانة' 45 -> 80
+19:54:41 E26_qStay_bad observed: Button 'User-defined error: RE10142' on the GTG legend row
+19:54:44 E26_qStay_restore set 'Q_stay — عتبة البقاء في الخانة' 80 -> 45
+19:54:55 E26_qStay_ok observed: (no error)
+19:54:58 E28_heading set 'حد اتجاه واضح' 20 -> 45 ; 'حد اتجاه قوي' 60 -> 45
+19:55:09 E28_heading_bad observed: 'User-defined error: RE10142'
+19:55:12 E28_heading_restore 45 -> 20 ; 45 -> 60
+19:55:23 E28_heading_ok observed: (no error)
+19:55:26 E28_route set 'حد المسار الواضح' 22 -> 40 ; 'حد المسار القوي' 62 -> 40
+19:55:37 E28_route_bad observed: 'User-defined error: RE10142'
+19:55:40 E28_route_restore 40 -> 22 ; 40 -> 62
+19:55:51 E28_route_ok observed: (no error)
+19:55:54 E28_speed set 'سرعة مرتفعة' 70 -> 90 ; 'سرعة استثنائية' 90 -> 75
+19:56:05 E28_speed_bad observed: 'User-defined error: RE10142'
+19:56:08 E28_speed_restore 75 -> 90 ; 90 -> 70
+19:56:19 E28_speed_ok observed: (no error)
+# RE10142 = user-defined runtime.error. While it is active GTG draws nothing (tv-guard-qstay-error-27f3bba.png):
+# the script stops on its first bar, as the guards in Pine (barstate.isfirst) intend. Defaults restored after each case.
+# Limitation: the Arabic message text itself was not captured (it is shown only in the error tooltip).
