@@ -223,6 +223,7 @@ Current known completed evidence:
 - G2 on a123ad6 (blob 4b5234e), XAU M1, production mode: Profiler completes, with no RE10110 and no timeout (E44). TradingView showed no reliable total time, so there is no numeric comparison with cdf1a8a.
 - G2 numeric (E46): the Profiler tooltip reports the total. XAU M1 production mode, blob 27f3bba: 9 s total, and the engineStep block takes 2.8 s (31.5%). Two readings agree. A comparison with cdf1a8a was not measured.
 - E41 (R5 reload determinism on TradingView), helper 6d62bee (blob 27f3bba), XAU M1, window 2026-09-28 15:00–15:39 UTC: A/B/C identical R5 tuples, n=40, cold=0; compare-r5.mjs RESULT OK (exit 0).
+- Matrix E47 (blob 27f3bba, 2026-09-28 17:51–17:59 UTC): XAU and BTC × M1/M5/M15/H1 with StrictDebug On, ValidationMode On and StudyExtraBars 1000. In all 8 cells: Runtime 0, one GTG instance, MISMATCH 0, causal 0, warmed 1000, INV 0, zones ≤ 2+2 (E48 StrictDebug, E49 repeatability).
 - Do not rerun these merely because a later UI action fails.
 
 ## 10. Operational discipline

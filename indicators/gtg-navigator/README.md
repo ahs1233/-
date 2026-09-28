@@ -105,11 +105,12 @@ node --test indicators/gtg-navigator/reference/*.test.mjs
 
 الحالة الحالية لكل بوابة وادعاء في `validation/EVIDENCE_MATRIX.md` (VERIFIED_THIS_RUN / REPORTED_PREVIOUSLY / FAILED / NOT_RUN / NOT_OBSERVABLE). ملخص تاريخي، **لا يغني عن إعادة التحقق على الـSHA النهائي** لأن ملف Pine تغيّر بعده:
 
-- G1 (ترجمة بلا Compiler Error): مبلَّغ PASS سابقًا على commit أقدم — يجب إعادته.
-- G2 (الأداء): مبلَّغ جزئيًا (BTCUSDT M1)؛ باقي المصفوفة لم يُشغَّل.
-- G3 (strictDebug على XAUUSD M1/M5/M15/H1): مبلَّغ PASS سابقًا — يجب إعادته.
-- G4 (الترتيب والحتمية): مثبت في المرجع JS، بما فيه إعادة التحميل من تواريخ مستقلة (R5، E40)، وفي TradingView على XAU M1 عبر بصمة R5 (E41: studyExtraBars 5000/300 وإعادة تحميل بعد 18 دقيقة).
-- G5 (المعايرة D): مبلَّغ، مؤقت (PROVISIONAL) بلا عينة تحقق منفصلة.
+- G1 (الترجمة): ترجمة وتشغيل بلا خطأ على blob `27f3bba` في 8 خلايا (E47).
+- G2 (الأداء): Profiler يكتمل في وضع الإنتاج بزمن كلي 9 ثوانٍ من حد 20 على XAU M1 (E46). لا مقارنة رقمية مع baseline.
+- G3 (strictDebug): Runtime Error = 0 على XAU وBTC × M1 وM5 وM15 وH1 (E48).
+- G4 (الترتيب والحتمية): مثبت في المرجع JS، بما فيه إعادة التحميل من تواريخ مستقلة (R5، E40)، وفي TradingView عبر بصمة R5 على XAU M1 (E41)، مع تكرار EVT بين التحميلات (E49).
+- G5 (المعايرة D): مؤقتة (PROVISIONAL)، بلا عينة تحقق منفصلة.
+- الحكم الحالي والبنود المفتوحة: `validation/VALIDATION_REPORT.md`.
 
 ## قيود معروفة
 

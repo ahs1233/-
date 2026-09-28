@@ -69,3 +69,4 @@
 | 67 | G2 / E41 | G2: E44 بحالة VERIFIED (بوابة الـtimeout أُغلقت، والمقارنة الرقمية غير مغلقة). وافق على مساعد E41 للتحقق فقط | منفَّذ `6d62bee`: سطر `R5=` في GTGDIAG، وR5.1–R5.3، وC19؛ بلا تغيير في المحرك أو الأحداث أو الاختيار أو المعايرة أو التنبيهات |
 | 69 | E41 | نُفّذ على TradingView: A وB وC متطابقة (n=40، cold=0) | E41 بحالة VERIFIED_THIS_RUN (`compare-r5.mjs`: RESULT OK، exit 0)؛ لا تغيير في الكود |
 | 70 (GPT) | التنفيذ / G2 | ChatGPT هو المنفّذ الوحيد على Desktop وTradingView، وClaude على repo/evidence/review فقط حتى يُطلب منه صراحة. البند الرقمي في G2 مسجّل NOT_OBSERVABLE / NUMERIC_SUBCHECK_OPEN، ولا يمنع المصفوفة | E44 وE42 حُدّثا؛ الـrunbook §2 سجّل من يتحكم |
+| — (Claude منفّذ TradingView) | G2 / المصفوفة | G2: 9 ثوانٍ تحت Profiler (E46). المصفوفة 8/8 (E47)، وStrictDebug 8/8 (E48)، والتكرار بين التحميلات (E49) | لا تغيير في الكود. الحكم في `VALIDATION_REPORT.md` |

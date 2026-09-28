@@ -121,6 +121,11 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 - **Q-B.** No Chase stays obstacle-agnostic. This is recorded as a DESIGN_DECISION.
 - **Q-C.** R4-B is accepted provisionally. It becomes final only after GPT measures it on real XAU data in TradingView.
 
+### Final TradingView validation (no code change)
+- **G2** (E46): XAU M1 in production mode, Profiler ON: 9 s total, and the engineStep block takes 2.8 s (31.5%). No timeout.
+- **Matrix** (E47, E48, E49): XAU and BTC × M1/M5/M15/H1 with StrictDebug On. In all 8 cells: runtime 0, mismatch 0, causal 0, INV 0, zones ≤ 2+2. EVT is identical across independent loads.
+- **Verdict**: `validation/VALIDATION_REPORT.md`.
+
 ### E41 helper — R5 reload fingerprint (validation only; no engine change)
 - **Why**: E41 needs a comparison of loads that avoids Table View and long UI loops.
 - **TradingView result (GPT)**: XAU M1, 40-bar window. Readings A, B and C gave the same tuple, with n=40 and cold=0. `compare-r5.mjs` returned RESULT OK (E41).
