@@ -26,7 +26,7 @@ Line numbers refer to `gtg_navigator_v0.4.7.pine` at baseline `cdf1a8a`.
 |---|---|---|
 | Prices (lo, hi, dist) | Raw: `abs ≤ 1e-9·|price| + 1e-6·mintick`. Separately, ticks must match exactly: `round(x/mintick)` | Same as the Pine invariant tolerance. Both comparisons are reported; neither hides the other. |
 | mitigation, evidence, q, gateQ, displayQ | `abs ≤ 1e-9` | These are sums and products of a few operations in double precision. |
-| Keys (`memberKey`) | Exact equality of integers | Pine `int` is 64-bit. In JS, `memberKeyOf` rejects any key outside `Number.isSafeInteger`. |
+| Keys (`memberKey`) | Exact equality of integers | Keys stay below 2^53, so they are exact whether Pine holds them as 64-bit ints or float64 (E20 shows the hash arithmetic is float64). In JS, `memberKeyOf` rejects any key outside `Number.isSafeInteger`. |
 | States, counters, flags, events | Exact equality | Integers or booleans. |
 
 ## 3. Policies
@@ -131,7 +131,7 @@ Input-derived series (`ta.pivothigh`, `ta.sma`, the HTF `request.security` feed)
   - `r = x mod p`, kept ≥ 0;
   - `mix(x) = (r²·3 + r·131071 + 1) mod p`;
   - `h ← (h·1000003 + mix(x)) mod p`.
-  - This was checked against an independent Python implementation (S11). Every intermediate value stays below 2^62.
+  - **Evaluated in float64, as Pine does (E20).** `r²` reaches ~4.6·10^18 > 2^53 and is rounded. The first real capture showed every Pine hash differing from the earlier exact-integer (BigInt) reference; a float64 fold reproduces Pine's printed values (60/60 bars, both levels). `snapshot.mjs` now uses Number arithmetic in Pine's operator order `((r·r) mod p)·3`. S11 checks it against Python IEEE-754 floats; S12 pins a real TradingView bar (hashSlots 1426211986).
 - **`hashSlots`** (identity level) encodes:
   - the tag `1`;
   - for an inactive slot: `[0]`;
