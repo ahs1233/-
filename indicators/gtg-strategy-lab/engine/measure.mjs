@@ -45,10 +45,10 @@ function slotsHolding(slots, key) {
   return out;
 }
 
-export function runTimeframe({ tf, bars, htfBars, a1Bars, a2Bars, mintick, startBar = 0, emaSeed = 'first', symbol = 'XAUUSD', onRow = null, keepRows = true }) {
+export function runTimeframe({ tf, bars, htfBars = [], a1Bars, a2Bars, mintick, startBar = 0, emaSeed = 'first', htfInputs = null, symbol = 'XAUUSD', onRow = null, keepRows = true }) {
   const prof = profileFor(tf);
   const P = zoneParams(DEFAULTS, prof, mintick);
-  const S = computeSensors(bars, htfBars, prof, mintick, { emaSeed });
+  const S = computeSensors(bars, htfBars, prof, mintick, { emaSeed, htfInputs });
   const series = computeSeries(bars, P);
   const eng = new Engine(bars, series, P, { startBar, anchorFeed: anchorFeedOf(bars, a1Bars, a2Bars), a1Sec: prof.a1Sec, a2Sec: prof.a2Sec });
   const W = engineWindowFor(P, prof.chartSec, prof.a1Sec, prof.a2Sec);
@@ -94,7 +94,7 @@ export function runTimeframe({ tf, bars, htfBars, a1Bars, a2Bars, mintick, start
       routeScore: S.routeScore[i], routeSign: S.routeSign[i], headingScore: S.headingScore[i], headingSign: S.headingSign[i], tacticalSign: S.tacticalSign[i],
       speedScore: S.speedScore[i], instantSpeedScore: S.instantSpeedScore[i], speedAcceleration: S.speedAcceleration[i], speedClass: S.speedClass[i],
       fuelScore: S.fuelScore[i], fuelAcceleration: S.fuelAcceleration[i], fuelClass: S.fuelClass[i], fuelExhaustion: S.fuelExhaustion[i], volumeAvailable: S.volumeAvailable[i],
-      htfLastClosedT: hk - 1 >= 0 ? htfBars[hk - 1].t : null,
+      htfLastClosedT: hk - 1 >= 0 ? htfBars[hk - 1].t : null, // null when htfInputs are given
       htfClose: S.htf[i].htfClose, htfMA50: S.htf[i].htfMA50, htfMA200: S.htf[i].htfMA200, htfMA50Past: S.htf[i].htfMA50Past, htfATR: S.htf[i].htfATR,
       slots: slots.map((x, k) => slotView(x, SLOT_NAMES[k])),
       events: { breakingUp: ev.breakingUp, breakingDn: ev.breakingDn, acceptedUp: ev.acceptedUp, acceptedDn: ev.acceptedDn, rejectR: ev.rejectR, rejectS: ev.rejectS, flipConfirmed: ev.flipConfirmed },

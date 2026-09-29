@@ -30,7 +30,10 @@ function htfRouteInputs(chartBars, htfBars, mintick, I, seed) {
   }));
 }
 
-export function computeSensors(bars, htfBars, prof, mintick, { inputs = INPUTS, emaSeed = 'first' } = {}) {
+// htfInputs (optional): per-chart-bar route HTF values as exported by the Pine copy
+// (m_htfClose, m_htfMA50, m_htfMA200, m_htfMA50Past, m_htfATR). Used by the Parity Gate,
+// where the HTF history before the chart's first bar is not available to JS.
+export function computeSensors(bars, htfBars, prof, mintick, { inputs = INPUTS, emaSeed = 'first', htfInputs = null } = {}) {
   const I = inputs, n = bars.length, seed = emaSeed;
   const close = bars.map((b) => b.c), open = bars.map((b) => b.o), high = bars.map((b) => b.h), low = bars.map((b) => b.l);
   const volume = bars.map((b) => (b.v == null ? NaN : b.v));
@@ -44,7 +47,7 @@ export function computeSensors(bars, htfBars, prof, mintick, { inputs = INPUTS, 
   const trueRange = bars.map((b, i) => Math.max(b.h - b.l, Math.max(Math.abs(b.h - prevClose[i]), Math.abs(b.l - prevClose[i]))));
   const bodySize = bars.map((b) => Math.abs(b.c - b.o));
   const bodyAtr = bodySize.map((x, i) => x / safeAtr[i]);
-  const H = htfRouteInputs(bars, htfBars, mintick, I, seed);
+  const H = htfInputs ? htfInputs.map((x) => ({ ...x, htfIndex: -1 })) : htfRouteInputs(bars, htfBars, mintick, I, seed);
 
   // 4. Speed
   const closeStep = close.map((c, i) => Math.abs(c - prevClose[i]));
