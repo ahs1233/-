@@ -39,7 +39,7 @@ export function buildPanel(rows, mtf = {}, { tf = 'M5', durMs = DUR_MS } = {}) {
       atr: r.atr, atrEng: r.atrEng,
       headingSign: r.headingSign, headingScore: r.headingScore, routeSign: r.routeSign,
       slots: r.slots, events: r.events, log: r.log, consumer: r.consumer, engineOn: r.engineOn, warmed: r.warmed,
-      prev: p && { headingSign: p.headingSign, headingScore: p.headingScore, routeSign: p.routeSign, speedClass: p.speedClass, atr: p.atr, slots: p.slots },
+      prev: p && { headingSign: p.headingSign, headingScore: p.headingScore, routeSign: p.routeSign, speedClass: p.speedClass, atr: p.atr, atrEng: p.atrEng, slots: p.slots },
       mtf1: { [tf]: p ? { i: t - 1, t: p.t, routeSign: p.routeSign, headingSign: p.headingSign, routeScore: p.routeScore, headingScore: p.headingScore } : NA_MTF, ...at1 },
     };
   });

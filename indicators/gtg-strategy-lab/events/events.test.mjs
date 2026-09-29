@@ -97,7 +97,7 @@ test('EV2c CE: Macro H4 = H1 = D is required; the leg ends when heading returns 
 });
 
 test('EV3 zone events: H3 units, armed FLIP-1, FLIP-2 after the flip, H4 comparator needs everBreaking = false', () => {
-  const p = Array.from({ length: 6 }, (_, i) => ({ i, t: i, atrEng: 1, log: [], prev: { slots: [slot('R1', 100, 101, [1, 2])] } }));
+  const p = Array.from({ length: 6 }, (_, i) => ({ i, t: i, atrEng: 1, log: [], prev: { atrEng: 1, slots: [slot('R1', 100, 101, [1, 2])] } }));
   const rec = (k, key, extra) => ({ k, key, slotsBefore: [{ slot: 'R1', entry: true }], ageNative: 10, epStartQ: 60, ...extra });
   p[1].log = [rec('test', 1, { rej: 0.7, side: -1, inSlot: true, state: ST.ACTIVE, everBreaking: false }), rec('test', 2, { rej: 0.5, side: -1, inSlot: true, state: ST.ACTIVE, everBreaking: true })];
   p[2].log = [rec('flip', 3, { dir: 1, rej: 0.8, armed: true }), rec('test', 3, { rej: 0.8, side: 1, inSlot: false, state: ST.FLIP })];
@@ -171,7 +171,7 @@ function assertCausal(full, cut, T, label) {
     ['TC-H1 rows', (r) => r.tcH1.rows], ['H5 events', (r) => r.h5.events], ['CE rows', (r) => r.ce.rows],
     ['CE rows (Macro off)', (r) => r.ceAny.rows], ['CE E3 (Macro off)', (r) => r.ceAny.e3], ['CE E4 (Macro off)', (r) => r.ceAny.e4], ['CE abstains (Macro off)', (r) => r.ceAny.abstains],
     ['H3', (r) => r.zone.h3], ['FLIP-1', (r) => r.zone.flip1], ['FLIP-2', (r) => r.zone.flip2], ['H4 comparator', (r) => r.zone.h4Comparator],
-    ['P1', (r) => r.p1.events], ['P1-rejected', (r) => r.p1.p1Rejected], ['P2', (r) => r.p2.events],
+    ['P1', (r) => r.p1.events], ['P1-rejected', (r) => r.p1.p1Rejected], ['P2', (r) => r.p2.events], ['P0', (r) => r.p0.events],
   ]) assert.deepEqual(before(get(cut), T), before(get(full), T), `${label}: ${name}`);
 }
 
@@ -182,7 +182,7 @@ const full = () => (FULL ??= (() => { const m1 = m1Of(N, 11); return { m1, r: ru
 
 test('CG0 the synthetic pipeline produces every event family (the gate is not vacuous)', () => {
   const { r } = full();
-  const counts = { h5: r.h5.events.length, ceRows: r.ceAny.rows.length, ceEvents: r.ceAny.events.length, h3: r.zone.h3.length, flip1: r.zone.flip1.length + r.zone.flip1Unarmed.length, cmp: r.zone.h4Comparator.length, p1: r.p1.events.length, p2: r.p2.events.length };
+  const counts = { h5: r.h5.events.length, ceRows: r.ceAny.rows.length, ceEvents: r.ceAny.events.length, h3: r.zone.h3.length, flip1: r.zone.flip1.length + r.zone.flip1Unarmed.length, cmp: r.zone.h4Comparator.length, p1: r.p1.events.length, p2: r.p2.events.length, p0: r.p0.events.length };
   for (const [k, v] of Object.entries(counts)) assert.ok(v > 0, `${k} = 0 (${JSON.stringify(counts)})`);
 });
 
@@ -236,4 +236,18 @@ test('EV7 covariates: every CEM component is taken at t−1 (a change at bar t l
   const panel2 = r.panel.slice();
   panel2[e.t] = { ...panel2[e.t], atr: panel2[e.t].atr * 50 };
   assert.deepEqual(covariatesOf('H5', e, panel2, atrRank(panel2)), covariatesOf('H5', e, r.panel, rank));
+});
+
+test('EV8 P0 is deterministic, mirrors GTG appearances (side, width, bar) and runs through the Reaction Engine', async () => {
+  const { extractP0 } = await import('./comparators.mjs');
+  const { zoneParams, profileFor } = await import('../engine/profiles.mjs');
+  const { DEFAULTS } = await import('../engine/pinecmp/zone-engine.mjs');
+  const { m1, r } = full();
+  const P = zoneParams(DEFAULTS, profileFor('M5'), 0.01);
+  const feeds = feedsOf(m1);
+  const a = extractP0(feeds.M5, r.panel, P), b = extractP0(feeds.M5, r.panel, P);
+  assert.deepEqual(strip(a), strip(b));
+  const appear = r.panel.reduce((n, p, j) => n + p.slots.filter((z) => z.active && !(j > 0 && r.panel[j - 1].slots.some((q) => q.active && q.name === z.name && q.primaryKey === z.primaryKey))).length, 0);
+  assert.equal(a.levels, appear);
+  assert.ok(a.events.length > 0 && a.events.every((e) => e.D === 1 || e.D === -1));
 });

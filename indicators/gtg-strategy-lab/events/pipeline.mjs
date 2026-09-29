@@ -8,7 +8,7 @@ import { buildPanel } from './panel.mjs';
 import { extractTC, extractH5 } from './tc.mjs';
 import { extractCE } from './ce.mjs';
 import { extractZoneEvents } from './zone.mjs';
-import { extractP1, extractP2 } from './comparators.mjs';
+import { extractP0, extractP1, extractP2 } from './comparators.mjs';
 
 // route HTF / A1 / A2 per timeframe (profiles.mjs): M5 → H1/M15/H1, M15 → H1/H1/H4, H1 → H4/H4/D, H4 → D/D/W
 const INPUTS_OF = { M5: ['H1', 'M15', 'H1'], M15: ['H1', 'H1', 'H4'], H1: ['H4', 'H4', 'D'], H4: ['D', 'D', 'W'] };
@@ -32,5 +32,6 @@ export function runEventPipeline(feeds, { mintick, w }) {
     zone: extractZoneEvents(panel),
     p1: extractP1(feeds.M5, P, { w, gtgSlotKeys }),
     p2: extractP2(feeds.M5, P, { w }),
+    p0: extractP0(feeds.M5, panel, P),
   };
 }

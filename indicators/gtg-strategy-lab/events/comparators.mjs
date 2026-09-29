@@ -105,3 +105,44 @@ export function extractP2(bars, P, { w, maxAge = P.maxAge[0] } = {}) {
   }
   return { events };
 }
+
+// P0 Random (sanity check only, §14; message 24 §6). One P0 level per new GTG zone appearance
+// (a slot whose primaryKey was not in that slot at t−1): same bar (so the same timeframe,
+// session and volatility), same side, same width/ATR_eng, a random distance from close(t),
+// uniform in [0, 2·max(d, 0.25)] ATR_eng where d is the GTG zone's own distance — so the daily
+// count, side and width distribution match GTG while the location is random. Available from
+// t + 1. Deterministic: seed = FNV-1a(timestamp, TF, slot) → mulberry32 (frozen).
+export function fnv1a(s) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h >>> 0;
+}
+function mulberry(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const edgeDistance = (z, c) => (c < z.lo ? z.lo - c : c > z.hi ? c - z.hi : 0);
+
+export function extractP0(bars, panel, P, { tf = 'M5', maxAge = P.maxAge[0] } = {}) {
+  const { atrEng } = computeSeries(bars, P);
+  const levels = [], events = [];
+  for (let j = 0; j < bars.length; j++) {
+    reactionStep(levels, bars, j, atrEng, P, (lv, r) => {
+      events.push({ family: 'P0', t: j, time: bars[j].t, D: r.side < 0 ? -1 : 1, rej: r.rej, levelAge: j - lv.birthBar, mirrorOf: lv.mirrorOf });
+    }, maxAge);
+    const prev = j > 0 ? panel[j - 1].slots : [];
+    for (const z of panel[j].slots) {
+      if (!z.active || prev.some((q) => q.active && q.name === z.name && q.primaryKey === z.primaryKey)) continue;
+      const a = atrEng[j], c = bars[j].c, isR = z.name[0] === 'R';
+      const width = (z.hi - z.lo) / a, d = edgeDistance(z, c) / a;
+      const rand = mulberry(fnv1a(`${bars[j].t}|${tf}|${z.name}`));
+      const dist = rand() * 2 * Math.max(d, 0.25);
+      const lo = isR ? c + dist * a : c - dist * a - width * a, hi = lo + width * a;
+      const lv = makeLevel({ key: j * 8 + ['R1', 'R2', 'S1', 'S2'].indexOf(z.name), lo, hi, price: isR ? hi : lo, source: SRC.SWING, tfRank: TF.LOCAL,
+        typ: isR ? TYP.HIGH : TYP.LOW, birthTime: bars[j].t, s: 0, lastTestChartBar: j, stateChartBar: j });
+      Object.assign(lv, { birthBar: j, fromBar: j + 1, comparator: 'P0', mirrorOf: z.primaryKey });
+      levels.push(lv);
+    }
+  }
+  return { events, levels: levels.length };
+}

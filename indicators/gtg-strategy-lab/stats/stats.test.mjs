@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { att, controlWeights, sessionBin, stratumOf, quantileEdges, binOf, supportClass, ageBin } from './cem.mjs';
 import { dayCells, attOfDays, bootstrap, pValue, ci99, holm, decide, rng } from './bootstrap.mjs';
-import { acf, blockLength, designEffect, deltaEcon, powerGate, powerVerdict } from './power.mjs';
+import { acf, blockLength, designEffect, deltaEcon, powerGate, powerVerdict, powerGateTwoStage } from './power.mjs';
 
 const close = (a, b, e = 1e-12) => assert.ok(Math.abs(a - b) <= e, `${a} vs ${b}`);
 
@@ -120,4 +120,16 @@ test('ST7 CEM bins: sessions by the Pine strings with DST and the later-session 
   const edges = quantileEdges([1, 2, 3, 4, 5, 6, 7, 8], 4);
   assert.deepEqual([binOf(1, edges), binOf(4, edges), binOf(8, edges)], ['q0', 'q1', 'q3']);
   assert.deepEqual([0, 1, 2, 3, 4, 7].map((a) => ageBin(a, { zeroOwnBin: true })), ['0', '1', '2', '3-4', '3-4', '5+']);
+});
+
+test('ST8 two-stage power: Stage B refines only the boundary cells and keeps the verdict rule', () => {
+  const days = [...new Set(synth({ days: 200 }).map((r) => r.day))].sort();
+  const hyps = [0, 1].map((k) => ({ name: `H${k + 1}`, dc: dayCells(synth({ days: 200, seed: 40 + k }), { days }) }));
+  const r = powerGateTwoStage(hyps, [0.3, 0.05], { L: 1, nDays: 150, Bout: 60, BinA: 100, BinB: 400, grid: { step: 0.02, max: 1.2 } });
+  for (const x of r) {
+    assert.ok(x.refinedCells > 0, 'cells within 0.02 of δ_econ are always refined');
+    assert.ok(x.MDE != null && Math.abs(x.MDE - x.stageA_MDE) <= 0.1, JSON.stringify(x));
+    assert.equal(x.verdict, powerVerdict(x.MDE, x.deltaEcon));
+  }
+  assert.equal(r[1].verdict, 'UNDERPOWERED');            // δ_econ = 0.05 is far below any reachable MDE here
 });

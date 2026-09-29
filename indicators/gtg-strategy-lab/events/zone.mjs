@@ -29,9 +29,10 @@ function unitize(list) {
   return [...byKey.values()].map(({ key, ...u }) => ({ ...u, keys: u.keys.sort((a, b) => a - b) }));
 }
 
+// zone width / ATR_eng, both at t−1 (§7)
 function widthAtPrev(p, slot) {
   const z = p.prev?.slots?.find((s) => s.name === slot && s.active);
-  return z ? (z.hi - z.lo) / p.atrEng : null;
+  return z && p.prev.atrEng > 0 ? (z.hi - z.lo) / p.prev.atrEng : null;
 }
 
 export function extractZoneEvents(panel) {

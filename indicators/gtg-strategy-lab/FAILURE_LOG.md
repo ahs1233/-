@@ -174,3 +174,17 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Result | Replaced before commit: each simulated estimate is centred on the full-Train ATT (the null is imposed), then Δ is injected. The power uses only the variance and dependence of Train, never the sign or size of its effect. Regression: ST6 asserts identical MDEs with and without a large Train effect, and a low null claim rate |
 | Status | `FIXED (regression: stats/stats.test.mjs ST6)` |
 | Attempt | 1 |
+
+### F-011 — H3 zone width divided by ATR_eng at t instead of t−1
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T22:xxZ |
+| Step | 7 (covariate builder, message 24 §10) |
+| Layer | 2 Event definition / covariates |
+| Symptom | Reviewing the covariate timing before writing test CV1: `widthAtPrev` took the zone bounds from t−1 but divided by `atrEng` of bar t |
+| Root cause | The panel's t−1 view did not carry ATR_eng, so the extractor reached for the current bar's value; §7 requires every matching covariate at t−1 |
+| Evidence | CV1 (poison bar t, require identical covariates) fails on H3 row fields when the old line is restored; passes with the fix |
+| Method | Width normalised by the current bar's ATR_eng |
+| Result | The panel's `prev` now carries ATR_eng; width = (hi − lo) at t−1 / ATR_eng at t−1. Every covariate has a declared timing (`COVARIATE_TIMING`) and CV1/CV2 enforce it for H1–H5. No real data had been processed |
+| Status | `FIXED (regression: events/covariates.test.mjs CV1, mutation-checked)` |
+| Attempt | 1 |

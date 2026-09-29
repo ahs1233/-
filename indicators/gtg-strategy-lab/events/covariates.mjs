@@ -7,6 +7,21 @@ import { tradingDayId } from './comparators.mjs';
 
 export const VOL_RANK_LEN = 500; // rankLen for M5 (§12.1)
 
+// When each CEM covariate is measured (§7: every matching covariate at t−1, except those the
+// contract names). Test CV1 poisons everything observed at bar t and requires these to hold.
+export const COVARIATE_TIMING = Object.freeze({
+  vol: 't-1',          // ATR_M5 percent rank at t−1
+  h4: 't-1',           // routeSign_H4 of the last H4 bar closed by close(t−1)
+  speed: 't-1',        // speed band at t−1
+  width: 't-1',        // displayed zone width / ATR_eng at t−1
+  age: 'episode clock (§7: episode age is the named exception)',
+  q: 'start of the test episode (§7: named for Flip)',
+  levelAge: 'clock (bars since the level was born; no market value at t)',
+  session: 'calendar (the bar\'s own timestamp; a design variable, not a measurement)',
+  D: 'event definition (F1: exact stratum)',
+  role: 'event definition (= D for H4)',
+});
+
 // percent rank of ATR_M5 over the last 500 bars, per bar (Pine ta.percentrank semantics)
 export const atrRank = (panel) => percentrank(panel.map((p) => p.atr), VOL_RANK_LEN);
 

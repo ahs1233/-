@@ -54,7 +54,7 @@ export function deltaEcon({ srMin = 0.5, sigmaEligible, episodesPerYear, DE }) {
 // simulations, the other hypotheses at Δ = 0 (null) inside the same Holm family.
 // The null is imposed first: each simulated estimate is centred on the full-Train ATT, so the
 // power never uses the size or sign of a Train effect — only its variance and dependence.
-export function powerGate(hyps, { L, nDays, Bout = 2_000, Bin = 1_000, grid = { step: 0.01, max: 1.0 }, target = 0.8, seed = SEED } = {}) {
+export function simulate(hyps, { L, nDays, Bout = 2_000, Bin = 1_000, seed = SEED } = {}) {
   const nCal = hyps[0].dc.days.length;
   for (const h of hyps) if (h.dc.days.length !== nCal) throw new Error('all hypotheses must share one calendar');
   const rand = rng(seed);
@@ -73,29 +73,59 @@ export function powerGate(hyps, { L, nDays, Bout = 2_000, Bin = 1_000, grid = { 
     }
     hyps.forEach((_, k) => { inner[k][o] = Float64Array.from(draws[k].filter(Number.isFinite)).sort(); });
   }
-  const countGe = (sorted, x) => { let lo = 0, hi = sorted.length; while (lo < hi) { const m = (lo + hi) >> 1; if (sorted[m] >= x) hi = m; else lo = m + 1; } return sorted.length - lo; };
-  const q = (sorted, p) => { const pos = p * (sorted.length - 1), a = Math.floor(pos), b = Math.ceil(pos); return sorted[a] + (sorted[b] - sorted[a]) * (pos - a); };
-  const claimRate = (k, delta) => {
-    let claims = 0, valid = 0;
-    for (let o = 0; o < Bout; o++) {
-      if (!Number.isFinite(est[k][o]) || !inner[k][o].length) continue;
-      valid++;
-      const ps = hyps.map((_, j) => {
-        const e = est[j][o] + (j === k ? delta : 0), s = inner[j][o];
-        return Number.isFinite(e) && s.length ? (1 + countGe(s, e)) / (s.length + 1) : 1;
-      });
-      const hp = holm(ps)[k];
-      const low = est[k][o] + delta + q(inner[k][o], 0.005);
-      if (decide(hp, low) === 'CLAIM') claims++;
+  return { names: hyps.map((h) => h.name), est, inner, Bout, Bin, L, nDays, seed };
+}
+
+const countGe = (sorted, x) => { let lo = 0, hi = sorted.length; while (lo < hi) { const m = (lo + hi) >> 1; if (sorted[m] >= x) hi = m; else lo = m + 1; } return sorted.length - lo; };
+const quant = (sorted, p) => { const pos = p * (sorted.length - 1), a = Math.floor(pos), b = Math.ceil(pos); return sorted[a] + (sorted[b] - sorted[a]) * (pos - a); };
+
+// share of simulations with a confirmatory claim for hypothesis k at shift delta (others at 0)
+export function claimRate(sim, k, delta) {
+  const H = sim.est.length;
+  let claims = 0, valid = 0;
+  for (let o = 0; o < sim.Bout; o++) {
+    if (!Number.isFinite(sim.est[k][o]) || !sim.inner[k][o].length) continue;
+    valid++;
+    const ps = new Array(H);
+    for (let j = 0; j < H; j++) {
+      const e = sim.est[j][o] + (j === k ? delta : 0), s = sim.inner[j][o];
+      ps[j] = Number.isFinite(e) && s.length ? (1 + countGe(s, e)) / (s.length + 1) : 1;
     }
-    return valid ? claims / valid : NaN;
-  };
+    const low = sim.est[k][o] + delta + quant(sim.inner[k][o], 0.005);
+    if (decide(holm(ps)[k], low) === 'CLAIM') claims++;
+  }
+  return valid ? claims / valid : NaN;
+}
+
+const gridOf = ({ step, max }) => { const g = []; for (let d = 0; d <= max + 1e-12; d = Math.round((d + step) * 1e6) / 1e6) g.push(d); return g; };
+
+export function powerGate(hyps, { L, nDays, Bout = 2_000, Bin = 1_000, grid = { step: 0.01, max: 1.0 }, target = 0.8, seed = SEED } = {}) {
+  const sim = simulate(hyps, { L, nDays, Bout, Bin, seed });
+  const g = gridOf(grid);
   return hyps.map((h, k) => {
     let mde = null;
-    for (let d = 0; d <= grid.max + 1e-12; d = Math.round((d + grid.step) * 1e6) / 1e6) {
-      if (claimRate(k, d) >= target) { mde = d; break; }
-    }
-    return { name: h.name, MDE: mde, claimRateAtZero: claimRate(k, 0), outerValid: est[k].filter(Number.isFinite).length };
+    for (const d of g) if (claimRate(sim, k, d) >= target) { mde = d; break; }
+    return { name: h.name, MDE: mde, claimRateAtZero: claimRate(sim, k, 0), outerValid: sim.est[k].filter(Number.isFinite).length };
+  });
+}
+
+// Two-stage power (message 24 §5). Stage A: inner B = 1,000 over the whole grid. Stage B: only
+// the cells near the decision — claim rate in [0.75, 0.85], or |Δ − δ_econ| ≤ 0.02 ATR — are
+// re-evaluated with inner B = 10,000 (same outer seed, so the same outer resamples). The MDE is
+// then read from the Stage B value where one exists, else from Stage A.
+export function powerGateTwoStage(hyps, dEcon, { L, nDays, Bout = 2_000, BinA = 1_000, BinB = 10_000, grid = { step: 0.01, max: 1.0 }, target = 0.8, seed = SEED, band = [0.75, 0.85], near = 0.02 } = {}) {
+  const g = gridOf(grid);
+  const A = simulate(hyps, { L, nDays, Bout, Bin: BinA, seed });
+  const rateA = hyps.map((_, k) => g.map((d) => claimRate(A, k, d)));
+  const cells = hyps.map((_, k) => g.map((d, i) => (rateA[k][i] >= band[0] && rateA[k][i] <= band[1]) || Math.abs(d - dEcon[k]) <= near + 1e-12));
+  const needB = cells.some((row) => row.some(Boolean));
+  const B = needB ? simulate(hyps, { L, nDays, Bout, Bin: BinB, seed }) : null;
+  return hyps.map((h, k) => {
+    const rate = g.map((d, i) => (cells[k][i] ? claimRate(B, k, d) : rateA[k][i]));
+    const i = rate.findIndex((r) => r >= target);
+    const mde = i < 0 ? null : g[i];
+    return { name: h.name, MDE: mde, deltaEcon: dEcon[k], verdict: powerVerdict(mde, dEcon[k]), refinedCells: cells[k].filter(Boolean).length,
+      stageA_MDE: (() => { const j = rateA[k].findIndex((r) => r >= target); return j < 0 ? null : g[j]; })(), BinA, BinB: needB ? BinB : null, seed };
   });
 }
 
