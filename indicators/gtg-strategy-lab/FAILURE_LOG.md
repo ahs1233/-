@@ -27,6 +27,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 
 | Method | Reason | Failure entries |
 |---|---|---|
+| `tradingview-mcp-jackson` `pine.newScript()` + `pine.save()` / `smartCompile()` to add a new script | `newScript` loads a blank template into the tab of the script already open in the editor (the production script) instead of creating a new script identity; the later save wrote over production (F-004). Never dispatch Ctrl+S / Pine Save from automation; never add a script without verifying the editor's script identity | F-004 |
 | Full historical tick download from the Dukascopy endpoint under the current access pattern | Server-side throttling (429, then 503 on 11/12 paced requests); ≈144k requests needed. Declared by the contract v0.2.1 §2.2 (message 14). Reopen only if the access path changes fundamentally | F-002, F-003 |
 
 ## Log
@@ -71,4 +72,18 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Method | Throttling handled for 429 only |
 | Result | 503 is now handled like 429: bounded backoff, then `RateLimited`. Regression: `Fetch.test_503_is_throttling_like_429`. **Not retried in bulk:** the throttle is still active. The full tick history (≈ 24 files × ~6,000 trading days ≈ 144k requests) is infeasible at the observed rate. That is a methodological choice (§2.2 tick priority vs M1 candles) and goes to GPT, not decided here |
 | Status | `OPEN — waiting for (a) the throttle to cool down before a paced re-probe and (b) a methodological decision on the source granularity` |
+| Attempt | 1 |
+
+### F-004 — INCIDENT: the production Pine script was overwritten for ~30 s (restored)
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T15:08:41Z (v25 saved) → 15:09:12Z (v26 restored) |
+| Step | 5 (Parity preparation on TradingView Desktop over CDP) |
+| Layer | 6 Implementation (automation) + 7 Environment |
+| Symptom | Adding the "GTG Engine m" measurement copy with `tradingview-mcp-jackson` (`newScript` → `setSource` → `save` → `smartCompile`) saved the copy as **version 25.0 of the production script** "GTG Navigator v0.4.7 — Structural Zone Engine" (`USER;389fcddfd2bf4911a03a59f24e32e371`), not as a new script |
+| Root cause | `newScript()` put the blank template into the tab of the script that was already open in the editor (production), keeping its identity. The guard checked only the buffer content ("fresh blank script"), not the script identity; `smartCompile` found no "Add to chart" button and clicked "Pine Save" |
+| Evidence | `listScripts()`: `USER;389fcdd…` title "GTG Engine v0.4.7 — measurement copy", version 25.0, modified 1790694521; editor header kept the production name |
+| Fix (done) | The frozen production source was set back into the same script (editor blob verified = `0c7cbe366668fba20c9bc128448f908ce9314041` before saving) and saved: version **26.0**, title "GTG Navigator v0.4.7 — Structural Zone Engine". The chart study `v5XkYX` reports that script at version 26.0 with short title "GTG v0.4.7". The production source content is identical to the frozen release; the git repository was never affected |
+| Prevention | REJECTED_METHOD (table above). Any later automation must: (1) record the production script version first and re-check it after every step; (2) verify the editor's script identity (header name / script id), not only its content; (3) never dispatch Ctrl+S or click Pine Save; (4) stop at the first unexpected state |
+| Status | `FIXED (production restored at v26.0)` — reported to the user |
 | Attempt | 1 |
