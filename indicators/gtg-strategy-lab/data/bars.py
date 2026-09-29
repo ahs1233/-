@@ -7,8 +7,9 @@ BID is the signal/volume series; ASK is kept for execution only.
 """
 from __future__ import annotations
 
+import tv_calendar
+
 MIN_MS = 60_000
-TF_SEC = {"M1": 60, "M5": 300, "M15": 900, "H1": 3600, "H4": 14_400, "D": 86_400}
 FIELDS = ("t", "bo", "bh", "bl", "bc", "ao", "ah", "al", "ac", "v", "n", "src")
 
 
@@ -59,16 +60,21 @@ def candles_to_m1(bid, ask) -> list[dict]:
 
 
 def bucket(t_ms: int, tf: str) -> int:
-    sec = TF_SEC[tf]
-    return t_ms - t_ms % (sec * 1000)
+    """Bar open for `tf` under the research calendar (v0.2.2, tv_calendar)."""
+    return tv_calendar.bucket(t_ms, tf)
 
 
-def aggregate(m1: list[dict], tf: str) -> list[dict]:
-    """Calendar aggregation on UTC boundaries (never "every k remaining bars").
-
-    H4 buckets start at 00/04/08/12/16/20 UTC (epoch 1970-01-01T00:00Z is a boundary),
-    D = UTC calendar day. ASK of the aggregate is None if any member lacks ASK.
+def aggregate(m1: list[dict], tf: str, stats: dict | None = None) -> list[dict]:
+    """Calendar aggregation (never "every k remaining bars") on the TradingView/OANDA
+    session calendar (TRADE_CONTRACT v0.2.2 §2.2, tv_calendar): M5/M15/H1 on clock
+    boundaries, H4 = session open + 4h·k, D = trading day from 17:00 New York, W from
+    Sunday 17:00 New York. Minutes outside every session are dropped and counted in
+    stats["out_of_session"]. ASK of the aggregate is None if any member lacks ASK.
     """
+    kept = [b for b in m1 if tv_calendar.in_session(b["t"])]
+    if stats is not None:
+        stats["out_of_session"] = stats.get("out_of_session", 0) + len(m1) - len(kept)
+    m1 = kept
     if tf == "M1":
         return [dict(b) for b in m1]
     out: list[dict] = []

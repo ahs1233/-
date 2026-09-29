@@ -96,10 +96,11 @@ class M1(unittest.TestCase):
 
 
 class Aggregation(unittest.TestCase):
-    def test_h4_boundaries_are_utc_calendar(self):
-        t = int(datetime(2026, 3, 2, 5, 17, tzinfo=UTC).timestamp() * 1000)
-        self.assertEqual(bucket(t, "H4"), int(datetime(2026, 3, 2, 4, tzinfo=UTC).timestamp() * 1000))
-        self.assertEqual(bucket(t, "D"), int(datetime(2026, 3, 2, tzinfo=UTC).timestamp() * 1000))
+    def test_h4_and_d_follow_the_session_calendar(self):
+        # v0.2.2: H4/D on the New York 17:00 session (test_calendar.py has the full set)
+        t = int(datetime(2026, 3, 2, 5, 17, tzinfo=UTC).timestamp() * 1000)   # 00:17 EST
+        self.assertEqual(bucket(t, "H4"), int(datetime(2026, 3, 2, 2, tzinfo=UTC).timestamp() * 1000))
+        self.assertEqual(bucket(t, "D"), int(datetime(2026, 3, 1, 22, tzinfo=UTC).timestamp() * 1000))
 
     def test_removed_bar_does_not_shift_boundaries(self):
         m1 = [{"t": i * 60_000, "bo": i, "bh": i + 1, "bl": i - 1, "bc": i + 0.5, "ao": i, "ah": i + 1, "al": i - 1, "ac": i + 0.5,
