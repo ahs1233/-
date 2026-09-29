@@ -1,0 +1,32 @@
+# snapshot-coverage.test.mjs (S12–S15) run against reference/snapshot.mjs, capture.mjs and tools/compare-captures.mjs from 2021946 (fixtures.mjs from the new commit) | node v22.22.2 | 2026-09-28T07:35:40Z
+not ok 1 - S12 repeated key: two identical records against one is a state difference (multiplicity)
+  expected: true
+  actual: false
+  operator: '=='
+not ok 2 - S13 ring: a different OHLC ring is detected at state, and it changes the next selection
+    + actual - expected
+    + []
+    - [
+    -   'ring.5.c:raw',
+    -   'ring.5.c:ticks'
+    - ]
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+not ok 3 - S15 source identity: each identity field alone is a state difference
+    + actual - expected
+    + []
+    - [
+    -   'levels.54400001920000.source:exact'
+    - ]
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+not ok 4 - S14 compare-captures: a whole missing bar fails (two files strict, and single file with an expectation)
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+# tests 4
+# pass 0
+# fail 4
+# reading: S12 old compare returns no multiplicity diff; S13 old compare returns [] for a ring change; S15 old compare returns [] for a source change; S14 old tool exits 0 with a whole bar missing.

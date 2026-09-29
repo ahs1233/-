@@ -1,0 +1,9 @@
+# pynescript per-statement syntax parse (v5 grammar; syntax only — NOT a TradingView compile) | file blob 68ba5e33fa80d0f40a1772c56431386f57cc186b | 2026-09-28T08:11:20Z
+header OK
+DONE 578 statements, 0 problems
+# negative controls on C13/C14: see C-test assertions (C13 forbids nearestObstacleAtr[1]; C14 counts the six arm-clear sites)
+## C13/C14 negative controls (scratch edits, restored)
+# identity check removed from the Strong Obstacle event:
+not ok 13 - C13 R4-A Strong Obstacle: latch on confirmed bars, entry-key identity, no distance-crossing rule
+# Flip reverted to the per-bar inSlot rule:
+not ok 14 - C14 R4-B lifecycle: arm at break start, Accepted/Flip follow the arm, every exit clears it

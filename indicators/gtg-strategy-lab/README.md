@@ -7,6 +7,7 @@ A separate research project: does GTG Navigator v0.4.7 carry a real, repeatable 
 | Folder / file | Contents |
 |---|---|
 | `baseline/` | Frozen copy of the production release (blob `0c7cbe3`) — do not modify |
+| `gtg-engine/` | **Full copy of the indicator** (`indicators/gtg-navigator` at `0a77819`: Pine, reference, validation, artifacts). The lab reads only from it and never touches the indicator in use. Byte-identical, checked by `gtg-engine.manifest` + test GC1–GC3 |
 | `data/` | Dukascopy data layer (Python stdlib): bi5 decoding, M1 BID/ASK, sanitation, UTC aggregation, sha256 manifest, raw forward capture |
 | `engine/` | GTG Measurement Engine (JS): an exact copy of the Zone Engine + `[MEASURE]` records, sensors 3–7, consumer layer 13/17, runner; and the Pine "GTG Engine" copy (export only) |
 | `parity/` | Parity Gate tools + TradingView capture steps (`PARITY_RUNBOOK.md`) |

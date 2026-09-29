@@ -6,13 +6,11 @@ on:
     branches: [main, "claude/**", "lab/**"]
     paths:
       - "indicators/gtg-strategy-lab/**"
-      - "indicators/gtg-navigator/reference/**"
       - ".github/workflows/gtg-lab.yml"
   pull_request:
     branches: [main]
     paths:
       - "indicators/gtg-strategy-lab/**"
-      - "indicators/gtg-navigator/reference/**"
       - ".github/workflows/gtg-lab.yml"
 
 jobs:
@@ -31,5 +29,5 @@ jobs:
       - name: Data layer tests
         working-directory: indicators/gtg-strategy-lab/data
         run: python3 -m unittest -v test_data
-      - name: Production reference still intact (116)
-        run: node --test indicators/gtg-navigator/reference/*.test.mjs
+      - name: In-lab copy of the reference (gtg-engine, 116)
+        run: node --test indicators/gtg-strategy-lab/gtg-engine/reference/*.test.mjs

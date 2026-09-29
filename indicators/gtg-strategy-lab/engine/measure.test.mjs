@@ -1,8 +1,8 @@
 // ME — Measurement Engine end-to-end on synthetic XAU-like data (no feed needed).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { marketBars, htfBarsOf, loadInputs } from '../../gtg-navigator/reference/history.mjs';
-import * as REF from '../../gtg-navigator/reference/engine.mjs';
+import { marketBars, htfBarsOf, loadInputs } from '../gtg-engine/reference/history.mjs';
+import * as REF from '../gtg-engine/reference/engine.mjs';
 import { runTimeframe, anchorFeedOf } from './measure.mjs';
 import { computeSensors } from './sensors.mjs';
 import { profileFor } from './profiles.mjs';

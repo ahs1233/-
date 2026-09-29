@@ -1,0 +1,39 @@
+G5 — UI gate re-run after the fixes, blob 0c7cbe3 (HEAD f82c846), TradingView Desktop over CDP
+Chart: OANDA:XAUUSD M1 and H1, 2026-09-29 04:46–04:47 UTC (live market). Fresh instance y6K9iL added from an
+unsaved editor copy of the GitHub source (blob verified), defaults; only dashboardMode changed. Pine Editor and side panels closed.
+Study z-order +10000 vs main series 0 (behind_chart = false). Earlier images (27f3bba) are not reused.
+
+HUD data (study table cells; every case stable over two consecutive reads)
+COMPACT_M1  rows=6  | المسار=↓ هابط بقوة 74 (red) ; الآن=→ غير حاسم 0 (silver) ; السرعة=8 → ثابتة (white) ; الوقود=14 ↓ ينخفض (orange) ; الطريق=توقف/تجميع داخل المسار (white)
+STANDARD_M1 rows=8  | المسار=↓ هابط بقوة 73 (red) ; الآن=↗ ميل صاعد ضعيف 19 (lime) ; السرعة=4 ↓ تتباطأ (white) ; الوقود=1 ↓ ينخفض (orange) ; الطريق=داخل مقاومة — راقب القبول أو الرفض (Flip مؤكد) (orange) ; العائق=4127.105–4128.360 • متوسط • Flip مؤكد ; السياق=آسيا • HTF 15 • A 5/15
+DEBUG_M1    rows=11 | as STANDARD_M1 with الآن=→ غير حاسم 13 (lime); المعايرة=0.964–1.741 • فوري 1/100 ; العوائق=مقاومة • Swing 4130.948–4132.235 | دعم • Swing 4124.745–4125.895 ; Debug=… inv 0 … dup 0 … cap 0 • eng 1983 • hs 1973188067
+COMPACT_H1  rows=6  | المسار=↓ هابط بقوة 83 (red) ; الآن=↘ هابط 31 (red) ; السرعة=18 ↓ تتباطأ (white) ; الوقود=10 ↓ ينخفض (orange) ; الطريق=هابط لكن دعم أمامه (orange)
+STANDARD_H1 rows=8  | as COMPACT_H1 (الآن 30) + العائق=4110.870–4118.370 • قوي ; السياق=آسيا • HTF 240 • A 240/D
+DEBUG_H1    rows=11 | as STANDARD_H1 + المعايرة=9.354–12.781 • فوري 18/100 ; العوائق=— | مقاومة • Swing 4162.972–4171.420 ; Debug=… inv 0 … dup 0 … cap 0 • eng 3137 • hs 1638013568
+Note: live market; an image can be up to ~1 s newer than the data read (e.g. COMPACT_M1 crop shows الآن "→ غير حاسم 10" lime and
+road "يقترب من مقاومة (Flip مؤكد)" orange). The images were checked against the same rules and agree.
+
+Automatic checks (claude_g5check.mjs on the table data): A labels/rows/text and D runtime K rules — PASS in all six cases.
+  (Neutral heading text with a tactical colour, e.g. "→ غير حاسم 13" lime, is by design: tacticalSign from the micro move.)
+
+Result per case                  A     B     C     D     E
+COMPACT  M1                     PASS  PASS  PASS  PASS  PASS
+STANDARD M1                     PASS  PASS  PASS  PASS  PASS
+DEBUG    M1                     PASS  PASS  PASS  PASS  PASS
+COMPACT  H1                     PASS  PASS  PASS  PASS  PASS
+STANDARD H1                     PASS  PASS  PASS  PASS  PASS
+DEBUG    H1                     PASS  PASS  PASS  PASS  PASS
+B: every row legible; the HUD is opaque and in front of the candles (candles only in the 1 px cell gaps).
+C: status line = "GTG v0.4.7 Ø Ø <MA values> Ø Ø Ø" only; nothing crosses the HUD; the HUD does not cover the price scale.
+   DEBUG's wide Debug row covers candles by design of a diagnostic mode.
+E: same structure on M1 and H1, stable reads, INV 0.
+
+Fix history
+- 2be5e7e (display.none on 67 inputs, HUD rows 18 -> 4, shorttitle): status line fixed; H1 still showed candles over the HUD.
+- Root cause of F-G5-2: study z-order -10000 (Pine v6 overlay default behind_chart = true), not transparency.
+- 0c7cbe3 adds behind_chart = false: study drawn in front (z +10000). This run.
+
+F1: 10/10 — g5-f1-alert-contract-0c7cbe3.txt (alert lines byte-identical to 27f3bba; cited lines at +1).
+F2: NOT_OBSERVABLE (no alert created; alert service not exposed to CDP).
+Images: tv-g5-<MODE>_<TF>-0c7cbe3.png and tv-g5-<MODE>_<TF>-hud-0c7cbe3.png (12).
+Verdict: G5 VERIFIED on 0c7cbe3.

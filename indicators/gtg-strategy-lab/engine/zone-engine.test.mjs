@@ -5,10 +5,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import * as REF from '../../gtg-navigator/reference/engine.mjs';
+import * as REF from '../gtg-engine/reference/engine.mjs';
 import * as LAB from './zone-engine.mjs';
-import { canonicalSnapshot, compareSnapshots, hashSlots, hashState, eventBits } from '../../gtg-navigator/reference/snapshot.mjs';
-import { marketBars, loadInputs } from '../../gtg-navigator/reference/history.mjs';
+import { canonicalSnapshot, compareSnapshots, hashSlots, hashState, eventBits } from '../gtg-engine/reference/snapshot.mjs';
+import { marketBars, loadInputs } from '../gtg-engine/reference/history.mjs';
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 const P = REF.withSymbol(REF.DEFAULTS, { mintick: 0.01 });
@@ -47,7 +47,7 @@ test('ZE1 lab copy = reference on every bar (3 seeds × 6000 bars, state + event
 });
 
 test('ZE2 source differs from the reference only by [MEASURE] lines and the header', () => {
-  const ref = readFileSync(here('../../gtg-navigator/reference/engine.mjs'), 'utf8').split('\n');
+  const ref = readFileSync(here('../gtg-engine/reference/engine.mjs'), 'utf8').split('\n');
   const lab = readFileSync(here('./zone-engine.mjs'), 'utf8').split('\n');
   const header = lab.findIndex((l) => l.startsWith('// Reference model of the GTG Navigator'));
   assert.ok(header > 0);

@@ -1,6 +1,6 @@
 // Sections 12 (slot adapter: displayQ), 13 (obstacle awareness) and 17 (the ten alerts)
 // of gtg_navigator_v0.4.7.pine, one confirmed bar at a time.
-import { strongObstacleStep, newObstacleLatch } from '../../gtg-navigator/reference/obstacle.mjs';
+import { strongObstacleStep, newObstacleLatch } from '../gtg-engine/reference/obstacle.mjs';
 import { INPUTS } from './profiles.mjs';
 
 // Pine 1497–1500: displayQ = min(100, gateQ + 4·maConf + 3·psychConf). psychConf needs

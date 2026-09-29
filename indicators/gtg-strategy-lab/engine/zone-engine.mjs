@@ -1,5 +1,5 @@
 // GTG Strategy Lab — Measurement copy of the reference Zone Engine.
-// VERBATIM copy of indicators/gtg-navigator/reference/engine.mjs; the ONLY additions are
+// VERBATIM copy of gtg-engine/reference/engine.mjs (= production 0a77819); the ONLY additions are
 // lines tagged [MEASURE]: they append records to ev.log and set lv.everBreaking. Nothing
 // they write is read by any engine decision (zone-engine.test.mjs proves the canonical
 // snapshots equal the reference on every bar). TRADE_CONTRACT §1.2, §6.

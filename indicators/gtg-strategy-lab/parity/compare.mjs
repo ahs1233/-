@@ -5,8 +5,8 @@
 // Numeric fields: sensor scores abs ≤ 1e-6; ATR and prices by the price rule
 // (abs ≤ 1e-9·|x| + 1e-6·mintick) plus exact ticks. Tolerances are frozen; a failing
 // field is reported, never re-toleranced.
-import { htfBarsOf } from '../../gtg-navigator/reference/history.mjs';
-import { priceTol } from '../../gtg-navigator/reference/snapshot.mjs';
+import { htfBarsOf } from '../gtg-engine/reference/history.mjs';
+import { priceTol } from '../gtg-engine/reference/snapshot.mjs';
 import { runTimeframe } from '../engine/measure.mjs';
 import { profileFor, INPUTS } from '../engine/profiles.mjs';
 import { DEFAULTS, engineWindowFor } from '../engine/zone-engine.mjs';

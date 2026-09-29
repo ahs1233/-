@@ -1,0 +1,1771 @@
+//@version=6
+indicator(
+     "GTG Navigator v0.4.6 — Smart Zone Intelligence",
+     shorttitle = "GTG Nav v0.4.6",
+     overlay = true,
+     max_labels_count = 60,
+     max_lines_count = 30,
+     max_boxes_count = 20
+)
+
+// ============================================================================
+// GTG NAVIGATOR v0.4.6 — SMART ZONE INTELLIGENCE
+// Architecture: Route + Tactical Heading + Speed + Fuel + compact HUD + ranked four-zone intelligence (R1/R2/S1/S2).
+// Free-data only: OHLC, standard volume/tick activity when available, MTF price.
+// No Footprint, DOM, Level 2, paid Volume Profile, or external APIs.
+//
+// IMPORTANT:
+// - 0..100 values are relative measurement ranks / strengths, NOT win probability.
+// - "Fuel" means participation/thrust proxy. On spot XAUUSD it may use tick activity.
+// - Price zones are obstacles/areas of interest, NOT guaranteed targets.
+//
+// Implementation notes (relative to the original spec):
+// - Timeframe-adaptive helpers use chart minutes (timeframe.in_seconds / 60)
+//   instead of timeframe.multiplier, so seconds charts (e.g. 30S) are treated
+//   as sub-M1 rather than as a 30-minute chart.
+// - Pivot departure (ta.lowest / ta.highest) is computed on every bar, not
+//   inside a conditional block, so the window stays consistent.
+// - A stable R1/R2/S1/S2 zone is also retired once price drifts farther than
+//   "maxObstacleAtr" away from it, so a frozen quality score cannot pin a stale zone.
+// ============================================================================
+
+// ============================================================================
+// 1. CONFIG
+// ============================================================================
+
+groupGeneral = "عام"
+showDashboard = input.bool(true, "إظهار لوحة الملاحة", group = groupGeneral)
+dashboardMode = input.string("COMPACT", "وضع اللوحة", options = ["COMPACT", "STANDARD", "DEBUG"], group = groupGeneral)
+dashboardTextSize = input.string("TINY", "حجم خط اللوحة", options = ["TINY", "SMALL", "NORMAL"], group = groupGeneral)
+showMAs = input.bool(true, "إظهار المتوسطات", group = groupGeneral)
+showFastMAs = input.bool(false, "إظهار MA14 / MA22", group = groupGeneral)
+showObstacleMarkers = input.bool(false, "إظهار مراكز العوائق — Debug", group = groupGeneral)
+showSmartZones = input.bool(true, "إظهار خريطة المناطق الذكية", group = groupGeneral)
+zonesPerSide = input.int(2, "عدد المناطق فوق/تحت السعر", minval = 1, maxval = 2, group = groupGeneral)
+autoZoneSpan = input.bool(true, "امتداد المناطق تلقائي حسب الفريم", group = groupGeneral)
+manualZoneForwardBars = input.int(36, "امتداد المنطقة للأمام / شموع", minval = 8, maxval = 160, group = groupGeneral)
+manualZoneBackBars = input.int(36, "امتداد المنطقة للخلف / شموع", minval = 8, maxval = 200, group = groupGeneral)
+showZoneLabels = input.bool(true, "إظهار اسم المنطقة", group = groupGeneral)
+
+// Moving-average sensors.
+groupMA = "حساسات المتوسطات"
+maType = input.string("EMA", "نوع المتوسط", options = ["EMA", "SMA", "WMA"], group = groupMA)
+
+// Calibration / ranking.
+groupCalibration = "المعايرة"
+rankMode = input.string("AUTO", "نافذة المعايرة", options = ["AUTO", "MANUAL"], group = groupCalibration)
+manualRankLen = input.int(300, "نافذة المعايرة اليدوية", minval = 80, maxval = 2000, group = groupCalibration)
+normalLowPct = input.float(25.0, "بداية النطاق الطبيعي %", minval = 5, maxval = 45, step = 1, group = groupCalibration)
+normalHighPct = input.float(75.0, "نهاية النطاق الطبيعي %", minval = 55, maxval = 95, step = 1, group = groupCalibration)
+
+// Speedometer.
+groupSpeed = "عداد السرعة"
+speedSmooth = input.int(3, "تنعيم السرعة اللحظية", minval = 1, maxval = 20, group = groupSpeed)
+speedFlowMode = input.string("AUTO", "نافذة سرعة التدفق", options = ["AUTO", "MANUAL"], group = groupSpeed)
+manualSpeedFlowLen = input.int(5, "نافذة التدفق اليدوية", minval = 2, maxval = 20, group = groupSpeed)
+speedAccelLookback = input.int(3, "نافذة التسارع", minval = 1, maxval = 20, group = groupSpeed)
+speedSlowThreshold = input.float(25.0, "سرعة منخفضة", minval = 5, maxval = 45, step = 1, group = groupSpeed)
+speedFastThreshold = input.float(70.0, "سرعة مرتفعة", minval = 50, maxval = 90, step = 1, group = groupSpeed)
+speedExtremeThreshold = input.float(90.0, "سرعة استثنائية", minval = 75, maxval = 99, step = 1, group = groupSpeed)
+
+// Local heading.
+groupHeading = "الاتجاه الحالي"
+headingLookback = input.int(14, "نافذة كفاءة المسار", minval = 5, maxval = 100, group = groupHeading)
+headingSlopeLookback = input.int(8, "نافذة الميل", minval = 2, maxval = 50, group = groupHeading)
+headingClearThreshold = input.float(20.0, "حد اتجاه واضح", minval = 5, maxval = 45, step = 1, group = groupHeading)
+headingStrongThreshold = input.float(60.0, "حد اتجاه قوي", minval = 40, maxval = 90, step = 1, group = groupHeading)
+headingDeadZone = input.float(15.0, "منطقة عدم الحسم", minval = 5, maxval = 25, step = 1, group = groupHeading)
+
+// Macro route / HTF.
+groupRoute = "المسار العام"
+htfMode = input.string("AUTO", "وضع الإطار الأعلى", options = ["AUTO", "MANUAL"], group = groupRoute)
+manualHTF = input.timeframe("240", "الإطار الأعلى اليدوي", group = groupRoute)
+routeClearThreshold = input.float(22.0, "حد المسار الواضح", minval = 5, maxval = 45, step = 1, group = groupRoute)
+routeStrongThreshold = input.float(62.0, "حد المسار القوي", minval = 40, maxval = 90, step = 1, group = groupRoute)
+
+// Fuel / thrust.
+groupFuel = "عداد الوقود"
+fuelSmooth = input.int(3, "تنعيم الوقود", minval = 1, maxval = 20, group = groupFuel)
+fuelBaselineLen = input.int(50, "خط أساس النشاط", minval = 20, maxval = 300, group = groupFuel)
+fuelLowThreshold = input.float(25.0, "وقود منخفض", minval = 5, maxval = 50, step = 1, group = groupFuel)
+fuelHighThreshold = input.float(70.0, "وقود مرتفع", minval = 50, maxval = 90, step = 1, group = groupFuel)
+fuelExtremeThreshold = input.float(90.0, "وقود استثنائي", minval = 75, maxval = 99, step = 1, group = groupFuel)
+
+// Obstacle map.
+groupMap = "خريطة العوائق"
+pivotLen = input.int(5, "تأكيد الدعم/المقاومة", minval = 2, maxval = 20, group = groupMap)
+levelsToKeep = input.int(14, "عدد المستويات المحفوظة", minval = 6, maxval = 40, group = groupMap)
+zoneHalfAtr = input.float(0.12, "سماكة المنطقة السعرية / ATR", minval = 0.01, maxval = 0.25, step = 0.01, group = groupMap)
+zoneMergeAtr = input.float(0.35, "دمج المناطق المتقاربة / ATR", minval = 0.05, maxval = 1.0, step = 0.01, group = groupMap)
+minDistinctGapAtr = input.float(0.40, "أقل فصل بين العوائق / ATR", minval = 0.10, maxval = 2.0, step = 0.05, group = groupMap)
+minObstacleStrength = input.float(42.0, "أدنى قوة لعائق معروض", minval = 0, maxval = 90, step = 1, group = groupMap)
+maxObstacleAtr = input.float(8.0, "أقصى مسافة عائق / ATR", minval = 1.0, maxval = 30.0, step = 0.5, group = groupMap)
+touchAtr = input.float(0.08, "هامش احتساب اللمس / ATR", minval = 0.02, maxval = 0.30, step = 0.01, group = groupMap)
+nearObstacleAtr = input.float(0.35, "اعتبار العائق قريبًا / ATR", minval = 0.05, maxval = 1.50, step = 0.05, group = groupMap)
+awarenessObstacleAtr = input.float(0.85, "مسافة وعي الطريق بالعائق / ATR", minval = 0.30, maxval = 2.50, step = 0.05, group = groupMap)
+breakConfirmAtr = input.float(0.08, "تأكيد الاختراق/الكسر / ATR", minval = 0.01, maxval = 0.50, step = 0.01, group = groupMap)
+noChaseAtr = input.float(0.30, "منطقة منع المطاردة / ATR", minval = 0.05, maxval = 1.00, step = 0.05, group = groupMap)
+noChaseFuelMax = input.float(65.0, "أقصى وقود عند منع المطاردة", minval = 20, maxval = 90, step = 1, group = groupMap)
+includeMA200 = input.bool(true, "إدخال MA200 في الخريطة", group = groupMap)
+includeMA1000 = input.bool(true, "إدخال MA1000 في الخريطة", group = groupMap)
+usePsychLevels = input.bool(true, "إضافة مستويات نفسية للكريبتو", group = groupMap)
+zoneMaxTests = input.int(4, "أقصى اختبارات قبل اعتبار المنطقة مستهلكة", minval = 1, maxval = 10, group = groupMap)
+zoneSwitchMargin = input.float(10.0, "هامش استبدال المنطقة الثابتة", minval = 0, maxval = 30, step = 1, group = groupMap)
+psychStandaloneNearAtr = input.float(0.55, "السماح بمستوى نفسي منفرد إذا كان قريبًا / ATR", minval = 0.10, maxval = 2.0, step = 0.05, group = groupMap)
+flipLifeBars = input.int(80, "عمر منطقة الدعم/المقاومة المقلوبة", minval = 10, maxval = 500, group = groupMap)
+
+// Strict price-only Order Block proxy.
+groupOB = "Order Block — بديل سعري"
+useOrderBlocks = input.bool(true, "استخدام Order Block", group = groupOB)
+bosLookback = input.int(20, "نافذة كسر الهيكل", minval = 8, maxval = 100, group = groupOB)
+obSearchBars = input.int(8, "البحث عن آخر شمعة معاكسة", minval = 2, maxval = 20, group = groupOB)
+displacementBodyAtr = input.float(0.55, "حد شمعة الاندفاع / ATR", minval = 0.20, maxval = 2.0, step = 0.05, group = groupOB)
+
+
+// ============================================================================
+// 2. HELPERS
+// ============================================================================
+
+getMA(float src, int len) =>
+    switch maType
+        "EMA" => ta.ema(src, len)
+        "SMA" => ta.sma(src, len)
+        => ta.wma(src, len)
+
+clamp100(float value) =>
+    math.max(0.0, math.min(100.0, value))
+
+clampSigned(float value) =>
+    math.max(-1.0, math.min(1.0, value))
+
+fmtPrice(float value) =>
+    str.tostring(value, format.mintick)
+
+fmtScore(float value) =>
+    str.tostring(math.round(value)) + "/100"
+
+fmtZone(float lo, float hi) =>
+    math.abs(hi - lo) <= syminfo.mintick * 2.0 ? fmtPrice((lo + hi) * 0.5) : fmtPrice(lo) + "–" + fmtPrice(hi)
+
+strengthText(float score) =>
+    score >= 72 ? "قوي" : score >= 48 ? "متوسط" : "ضعيف"
+
+dashSize() =>
+    dashboardTextSize == "NORMAL" ? size.normal : dashboardTextSize == "SMALL" ? size.small : size.tiny
+
+// Chart timeframe expressed in minutes. Seconds charts return values below 1,
+// so they share the M1 profile instead of being read through timeframe.multiplier.
+chartMinutes() =>
+    timeframe.in_seconds() / 60.0
+
+zoneIsResistance(string typ, float lo, float hi) =>
+    str.contains(typ, "مقاومة") or str.contains(typ, "عرض") ? true :
+     str.contains(typ, "دعم") or str.contains(typ, "طلب") ? false :
+     (lo + hi) * 0.5 >= close
+
+zoneShortName(string typ, float strength) =>
+    string role = str.contains(typ, "HTF") ? "HTF" : str.contains(typ, "نفسية") ? "نفسي" : str.contains(typ, "OB") ? "OB" : "منطقة"
+    role + " • " + strengthText(strength)
+
+autoHTF() =>
+    string result = "D"
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? "15" :
+             m <= 5 ? "60" :
+             m <= 15 ? "60" :
+             m <= 60 ? "240" :
+             m <= 240 ? "D" : "D"
+    else if timeframe.isdaily
+        result := "W"
+    else if timeframe.isweekly
+        result := "M"
+    else
+        result := "3M"
+    result
+
+autoRankLength() =>
+    int result = 240
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? 1000 :
+             m <= 5 ? 500 :
+             m <= 15 ? 320 :
+             m <= 60 ? 240 :
+             m <= 240 ? 180 : 160
+    else if timeframe.isdaily
+        result := 180
+    else
+        result := 120
+    result
+
+autoSpeedFlowLen() =>
+    int result = 4
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? 8 :
+             m <= 5 ? 6 :
+             m <= 15 ? 5 :
+             m <= 60 ? 4 : 3
+    else
+        result := 3
+    result
+
+routeHtfWeight() =>
+    float result = 0.50
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? 0.70 :
+             m <= 5 ? 0.65 :
+             m <= 15 ? 0.60 :
+             m <= 60 ? 0.55 :
+             m <= 240 ? 0.45 : 0.45
+    else if timeframe.isdaily
+        result := 0.40
+    else if timeframe.isweekly
+        result := 0.35
+    else
+        result := 0.30
+    result
+
+// Distance from current price to a zone. Returns 0 when price is inside it.
+zoneDistance(float lo, float hi) =>
+    close < lo ? lo - close : close > hi ? close - hi : 0.0
+
+
+lastPivotHigh(int len) =>
+    float ph = ta.pivothigh(high, len, len)
+    ta.valuewhen(not na(ph), ph, 0)
+
+lastPivotLow(int len) =>
+    float pl = ta.pivotlow(low, len, len)
+    ta.valuewhen(not na(pl), pl, 0)
+
+autoPsychStep(float price) =>
+    price >= 100000 ? 10000.0 :
+     price >= 50000 ? 5000.0 :
+     price >= 10000 ? 1000.0 :
+     price >= 1000 ? 500.0 :
+     price >= 100 ? 50.0 :
+     price >= 10 ? 5.0 : 1.0
+
+// Dynamic geometry for the current chart timeframe. Values are ATR-normalized,
+// so the same engine can operate on BTC, XAUUSD and other liquid markets.
+dynamicClusterAtr() =>
+    float mult = 1.0
+    if timeframe.isintraday
+        float m = chartMinutes()
+        mult := m <= 1 ? 0.72 : m <= 5 ? 0.86 : m <= 15 ? 1.0 : m <= 60 ? 1.12 : 1.25
+    else if timeframe.isdaily
+        mult := 1.35
+    else
+        mult := 1.45
+    zoneMergeAtr * mult
+
+dynamicDistinctGapAtr() =>
+    float mult = 1.0
+    if timeframe.isintraday
+        float m = chartMinutes()
+        mult := m <= 1 ? 0.80 : m <= 5 ? 0.90 : m <= 15 ? 1.0 : m <= 60 ? 1.15 : 1.30
+    else if timeframe.isdaily
+        mult := 1.40
+    else
+        mult := 1.55
+    minDistinctGapAtr * mult
+
+zoneFreshness(int ageBars, int tests) =>
+    float ageWindow = math.max(30.0, pivotLen * levelsToKeep * 2.5)
+    float agePenalty = math.min(48.0, 48.0 * ageBars / ageWindow)
+    clamp100(100.0 - agePenalty - tests * 14.0)
+
+zonePrimaryQuality(float strength, float freshness, float reaction, float confluence, float distAtr) =>
+    float proximity = clamp100(100.0 - distAtr * 14.0)
+    0.40 * strength + 0.18 * freshness + 0.18 * reaction + 0.12 * confluence + 0.12 * proximity
+
+zoneSecondaryQuality(float strength, float freshness, float reaction, float confluence, float distAtr) =>
+    float proximity = clamp100(100.0 - distAtr * 9.0)
+    0.43 * strength + 0.17 * freshness + 0.20 * reaction + 0.14 * confluence + 0.06 * proximity
+
+zoneTypeText(int role, bool hasHTF, bool hasOB, bool hasPsych, bool hasMA, bool hasFlip) =>
+    string t = role > 0 ? "مقاومة" : "دعم"
+    t := hasFlip ? t + " • Flip" : t
+    t := hasOB ? t + " • OB" : t
+    t := hasHTF ? t + " • HTF" : t
+    t := hasPsych ? t + " • نفسي" : t
+    t := hasMA and not hasHTF ? t + " • MA" : t
+    t
+
+
+// ============================================================================
+// 3. CORE SENSORS
+// ============================================================================
+
+ma14 = getMA(close, 14)
+ma22 = getMA(close, 22)
+ma50 = getMA(close, 50)
+ma200 = getMA(close, 200)
+ma1000 = getMA(close, 1000)
+
+atr = ta.atr(14)
+safeAtr = math.max(atr, syminfo.mintick)
+
+prevClose = nz(close[1], close)
+trueRange = math.max(high - low, math.max(math.abs(high - prevClose), math.abs(low - prevClose)))
+bodySize = math.abs(close - open)
+barRange = math.max(high - low, syminfo.mintick)
+bodyQuality = bodySize / barRange
+bodyAtr = bodySize / safeAtr
+
+rankLen = rankMode == "AUTO" ? autoRankLength() : manualRankLen
+resolvedHTF = htfMode == "AUTO" ? autoHTF() : manualHTF
+
+if barstate.isfirst and timeframe.in_seconds(resolvedHTF) <= timeframe.in_seconds()
+    runtime.error("GTG Navigator: الإطار الأعلى يجب أن يكون أعلى من إطار الرسم الحالي.")
+
+// Confirmed HTF data only. All requested series are offset by one HTF bar so
+// realtime values use the latest fully closed higher-timeframe information.
+lastPivotHighSeries = lastPivotHigh(pivotLen)
+lastPivotLowSeries = lastPivotLow(pivotLen)
+[htfClose, htfMA50, htfMA200, htfMA50Past, htfATR, htfPivotHigh, htfPivotLow] = request.security(
+     syminfo.tickerid,
+     resolvedHTF,
+     [close[1], getMA(close, 50)[1], getMA(close, 200)[1], getMA(close, 50)[6], ta.atr(14)[1], lastPivotHighSeries[1], lastPivotLowSeries[1]],
+     lookahead = barmerge.lookahead_on
+)
+
+safeHtfAtr = math.max(htfATR, syminfo.mintick)
+
+// Asset awareness. The measurement core is scale-free; context labels adapt by asset type.
+string assetType = syminfo.type
+bool isCrypto = assetType == "crypto"
+string assetLabel = syminfo.ticker
+
+// Session/activity label is context only. It never claims centralized volume.
+bool sessionRelevant = timeframe.isintraday and timeframe.in_seconds() <= 3600
+bool inLondon = sessionRelevant and not na(time(timeframe.period, "0700-1600:23456", "Europe/London"))
+bool inNewYork = sessionRelevant and not na(time(timeframe.period, "0800-1700:23456", "America/New_York"))
+bool inAsia = sessionRelevant and not na(time(timeframe.period, "0900-1700:23456", "Asia/Tokyo"))
+string sessionText = not timeframe.isintraday ? "HTF" :
+     isCrypto ? (not sessionRelevant ? "كريبتو 24/7" : inLondon and inNewYork ? "كريبتو 24/7 • أوروبا + أمريكا" : inNewYork ? "كريبتو 24/7 • نشاط أمريكا" : inLondon ? "كريبتو 24/7 • نشاط أوروبا" : inAsia ? "كريبتو 24/7 • نشاط آسيا" : "كريبتو 24/7") :
+     not sessionRelevant ? "HTF" : inLondon and inNewYork ? "لندن + نيويورك" : inLondon ? "لندن" : inNewYork ? "نيويورك" : inAsia ? "آسيا" : "خارج الجلسات الرئيسية"
+
+
+// ============================================================================
+// 4. SPEED ENGINE — FLOW SPEED + INSTANT SPEED
+// ============================================================================
+
+// "Instant" answers how fast the current bar is moving.
+// "Flow" answers how fast the recent stream of bars is moving.
+// The dashboard uses Flow Speed so one quiet bar does not collapse the gauge.
+closeStep = math.abs(close - prevClose)
+barTravel = 0.70 * closeStep + 0.30 * trueRange
+instantSpeedRaw = ta.ema(barTravel, speedSmooth)
+speedFlowLen = speedFlowMode == "AUTO" ? autoSpeedFlowLen() : manualSpeedFlowLen
+flowSpeedRaw = ta.ema(instantSpeedRaw, speedFlowLen)
+
+instantSpeedRankRaw = ta.percentrank(instantSpeedRaw, rankLen)
+flowSpeedRankRaw = ta.percentrank(flowSpeedRaw, rankLen)
+
+flowFallbackBase = ta.ema(flowSpeedRaw, math.min(rankLen, 50))
+flowFallback = flowFallbackBase > 0 ? clamp100(50.0 * flowSpeedRaw / flowFallbackBase) : 50.0
+speedScore = nz(flowSpeedRankRaw, flowFallback)
+instantSpeedScore = nz(instantSpeedRankRaw, speedScore)
+
+// Natural band is based on FLOW speed, not one bar.
+speedNaturalLow = ta.percentile_nearest_rank(flowSpeedRaw, rankLen, normalLowPct)
+speedNaturalHigh = ta.percentile_nearest_rank(flowSpeedRaw, rankLen, normalHighPct)
+
+speedAcceleration = speedScore - nz(speedScore[speedAccelLookback], speedScore)
+string speedClass = speedScore < speedSlowThreshold ? "بطيئة" : speedScore < speedFastThreshold ? "طبيعية" : speedScore < speedExtremeThreshold ? "سريعة" : "استثنائية"
+string speedTrend = speedAcceleration > 5 ? "↑ تتسارع" : speedAcceleration < -5 ? "↓ تتباطأ" : "→ ثابتة"
+
+
+// ============================================================================
+// 5. TACTICAL HEADING — WHERE PRICE IS POINTING NOW
+// ============================================================================
+
+// Shorter horizons on LTF prevent a strong current push from being diluted by
+// older chop. Higher timeframes keep the original, slower structural windows.
+int headingEffLen = headingLookback
+int headingSlopeEffLen = headingSlopeLookback
+int microLen = 3
+if timeframe.isintraday
+    float hm = chartMinutes()
+    headingEffLen := hm <= 1 ? math.min(headingLookback, 8) : hm <= 5 ? math.min(headingLookback, 10) : hm <= 15 ? math.min(headingLookback, 12) : headingLookback
+    headingSlopeEffLen := hm <= 1 ? math.min(headingSlopeLookback, 4) : hm <= 5 ? math.min(headingSlopeLookback, 5) : hm <= 15 ? math.min(headingSlopeLookback, 6) : headingSlopeLookback
+    microLen := hm <= 1 ? 3 : hm <= 5 ? 3 : hm <= 15 ? 4 : hm <= 60 ? 5 : 6
+else
+    microLen := timeframe.isdaily ? 3 : 2
+
+absStep = math.abs(close - prevClose)
+pathTravel = ta.sma(absStep, headingEffLen) * headingEffLen
+netDisplacement = close - close[headingEffLen]
+signedEfficiency = pathTravel > 0 ? clampSigned(netDisplacement / pathTravel) : 0.0
+
+localEma = ta.ema(close, 14)
+localSlopeNorm = (localEma - localEma[headingSlopeEffLen]) / (safeAtr * headingSlopeEffLen)
+localSlopeNorm := clampSigned(localSlopeNorm * 2.5)
+
+microMoveNorm = (close - close[microLen]) / (safeAtr * microLen)
+microMoveNorm := clampSigned(microMoveNorm * 3.0)
+fastEma = ta.ema(close, 5)
+fastSlopeNorm = (fastEma - fastEma[microLen]) / (safeAtr * microLen)
+fastSlopeNorm := clampSigned(fastSlopeNorm * 2.5)
+
+float maStructure = ma14 > ma22 and ma22 > ma50 ? 1.0 :
+     ma14 < ma22 and ma22 < ma50 ? -1.0 :
+     ma14 > ma50 ? 0.35 : ma14 < ma50 ? -0.35 : 0.0
+
+// Tactical heading excludes HTF context to prevent double counting.
+// Micro displacement and fast slope make LTF direction responsive without using speed itself.
+headingVector =
+     0.38 * signedEfficiency +
+     0.24 * localSlopeNorm +
+     0.23 * microMoveNorm +
+     0.15 * maStructure
+
+headingScore = 100.0 * clampSigned(headingVector)
+headingStrength = math.abs(headingScore)
+int headingSign = headingScore > headingClearThreshold ? 1 : headingScore < -headingClearThreshold ? -1 : 0
+int microSign = microMoveNorm > 0.18 ? 1 : microMoveNorm < -0.18 ? -1 : 0
+int tacticalSign = headingSign != 0 ? headingSign : headingStrength > headingDeadZone ? (headingScore > 0 ? 1 : -1) : (math.abs(microMoveNorm) > 0.32 ? microSign : 0)
+
+string headingText = headingScore >= headingStrongThreshold ? "↑ صاعد بقوة" :
+     headingScore > headingClearThreshold ? "↗ صاعد" :
+     headingScore <= -headingStrongThreshold ? "↓ هابط بقوة" :
+     headingScore < -headingClearThreshold ? "↘ هابط" :
+     headingStrength <= headingDeadZone ? "→ غير حاسم" :
+     headingScore > 0 ? "↗ ميل صاعد ضعيف" : "↘ ميل هابط ضعيف"
+
+
+// ============================================================================
+// 6. MACRO ROUTE — ADAPTIVE CURRENT-TF + HTF STRUCTURE
+// ============================================================================
+
+// HTF structure
+float htfStructure = htfClose > htfMA50 and htfMA50 > htfMA200 ? 1.0 :
+     htfClose < htfMA50 and htfMA50 < htfMA200 ? -1.0 :
+     htfClose > htfMA200 ? 0.45 : htfClose < htfMA200 ? -0.45 : 0.0
+
+htfMA50SlopeNorm = (htfMA50 - htfMA50Past) / (safeHtfAtr * 5.0)
+htfMA50SlopeNorm := clampSigned(htfMA50SlopeNorm * 2.5)
+htfRouteVector = 0.70 * htfStructure + 0.30 * htfMA50SlopeNorm
+
+// Current-chart structural route. This stops D1/H4 from being dominated by a stale HTF.
+float currentStructure = close > ma50 and ma50 > ma200 ? 1.0 :
+     close < ma50 and ma50 < ma200 ? -1.0 :
+     close > ma200 ? 0.45 : close < ma200 ? -0.45 : 0.0
+
+currentMA50SlopeNorm = (ma50 - ma50[5]) / (safeAtr * 5.0)
+currentMA50SlopeNorm := clampSigned(currentMA50SlopeNorm * 2.5)
+currentRouteVector = 0.70 * currentStructure + 0.30 * currentMA50SlopeNorm
+
+htfWeight = routeHtfWeight()
+currentWeight = 1.0 - htfWeight
+routeVector = htfWeight * htfRouteVector + currentWeight * currentRouteVector
+routeScore = 100.0 * clampSigned(routeVector)
+routeStrength = math.abs(routeScore)
+int routeSign = routeScore > routeClearThreshold ? 1 : routeScore < -routeClearThreshold ? -1 : 0
+
+string routeText = routeScore >= routeStrongThreshold ? "↑ صاعد بقوة" :
+     routeScore > routeClearThreshold ? "↗ صاعد" :
+     routeScore <= -routeStrongThreshold ? "↓ هابط بقوة" :
+     routeScore < -routeClearThreshold ? "↘ هابط" : "→ غير حاسم"
+
+
+// ============================================================================
+// 7. FUEL ENGINE — PARTICIPATION / THRUST, CALIBRATED BY PERCENT-RANK
+// ============================================================================
+
+volumeBaseline = ta.sma(volume, fuelBaselineLen)
+volumeAvailable = not na(volume) and not na(volumeBaseline) and volumeBaseline > 0 and volume > 0
+volumeRelative = volumeAvailable ? volume / volumeBaseline : 1.0
+
+rangeBaseline = ta.ema(trueRange, fuelBaselineLen)
+rangeRelative = rangeBaseline > 0 ? trueRange / rangeBaseline : 1.0
+
+// Directional persistence answers whether bars are repeatedly pushing one way.
+barDirection = close > prevClose ? 1.0 : close < prevClose ? -1.0 : 0.0
+persistence = math.abs(ta.ema(barDirection, 5))
+
+// Fuel is deliberately not the same thing as speed. Range has a smaller weight;
+// participation, persistence and body thrust dominate the proxy.
+fuelRaw = volumeAvailable ?
+     0.40 * math.min(volumeRelative, 3.0) +
+     0.15 * math.min(rangeRelative, 3.0) +
+     0.20 * math.min(bodyAtr, 2.0) +
+     0.15 * persistence +
+     0.10 * math.abs(signedEfficiency) :
+     0.25 * math.min(rangeRelative, 3.0) +
+     0.30 * math.min(bodyAtr, 2.0) +
+     0.25 * persistence +
+     0.20 * math.abs(signedEfficiency)
+
+fuelRawSmooth = ta.ema(fuelRaw, fuelSmooth)
+fuelRankRaw = ta.percentrank(fuelRawSmooth, rankLen)
+fuelFallbackBase = ta.ema(fuelRawSmooth, math.min(rankLen, 50))
+fuelFallback = fuelFallbackBase > 0 ? clamp100(50.0 * fuelRawSmooth / fuelFallbackBase) : 50.0
+fuelScore = nz(fuelRankRaw, fuelFallback)
+
+fuelAcceleration = fuelScore - nz(fuelScore[speedAccelLookback], fuelScore)
+string fuelClass = fuelScore < fuelLowThreshold ? "منخفض" : fuelScore < fuelHighThreshold ? "طبيعي" : fuelScore < fuelExtremeThreshold ? "مرتفع" : "استثنائي"
+string fuelTrend = fuelAcceleration > 5 ? "↑ يزيد" : fuelAcceleration < -5 ? "↓ ينخفض" : "→ ثابت"
+string fuelSource = volumeAvailable ? "نشاط حجمي/تيك" : "بديل نشاط سعري"
+
+
+// ============================================================================
+// 8. CONFIRMED STRUCTURAL LEVELS + TOUCH / FRESHNESS HISTORY
+// Pivots are admitted only after confirmation. Their ATR and origin bar are
+// frozen at confirmation so a historical zone does not breathe with current ATR.
+// ============================================================================
+
+pivotHigh = ta.pivothigh(high, pivotLen, pivotLen)
+pivotLow = ta.pivotlow(low, pivotLen, pivotLen)
+
+// Right-side extremes since the pivot bar. Computed on every bar (not inside the
+// admission blocks) so the rolling window stays consistent.
+pivotRightLow = ta.lowest(low, pivotLen + 1)
+pivotRightHigh = ta.highest(high, pivotLen + 1)
+
+var pivotHighs = array.new_float()
+var pivotHighAtr = array.new_float()
+var pivotHighBase = array.new_float()
+var pivotHighTouches = array.new_int()
+var pivotHighLastTouch = array.new_int()
+var pivotHighOrigin = array.new_int()
+
+var pivotLows = array.new_float()
+var pivotLowAtr = array.new_float()
+var pivotLowBase = array.new_float()
+var pivotLowTouches = array.new_int()
+var pivotLowLastTouch = array.new_int()
+var pivotLowOrigin = array.new_int()
+
+if barstate.isconfirmed and not na(pivotHigh)
+    float pivotAtr = math.max(nz(atr[pivotLen], safeAtr), syminfo.mintick)
+    float departure = (pivotHigh - pivotRightLow) / pivotAtr
+    float baseStrength = clamp100(45.0 + math.min(38.0, departure * 16.0))
+    array.unshift(pivotHighs, pivotHigh)
+    array.unshift(pivotHighAtr, pivotAtr)
+    array.unshift(pivotHighBase, baseStrength)
+    array.unshift(pivotHighTouches, 0)
+    array.unshift(pivotHighLastTouch, bar_index)
+    array.unshift(pivotHighOrigin, math.max(0, bar_index - pivotLen))
+    if array.size(pivotHighs) > levelsToKeep
+        array.pop(pivotHighs)
+        array.pop(pivotHighAtr)
+        array.pop(pivotHighBase)
+        array.pop(pivotHighTouches)
+        array.pop(pivotHighLastTouch)
+        array.pop(pivotHighOrigin)
+
+if barstate.isconfirmed and not na(pivotLow)
+    float pivotAtr = math.max(nz(atr[pivotLen], safeAtr), syminfo.mintick)
+    float departure = (pivotRightHigh - pivotLow) / pivotAtr
+    float baseStrength = clamp100(45.0 + math.min(38.0, departure * 16.0))
+    array.unshift(pivotLows, pivotLow)
+    array.unshift(pivotLowAtr, pivotAtr)
+    array.unshift(pivotLowBase, baseStrength)
+    array.unshift(pivotLowTouches, 0)
+    array.unshift(pivotLowLastTouch, bar_index)
+    array.unshift(pivotLowOrigin, math.max(0, bar_index - pivotLen))
+    if array.size(pivotLows) > levelsToKeep
+        array.pop(pivotLows)
+        array.pop(pivotLowAtr)
+        array.pop(pivotLowBase)
+        array.pop(pivotLowTouches)
+        array.pop(pivotLowLastTouch)
+        array.pop(pivotLowOrigin)
+
+// A repeated revisit reduces freshness. Consecutive bars count as one test.
+if barstate.isconfirmed and array.size(pivotHighs) > 0
+    for i = 0 to array.size(pivotHighs) - 1
+        float p = array.get(pivotHighs, i)
+        float pAtr = array.get(pivotHighAtr, i)
+        int lastT = array.get(pivotHighLastTouch, i)
+        bool touched = high >= p - touchAtr * pAtr and low <= p + touchAtr * pAtr
+        if touched and bar_index - lastT > pivotLen
+            array.set(pivotHighTouches, i, array.get(pivotHighTouches, i) + 1)
+            array.set(pivotHighLastTouch, i, bar_index)
+
+if barstate.isconfirmed and array.size(pivotLows) > 0
+    for i = 0 to array.size(pivotLows) - 1
+        float p = array.get(pivotLows, i)
+        float pAtr = array.get(pivotLowAtr, i)
+        int lastT = array.get(pivotLowLastTouch, i)
+        bool touched = high >= p - touchAtr * pAtr and low <= p + touchAtr * pAtr
+        if touched and bar_index - lastT > pivotLen
+            array.set(pivotLowTouches, i, array.get(pivotLowTouches, i) + 1)
+            array.set(pivotLowLastTouch, i, bar_index)
+
+// ============================================================================
+// 9. STRICT ORDER-BLOCK PRICE PROXY
+// ============================================================================
+
+priorStructureHigh = ta.highest(high, bosLookback)[1]
+priorStructureLow = ta.lowest(low, bosLookback)[1]
+
+bullDisplacement = barstate.isconfirmed and close > priorStructureHigh and close > open and bodyAtr >= displacementBodyAtr
+bearDisplacement = barstate.isconfirmed and close < priorStructureLow and close < open and bodyAtr >= displacementBodyAtr
+
+var float bullOBLow = na
+var float bullOBHigh = na
+var float bullOBBase = na
+var int bullOBTouches = 0
+var int bullOBLastTouch = na
+var int bullOBOriginBar = na
+
+var float bearOBLow = na
+var float bearOBHigh = na
+var float bearOBBase = na
+var int bearOBTouches = 0
+var int bearOBLastTouch = na
+var int bearOBOriginBar = na
+
+if useOrderBlocks and bullDisplacement
+    bool foundBullOB = false
+    for i = 1 to obSearchBars
+        if not foundBullOB and close[i] < open[i]
+            bullOBLow := low[i]
+            bullOBHigh := math.max(open[i], close[i])
+            bullOBBase := clamp100(58.0 + math.min(30.0, (bodyAtr - displacementBodyAtr) * 30.0))
+            bullOBTouches := 0
+            bullOBLastTouch := bar_index
+            bullOBOriginBar := math.max(0, bar_index - i)
+            foundBullOB := true
+
+if useOrderBlocks and bearDisplacement
+    bool foundBearOB = false
+    for i = 1 to obSearchBars
+        if not foundBearOB and close[i] > open[i]
+            bearOBLow := math.min(open[i], close[i])
+            bearOBHigh := high[i]
+            bearOBBase := clamp100(58.0 + math.min(30.0, (bodyAtr - displacementBodyAtr) * 30.0))
+            bearOBTouches := 0
+            bearOBLastTouch := bar_index
+            bearOBOriginBar := math.max(0, bar_index - i)
+            foundBearOB := true
+
+if barstate.isconfirmed and not na(bullOBLow)
+    bool bullTouch = high >= bullOBLow and low <= bullOBHigh
+    if bullTouch and bar_index - nz(bullOBLastTouch, bar_index) > 2
+        bullOBTouches += 1
+        bullOBLastTouch := bar_index
+    if close < bullOBLow
+        bullOBLow := na
+        bullOBHigh := na
+        bullOBBase := na
+        bullOBTouches := 0
+        bullOBLastTouch := na
+        bullOBOriginBar := na
+
+if barstate.isconfirmed and not na(bearOBHigh)
+    bool bearTouch = high >= bearOBLow and low <= bearOBHigh
+    if bearTouch and bar_index - nz(bearOBLastTouch, bar_index) > 2
+        bearOBTouches += 1
+        bearOBLastTouch := bar_index
+    if close > bearOBHigh
+        bearOBLow := na
+        bearOBHigh := na
+        bearOBBase := na
+        bearOBTouches := 0
+        bearOBLastTouch := na
+        bearOBOriginBar := na
+
+insideBullOB = not na(bullOBLow) and close >= bullOBLow and close <= bullOBHigh
+insideBearOB = not na(bearOBLow) and close >= bearOBLow and close <= bearOBHigh
+
+
+// ============================================================================
+// 10. SMART-ZONE CANDIDATES — CURRENT TF FIRST
+// Candidate metadata is explicit so selection can separate structure from context.
+// ============================================================================
+
+var candLow = array.new_float()
+var candHigh = array.new_float()
+var candRole = array.new_int()          // +1 resistance, -1 support
+var candBase = array.new_float()        // structural base strength
+var candFresh = array.new_float()       // freshness 0..100
+var candReaction = array.new_float()    // departure / reaction quality
+var candTests = array.new_int()
+var candOrigin = array.new_int()
+var candLocal = array.new_bool()        // current-TF structural source
+var candHTF = array.new_bool()
+var candOB = array.new_bool()
+var candPsych = array.new_bool()
+var candMA = array.new_bool()
+var candFlip = array.new_bool()
+
+array.clear(candLow)
+array.clear(candHigh)
+array.clear(candRole)
+array.clear(candBase)
+array.clear(candFresh)
+array.clear(candReaction)
+array.clear(candTests)
+array.clear(candOrigin)
+array.clear(candLocal)
+array.clear(candHTF)
+array.clear(candOB)
+array.clear(candPsych)
+array.clear(candMA)
+array.clear(candFlip)
+
+// Lifecycle memory: a confirmed break of the active R1/S1 can become a temporary
+// flip zone. It is only created on a closed chart bar; nothing is back-painted.
+var float flipSupportLow = na
+var float flipSupportHigh = na
+var float flipSupportStrength = na
+var int flipSupportBorn = na
+var float flipResistanceLow = na
+var float flipResistanceHigh = na
+var float flipResistanceStrength = na
+var int flipResistanceBorn = na
+
+// Current-timeframe confirmed pivot structure.
+if array.size(pivotHighs) > 0
+    for i = 0 to array.size(pivotHighs) - 1
+        float p = array.get(pivotHighs, i)
+        float pAtr = array.get(pivotHighAtr, i)
+        int tests = array.get(pivotHighTouches, i)
+        int origin = array.get(pivotHighOrigin, i)
+        int age = math.max(0, bar_index - origin)
+        float fresh = zoneFreshness(age, tests)
+        float base = array.get(pivotHighBase, i)
+        if tests <= zoneMaxTests and p + zoneHalfAtr * pAtr >= close
+            array.push(candLow, p - zoneHalfAtr * pAtr)
+            array.push(candHigh, p + zoneHalfAtr * pAtr)
+            array.push(candRole, 1)
+            array.push(candBase, base)
+            array.push(candFresh, fresh)
+            array.push(candReaction, base)
+            array.push(candTests, tests)
+            array.push(candOrigin, origin)
+            array.push(candLocal, true)
+            array.push(candHTF, false)
+            array.push(candOB, false)
+            array.push(candPsych, false)
+            array.push(candMA, false)
+            array.push(candFlip, false)
+
+if array.size(pivotLows) > 0
+    for i = 0 to array.size(pivotLows) - 1
+        float p = array.get(pivotLows, i)
+        float pAtr = array.get(pivotLowAtr, i)
+        int tests = array.get(pivotLowTouches, i)
+        int origin = array.get(pivotLowOrigin, i)
+        int age = math.max(0, bar_index - origin)
+        float fresh = zoneFreshness(age, tests)
+        float base = array.get(pivotLowBase, i)
+        if tests <= zoneMaxTests and p - zoneHalfAtr * pAtr <= close
+            array.push(candLow, p - zoneHalfAtr * pAtr)
+            array.push(candHigh, p + zoneHalfAtr * pAtr)
+            array.push(candRole, -1)
+            array.push(candBase, base)
+            array.push(candFresh, fresh)
+            array.push(candReaction, base)
+            array.push(candTests, tests)
+            array.push(candOrigin, origin)
+            array.push(candLocal, true)
+            array.push(candHTF, false)
+            array.push(candOB, false)
+            array.push(candPsych, false)
+            array.push(candMA, false)
+            array.push(candFlip, false)
+
+// Current-TF OBs are structural candidates. They do not create a second box if
+// they overlap a pivot; clustering will turn the overlap into one stronger zone.
+if useOrderBlocks and not na(bullOBLow) and bullOBLow <= close and bullOBTouches <= zoneMaxTests
+    int age = math.max(0, bar_index - nz(bullOBOriginBar, bar_index))
+    float base = clamp100(nz(bullOBBase, 55.0))
+    array.push(candLow, bullOBLow)
+    array.push(candHigh, bullOBHigh)
+    array.push(candRole, -1)
+    array.push(candBase, base)
+    array.push(candFresh, zoneFreshness(age, bullOBTouches))
+    array.push(candReaction, base)
+    array.push(candTests, bullOBTouches)
+    array.push(candOrigin, nz(bullOBOriginBar, bar_index))
+    array.push(candLocal, true)
+    array.push(candHTF, false)
+    array.push(candOB, true)
+    array.push(candPsych, false)
+    array.push(candMA, false)
+    array.push(candFlip, false)
+
+if useOrderBlocks and not na(bearOBHigh) and bearOBHigh >= close and bearOBTouches <= zoneMaxTests
+    int age = math.max(0, bar_index - nz(bearOBOriginBar, bar_index))
+    float base = clamp100(nz(bearOBBase, 55.0))
+    array.push(candLow, bearOBLow)
+    array.push(candHigh, bearOBHigh)
+    array.push(candRole, 1)
+    array.push(candBase, base)
+    array.push(candFresh, zoneFreshness(age, bearOBTouches))
+    array.push(candReaction, base)
+    array.push(candTests, bearOBTouches)
+    array.push(candOrigin, nz(bearOBOriginBar, bar_index))
+    array.push(candLocal, true)
+    array.push(candHTF, false)
+    array.push(candOB, true)
+    array.push(candPsych, false)
+    array.push(candMA, false)
+    array.push(candFlip, false)
+
+// MA levels are confluence only. A standalone MA cluster is not eligible as a
+// primary zone unless another structural/context source merges with it.
+ma200Slope = (ma200 - ma200[5]) / (safeAtr * 5.0)
+ma1000Slope = (ma1000 - ma1000[5]) / (safeAtr * 5.0)
+ma200Strength = clamp100(48.0 + math.min(18.0, math.abs(ma200Slope) * 20.0))
+ma1000Strength = clamp100(54.0 + math.min(16.0, math.abs(ma1000Slope) * 18.0))
+if includeMA200
+    int role200 = ma200 >= close ? 1 : -1
+    array.push(candLow, ma200 - 0.03 * safeAtr)
+    array.push(candHigh, ma200 + 0.03 * safeAtr)
+    array.push(candRole, role200)
+    array.push(candBase, ma200Strength)
+    array.push(candFresh, 70.0)
+    array.push(candReaction, 45.0)
+    array.push(candTests, 0)
+    array.push(candOrigin, bar_index)
+    array.push(candLocal, false)
+    array.push(candHTF, false)
+    array.push(candOB, false)
+    array.push(candPsych, false)
+    array.push(candMA, true)
+    array.push(candFlip, false)
+if includeMA1000
+    int role1000 = ma1000 >= close ? 1 : -1
+    array.push(candLow, ma1000 - 0.03 * safeAtr)
+    array.push(candHigh, ma1000 + 0.03 * safeAtr)
+    array.push(candRole, role1000)
+    array.push(candBase, ma1000Strength)
+    array.push(candFresh, 75.0)
+    array.push(candReaction, 50.0)
+    array.push(candTests, 0)
+    array.push(candOrigin, bar_index)
+    array.push(candLocal, false)
+    array.push(candHTF, false)
+    array.push(candOB, false)
+    array.push(candPsych, false)
+    array.push(candMA, true)
+    array.push(candFlip, false)
+
+// Confirmed HTF context: fallback or confluence, never a first-pass replacement
+// for a healthy current-TF structural zone.
+if not na(htfPivotHigh) and htfPivotHigh >= close
+    array.push(candLow, htfPivotHigh - 0.06 * safeAtr)
+    array.push(candHigh, htfPivotHigh + 0.06 * safeAtr)
+    array.push(candRole, 1)
+    array.push(candBase, 82.0)
+    array.push(candFresh, 76.0)
+    array.push(candReaction, 80.0)
+    array.push(candTests, 0)
+    array.push(candOrigin, bar_index)
+    array.push(candLocal, false)
+    array.push(candHTF, true)
+    array.push(candOB, false)
+    array.push(candPsych, false)
+    array.push(candMA, false)
+    array.push(candFlip, false)
+if not na(htfPivotLow) and htfPivotLow <= close
+    array.push(candLow, htfPivotLow - 0.06 * safeAtr)
+    array.push(candHigh, htfPivotLow + 0.06 * safeAtr)
+    array.push(candRole, -1)
+    array.push(candBase, 82.0)
+    array.push(candFresh, 76.0)
+    array.push(candReaction, 80.0)
+    array.push(candTests, 0)
+    array.push(candOrigin, bar_index)
+    array.push(candLocal, false)
+    array.push(candHTF, true)
+    array.push(candOB, false)
+    array.push(candPsych, false)
+    array.push(candMA, false)
+    array.push(candFlip, false)
+
+// Psychological levels can reinforce structure. Alone, they are only eligible
+// as a close fallback; a distant round number cannot manufacture a zone.
+if isCrypto and usePsychLevels
+    float psychStep = autoPsychStep(close)
+    float psychAbove = math.ceil(close / psychStep) * psychStep
+    float psychBelow = math.floor(close / psychStep) * psychStep
+    if psychAbove >= close
+        array.push(candLow, psychAbove - 0.04 * safeAtr)
+        array.push(candHigh, psychAbove + 0.04 * safeAtr)
+        array.push(candRole, 1)
+        array.push(candBase, 58.0)
+        array.push(candFresh, 100.0)
+        array.push(candReaction, 42.0)
+        array.push(candTests, 0)
+        array.push(candOrigin, bar_index)
+        array.push(candLocal, false)
+        array.push(candHTF, false)
+        array.push(candOB, false)
+        array.push(candPsych, true)
+        array.push(candMA, false)
+        array.push(candFlip, false)
+    if psychBelow <= close
+        array.push(candLow, psychBelow - 0.04 * safeAtr)
+        array.push(candHigh, psychBelow + 0.04 * safeAtr)
+        array.push(candRole, -1)
+        array.push(candBase, 58.0)
+        array.push(candFresh, 100.0)
+        array.push(candReaction, 42.0)
+        array.push(candTests, 0)
+        array.push(candOrigin, bar_index)
+        array.push(candLocal, false)
+        array.push(candHTF, false)
+        array.push(candOB, false)
+        array.push(candPsych, true)
+        array.push(candMA, false)
+        array.push(candFlip, false)
+
+htfMA200Strength = 72.0
+if not na(htfMA200)
+    int htfMaRole = htfMA200 >= close ? 1 : -1
+    array.push(candLow, htfMA200 - 0.04 * safeAtr)
+    array.push(candHigh, htfMA200 + 0.04 * safeAtr)
+    array.push(candRole, htfMaRole)
+    array.push(candBase, htfMA200Strength)
+    array.push(candFresh, 72.0)
+    array.push(candReaction, 55.0)
+    array.push(candTests, 0)
+    array.push(candOrigin, bar_index)
+    array.push(candLocal, false)
+    array.push(candHTF, true)
+    array.push(candOB, false)
+    array.push(candPsych, false)
+    array.push(candMA, true)
+    array.push(candFlip, false)
+
+// Active flips created by confirmed prior breaks. They expire instead of living forever.
+if not na(flipSupportLow) and bar_index - nz(flipSupportBorn, bar_index) <= flipLifeBars and flipSupportHigh <= close + safeAtr
+    array.push(candLow, flipSupportLow)
+    array.push(candHigh, flipSupportHigh)
+    array.push(candRole, -1)
+    array.push(candBase, nz(flipSupportStrength, 58.0))
+    array.push(candFresh, zoneFreshness(bar_index - nz(flipSupportBorn, bar_index), 0))
+    array.push(candReaction, 68.0)
+    array.push(candTests, 0)
+    array.push(candOrigin, nz(flipSupportBorn, bar_index))
+    array.push(candLocal, true)
+    array.push(candHTF, false)
+    array.push(candOB, false)
+    array.push(candPsych, false)
+    array.push(candMA, false)
+    array.push(candFlip, true)
+if not na(flipResistanceLow) and bar_index - nz(flipResistanceBorn, bar_index) <= flipLifeBars and flipResistanceLow >= close - safeAtr
+    array.push(candLow, flipResistanceLow)
+    array.push(candHigh, flipResistanceHigh)
+    array.push(candRole, 1)
+    array.push(candBase, nz(flipResistanceStrength, 58.0))
+    array.push(candFresh, zoneFreshness(bar_index - nz(flipResistanceBorn, bar_index), 0))
+    array.push(candReaction, 68.0)
+    array.push(candTests, 0)
+    array.push(candOrigin, nz(flipResistanceBorn, bar_index))
+    array.push(candLocal, true)
+    array.push(candHTF, false)
+    array.push(candOB, false)
+    array.push(candPsych, false)
+    array.push(candMA, false)
+    array.push(candFlip, true)
+
+
+// ============================================================================
+// 11. DYNAMIC CLUSTERING — SAME-SIDE LEVELS BECOME ONE REAL AREA
+// ============================================================================
+
+var clusterLow = array.new_float()
+var clusterHigh = array.new_float()
+var clusterRole = array.new_int()
+var clusterBase = array.new_float()
+var clusterFresh = array.new_float()
+var clusterReaction = array.new_float()
+var clusterTests = array.new_int()
+var clusterOrigin = array.new_int()
+var clusterEvidence = array.new_int()
+var clusterLocal = array.new_bool()
+var clusterHTF = array.new_bool()
+var clusterOB = array.new_bool()
+var clusterPsych = array.new_bool()
+var clusterMA = array.new_bool()
+var clusterFlip = array.new_bool()
+
+array.clear(clusterLow)
+array.clear(clusterHigh)
+array.clear(clusterRole)
+array.clear(clusterBase)
+array.clear(clusterFresh)
+array.clear(clusterReaction)
+array.clear(clusterTests)
+array.clear(clusterOrigin)
+array.clear(clusterEvidence)
+array.clear(clusterLocal)
+array.clear(clusterHTF)
+array.clear(clusterOB)
+array.clear(clusterPsych)
+array.clear(clusterMA)
+array.clear(clusterFlip)
+
+float clusterAtrThreshold = dynamicClusterAtr() * safeAtr
+
+if array.size(candLow) > 0
+    for i = 0 to array.size(candLow) - 1
+        float lo = array.get(candLow, i)
+        float hi = array.get(candHigh, i)
+        int role = array.get(candRole, i)
+        bool merged = false
+        if array.size(clusterLow) > 0
+            for j = 0 to array.size(clusterLow) - 1
+                if not merged and array.get(clusterRole, j) == role
+                    float clo = array.get(clusterLow, j)
+                    float chi = array.get(clusterHigh, j)
+                    float gap = lo > chi ? lo - chi : clo > hi ? clo - hi : 0.0
+                    float centerDist = math.abs((lo + hi) * 0.5 - (clo + chi) * 0.5)
+                    if gap <= clusterAtrThreshold or centerDist <= clusterAtrThreshold
+                        array.set(clusterLow, j, math.min(clo, lo))
+                        array.set(clusterHigh, j, math.max(chi, hi))
+                        array.set(clusterBase, j, math.max(array.get(clusterBase, j), array.get(candBase, i)))
+                        array.set(clusterFresh, j, math.max(array.get(clusterFresh, j), array.get(candFresh, i)))
+                        array.set(clusterReaction, j, math.max(array.get(clusterReaction, j), array.get(candReaction, i)))
+                        array.set(clusterTests, j, math.min(array.get(clusterTests, j), array.get(candTests, i)))
+                        array.set(clusterOrigin, j, math.max(array.get(clusterOrigin, j), array.get(candOrigin, i)))
+                        array.set(clusterEvidence, j, array.get(clusterEvidence, j) + 1)
+                        array.set(clusterLocal, j, array.get(clusterLocal, j) or array.get(candLocal, i))
+                        array.set(clusterHTF, j, array.get(clusterHTF, j) or array.get(candHTF, i))
+                        array.set(clusterOB, j, array.get(clusterOB, j) or array.get(candOB, i))
+                        array.set(clusterPsych, j, array.get(clusterPsych, j) or array.get(candPsych, i))
+                        array.set(clusterMA, j, array.get(clusterMA, j) or array.get(candMA, i))
+                        array.set(clusterFlip, j, array.get(clusterFlip, j) or array.get(candFlip, i))
+                        merged := true
+        if not merged
+            array.push(clusterLow, lo)
+            array.push(clusterHigh, hi)
+            array.push(clusterRole, role)
+            array.push(clusterBase, array.get(candBase, i))
+            array.push(clusterFresh, array.get(candFresh, i))
+            array.push(clusterReaction, array.get(candReaction, i))
+            array.push(clusterTests, array.get(candTests, i))
+            array.push(clusterOrigin, array.get(candOrigin, i))
+            array.push(clusterEvidence, 1)
+            array.push(clusterLocal, array.get(candLocal, i))
+            array.push(clusterHTF, array.get(candHTF, i))
+            array.push(clusterOB, array.get(candOB, i))
+            array.push(clusterPsych, array.get(candPsych, i))
+            array.push(clusterMA, array.get(candMA, i))
+            array.push(clusterFlip, array.get(candFlip, i))
+
+// Derived zone scores. Confluence strengthens an existing area; it does not turn
+// a distant MA/round number into structure by itself.
+var clusterScore = array.new_float()
+var clusterConfluence = array.new_float()
+array.clear(clusterScore)
+array.clear(clusterConfluence)
+if array.size(clusterLow) > 0
+    for i = 0 to array.size(clusterLow) - 1
+        bool local = array.get(clusterLocal, i)
+        bool htf = array.get(clusterHTF, i)
+        bool ob = array.get(clusterOB, i)
+        bool psych = array.get(clusterPsych, i)
+        bool ma = array.get(clusterMA, i)
+        int evidence = array.get(clusterEvidence, i)
+        int tests = array.get(clusterTests, i)
+        float conf = math.min(28.0, math.max(0.0, (evidence - 1) * 4.0) + (local and htf ? 9.0 : 0.0) + (ob ? 7.0 : 0.0) + (psych ? 4.0 : 0.0) + (ma ? 3.0 : 0.0))
+        float score = clamp100(0.45 * array.get(clusterBase, i) + 0.22 * array.get(clusterFresh, i) + 0.20 * array.get(clusterReaction, i) + conf - tests * 4.0)
+        array.push(clusterConfluence, conf)
+        array.push(clusterScore, score)
+
+
+// ============================================================================
+// 12. RANKED FOUR-ZONE MAP — CURRENT TF FIRST, HTF ONLY AS FALLBACK
+// ============================================================================
+
+float rawR1Low = na
+float rawR1High = na
+float rawR1Strength = na
+float rawR1Quality = na
+string rawR1Type = "—"
+int rawR1Origin = na
+float rawR2Low = na
+float rawR2High = na
+float rawR2Strength = na
+float rawR2Quality = na
+string rawR2Type = "—"
+int rawR2Origin = na
+float rawS1Low = na
+float rawS1High = na
+float rawS1Strength = na
+float rawS1Quality = na
+string rawS1Type = "—"
+int rawS1Origin = na
+float rawS2Low = na
+float rawS2High = na
+float rawS2Strength = na
+float rawS2Quality = na
+string rawS2Type = "—"
+int rawS2Origin = na
+
+int r1Idx = -1
+int r2Idx = -1
+int s1Idx = -1
+int s2Idx = -1
+float bestR1 = -1.0e10
+float bestS1 = -1.0e10
+float distinctGap = dynamicDistinctGapAtr()
+
+// Pass 1: primary zones from current-TF structural clusters only.
+if array.size(clusterLow) > 0
+    for i = 0 to array.size(clusterLow) - 1
+        float lo = array.get(clusterLow, i)
+        float hi = array.get(clusterHigh, i)
+        int role = array.get(clusterRole, i)
+        float center = (lo + hi) * 0.5
+        float distAtr = zoneDistance(lo, hi) / safeAtr
+        float score = array.get(clusterScore, i)
+        bool local = array.get(clusterLocal, i)
+        bool valid = local and score >= minObstacleStrength and distAtr <= maxObstacleAtr and array.get(clusterTests, i) <= zoneMaxTests
+        float q = zonePrimaryQuality(score, array.get(clusterFresh, i), array.get(clusterReaction, i), array.get(clusterConfluence, i), distAtr)
+        if valid and role == 1 and (center >= close or (close >= lo and close <= hi)) and q > bestR1
+            bestR1 := q
+            r1Idx := i
+        if valid and role == -1 and (center <= close or (close >= lo and close <= hi)) and q > bestS1
+            bestS1 := q
+            s1Idx := i
+
+// Fallback primary: HTF structural cluster, or a very near psychological cluster.
+if (r1Idx < 0 or s1Idx < 0) and array.size(clusterLow) > 0
+    for i = 0 to array.size(clusterLow) - 1
+        float lo = array.get(clusterLow, i)
+        float hi = array.get(clusterHigh, i)
+        int role = array.get(clusterRole, i)
+        float center = (lo + hi) * 0.5
+        float distAtr = zoneDistance(lo, hi) / safeAtr
+        float score = array.get(clusterScore, i)
+        bool fallbackSource = array.get(clusterHTF, i) or (array.get(clusterPsych, i) and distAtr <= psychStandaloneNearAtr)
+        bool valid = fallbackSource and score >= minObstacleStrength and distAtr <= maxObstacleAtr
+        float q = zonePrimaryQuality(score, array.get(clusterFresh, i), array.get(clusterReaction, i), array.get(clusterConfluence, i), distAtr) - 8.0
+        if r1Idx < 0 and valid and role == 1 and center >= close and q > bestR1
+            bestR1 := q
+            r1Idx := i
+        if s1Idx < 0 and valid and role == -1 and center <= close and q > bestS1
+            bestS1 := q
+            s1Idx := i
+
+// Secondary zones: another distinct current-TF cluster first.
+float bestR2 = -1.0e10
+float bestS2 = -1.0e10
+if array.size(clusterLow) > 0
+    for i = 0 to array.size(clusterLow) - 1
+        float lo = array.get(clusterLow, i)
+        float hi = array.get(clusterHigh, i)
+        int role = array.get(clusterRole, i)
+        float center = (lo + hi) * 0.5
+        float distAtr = zoneDistance(lo, hi) / safeAtr
+        float score = array.get(clusterScore, i)
+        bool local = array.get(clusterLocal, i)
+        float rGap = r1Idx >= 0 ? math.abs(center - (array.get(clusterLow, r1Idx) + array.get(clusterHigh, r1Idx)) * 0.5) / safeAtr : 99.0
+        float sGap = s1Idx >= 0 ? math.abs(center - (array.get(clusterLow, s1Idx) + array.get(clusterHigh, s1Idx)) * 0.5) / safeAtr : 99.0
+        float q = zoneSecondaryQuality(score, array.get(clusterFresh, i), array.get(clusterReaction, i), array.get(clusterConfluence, i), distAtr)
+        if local and i != r1Idx and role == 1 and center > close and rGap >= distinctGap and score >= minObstacleStrength and distAtr <= maxObstacleAtr and q > bestR2
+            bestR2 := q
+            r2Idx := i
+        if local and i != s1Idx and role == -1 and center < close and sGap >= distinctGap and score >= minObstacleStrength and distAtr <= maxObstacleAtr and q > bestS2
+            bestS2 := q
+            s2Idx := i
+
+// Secondary fallback from HTF only when current TF did not produce a valid second zone.
+if (r2Idx < 0 or s2Idx < 0) and array.size(clusterLow) > 0
+    for i = 0 to array.size(clusterLow) - 1
+        float lo = array.get(clusterLow, i)
+        float hi = array.get(clusterHigh, i)
+        int role = array.get(clusterRole, i)
+        float center = (lo + hi) * 0.5
+        float distAtr = zoneDistance(lo, hi) / safeAtr
+        float score = array.get(clusterScore, i)
+        bool fallbackSource = array.get(clusterHTF, i) or (array.get(clusterPsych, i) and distAtr <= psychStandaloneNearAtr)
+        float rGap = r1Idx >= 0 ? math.abs(center - (array.get(clusterLow, r1Idx) + array.get(clusterHigh, r1Idx)) * 0.5) / safeAtr : 99.0
+        float sGap = s1Idx >= 0 ? math.abs(center - (array.get(clusterLow, s1Idx) + array.get(clusterHigh, s1Idx)) * 0.5) / safeAtr : 99.0
+        float q = zoneSecondaryQuality(score, array.get(clusterFresh, i), array.get(clusterReaction, i), array.get(clusterConfluence, i), distAtr) - 8.0
+        if r2Idx < 0 and fallbackSource and i != r1Idx and role == 1 and center > close and rGap >= distinctGap and score >= minObstacleStrength and distAtr <= maxObstacleAtr and q > bestR2
+            bestR2 := q
+            r2Idx := i
+        if s2Idx < 0 and fallbackSource and i != s1Idx and role == -1 and center < close and sGap >= distinctGap and score >= minObstacleStrength and distAtr <= maxObstacleAtr and q > bestS2
+            bestS2 := q
+            s2Idx := i
+
+// Materialize raw selections.
+if r1Idx >= 0
+    rawR1Low := array.get(clusterLow, r1Idx)
+    rawR1High := array.get(clusterHigh, r1Idx)
+    rawR1Strength := array.get(clusterScore, r1Idx)
+    rawR1Quality := bestR1
+    rawR1Type := zoneTypeText(1, array.get(clusterHTF, r1Idx), array.get(clusterOB, r1Idx), array.get(clusterPsych, r1Idx), array.get(clusterMA, r1Idx), array.get(clusterFlip, r1Idx))
+    rawR1Origin := array.get(clusterOrigin, r1Idx)
+if r2Idx >= 0
+    rawR2Low := array.get(clusterLow, r2Idx)
+    rawR2High := array.get(clusterHigh, r2Idx)
+    rawR2Strength := array.get(clusterScore, r2Idx)
+    rawR2Quality := bestR2
+    rawR2Type := zoneTypeText(1, array.get(clusterHTF, r2Idx), array.get(clusterOB, r2Idx), array.get(clusterPsych, r2Idx), array.get(clusterMA, r2Idx), array.get(clusterFlip, r2Idx))
+    rawR2Origin := array.get(clusterOrigin, r2Idx)
+if s1Idx >= 0
+    rawS1Low := array.get(clusterLow, s1Idx)
+    rawS1High := array.get(clusterHigh, s1Idx)
+    rawS1Strength := array.get(clusterScore, s1Idx)
+    rawS1Quality := bestS1
+    rawS1Type := zoneTypeText(-1, array.get(clusterHTF, s1Idx), array.get(clusterOB, s1Idx), array.get(clusterPsych, s1Idx), array.get(clusterMA, s1Idx), array.get(clusterFlip, s1Idx))
+    rawS1Origin := array.get(clusterOrigin, s1Idx)
+if s2Idx >= 0
+    rawS2Low := array.get(clusterLow, s2Idx)
+    rawS2High := array.get(clusterHigh, s2Idx)
+    rawS2Strength := array.get(clusterScore, s2Idx)
+    rawS2Quality := bestS2
+    rawS2Type := zoneTypeText(-1, array.get(clusterHTF, s2Idx), array.get(clusterOB, s2Idx), array.get(clusterPsych, s2Idx), array.get(clusterMA, s2Idx), array.get(clusterFlip, s2Idx))
+    rawS2Origin := array.get(clusterOrigin, s2Idx)
+
+// Hysteresis: keep an active zone until invalidated, or until a replacement is
+// clearly better. Updates happen only on closed chart bars.
+var float stableR1Low = na
+var float stableR1High = na
+var float stableR1Strength = na
+var float stableR1Quality = na
+var string stableR1Type = "—"
+var int stableR1Origin = na
+var float stableR2Low = na
+var float stableR2High = na
+var float stableR2Strength = na
+var float stableR2Quality = na
+var string stableR2Type = "—"
+var int stableR2Origin = na
+var float stableS1Low = na
+var float stableS1High = na
+var float stableS1Strength = na
+var float stableS1Quality = na
+var string stableS1Type = "—"
+var int stableS1Origin = na
+var float stableS2Low = na
+var float stableS2High = na
+var float stableS2Strength = na
+var float stableS2Quality = na
+var string stableS2Type = "—"
+var int stableS2Origin = na
+var int stableR1Tests = 0
+var int stableR2Tests = 0
+var int stableS1Tests = 0
+var int stableS2Tests = 0
+var int stableR1LastTouch = na
+var int stableR2LastTouch = na
+var int stableS1LastTouch = na
+var int stableS2LastTouch = na
+
+if barstate.isconfirmed
+    // Lifecycle consumption: repeated separated tests consume a zone even if price
+    // never fully breaks it. Consecutive candles are one test, not many.
+    if not na(stableR1Low) and high >= stableR1Low and low <= stableR1High and bar_index - nz(stableR1LastTouch, bar_index) > pivotLen
+        stableR1Tests += 1
+        stableR1LastTouch := bar_index
+    if not na(stableR2Low) and high >= stableR2Low and low <= stableR2High and bar_index - nz(stableR2LastTouch, bar_index) > pivotLen
+        stableR2Tests += 1
+        stableR2LastTouch := bar_index
+    if not na(stableS1Low) and high >= stableS1Low and low <= stableS1High and bar_index - nz(stableS1LastTouch, bar_index) > pivotLen
+        stableS1Tests += 1
+        stableS1LastTouch := bar_index
+    if not na(stableS2Low) and high >= stableS2Low and low <= stableS2High and bar_index - nz(stableS2LastTouch, bar_index) > pivotLen
+        stableS2Tests += 1
+        stableS2LastTouch := bar_index
+
+    bool r1Broken = not na(stableR1High) and close > stableR1High + breakConfirmAtr * safeAtr
+    bool s1Broken = not na(stableS1Low) and close < stableS1Low - breakConfirmAtr * safeAtr
+    bool r2Broken = not na(stableR2High) and close > stableR2High + breakConfirmAtr * safeAtr
+    bool s2Broken = not na(stableS2Low) and close < stableS2Low - breakConfirmAtr * safeAtr
+    // Stale: price has drifted beyond the obstacle horizon. The stored quality was
+    // frozen when the zone was near, so without this a far zone could never be replaced.
+    bool r1Stale = not na(stableR1Low) and zoneDistance(stableR1Low, stableR1High) / safeAtr > maxObstacleAtr
+    bool s1Stale = not na(stableS1Low) and zoneDistance(stableS1Low, stableS1High) / safeAtr > maxObstacleAtr
+    bool r2Stale = not na(stableR2Low) and zoneDistance(stableR2Low, stableR2High) / safeAtr > maxObstacleAtr
+    bool s2Stale = not na(stableS2Low) and zoneDistance(stableS2Low, stableS2High) / safeAtr > maxObstacleAtr
+    bool r1Invalid = r1Broken or r1Stale or stableR1Tests > zoneMaxTests
+    bool s1Invalid = s1Broken or s1Stale or stableS1Tests > zoneMaxTests
+    bool r2Invalid = r2Broken or r2Stale or stableR2Tests > zoneMaxTests
+    bool s2Invalid = s2Broken or s2Stale or stableS2Tests > zoneMaxTests
+
+    if r1Invalid
+        if r1Broken
+            flipSupportLow := stableR1Low
+            flipSupportHigh := stableR1High
+            flipSupportStrength := nz(stableR1Strength, 58.0) * 0.88
+            flipSupportBorn := bar_index
+        stableR1Low := na
+        stableR1High := na
+        stableR1Strength := na
+        stableR1Quality := na
+        stableR1Type := "—"
+        stableR1Origin := na
+        stableR1Tests := 0
+        stableR1LastTouch := na
+    if s1Invalid
+        if s1Broken
+            flipResistanceLow := stableS1Low
+            flipResistanceHigh := stableS1High
+            flipResistanceStrength := nz(stableS1Strength, 58.0) * 0.88
+            flipResistanceBorn := bar_index
+        stableS1Low := na
+        stableS1High := na
+        stableS1Strength := na
+        stableS1Quality := na
+        stableS1Type := "—"
+        stableS1Origin := na
+        stableS1Tests := 0
+        stableS1LastTouch := na
+    if r2Invalid
+        stableR2Low := na
+        stableR2High := na
+        stableR2Strength := na
+        stableR2Quality := na
+        stableR2Type := "—"
+        stableR2Origin := na
+        stableR2Tests := 0
+        stableR2LastTouch := na
+    if s2Invalid
+        stableS2Low := na
+        stableS2High := na
+        stableS2Strength := na
+        stableS2Quality := na
+        stableS2Type := "—"
+        stableS2Origin := na
+        stableS2Tests := 0
+        stableS2LastTouch := na
+
+    // Primary replacements.
+    if not na(rawR1Low) and (na(stableR1Low) or rawR1Quality > nz(stableR1Quality, -1.0e10) + zoneSwitchMargin)
+        stableR1Low := rawR1Low
+        stableR1High := rawR1High
+        stableR1Strength := rawR1Strength
+        stableR1Quality := rawR1Quality
+        stableR1Type := rawR1Type
+        stableR1Origin := rawR1Origin
+        stableR1Tests := 0
+        stableR1LastTouch := bar_index
+    if not na(rawS1Low) and (na(stableS1Low) or rawS1Quality > nz(stableS1Quality, -1.0e10) + zoneSwitchMargin)
+        stableS1Low := rawS1Low
+        stableS1High := rawS1High
+        stableS1Strength := rawS1Strength
+        stableS1Quality := rawS1Quality
+        stableS1Type := rawS1Type
+        stableS1Origin := rawS1Origin
+        stableS1Tests := 0
+        stableS1LastTouch := bar_index
+
+    // Secondary zones must remain genuinely distinct from the stable primary.
+    float stableR1Center = not na(stableR1Low) ? (stableR1Low + stableR1High) * 0.5 : na
+    float stableS1Center = not na(stableS1Low) ? (stableS1Low + stableS1High) * 0.5 : na
+    float rawR2Center = not na(rawR2Low) ? (rawR2Low + rawR2High) * 0.5 : na
+    float rawS2Center = not na(rawS2Low) ? (rawS2Low + rawS2High) * 0.5 : na
+    float stableR2Center = not na(stableR2Low) ? (stableR2Low + stableR2High) * 0.5 : na
+    float stableS2Center = not na(stableS2Low) ? (stableS2Low + stableS2High) * 0.5 : na
+    if not na(stableR1Center) and not na(stableR2Center) and math.abs(stableR2Center - stableR1Center) / safeAtr < distinctGap
+        stableR2Low := na
+        stableR2High := na
+        stableR2Strength := na
+        stableR2Quality := na
+        stableR2Type := "—"
+        stableR2Origin := na
+        stableR2Tests := 0
+        stableR2LastTouch := na
+    if not na(stableS1Center) and not na(stableS2Center) and math.abs(stableS2Center - stableS1Center) / safeAtr < distinctGap
+        stableS2Low := na
+        stableS2High := na
+        stableS2Strength := na
+        stableS2Quality := na
+        stableS2Type := "—"
+        stableS2Origin := na
+        stableS2Tests := 0
+        stableS2LastTouch := na
+
+    bool rawR2Distinct = not na(rawR2Center) and (na(stableR1Center) or math.abs(rawR2Center - stableR1Center) / safeAtr >= distinctGap)
+    bool rawS2Distinct = not na(rawS2Center) and (na(stableS1Center) or math.abs(rawS2Center - stableS1Center) / safeAtr >= distinctGap)
+    if rawR2Distinct and (na(stableR2Low) or rawR2Quality > nz(stableR2Quality, -1.0e10) + zoneSwitchMargin)
+        stableR2Low := rawR2Low
+        stableR2High := rawR2High
+        stableR2Strength := rawR2Strength
+        stableR2Quality := rawR2Quality
+        stableR2Type := rawR2Type
+        stableR2Origin := rawR2Origin
+        stableR2Tests := 0
+        stableR2LastTouch := bar_index
+    if rawS2Distinct and (na(stableS2Low) or rawS2Quality > nz(stableS2Quality, -1.0e10) + zoneSwitchMargin)
+        stableS2Low := rawS2Low
+        stableS2High := rawS2High
+        stableS2Strength := rawS2Strength
+        stableS2Quality := rawS2Quality
+        stableS2Type := rawS2Type
+        stableS2Origin := rawS2Origin
+        stableS2Tests := 0
+        stableS2LastTouch := bar_index
+
+// Expose stable selections. If this is the first realtime bar before any closed
+// bar initialized stability, raw zones are allowed as a display-only fallback.
+float res1Low = not na(stableR1Low) ? stableR1Low : rawR1Low
+float res1High = not na(stableR1High) ? stableR1High : rawR1High
+float res1Strength = not na(stableR1Strength) ? stableR1Strength : rawR1Strength
+string res1Type = stableR1Type != "—" ? stableR1Type : rawR1Type
+int res1Origin = not na(stableR1Origin) ? stableR1Origin : rawR1Origin
+float res2Low = not na(stableR2Low) ? stableR2Low : rawR2Low
+float res2High = not na(stableR2High) ? stableR2High : rawR2High
+float res2Strength = not na(stableR2Strength) ? stableR2Strength : rawR2Strength
+string res2Type = stableR2Type != "—" ? stableR2Type : rawR2Type
+int res2Origin = not na(stableR2Origin) ? stableR2Origin : rawR2Origin
+float sup1Low = not na(stableS1Low) ? stableS1Low : rawS1Low
+float sup1High = not na(stableS1High) ? stableS1High : rawS1High
+float sup1Strength = not na(stableS1Strength) ? stableS1Strength : rawS1Strength
+string sup1Type = stableS1Type != "—" ? stableS1Type : rawS1Type
+int sup1Origin = not na(stableS1Origin) ? stableS1Origin : rawS1Origin
+float sup2Low = not na(stableS2Low) ? stableS2Low : rawS2Low
+float sup2High = not na(stableS2High) ? stableS2High : rawS2High
+float sup2Strength = not na(stableS2Strength) ? stableS2Strength : rawS2Strength
+string sup2Type = stableS2Type != "—" ? stableS2Type : rawS2Type
+int sup2Origin = not na(stableS2Origin) ? stableS2Origin : rawS2Origin
+
+// Compatibility aliases for road/alert logic.
+int mapDirectionSign = tacticalSign != 0 ? tacticalSign : routeSign
+float dest1Low = na
+float dest1High = na
+float dest1Strength = na
+string dest1Type = "—"
+float dest2Low = na
+float dest2High = na
+float dest2Strength = na
+string dest2Type = "—"
+float dest3Low = na
+float dest3High = na
+float dest3Strength = na
+string dest3Type = "—"
+float res1Dist = not na(res1Low) ? zoneDistance(res1Low, res1High) / safeAtr : 99.0
+float sup1Dist = not na(sup1Low) ? zoneDistance(sup1Low, sup1High) / safeAtr : 99.0
+bool primaryUp = mapDirectionSign > 0 or (mapDirectionSign == 0 and res1Dist <= sup1Dist)
+if primaryUp
+    dest1Low := res1Low
+    dest1High := res1High
+    dest1Strength := res1Strength
+    dest1Type := res1Type
+    dest2Low := res2Low
+    dest2High := res2High
+    dest2Strength := res2Strength
+    dest2Type := res2Type
+    dest3Low := sup1Low
+    dest3High := sup1High
+    dest3Strength := sup1Strength
+    dest3Type := sup1Type
+else
+    dest1Low := sup1Low
+    dest1High := sup1High
+    dest1Strength := sup1Strength
+    dest1Type := sup1Type
+    dest2Low := sup2Low
+    dest2High := sup2High
+    dest2Strength := sup2Strength
+    dest2Type := sup2Type
+    dest3Low := res1Low
+    dest3High := res1High
+    dest3Strength := res1Strength
+    dest3Type := res1Type
+
+nearestObstacleAtr = not na(dest1Low) ? zoneDistance(dest1Low, dest1High) / safeAtr : na
+nearestObstacleStrong = not na(dest1Strength) and dest1Strength >= 72
+res1DistanceAtr = not na(res1Low) ? zoneDistance(res1Low, res1High) / safeAtr : na
+res2DistanceAtr = not na(res2Low) ? zoneDistance(res2Low, res2High) / safeAtr : na
+sup1DistanceAtr = not na(sup1Low) ? zoneDistance(sup1Low, sup1High) / safeAtr : na
+sup2DistanceAtr = not na(sup2Low) ? zoneDistance(sup2Low, sup2High) / safeAtr : na
+
+// ============================================================================
+// 13. OBSTACLE AWARENESS — APPROACH / TOUCH / INSIDE / BREAK / REJECT
+// ============================================================================
+
+obstacleAvailable = not na(dest1Low) and not na(dest1High)
+obstacleCenter = obstacleAvailable ? (dest1Low + dest1High) * 0.5 : na
+bool typeResistance = obstacleAvailable and (str.contains(dest1Type, "مقاومة") or str.contains(dest1Type, "عرض"))
+bool typeSupport = obstacleAvailable and (str.contains(dest1Type, "دعم") or str.contains(dest1Type, "طلب"))
+int obstacleRole = not obstacleAvailable ? 0 : typeResistance ? 1 : typeSupport ? -1 : obstacleCenter >= close ? 1 : -1
+
+bool priceInsideObstacle = obstacleAvailable and close >= dest1Low and close <= dest1High
+bool candleTouchesObstacle = obstacleAvailable and high >= dest1Low and low <= dest1High
+bool obstacleNear = obstacleAvailable and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr
+
+// Rejection uses the current obstacle: wick/test into the zone, close back away from it.
+bool rejectResistance = barstate.isconfirmed and obstacleRole == 1 and candleTouchesObstacle and close < dest1Low - breakConfirmAtr * safeAtr
+bool rejectSupport = barstate.isconfirmed and obstacleRole == -1 and candleTouchesObstacle and close > dest1High + breakConfirmAtr * safeAtr
+
+// Break detection references the previous nearest zone, because a successfully broken
+// obstacle can disappear from the current candidate set immediately after the break.
+bool prevObstacleAvailable = not na(dest1Low[1]) and not na(dest1High[1])
+float prevObstacleCenter = prevObstacleAvailable ? (dest1Low[1] + dest1High[1]) * 0.5 : na
+int prevObstacleRole = not prevObstacleAvailable ? 0 : prevObstacleCenter >= close[1] ? 1 : -1
+bool breakResistance = barstate.isconfirmed and prevObstacleRole == 1 and close[1] <= dest1High[1] and close > dest1High[1] + breakConfirmAtr * safeAtr
+bool breakSupport = barstate.isconfirmed and prevObstacleRole == -1 and close[1] >= dest1Low[1] and close < dest1Low[1] - breakConfirmAtr * safeAtr
+
+string obstacleState = "لا يوجد عائق مباشر"
+if priceInsideObstacle
+    obstacleState := obstacleRole == 1 ? "داخل مقاومة" : obstacleRole == -1 ? "داخل دعم" : "داخل عائق"
+else if rejectResistance
+    obstacleState := "رفض من مقاومة"
+else if rejectSupport
+    obstacleState := "ارتداد من دعم"
+else if breakResistance
+    obstacleState := "اختراق مقاومة"
+else if breakSupport
+    obstacleState := "كسر دعم"
+else if candleTouchesObstacle
+    obstacleState := obstacleRole == 1 ? "اختبار مقاومة" : obstacleRole == -1 ? "اختبار دعم" : "اختبار عائق"
+else if obstacleNear
+    obstacleState := obstacleRole == 1 ? "يقترب من مقاومة" : obstacleRole == -1 ? "يقترب من دعم" : "عائق قريب"
+
+// No-chase engine: fast movement into a nearby obstacle while thrust is not
+// keeping pace with speed. Tactical sign can fall back to the micro heading so
+// an M1 impulse is not mislabeled as directionless merely because the longer
+// heading window is still mixed.
+bool fuelNotSupportingChase = fuelAcceleration < -3 or fuelScore < noChaseFuelMax or fuelScore + 18 < speedScore
+bool speedHotForChase = speedScore >= math.max(60.0, speedFastThreshold - 10.0) or instantSpeedScore >= speedExtremeThreshold
+bool obstacleEngagedForChase = obstacleAvailable and (nearestObstacleAtr <= noChaseAtr or priceInsideObstacle or candleTouchesObstacle)
+bool noChaseUp = tacticalSign > 0 and obstacleRole == 1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
+bool noChaseDown = tacticalSign < 0 and obstacleRole == -1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
+bool noChase = noChaseUp or noChaseDown
+
+// Exhaustion is not a reversal call. It only says speed is being maintained while
+// participation/thrust is deteriorating.
+bool fuelExhaustion = speedScore >= 55 and fuelScore >= 40 and fuelAcceleration < -6
+bool obstacleInAwarenessRange = obstacleAvailable and not na(nearestObstacleAtr) and nearestObstacleAtr <= awarenessObstacleAtr
+bool movingTowardResistance = tacticalSign > 0 and obstacleRole == 1 and obstacleInAwarenessRange
+bool movingTowardSupport = tacticalSign < 0 and obstacleRole == -1 and obstacleInAwarenessRange
+
+
+// ============================================================================
+// 14. NAVIGATION STATE — STRICT CONTEXT PRIORITY
+// ============================================================================
+
+string roadStatus = "حركة طبيعية"
+
+// Context events outrank generic trend descriptions.
+if breakResistance
+    roadStatus := fuelScore >= fuelHighThreshold and tacticalSign > 0 ? "اختراق مقاومة مدعوم" : "اختراق مقاومة — يحتاج تثبيت"
+else if breakSupport
+    roadStatus := fuelScore >= fuelHighThreshold and tacticalSign < 0 ? "كسر دعم مدعوم" : "كسر دعم — يحتاج تثبيت"
+else if rejectResistance
+    roadStatus := "رفض من مقاومة — الزخم اصطدم بالعائق"
+else if rejectSupport
+    roadStatus := "ارتداد من دعم — ظهر دفاع سعري"
+else if priceInsideObstacle
+    roadStatus := obstacleRole == 1 ? (noChaseUp ? "داخل مقاومة — لا تطارد" : "داخل مقاومة — راقب القبول أو الرفض") : obstacleRole == -1 ? (noChaseDown ? "داخل دعم — لا تطارد الهبوط" : "داخل دعم — راقب الثبات أو الكسر") : "داخل عائق سعري"
+else if candleTouchesObstacle
+    roadStatus := obstacleRole == 1 ? (noChaseUp ? "اختبار مقاومة — لا تطارد" : "اختبار مقاومة") : obstacleRole == -1 ? (noChaseDown ? "اختبار دعم — لا تطارد الهبوط" : "اختبار دعم") : "اختبار عائق"
+else if obstacleNear
+    roadStatus := obstacleRole == 1 ? (noChaseUp ? "اندفاع صاعد قرب مقاومة — لا تطارد" : nearestObstacleStrong ? "يقترب من مقاومة قوية" : "يقترب من مقاومة") : obstacleRole == -1 ? (noChaseDown ? "هبوط سريع قرب دعم — لا تطارد" : nearestObstacleStrong ? "يقترب من دعم قوي" : "يقترب من دعم") : "يقترب من عائق"
+else if movingTowardResistance
+    roadStatus := fuelExhaustion ? "صاعد نحو مقاومة — الوقود يتآكل" : "صاعد لكن مقاومة أمامه"
+else if movingTowardSupport
+    roadStatus := fuelExhaustion ? "هابط نحو دعم — الوقود يتآكل" : "هابط لكن دعم أمامه"
+else if fuelExhaustion
+    roadStatus := tacticalSign > 0 ? "الصعود مستمر لكن الوقود يتآكل" : tacticalSign < 0 ? "الهبوط مستمر لكن الوقود يتآكل" : "الوقود يتآكل"
+else if insideBullOB
+    roadStatus := "داخل منطقة طلب"
+else if insideBearOB
+    roadStatus := "داخل منطقة عرض"
+else if routeSign < 0 and tacticalSign > 0
+    roadStatus := "ارتداد صاعد داخل مسار هابط"
+else if routeSign > 0 and tacticalSign < 0
+    roadStatus := "تصحيح هابط داخل مسار صاعد"
+else if tacticalSign == 0
+    roadStatus := routeSign == 0 ? "لا يوجد اتجاه قابل للملاحة" : "توقف/تجميع داخل المسار"
+else if speedScore >= speedFastThreshold and fuelScore < fuelLowThreshold
+    roadStatus := "حركة سريعة لكن الدفع يضعف"
+else if speedScore < speedSlowThreshold and fuelScore < fuelLowThreshold
+    roadStatus := routeSign == 0 ? "خمول/تجميع" : "توقف/تجميع داخل المسار"
+else if speedScore < speedSlowThreshold and fuelScore >= fuelHighThreshold
+    roadStatus := "طاقة تتجمع"
+else if routeSign == tacticalSign and tacticalSign != 0 and speedScore >= speedFastThreshold and fuelScore >= fuelHighThreshold and (na(nearestObstacleAtr) or nearestObstacleAtr >= 0.80)
+    roadStatus := tacticalSign > 0 ? "اندفاع صاعد مدعوم — الطريق مفتوح نسبيًا" : "اندفاع هابط مدعوم — الطريق مفتوح نسبيًا"
+else if routeSign == tacticalSign and tacticalSign != 0 and fuelScore < fuelLowThreshold
+    roadStatus := "المسار متوافق لكن الوقود ضعيف"
+else if routeSign == tacticalSign and tacticalSign != 0
+    roadStatus := tacticalSign > 0 ? "حركة صاعدة داخل المسار" : "حركة هابطة داخل المسار"
+else
+    roadStatus := "أدلة الحركة مختلطة"
+
+
+// ============================================================================
+// 15. VISUALS — SMART ZONES, CURRENT CONTEXT ONLY
+// ============================================================================
+
+plot(showMAs and showFastMAs ? ma14 : na, "MA14", color = color.new(color.yellow, 15), linewidth = 1)
+plot(showMAs and showFastMAs ? ma22 : na, "MA22", color = color.new(color.orange, 15), linewidth = 1)
+plot(showMAs ? ma50 : na, "MA50", color = color.new(color.blue, 0), linewidth = 2)
+plot(showMAs ? ma200 : na, "MA200", color = color.new(color.red, 0), linewidth = 2)
+plot(showMAs ? ma1000 : na, "MA1000", color = color.new(color.purple, 0), linewidth = 2)
+
+// Optional diagnostic center markers. Off by default.
+dest1Center = not na(dest1Low) ? (dest1Low + dest1High) * 0.5 : na
+dest2Center = not na(dest2Low) ? (dest2Low + dest2High) * 0.5 : na
+dest3Center = not na(dest3Low) ? (dest3Low + dest3High) * 0.5 : na
+plot(showObstacleMarkers ? dest1Center : na, "العائق 1 — Debug", color = color.new(color.white, 0), linewidth = 2, style = plot.style_circles)
+plot(showObstacleMarkers ? dest2Center : na, "العائق 2 — Debug", color = color.new(color.gray, 20), linewidth = 1, style = plot.style_circles)
+plot(showObstacleMarkers ? dest3Center : na, "العائق 3 — Debug", color = color.new(color.gray, 45), linewidth = 1, style = plot.style_circles)
+
+// Balanced live map: exactly up to two resistance zones above price and two
+// support zones below price. Each box starts near the detected structural origin
+// (bounded by the display lookback) and extends forward. Primary zones are clearer.
+var box smartResBox1 = na
+var box smartResBox2 = na
+var box smartSupBox1 = na
+var box smartSupBox2 = na
+var label smartResLabel1 = na
+var label smartResLabel2 = na
+var label smartSupLabel1 = na
+var label smartSupLabel2 = na
+
+float tfMinZones = timeframe.in_seconds(timeframe.period) / 60.0
+int autoBackBars = tfMinZones <= 1 ? 110 : tfMinZones <= 5 ? 72 : tfMinZones <= 15 ? 52 : tfMinZones <= 60 ? 40 : tfMinZones <= 240 ? 30 : 22
+int autoForwardBars = tfMinZones <= 1 ? 120 : tfMinZones <= 5 ? 72 : tfMinZones <= 15 ? 48 : tfMinZones <= 60 ? 36 : tfMinZones <= 240 ? 28 : 20
+int zoneBackBars = autoZoneSpan ? autoBackBars : manualZoneBackBars
+int zoneForwardBars = autoZoneSpan ? autoForwardBars : manualZoneForwardBars
+int genericLeft = math.max(0, bar_index - zoneBackBars)
+int zoneRight = bar_index + zoneForwardBars
+
+zoneDrawLeft(int origin) =>
+    na(origin) ? genericLeft : math.max(genericLeft, math.min(bar_index, origin))
+
+if barstate.islast
+    if not na(smartResBox1)
+        box.delete(smartResBox1)
+        smartResBox1 := na
+    if not na(smartResBox2)
+        box.delete(smartResBox2)
+        smartResBox2 := na
+    if not na(smartSupBox1)
+        box.delete(smartSupBox1)
+        smartSupBox1 := na
+    if not na(smartSupBox2)
+        box.delete(smartSupBox2)
+        smartSupBox2 := na
+    if not na(smartResLabel1)
+        label.delete(smartResLabel1)
+        smartResLabel1 := na
+    if not na(smartResLabel2)
+        label.delete(smartResLabel2)
+        smartResLabel2 := na
+    if not na(smartSupLabel1)
+        label.delete(smartSupLabel1)
+        smartSupLabel1 := na
+    if not na(smartSupLabel2)
+        label.delete(smartSupLabel2)
+        smartSupLabel2 := na
+
+    if showSmartZones
+        if not na(res1Low)
+            bool engagedR1 = high >= res1Low and low <= res1High
+            int trR1 = engagedR1 ? 83 : res1Strength >= 72 ? 87 : 90
+            smartResBox1 := box.new(left = zoneDrawLeft(res1Origin), top = res1High, right = zoneRight, bottom = res1Low, xloc = xloc.bar_index, bgcolor = color.new(color.red, trR1), border_color = color.new(color.red, 10), border_width = engagedR1 ? 2 : 1)
+            if showZoneLabels
+                smartResLabel1 := label.new(x = zoneRight, y = (res1Low + res1High) * 0.5, text = "R1 • " + strengthText(res1Strength) + str.replace_all(res1Type, "مقاومة", ""), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.red, 80), textcolor = color.red, size = size.tiny)
+
+        if zonesPerSide >= 2 and not na(res2Low)
+            smartResBox2 := box.new(left = zoneDrawLeft(res2Origin), top = res2High, right = zoneRight, bottom = res2Low, xloc = xloc.bar_index, bgcolor = color.new(color.red, 94), border_color = color.new(color.red, 42), border_width = 1)
+            if showZoneLabels
+                smartResLabel2 := label.new(x = zoneRight, y = (res2Low + res2High) * 0.5, text = "R2 • " + strengthText(res2Strength) + str.replace_all(res2Type, "مقاومة", ""), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
+
+        if not na(sup1Low)
+            bool engagedS1 = high >= sup1Low and low <= sup1High
+            int trS1 = engagedS1 ? 83 : sup1Strength >= 72 ? 87 : 90
+            smartSupBox1 := box.new(left = zoneDrawLeft(sup1Origin), top = sup1High, right = zoneRight, bottom = sup1Low, xloc = xloc.bar_index, bgcolor = color.new(color.blue, trS1), border_color = color.new(color.blue, 10), border_width = engagedS1 ? 2 : 1)
+            if showZoneLabels
+                smartSupLabel1 := label.new(x = zoneRight, y = (sup1Low + sup1High) * 0.5, text = "S1 • " + strengthText(sup1Strength) + str.replace_all(sup1Type, "دعم", ""), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.blue, 80), textcolor = color.blue, size = size.tiny)
+
+        if zonesPerSide >= 2 and not na(sup2Low)
+            smartSupBox2 := box.new(left = zoneDrawLeft(sup2Origin), top = sup2High, right = zoneRight, bottom = sup2Low, xloc = xloc.bar_index, bgcolor = color.new(color.blue, 94), border_color = color.new(color.blue, 42), border_width = 1)
+            if showZoneLabels
+                smartSupLabel2 := label.new(x = zoneRight, y = (sup2Low + sup2High) * 0.5, text = "S2 • " + strengthText(sup2Strength) + str.replace_all(sup2Type, "دعم", ""), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
+
+
+// ============================================================================
+// 16. COMPACT ARABIC HUD
+// ============================================================================
+
+var table dash = table.new(
+     position.top_right,
+     2,
+     11,
+     border_width = 1,
+     frame_width = 1
+)
+
+if barstate.islast
+    table.clear(dash, 0, 0, 1, 10)
+
+    if showDashboard
+        string dSize = dashSize()
+        color routeColor = routeSign > 0 ? color.lime : routeSign < 0 ? color.red : color.silver
+        color headingColor = tacticalSign > 0 ? color.lime : tacticalSign < 0 ? color.red : color.silver
+        color speedColor = speedScore >= speedExtremeThreshold ? color.orange : speedScore >= speedFastThreshold ? color.yellow : color.white
+        color fuelColor = fuelExhaustion ? color.orange : fuelScore >= fuelHighThreshold ? color.lime : fuelScore < fuelLowThreshold ? color.orange : color.white
+        bool hazardRoad = str.contains(roadStatus, "مقاومة") or str.contains(roadStatus, "دعم") or str.contains(roadStatus, "لا تطارد") or str.contains(roadStatus, "يتآكل") or str.contains(roadStatus, "اختبار") or str.contains(roadStatus, "يقترب")
+        color roadColor = hazardRoad ? color.orange : str.contains(roadStatus, "مفتوح") ? color.lime : color.white
+
+        // Compact mode is the default mobile HUD: 5 decision rows + header.
+        table.cell(dash, 0, 0, "GTG v0.4.6", text_color = color.aqua, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 0, assetLabel, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+        table.cell(dash, 0, 1, routeText + " " + str.tostring(math.round(routeStrength)), text_color = routeColor, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 1, 1, "المسار", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+
+        table.cell(dash, 0, 2, headingText + " " + str.tostring(math.round(headingStrength)), text_color = headingColor, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 1, 2, "الآن", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+
+        table.cell(dash, 0, 3, str.tostring(math.round(speedScore)) + " " + speedTrend, text_color = speedColor, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 1, 3, "السرعة", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+
+        string fuelHud = str.tostring(math.round(fuelScore)) + " " + fuelTrend + (fuelExhaustion ? " • يتآكل" : "")
+        table.cell(dash, 0, 4, fuelHud, text_color = fuelColor, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 1, 4, "الوقود", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+
+        table.cell(dash, 0, 5, roadStatus, text_color = roadColor, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 1, 5, "الطريق", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+
+        if dashboardMode != "COMPACT"
+            string d1 = not na(dest1Low) ? fmtZone(dest1Low, dest1High) + " • " + strengthText(dest1Strength) : "—"
+            table.cell(dash, 0, 6, d1, text_color = color.white, bgcolor = color.new(color.black, 18), text_size = dSize)
+            table.cell(dash, 1, 6, "العائق", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+
+            table.cell(dash, 0, 7, sessionText + " • HTF " + resolvedHTF, text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 1, 7, "السياق", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+
+        if dashboardMode == "DEBUG"
+            string normalBand = na(speedNaturalLow) or na(speedNaturalHigh) ? "جارٍ المعايرة" : fmtPrice(speedNaturalLow) + "–" + fmtPrice(speedNaturalHigh)
+            string d2 = not na(dest2Low) ? dest2Type + " " + fmtZone(dest2Low, dest2High) : "—"
+            string d3 = not na(dest3Low) ? dest3Type + " " + fmtZone(dest3Low, dest3High) : "—"
+            table.cell(dash, 0, 8, normalBand + " • فوري " + fmtScore(instantSpeedScore), text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 1, 8, "المعايرة", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 0, 9, d2, text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 1, 9, "العائق 2", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 0, 10, d3 + " • " + obstacleState + " • " + fuelSource, text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 1, 10, "Debug", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+
+
+// ============================================================================
+// 17. NAVIGATION ALERTS — STATE CHANGES ONLY, NOT TRADE CALLS
+// ============================================================================
+
+speedBurst = barstate.isconfirmed and speedScore >= speedExtremeThreshold and speedScore[1] < speedExtremeThreshold
+fuelSurge = barstate.isconfirmed and fuelScore >= fuelHighThreshold and fuelScore[1] < fuelHighThreshold
+headingUp = barstate.isconfirmed and headingScore > headingClearThreshold and headingScore[1] <= headingClearThreshold
+headingDown = barstate.isconfirmed and headingScore < -headingClearThreshold and headingScore[1] >= -headingClearThreshold
+nearStrongObstacle = barstate.isconfirmed and nearestObstacleStrong and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr and (na(nearestObstacleAtr[1]) or nearestObstacleAtr[1] > nearObstacleAtr)
+noChaseEvent = barstate.isconfirmed and noChase and not noChase[1]
+obstacleBreakEvent = breakResistance or breakSupport
+obstacleRejectEvent = rejectResistance or rejectSupport
+
+alertcondition(speedBurst, "GTG — Speed Burst", "GTG Navigator: السرعة أصبحت استثنائية مقارنة بعينتها الأخيرة.")
+alertcondition(fuelSurge, "GTG — Fuel Surge", "GTG Navigator: وقود/دفع الحركة دخل النطاق المرتفع.")
+alertcondition(headingUp, "GTG — Heading Up", "GTG Navigator: الاتجاه الحالي أصبح صاعدًا بوضوح.")
+alertcondition(headingDown, "GTG — Heading Down", "GTG Navigator: الاتجاه الحالي أصبح هابطًا بوضوح.")
+alertcondition(nearStrongObstacle, "GTG — Strong Obstacle", "GTG Navigator: السعر اقترب من عائق سعري قوي.")
+alertcondition(noChaseEvent, "GTG — No Chase", "GTG Navigator: اندفاع سريع قرب عائق مع دفع غير متحسن — لا تطارد الحركة.")
+alertcondition(obstacleBreakEvent, "GTG — Obstacle Break", "GTG Navigator: حدث اختراق/كسر لعائق سعري أمام الحركة.")
+alertcondition(obstacleRejectEvent, "GTG — Obstacle Rejection", "GTG Navigator: ظهر رفض/ارتداد واضح من عائق سعري.")

@@ -11,8 +11,8 @@
 // W (+ studyExtraBars) bars only; research runs it from bar 0 (the determinism window
 // makes the state at a warmed bar independent of the start, reference tests T7/R5).
 import { DEFAULTS, Engine, computeSeries, engineWindowFor, ST, TYP } from './zone-engine.mjs';
-import { htfFeedValues } from '../../gtg-navigator/reference/history.mjs';
-import { canonicalSnapshot, hashSlots, hashState } from '../../gtg-navigator/reference/snapshot.mjs';
+import { htfFeedValues } from '../gtg-engine/reference/history.mjs';
+import { canonicalSnapshot, hashSlots, hashState } from '../gtg-engine/reference/snapshot.mjs';
 import { profileFor, zoneParams, INPUTS } from './profiles.mjs';
 import { computeSensors, containingIndex } from './sensors.mjs';
 import { consumerStep, displayQOf, newConsumerState } from './consumer.mjs';

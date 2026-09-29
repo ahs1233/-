@@ -2,7 +2,7 @@
 // negative controls (every perturbation must be caught, and the EMA seed identified).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { marketBars, htfBarsOf } from '../../gtg-navigator/reference/history.mjs';
+import { marketBars, htfBarsOf } from '../gtg-engine/reference/history.mjs';
 import { runTimeframe } from '../engine/measure.mjs';
 import { profileFor } from '../engine/profiles.mjs';
 import { parseTvCsv, writeTvCsv } from './tv-csv.mjs';

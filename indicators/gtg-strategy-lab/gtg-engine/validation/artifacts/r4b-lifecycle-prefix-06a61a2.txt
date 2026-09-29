@@ -1,0 +1,32 @@
+# lifecycle.test.mjs (B1–B8) against reference/engine.mjs at 06a61a2 (events use per-bar inSlot) | node v22.22.2 | 2026-09-28T08:01:26Z
+not ok 1 - B1 accepted after slot loss: armed at break start ⇒ Break Accepted even when no longer displayed
+  error: 'accepted event lost after slot loss'
+not ok 2 - B2 flip after slot loss: armed chain ⇒ Flip Confirmed inside flipWindow, then the arm clears
+  error: 'flip event lost after slot loss'
+not ok 3 - B3 hidden at break start ⇒ no Accepted and no Flip later, even if displayed by then
+  error: |-
+not ok 4 - B4 arm clears on return to ACTIVE (close back) and on BREAK_WINDOW expiry
+  error: |-
+not ok 5 - B5 arm survives in BROKEN within flipWindow and clears when flipWindow ends
+  error: |-
+not ok 6 - B6 death clears the arm (acceptance back to the original side)
+  error: |-
+not ok 7 - B7 break of a FLIP level accepted to DEAD: Accepted if armed, then the arm clears
+  error: |-
+ok 8 - B8 unchanged rules: Breaking and Rejection still use the per-bar displayed filter
+# tests 8
+# pass 1
+# fail 7
+  expected: true
+  actual: false
+  expected: true
+  actual: false
+not ok 3 - B3 hidden at break start ⇒ no Accepted and no Flip later, even if displayed by then
+    hidden chain produced Break Accepted
+  expected: false
+  actual: true
+  expected: false
+  expected: true
+  expected: false
+not ok 7 - B7 break of a FLIP level accepted to DEAD: Accepted if armed, then the arm clears
+# reading: B1/B2 events lost after slot loss; B3 hidden chain fires Accepted on the old per-bar rule; B4–B7 also check the arm field, which does not exist before the change.

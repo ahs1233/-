@@ -1,0 +1,52 @@
+G5 — UI gate, blob 27f3bba, TradingView Desktop over CDP (runbook §1)
+Chart: OANDA:XAUUSD; M1 and H1. Fresh instance, defaults (validationMode=false, studyExtraBars=0, strictDebug=false); only dashboardMode changed.
+Captured 2026-09-28 21:47:46–21:48:36 UTC. Pine Editor closed. HUD cells read from the study's own table data
+(text, text colour, background; colour decoded 0xAABBGGRR); a case is taken after two identical consecutive reads.
+Images per case: tv-g5-<MODE>_<TF>-27f3bba.png (full) and tv-g5-<MODE>_<TF>-hud-27f3bba.png (HUD, 2x).
+
+HUD values (identical across modes on the same timeframe)
+M1: route "↓ هابط بقوة 79" red | now "→ غير حاسم 9" silver | speed "5 ↓ تتباطأ" white | fuel "1 ↓ ينخفض" orange | road "توقف/تجميع داخل المسار" white
+    STANDARD adds: obstacle "4110.870–4112.133 • قوي" | context "نيويورك • HTF 15 • A 5/15"
+    DEBUG adds: calibration "1.112–1.750 • فوري 1/100" | obstacles "— | مقاومة • Swing 4117.485–4118.690" | debug "... inv 0 ... dup 0 ... cap 0 • eng 1984 ..."
+H1: route "↓ هابط بقوة 83" red | now "↘ هابط 51" red | speed "62 ↓ تتباطأ" white | fuel "29 ↓ ينخفض" white | road "داخل دعم — لا تطارد الهبوط" orange
+    STANDARD adds: obstacle "4110.870–4118.370 • قوي" | context "نيويورك • HTF 240 • A 240/D"
+    DEBUG adds: calibration "9.361–12.950 • فوري 53/100" | obstacles "— | مقاومة • Swing 4162.972–4171.420" | debug "... inv 0 ... dup 0 ... cap 0 • eng 3138 ..."
+Rows: COMPACT 6, STANDARD 8, DEBUG 11 in both timeframes (expected 6/8/11). No other table text, no runtime error.
+
+Criteria
+A  Text / RTL: labels exact (المسار، الآن، السرعة، الوقود، الطريق [+ العائق، السياق] [+ المعايرة، العوائق، Debug]); Arabic shaped and
+   right-to-left in the crops; mixed strings (prices, arrows, "•") in a readable order. No "NaN", no empty value.
+B  Clarity: every HUD row legible at the default size (TINY) over the chart.
+C  Overlap: nothing covers a HUD row, and the HUD does not cover the price scale.
+D  Consistency (runtime K1–K6 rules on the live values): "بقوة" only with |score| ≥ strong threshold and a non-silver colour of the same
+   direction; plain "صاعد/هابط" in (clear, strong); "غير حاسم" silver for route; speed colour white < 70 ≤ yellow < 90 ≤ orange;
+   fuel orange < 25 or exhaustion, lime ≥ 70, else white; road orange with hazard words, lime with "مفتوح", else white.
+E  M1/H1 stability: same structure, stable values, INV 0, no error on both timeframes.
+
+Result per case                  A     B     C     D     E
+COMPACT  M1                     PASS  FAIL  FAIL  PASS  PASS
+STANDARD M1                     PASS  FAIL  FAIL  PASS  PASS
+DEBUG    M1                     PASS  FAIL  FAIL  PASS  PASS
+COMPACT  H1                     PASS  FAIL  FAIL  PASS  PASS
+STANDARD H1                     PASS  FAIL  FAIL  PASS  PASS
+DEBUG    H1                     PASS  FAIL  FAIL  PASS  PASS
+
+Failures
+F-G5-1 (C, and B for the fuel row; all six cases): the indicator's status line lists every input value
+  ("GTG Nav v0.4.7 COMPACT TINY 2 36 36 EMA AUTO 300 25 75 3 AUTO 5 3 25 70 90 ... 72 48 0 Ø ..."). With 67 inputs it runs across
+  the full chart width and crosses the HUD's 5th row (الوقود), hiding it.
+  Cause: no input declares `display`; TradingView's default shows input values in the status line.
+  Proposed minimal fix (presentation only): `display = display.none` on the 67 input.* calls.
+F-G5-2 (B; H1, all modes): HUD rows use bgcolor color.new(color.black, 18) (82% opaque). On H1 the dense candles show through and
+  red/orange values over red candles are hard to read (route, now, road rows).
+  Proposed minimal fix: rows 1–10 at the header's transparency (color.new(color.black, 4)).
+
+Not failures (recorded)
+- DEBUG mode's table is wide (Debug row); it covers part of the candles by design of a diagnostic mode, not the price scale.
+- Compiler warning (existing since cdf1a8a): "The shorttitle is too long (14 characters). It should be 10 characters or less."
+
+F1 (REQUIRED, static): alert contract 10/10 OK — artifacts/g5-f1-alert-contract-27f3bba.txt (unchanged blob 27f3bba).
+F2 (supplementary, runtime): NOT_OBSERVABLE in this run — no alert was created (no trading-state change is made during validation),
+  and the Desktop build does not expose the alert service to CDP (tv_discover: alertService unavailable).
+
+Verdict: G5 FAILED (F-G5-1, F-G5-2). A, D, E and F1 pass. The fixes above need Ahmed's approval (production Pine change); re-run G5 after.
