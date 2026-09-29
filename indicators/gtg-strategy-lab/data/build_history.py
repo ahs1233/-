@@ -19,7 +19,7 @@ from lab_config import T_FREEZE_MS
 from store import append_manifest, read_manifest, root_dir, sha256, write_day, write_raw
 
 
-def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False, origin: str = "datafeed") -> dict:
+def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False, origin: str = "datafeed", compressed: bool = True) -> dict:
     day = day.replace(hour=0, minute=0, second=0, microsecond=0)
     day_ms = int(day.timestamp() * 1000)
     bid_raw = fetch(dk.candle_url(day, "BID"))
@@ -28,11 +28,12 @@ def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False, origin: 
         for side, raw in (("BID", bid_raw), ("ASK", ask_raw)):
             if raw is not None:
                 write_raw(root, "m1", day, f"{side}_candles_min_1", raw)
-    bid = dk.decode_candles(bid_raw or b"", day_ms // 1000)
-    ask = dk.decode_candles(ask_raw or b"", day_ms // 1000)
+    bid = dk.decode_candles(bid_raw or b"", day_ms // 1000, compressed)
+    ask = dk.decode_candles(ask_raw or b"", day_ms // 1000, compressed)
     bars = [b for b in candles_to_m1(bid, ask) if b["t"] + 60_000 <= T_FREEZE_MS]
     ask_cov = sum(1 for b in bars if b["ao"] is not None) / len(bars) if bars else None
     entry = {"kind": "history_day", "day": f"{day:%Y-%m-%d}", "source": "m1" if bid_raw else "none", "origin": origin,
+             "raw_format": "lzma" if compressed else "plain",
              "bars": len(bars), "ask_coverage": ask_cov,
              "bid_sha256": sha256(bid_raw) if bid_raw else None, "ask_sha256": sha256(ask_raw) if ask_raw else None}
     if root is not None:

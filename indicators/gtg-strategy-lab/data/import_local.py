@@ -1,9 +1,10 @@
 """Path B (message 26): the same Dukascopy feed obtained through JForex, imported locally.
 
 Two modes; neither changes the feed, the decoding or the sanitation of §2.2:
-  cache  JForex keeps the Dukascopy files it downloads in a local cache. If they are the
-         official {BID|ASK}_candles_min_1.bi5 files, they go through build_history.build_day
-         unchanged (fetch = read the local file instead of HTTP) → identical bars and hashes.
+  cache  JForex keeps the Dukascopy M1 files it downloads in a local cache, same path layout
+         (0-based month) and the same 24-byte records as the datafeed, but uncompressed (F-012).
+         They go through build_history.build_day with compressed=False (fetch = read the local
+         file instead of HTTP) → the same decoding and sanitation; raw_format = "plain".
   csv    Historical Data Manager CSV exports (one BID file, one ASK file, GMT, 1 minute) are
          parsed into the same candle tuples, then candles_to_m1 → write_day. Timezone must be
          GMT/UTC; anything else is refused.
@@ -53,7 +54,7 @@ def import_cache(cache: Path, root: Path, start: datetime, end: datetime, log=pr
     for d in days_between(start, end, newest_first=False):
         if f"{d:%Y-%m-%d}" in done:
             continue
-        r = build_day(d, fetch=cache_fetch(cache), root=root, origin="jforex-cache")["entry"]
+        r = build_day(d, fetch=cache_fetch(cache), root=root, origin="jforex-cache", compressed=False)["entry"]
         n += 1
         found += r["source"] == "m1"
     log(f"cache import: {n} days processed, {found} with data")
@@ -124,7 +125,8 @@ def import_csv(bid_path: Path, ask_path: Path, root: Path, log=print) -> dict:
 
 # ---------- cross-check ----------
 def crosscheck(root: Path, ref: Path) -> dict:
-    """Days present in both stores: raw sha256 (when both kept them) and bars must be identical."""
+    """Days present in both stores: bars must be identical (the gate). Raw sha256 is reported only
+    when both stores hold the same raw format (lzma vs plain files never hash alike)."""
     def days(r):
         return {e["day"]: e for e in read_manifest(r) if e.get("kind") == "history_day" and e.get("source") == "m1"}
     a, b = days(root), days(ref)
@@ -132,7 +134,8 @@ def crosscheck(root: Path, ref: Path) -> dict:
     rows, bad = [], 0
     for d in both:
         ea, eb = a[d], b[d]
-        same_raw = ea.get("bid_sha256") == eb.get("bid_sha256") and ea.get("ask_sha256") == eb.get("ask_sha256")
+        fa, fb = ea.get("raw_format", "lzma"), eb.get("raw_format", "lzma")
+        same_raw = (ea.get("bid_sha256") == eb.get("bid_sha256") and ea.get("ask_sha256") == eb.get("ask_sha256")) if fa == fb else None
         ba, bb = read_day_file(root / ea["m1_file"]), read_day_file(ref / eb["m1_file"])
         same_bars = ba == bb
         vol_ratio = (sum(x["v"] for x in ba) / sum(x["v"] for x in bb)) if bb and sum(x["v"] for x in bb) else None

@@ -48,13 +48,18 @@ def candle_url(day: datetime, side: str, instrument: str = INSTRUMENT) -> str:
     return f"{BASE_URL}/{instrument}/{d.year:04d}/{d.month - 1:02d}/{d.day:02d}/{side}_candles_min_1.bi5"
 
 
-def _decompress(raw: bytes, rec: struct.Struct) -> bytes:
+def _decompress(raw: bytes, rec: struct.Struct, compressed: bool = True) -> bytes:
+    """compressed=False: the payload is already the plain record stream (the JForex local cache
+    keeps the same records uncompressed); the format is always stated by the caller, never guessed."""
     if not raw:
         return b""
-    try:
-        data = lzma.decompress(raw)
-    except lzma.LZMAError as e:
-        raise FeedError(f"LZMA decode failed: {e}") from e
+    if not compressed:
+        data = raw
+    else:
+        try:
+            data = lzma.decompress(raw)
+        except lzma.LZMAError as e:
+            raise FeedError(f"LZMA decode failed: {e}") from e
     if len(data) % rec.size:
         raise FeedError(f"payload {len(data)} bytes is not a multiple of record size {rec.size}")
     return data
@@ -80,9 +85,9 @@ def decode_ticks(raw: bytes, hour_start_ms: int) -> list[tuple[int, float, float
     return out
 
 
-def decode_candles(raw: bytes, day_start_s: int) -> list[tuple[int, float, float, float, float, float]]:
+def decode_candles(raw: bytes, day_start_s: int, compressed: bool = True) -> list[tuple[int, float, float, float, float, float]]:
     """-> [(t_ms, o, h, l, c, volume)] (file order is time, open, close, low, high, volume)."""
-    data = _decompress(raw, CANDLE_REC)
+    data = _decompress(raw, CANDLE_REC, compressed)
     out = []
     for sec, o, c, lo, hi, vol in CANDLE_REC.iter_unpack(data):
         if sec >= 86_400 or sec % 60:

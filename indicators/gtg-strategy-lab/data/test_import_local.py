@@ -1,4 +1,5 @@
 """Path B importers: JForex cache (official bi5 files) and CSV export, plus the cross-check."""
+import lzma
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -23,14 +24,19 @@ class Cache(unittest.TestCase):
         for url, raw in files.items():
             p = il.cache_path(cache, url)
             p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_bytes(raw)
+            p.write_bytes(lzma.decompress(raw))                       # the cache keeps plain records
         self.assertTrue(str(il.cache_path(cache, dk.candle_url(DAY, "BID"))).endswith("XAUUSD/2026/06/15/BID_candles_min_1.bi5".replace("/", "/")))
         a, ref = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
         il.import_cache(cache, a, DAY, datetime(2026, 7, 16, tzinfo=UTC), log=lambda *_: None)
         build_day(DAY, fetch=lambda u: files.get(u), root=ref)            # the datafeed path
         rep = il.crosscheck(a, ref)
         self.assertEqual((rep["verdict"], rep["overlap_days"]), ("PASS", 1))
-        self.assertTrue(rep["days"][0]["same_raw_sha256"])
+        self.assertIsNone(rep["days"][0]["same_raw_sha256"])                # plain vs lzma: not comparable
+        self.assertTrue(rep["days"][0]["same_bars"])
+
+    def test_a_compressed_file_read_as_plain_is_refused(self):
+        with self.assertRaises(dk.FeedError):
+            dk.decode_candles(candle_file(BID), int(DAY.timestamp()), compressed=False)
 
 
 class Csv(unittest.TestCase):
