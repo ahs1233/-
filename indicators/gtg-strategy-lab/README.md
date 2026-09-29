@@ -10,6 +10,8 @@ A separate research project: does GTG Navigator v0.4.7 carry a real, repeatable 
 | `gtg-engine/` | **Full copy of the indicator** (`indicators/gtg-navigator` at `0a77819`: Pine, reference, validation, artifacts). The lab reads only from it and never touches the indicator in use. Byte-identical, checked by `gtg-engine.manifest` + test GC1–GC3 |
 | `data/` | Dukascopy data layer (Python stdlib): bi5 decoding, M1 BID/ASK, sanitation, UTC aggregation, sha256 manifest, raw forward capture |
 | `engine/` | GTG Measurement Engine (JS): an exact copy of the Zone Engine + `[MEASURE]` records, sensors 3–7, consumer layer 13/17, runner; `pine-cmp.mjs` + generated `pinecmp/` variants with Pine float comparisons (F-007), which the runner uses; and the Pine "GTG Engine" copy (export only) |
+| `events/` | Event Engine: M5 panel (HTF at t−1), TC/H5, CE E1–E4, H3, FLIP-1/2, H4 comparator, P1/P1-rejected/P2, outcomes (C0/C1/C2), CEM covariates; Causality Gate tests (CG1–CG3) |
+| `stats/` | CEM/ATT/support, day-block bootstrap, Holm + decision rule, block length, DE, δ_econ, power gate |
 | `parity/` | Parity Gate tools, TradingView capture steps (`PARITY_RUNBOOK.md`) and the committed captures replayed by CI (`captures/`, PG8) |
 | `FAILURE_LOG.md` | Anti-Loop log (§30) |
 
@@ -28,4 +30,6 @@ node indicators/gtg-strategy-lab/engine/pinecmp/build.mjs   # after editing a so
 | 3 Data layer | ✅ Code + 33 Python tests (fetch/throttling, quiet acquisition, history, forward, Tick Audit). ⏳ Official M1 acquisition running on the desktop, newest first; throughput far below plan (F-008 → plan B to GPT) |
 | 4 Measurement Engine | ✅ JS + Pine copy + Pine float semantics (F-007); 41 Node tests |
 | 5 **Parity Gate** | ✅ **PASS, full MTF** 2026-09-29 on OANDA:XAUUSD: M1, M5, M15, H1, H4 replay with 0 mismatches (EMA seed `sma`), route HTF + anchors computed by JS from the feed's own HTF bars (feed mode, F-009); copy = frozen on every cell. Evidence: `parity/captures/` (PG8, PG9). Production integrity re-checked afterwards: PASS |
-| 6–10 | Allowed from here on the official M1 data once acquired (no event study on partial data without GPT's approval) |
+| 6 Event Engine | ✅ code + definition tests (EV1–EV7) + **Causality Gate PASS** on synthetic data (future truncation, future perturbation, negative control). To re-run on real data before any analysis |
+| 7–8 CEM / statistics / power | ✅ code + tests (ST1–ST7); power gate at full contract scale ≈ 8 min |
+| 9–10 | Not started: data integrity on the real dataset, Power Gate on Train, then Validation. No edge computed |

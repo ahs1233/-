@@ -220,3 +220,20 @@ test('CG3 negative control: a deliberately leaky extractor (reads bar t+1) is ca
   const T = cut.panel.length;
   assert.throws(() => assert.deepEqual(before(leaky(cut.panel), T), before(leaky(r.panel), T)));
 });
+
+test('EV7 covariates: every CEM component is taken at t−1 (a change at bar t leaves them unchanged)', async () => {
+  const { atrRank, covariatesOf, withClusters } = await import('./covariates.mjs');
+  const { r } = full();
+  const rank = atrRank(r.panel);
+  const rows = withClusters(r.h5.events, r.panel);
+  const covs = rows.map((e) => covariatesOf('H5', e, r.panel, rank));
+  const ok = covs.filter((c) => c.stratum != null);
+  assert.ok(ok.length > 0.5 * covs.length, `${ok.length}/${covs.length} rows have a stratum`);
+  assert.ok(ok.every((c) => /^(NY|London|Asia|Off)\|(low|mid|high)\|(1|2|3-4|5\+)\|-?1$/.test(c.stratum)));
+  assert.ok(rows.every((x) => /^\d{4}-\d{2}-\d{2}$/.test(x.day) && x.cluster));
+  // perturb bar t itself: ATR, H4 view at t is from t−1 already; the t−1-based components must not move
+  const e = rows.find((x, k) => covs[k].stratum != null);
+  const panel2 = r.panel.slice();
+  panel2[e.t] = { ...panel2[e.t], atr: panel2[e.t].atr * 50 };
+  assert.deepEqual(covariatesOf('H5', e, panel2, atrRank(panel2)), covariatesOf('H5', e, r.panel, rank));
+});
