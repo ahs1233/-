@@ -44,10 +44,15 @@ def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False) -> dict:
     return {"entry": entry, "bars": bars}
 
 
-def days_between(start: datetime, end: datetime, newest_first: bool) -> list[datetime]:
-    """UTC days in [start, end), clipped to T_freeze, optionally newest first (message 16)."""
+PUBLISH_LAG = timedelta(hours=3)  # a day's M1 file exists only after the UTC day has ended
+
+
+def days_between(start: datetime, end: datetime, newest_first: bool, now: datetime | None = None) -> list[datetime]:
+    """Complete UTC days in [start, end), clipped to T_freeze, optionally newest first (message 16).
+    A day that has not ended (plus the publish lag) is never requested: its file does not exist yet."""
+    now = now or datetime.now(timezone.utc)
     out, d = [], start
-    while d < end and int(d.timestamp() * 1000) < T_FREEZE_MS:
+    while d < end and int(d.timestamp() * 1000) < T_FREEZE_MS and d + timedelta(days=1) + PUBLISH_LAG <= now:
         out.append(d)
         d += timedelta(days=1)
     return out[::-1] if newest_first else out
@@ -57,7 +62,8 @@ def run(days, root, keep_raw=False, build=build_day, sleep=time.sleep, cooldown_
     """Quiet acquisition: sequential, paced by dukascopy.fetch; a throttled day triggers a long
     cool-down and is retried; after `max_cooldowns` consecutive cool-downs the run stops cleanly.
     Days already in the manifest are never downloaded again."""
-    done = {e["day"] for e in read_manifest(root) if e.get("kind") == "history_day"}
+    # a "none" entry (no file answered) is not final: it is retried on the next run
+    done = {e["day"] for e in read_manifest(root) if e.get("kind") == "history_day" and e.get("source") != "none"}
     streak = 0
     for d in days:
         if f"{d:%Y-%m-%d}" in done:

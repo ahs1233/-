@@ -143,9 +143,22 @@ class History(unittest.TestCase):
 
 
 class QuietRun(unittest.TestCase):
-    def test_newest_first_clipped_to_freeze(self):
-        days = build_history.days_between(datetime(2026, 9, 27, tzinfo=UTC), datetime(2026, 10, 3, tzinfo=UTC), True)
+    def test_newest_first_clipped_to_freeze_and_complete_days(self):
+        late = datetime(2026, 10, 5, tzinfo=UTC)
+        days = build_history.days_between(datetime(2026, 9, 27, tzinfo=UTC), datetime(2026, 10, 3, tzinfo=UTC), True, now=late)
         self.assertEqual([f"{d:%m-%d}" for d in days], ["09-29", "09-28", "09-27"])
+        # the freeze day itself is not requested before it has ended + the publish lag
+        early = datetime(2026, 9, 29, 16, 0, tzinfo=UTC)
+        days = build_history.days_between(datetime(2026, 9, 27, tzinfo=UTC), datetime(2026, 10, 3, tzinfo=UTC), True, now=early)
+        self.assertEqual([f"{d:%m-%d}" for d in days], ["09-28", "09-27"])
+
+    def test_none_entries_are_retried(self):
+        with tempfile.TemporaryDirectory() as t:
+            from store import append_manifest
+            append_manifest(Path(t), {"kind": "history_day", "day": "2020-01-02", "source": "none"})
+            calls = []
+            build_history.run([datetime(2020, 1, 2, tzinfo=UTC)], Path(t), build=lambda d, root, keep_raw: calls.append(d) or {"entry": {"day": "2020-01-02", "source": "m1", "bars": 1, "ask_coverage": 1.0}}, log=lambda s: None)
+            self.assertEqual(len(calls), 1)
 
     def test_throttle_cools_down_retries_and_skips_done_days(self):
         calls, sleeps, logs = [], [], []
