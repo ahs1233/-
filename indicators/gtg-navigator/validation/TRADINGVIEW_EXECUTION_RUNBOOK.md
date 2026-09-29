@@ -214,6 +214,22 @@ Symptom: a fixed-coordinate click on "Add to chart" opened the script menu after
 Fix: click by label (`aria-label`/`title`/text), or by geometry relative to the header (the "More" button has no label; it is the rightmost header button).
 Prevention: no fixed coordinates in the editor header.
 
+### E-26 — Overlay scripts draw behind the candles by default (Pine v6)
+Symptom: candles crossed the HUD on H1 even with a 96% opaque background.
+Cause: study z-order −10000 against the main series' 0: `indicator(behind_chart)` defaults to true.
+Fix: `behind_chart = false`; check z-order through CDP (`dataSources()[i].zorder()`).
+Prevention: C20 pins it.
+
+### E-27 — Basic plan: two indicators per chart
+Symptom: Add to chart silently did nothing; a popup "You've applied 2 indicators — the maximum available on your plan".
+Fix: clear the test chart first (autosave off, E-24).
+Prevention: validation charts carry only the script under test.
+
+### E-28 — Re-enable autosave only after the layout has loaded
+Symptom: right after a reload the chart reported 0 studies while the layout was still loading.
+Fix: wait until the expected studies are present and hasChanges() is false, then setAutoSaveEnabled(true).
+Prevention: the restore script checks the four original study ids before enabling autosave.
+
 ## 8. Evidence separation
 
 Never conflate:

@@ -16,7 +16,7 @@
 1. افتح **Pine Editor** في TradingView.
 2. الصق محتوى `gtg_navigator_v0.4.7.pine` كاملًا.
 3. اضغط **Add to chart**.
-4. للتنبيهات: **Create Alert** ← `GTG Nav v0.4.7` ← أحد الشروط العشرة.
+4. للتنبيهات: **Create Alert** ← `GTG v0.4.7` ← أحد الشروط العشرة.
 
 الفريمات المدعومة: من الثواني حتى الشهري (1M). عند فريم لا يحقق `chart < A1 < A2` يتوقف المؤشر برسالة خطأ.
 
@@ -109,7 +109,7 @@ node --test indicators/gtg-navigator/reference/*.test.mjs
 - G2 (الأداء): Profiler يكتمل في وضع الإنتاج بزمن كلي 9 ثوانٍ من حد 20 على XAU M1 (E46). لا مقارنة رقمية مع baseline.
 - G3 (strictDebug): Runtime Error = 0 على XAU وBTC × M1 وM5 وM15 وH1 (E48).
 - G4 (الترتيب والحتمية): مثبت في المرجع JS، بما فيه إعادة التحميل من تواريخ مستقلة (R5، E40)، وفي TradingView عبر بصمة R5 على XAU M1 (E41)، مع تكرار EVT بين التحميلات (E49).
-- G5 (المعايرة D): مؤقتة (PROVISIONAL)، بلا عينة تحقق منفصلة.
+- G5 (الواجهة): VERIFIED على `0c7cbe3` (E51). المعايرة D قرار منتج؛ الأعداد في `tv-matrix-27f3bba.txt`.
 - الحكم الحالي والبنود المفتوحة: `validation/VALIDATION_REPORT.md`.
 
 ## قيود معروفة

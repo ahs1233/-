@@ -5,6 +5,13 @@ Baseline for this task: `cdf1a8a` (Pine blob `3f7dd0e`). Review items: `validati
 
 ## Unreleased — quality-hardening task (Astra review, R1–R7)
 
+### Release presentation and compile gate (messages 81–82; Pine blob `0c7cbe3`)
+- **Problems**: (1) G5: the status line listed all 67 input values across the HUD's fuel row; on H1 the candles crossed the HUD. (2) Mobile: `SHORT_TITLE_TOO_LONG` (shorttitle 14 characters; a warning on Desktop), and CE10213 "at least one output function call".
+- **Fixture before**: `reference/pine-contract.test.mjs` C20 fails on `27f3bba`. TradingView: G5 FAILED (E51, first run); CE10213 reproduced with the source cut before its first `plot` (line 2173); the full `27f3bba` source adds without it.
+- **Change** (presentation only, no engine/signal/alert line): `display = display.none` on the 67 inputs; HUD rows `color.new(color.black, 18)` → `4`; shorttitle `"GTG v0.4.7"` (10); `behind_chart = false` in `indicator()` (Pine v6 overlay scripts draw behind the candles by default, which was the real cause on H1). The hotfix's `GTG_OUTPUT_ANCHOR` plot was not taken: CE10213 comes from a truncated paste, and the anchor would hide it.
+- **Test after**: C20 passes; suite 116/116. TradingView: fresh compile of the GitHub source 0 errors / 0 warnings, Add to chart OK, G5 6/6 PASS (E51), account script saved as v24 = `0c7cbe3`.
+- **Effect on other behaviour**: none computed; lines after 9 move by +1 (F1 line references read +1). E16/E20/G2 unaffected (no engine line changed).
+
 ### R6 — CI (reference only, no Pine change)
 - **Problem**: the Navigator tests were not run by any CI job (`ci.yml` → `pnpm test` → turbo, apps/packages only).
 - **Change**: `.github/workflows/gtg-navigator.yml`, a standalone job on Node 22 and 24 with a per-commit summary.
