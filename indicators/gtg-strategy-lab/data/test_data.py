@@ -206,6 +206,18 @@ class Fetch(unittest.TestCase):
             dk.fetch("https://x.test/f.bi5", opener=opener, sleep=lambda s: None, rate_retries=3)
         self.assertEqual(n[0], 4)
 
+    def test_503_is_throttling_like_429(self):  # F-003 regression
+        answers = [self._err(503), self._Resp(b"ok")]
+
+        def opener(req, timeout):
+            a = answers.pop(0)
+            if isinstance(a, Exception):
+                raise a
+            return a
+        sleeps = []
+        self.assertEqual(dk.fetch("https://x.test/f.bi5", opener=opener, sleep=sleeps.append), b"ok")
+        self.assertIn(5.0, sleeps)
+
     def test_404_is_no_file_and_500_raises(self):
         def o404(req, timeout): raise self._err(404)
         def o500(req, timeout): raise self._err(500)

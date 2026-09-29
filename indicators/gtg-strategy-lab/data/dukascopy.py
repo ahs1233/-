@@ -127,10 +127,10 @@ def fetch(url: str, retries: int = 3, timeout: float = 30.0, rate_retries: int =
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 return None
-            if e.code == 429:
+            if e.code in (429, 503):  # 503 is Dukascopy's throttling answer too (F-003)
                 rate_fail += 1
                 if rate_fail > rate_retries:
-                    raise RateLimited(f"{url}: HTTP 429 after {rate_retries} backoffs") from e
+                    raise RateLimited(f"{url}: HTTP {e.code} after {rate_retries} backoffs") from e
                 ra = e.headers.get("Retry-After") if e.headers else None
                 delay = float(ra) if ra and ra.isdigit() else min(120.0, 5.0 * 2 ** (rate_fail - 1))
                 sleep(delay)

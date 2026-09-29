@@ -58,3 +58,17 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Result | That method is replaced (not repeated): explicit User-Agent, a minimum interval between requests, 429 → `Retry-After` or bounded exponential backoff (≤ 6), then `RateLimited`. Regression tests: `Fetch.test_429_*`, `test_persistent_429_*`, `test_404_is_no_file_and_500_raises` |
 | Status | `FIXED (regression: test_data.Fetch)` — pending confirmation on real data |
 | Attempt | 1 |
+
+### F-003 — HTTP 503 from Dukascopy even when paced; the tick-history volume is infeasible at this rate
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T14:3xZ |
+| Step | 3 (real-data smoke test, after the F-002 fix) |
+| Layer | 1 Data (source access) — with a methodological consequence (§2.2) |
+| Symptom | With pacing and a User-Agent, `fetch` raised `HTTP 503 Service Unavailable`. A diagnostic probe (PowerShell, 12 hourly files, 1.5 s apart) got 503 on 11 of 12 requests; the one success took 11.9 s |
+| Root cause hypothesis | Server-side throttling of this client address (probably a penalty left over from the first burst in F-002). 503 is Dukascopy's throttling answer as well as 429. It is not a code or data-format error |
+| Evidence | The probe above; the same URL returned 200 earlier in the session; no `Retry-After` header is sent |
+| Method | Throttling handled for 429 only |
+| Result | 503 is now handled like 429: bounded backoff, then `RateLimited`. Regression: `Fetch.test_503_is_throttling_like_429`. **Not retried in bulk:** the throttle is still active. The full tick history (≈ 24 files × ~6,000 trading days ≈ 144k requests) is infeasible at the observed rate. That is a methodological choice (§2.2 tick priority vs M1 candles) and goes to GPT, not decided here |
+| Status | `OPEN — waiting for (a) the throttle to cool down before a paced re-probe and (b) a methodological decision on the source granularity` |
+| Attempt | 1 |
