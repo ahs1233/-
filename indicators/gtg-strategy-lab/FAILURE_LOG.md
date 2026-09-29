@@ -31,4 +31,16 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 
 ## Log
 
-_No failures yet._
+### F-001 — Access to Dukascopy denied by the environment's network policy
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T13:27Z |
+| Step | 2/3 (forward capture, data layer) |
+| Layer | 7 Environment |
+| Symptom | `curl https://datafeed.dukascopy.com/datafeed/XAUUSD/…` → `CONNECT tunnel failed, response 403`; `www/freeserv/jetta.dukascopy.com` also have no access |
+| Root cause hypothesis | The session's egress proxy denies the host (organization policy), not a data or code error |
+| Evidence | `$HTTPS_PROXY/__agentproxy/status` → `connect_rejected … gateway answered 403 to CONNECT (policy denial)` for `datafeed.dukascopy.com:443` |
+| Method | Direct HTTPS request through the proxy |
+| Result | No data downloaded |
+| Status | `BLOCKED` — needs the user to add `datafeed.dukascopy.com` to the environment's network allow-list. No retry until the policy changes. The data layer is built and tested on synthetic bi5 files meanwhile |
+| Attempt | 1 |
