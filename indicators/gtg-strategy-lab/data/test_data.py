@@ -142,6 +142,38 @@ class History(unittest.TestCase):
         self.assertTrue(asked and all("candles_min_1" in u for u in asked))
 
 
+class QuietRun(unittest.TestCase):
+    def test_newest_first_clipped_to_freeze(self):
+        days = build_history.days_between(datetime(2026, 9, 27, tzinfo=UTC), datetime(2026, 10, 3, tzinfo=UTC), True)
+        self.assertEqual([f"{d:%m-%d}" for d in days], ["09-29", "09-28", "09-27"])
+
+    def test_throttle_cools_down_retries_and_skips_done_days(self):
+        calls, sleeps, logs = [], [], []
+        state = {"fail": 2}
+
+        def build(d, root, keep_raw):
+            calls.append(d)
+            if state["fail"]:
+                state["fail"] -= 1
+                raise dk.RateLimited("503")
+            return {"entry": {"day": f"{d:%Y-%m-%d}", "source": "m1", "bars": 1, "ask_coverage": 1.0}}
+        with tempfile.TemporaryDirectory() as t:
+            from store import append_manifest
+            append_manifest(Path(t), {"kind": "history_day", "day": "2020-01-01"})
+            days = [datetime(2020, 1, 2, tzinfo=UTC), datetime(2020, 1, 1, tzinfo=UTC)]
+            ok = build_history.run(days, Path(t), build=build, sleep=sleeps.append, log=logs.append)
+        self.assertTrue(ok)
+        self.assertEqual(len(calls), 3)           # 2 throttled attempts + 1 success; the done day is skipped
+        self.assertEqual(sleeps, [600, 600])
+
+    def test_persistent_throttle_stops_cleanly(self):
+        def build(d, root, keep_raw):
+            raise dk.RateLimited("503")
+        with tempfile.TemporaryDirectory() as t:
+            ok = build_history.run([datetime(2020, 1, 2, tzinfo=UTC)], Path(t), build=build, sleep=lambda s: None, log=lambda s: None, max_cooldowns=3)
+        self.assertFalse(ok)
+
+
 class Forward(unittest.TestCase):
     def test_capture_complete_days_from_freeze_day_idempotent_and_raw(self):
         calls = []

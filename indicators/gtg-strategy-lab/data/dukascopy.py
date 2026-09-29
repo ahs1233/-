@@ -92,7 +92,7 @@ def decode_candles(raw: bytes, day_start_s: int) -> list[tuple[int, float, float
 
 
 USER_AGENT = "gtg-strategy-lab/0.2 (research; +https://github.com/ahs1233)"
-MIN_INTERVAL_S = 0.35     # polite pacing between requests (FAILURE_LOG F-002)
+MIN_INTERVAL_S = 2.0      # quiet pacing between requests (F-002/F-003, message 16)
 _last_request = [0.0]
 
 
