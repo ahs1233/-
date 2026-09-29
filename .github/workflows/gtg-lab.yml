@@ -28,6 +28,6 @@ jobs:
         run: node --test indicators/gtg-strategy-lab/engine/*.test.mjs indicators/gtg-strategy-lab/parity/*.test.mjs indicators/gtg-strategy-lab/events/*.test.mjs indicators/gtg-strategy-lab/stats/*.test.mjs
       - name: Data layer tests
         working-directory: indicators/gtg-strategy-lab/data
-        run: python3 -m unittest -v test_data test_tick_audit test_calendar test_integrity
+        run: python3 -m unittest -v test_data test_tick_audit test_calendar test_integrity test_import_local
       - name: In-lab copy of the reference (gtg-engine, 116)
         run: node --test indicators/gtg-strategy-lab/gtg-engine/reference/*.test.mjs
