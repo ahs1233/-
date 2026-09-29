@@ -160,3 +160,17 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Result | `inferHtfStart` (parity/compare.mjs) recovers the start as the **unique** exact solution and reports it (`htfStart.basis` = unique / full-history); no tolerance changed. Research runs on the full Dukascopy history, where the EMA is converged; warm-up rows are excluded as before |
 | Status | `FIXED (regression: parity/captures.test.mjs PG9)` |
 | Attempt | 1 |
+
+### F-010 — Power simulation draft centred on the Train estimate instead of the null
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T21:3xZ |
+| Step | 8 (statistics infrastructure: power gate, §17) |
+| Layer | 5 Statistics |
+| Symptom | Test ST6 (synthetic null data): the claim rate at Δ = 0 was not small |
+| Root cause | The first draft of `powerGate` simulated around the Train sample's own ATT, so a chance (or real) Train effect entered the power and the MDE |
+| Evidence | ST6 before the fix; the same data with a large injected Train effect gave a different MDE |
+| Method | Outer block resamples of Train without imposing the null |
+| Result | Replaced before commit: each simulated estimate is centred on the full-Train ATT (the null is imposed), then Δ is injected. The power uses only the variance and dependence of Train, never the sign or size of its effect. Regression: ST6 asserts identical MDEs with and without a large Train effect, and a low null claim rate |
+| Status | `FIXED (regression: stats/stats.test.mjs ST6)` |
+| Attempt | 1 |
