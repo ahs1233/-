@@ -1,7 +1,7 @@
 //@version=6
 indicator(
      "GTG Navigator v0.4.7 — Structural Zone Engine",
-     shorttitle = "GTG Nav v0.4.7",
+     shorttitle = "GTG v0.4.7",
      overlay = true,
      max_labels_count = 20,
      max_lines_count = 10,
@@ -37,99 +37,99 @@ indicator(
 // ============================================================================
 
 groupGeneral = "عام"
-showDashboard = input.bool(true, "إظهار لوحة الملاحة", group = groupGeneral)
-dashboardMode = input.string("COMPACT", "وضع اللوحة", options = ["COMPACT", "STANDARD", "DEBUG"], group = groupGeneral)
-dashboardTextSize = input.string("TINY", "حجم خط اللوحة", options = ["TINY", "SMALL", "NORMAL"], group = groupGeneral)
-showMAs = input.bool(true, "إظهار المتوسطات", group = groupGeneral)
-showFastMAs = input.bool(false, "إظهار MA14 / MA22", group = groupGeneral)
-showObstacleMarkers = input.bool(false, "إظهار مراكز العوائق — Debug", group = groupGeneral)
-showSmartZones = input.bool(true, "إظهار خريطة المناطق الذكية", group = groupGeneral)
-zonesPerSide = input.int(2, "عدد المناطق فوق/تحت السعر", minval = 1, maxval = 2, group = groupGeneral)
-autoZoneSpan = input.bool(true, "امتداد المناطق تلقائي حسب الفريم", group = groupGeneral)
-manualZoneForwardBars = input.int(36, "امتداد المنطقة للأمام / شموع", minval = 8, maxval = 160, group = groupGeneral)
-manualZoneBackBars = input.int(36, "امتداد المنطقة للخلف / شموع", minval = 8, maxval = 200, group = groupGeneral)
-showZoneLabels = input.bool(true, "إظهار اسم المنطقة", group = groupGeneral)
+showDashboard = input.bool(true, "إظهار لوحة الملاحة", group = groupGeneral, display = display.none)
+dashboardMode = input.string("COMPACT", "وضع اللوحة", options = ["COMPACT", "STANDARD", "DEBUG"], group = groupGeneral, display = display.none)
+dashboardTextSize = input.string("TINY", "حجم خط اللوحة", options = ["TINY", "SMALL", "NORMAL"], group = groupGeneral, display = display.none)
+showMAs = input.bool(true, "إظهار المتوسطات", group = groupGeneral, display = display.none)
+showFastMAs = input.bool(false, "إظهار MA14 / MA22", group = groupGeneral, display = display.none)
+showObstacleMarkers = input.bool(false, "إظهار مراكز العوائق — Debug", group = groupGeneral, display = display.none)
+showSmartZones = input.bool(true, "إظهار خريطة المناطق الذكية", group = groupGeneral, display = display.none)
+zonesPerSide = input.int(2, "عدد المناطق فوق/تحت السعر", minval = 1, maxval = 2, group = groupGeneral, display = display.none)
+autoZoneSpan = input.bool(true, "امتداد المناطق تلقائي حسب الفريم", group = groupGeneral, display = display.none)
+manualZoneForwardBars = input.int(36, "امتداد المنطقة للأمام / شموع", minval = 8, maxval = 160, group = groupGeneral, display = display.none)
+manualZoneBackBars = input.int(36, "امتداد المنطقة للخلف / شموع", minval = 8, maxval = 200, group = groupGeneral, display = display.none)
+showZoneLabels = input.bool(true, "إظهار اسم المنطقة", group = groupGeneral, display = display.none)
 
 // Moving-average sensors.
 groupMA = "حساسات المتوسطات"
-maType = input.string("EMA", "نوع المتوسط", options = ["EMA", "SMA", "WMA"], group = groupMA)
+maType = input.string("EMA", "نوع المتوسط", options = ["EMA", "SMA", "WMA"], group = groupMA, display = display.none)
 
 // Calibration / ranking.
 groupCalibration = "المعايرة"
-rankMode = input.string("AUTO", "نافذة المعايرة", options = ["AUTO", "MANUAL"], group = groupCalibration)
-manualRankLen = input.int(300, "نافذة المعايرة اليدوية", minval = 80, maxval = 2000, group = groupCalibration)
-normalLowPct = input.float(25.0, "بداية النطاق الطبيعي %", minval = 5, maxval = 45, step = 1, group = groupCalibration)
-normalHighPct = input.float(75.0, "نهاية النطاق الطبيعي %", minval = 55, maxval = 95, step = 1, group = groupCalibration)
+rankMode = input.string("AUTO", "نافذة المعايرة", options = ["AUTO", "MANUAL"], group = groupCalibration, display = display.none)
+manualRankLen = input.int(300, "نافذة المعايرة اليدوية", minval = 80, maxval = 2000, group = groupCalibration, display = display.none)
+normalLowPct = input.float(25.0, "بداية النطاق الطبيعي %", minval = 5, maxval = 45, step = 1, group = groupCalibration, display = display.none)
+normalHighPct = input.float(75.0, "نهاية النطاق الطبيعي %", minval = 55, maxval = 95, step = 1, group = groupCalibration, display = display.none)
 
 // Speedometer.
 groupSpeed = "عداد السرعة"
-speedSmooth = input.int(3, "تنعيم السرعة اللحظية", minval = 1, maxval = 20, group = groupSpeed)
-speedFlowMode = input.string("AUTO", "نافذة سرعة التدفق", options = ["AUTO", "MANUAL"], group = groupSpeed)
-manualSpeedFlowLen = input.int(5, "نافذة التدفق اليدوية", minval = 2, maxval = 20, group = groupSpeed)
-speedAccelLookback = input.int(3, "نافذة التسارع", minval = 1, maxval = 20, group = groupSpeed)
-speedSlowThreshold = input.float(25.0, "سرعة منخفضة", minval = 5, maxval = 45, step = 1, group = groupSpeed)
-speedFastThreshold = input.float(70.0, "سرعة مرتفعة", minval = 50, maxval = 90, step = 1, group = groupSpeed)
-speedExtremeThreshold = input.float(90.0, "سرعة استثنائية", minval = 75, maxval = 99, step = 1, group = groupSpeed)
+speedSmooth = input.int(3, "تنعيم السرعة اللحظية", minval = 1, maxval = 20, group = groupSpeed, display = display.none)
+speedFlowMode = input.string("AUTO", "نافذة سرعة التدفق", options = ["AUTO", "MANUAL"], group = groupSpeed, display = display.none)
+manualSpeedFlowLen = input.int(5, "نافذة التدفق اليدوية", minval = 2, maxval = 20, group = groupSpeed, display = display.none)
+speedAccelLookback = input.int(3, "نافذة التسارع", minval = 1, maxval = 20, group = groupSpeed, display = display.none)
+speedSlowThreshold = input.float(25.0, "سرعة منخفضة", minval = 5, maxval = 45, step = 1, group = groupSpeed, display = display.none)
+speedFastThreshold = input.float(70.0, "سرعة مرتفعة", minval = 50, maxval = 90, step = 1, group = groupSpeed, display = display.none)
+speedExtremeThreshold = input.float(90.0, "سرعة استثنائية", minval = 75, maxval = 99, step = 1, group = groupSpeed, display = display.none)
 
 // Local heading.
 groupHeading = "الاتجاه الحالي"
-headingLookback = input.int(14, "نافذة كفاءة المسار", minval = 5, maxval = 100, group = groupHeading)
-headingSlopeLookback = input.int(8, "نافذة الميل", minval = 2, maxval = 50, group = groupHeading)
-headingClearThreshold = input.float(20.0, "حد اتجاه واضح", minval = 5, maxval = 45, step = 1, group = groupHeading)
-headingStrongThreshold = input.float(60.0, "حد اتجاه قوي", minval = 40, maxval = 90, step = 1, group = groupHeading)
-headingDeadZone = input.float(15.0, "منطقة عدم الحسم", minval = 5, maxval = 25, step = 1, group = groupHeading)
+headingLookback = input.int(14, "نافذة كفاءة المسار", minval = 5, maxval = 100, group = groupHeading, display = display.none)
+headingSlopeLookback = input.int(8, "نافذة الميل", minval = 2, maxval = 50, group = groupHeading, display = display.none)
+headingClearThreshold = input.float(20.0, "حد اتجاه واضح", minval = 5, maxval = 45, step = 1, group = groupHeading, display = display.none)
+headingStrongThreshold = input.float(60.0, "حد اتجاه قوي", minval = 40, maxval = 90, step = 1, group = groupHeading, display = display.none)
+headingDeadZone = input.float(15.0, "منطقة عدم الحسم", minval = 5, maxval = 25, step = 1, group = groupHeading, display = display.none)
 
 // Macro route / HTF.
 groupRoute = "المسار العام"
-htfMode = input.string("AUTO", "وضع الإطار الأعلى", options = ["AUTO", "MANUAL"], group = groupRoute)
-manualHTF = input.timeframe("240", "الإطار الأعلى اليدوي", group = groupRoute)
-routeClearThreshold = input.float(22.0, "حد المسار الواضح", minval = 5, maxval = 45, step = 1, group = groupRoute)
-routeStrongThreshold = input.float(62.0, "حد المسار القوي", minval = 40, maxval = 90, step = 1, group = groupRoute)
+htfMode = input.string("AUTO", "وضع الإطار الأعلى", options = ["AUTO", "MANUAL"], group = groupRoute, display = display.none)
+manualHTF = input.timeframe("240", "الإطار الأعلى اليدوي", group = groupRoute, display = display.none)
+routeClearThreshold = input.float(22.0, "حد المسار الواضح", minval = 5, maxval = 45, step = 1, group = groupRoute, display = display.none)
+routeStrongThreshold = input.float(62.0, "حد المسار القوي", minval = 40, maxval = 90, step = 1, group = groupRoute, display = display.none)
 
 // Fuel / thrust.
 groupFuel = "عداد الوقود"
-fuelSmooth = input.int(3, "تنعيم الوقود", minval = 1, maxval = 20, group = groupFuel)
-fuelBaselineLen = input.int(50, "خط أساس النشاط", minval = 20, maxval = 300, group = groupFuel)
-fuelLowThreshold = input.float(25.0, "وقود منخفض", minval = 5, maxval = 50, step = 1, group = groupFuel)
-fuelHighThreshold = input.float(70.0, "وقود مرتفع", minval = 50, maxval = 90, step = 1, group = groupFuel)
-fuelExtremeThreshold = input.float(90.0, "وقود استثنائي", minval = 75, maxval = 99, step = 1, group = groupFuel)
+fuelSmooth = input.int(3, "تنعيم الوقود", minval = 1, maxval = 20, group = groupFuel, display = display.none)
+fuelBaselineLen = input.int(50, "خط أساس النشاط", minval = 20, maxval = 300, group = groupFuel, display = display.none)
+fuelLowThreshold = input.float(25.0, "وقود منخفض", minval = 5, maxval = 50, step = 1, group = groupFuel, display = display.none)
+fuelHighThreshold = input.float(70.0, "وقود مرتفع", minval = 50, maxval = 90, step = 1, group = groupFuel, display = display.none)
+fuelExtremeThreshold = input.float(90.0, "وقود استثنائي", minval = 75, maxval = 99, step = 1, group = groupFuel, display = display.none)
 
 // Obstacle awareness (consumers of the zone map).
 groupMap = "الوعي بالعوائق"
-nearObstacleAtr = input.float(0.35, "اعتبار العائق قريبًا / ATR", minval = 0.05, maxval = 1.50, step = 0.05, group = groupMap)
-awarenessObstacleAtr = input.float(0.85, "مسافة وعي الطريق بالعائق / ATR", minval = 0.30, maxval = 2.50, step = 0.05, group = groupMap)
-noChaseAtr = input.float(0.30, "منطقة منع المطاردة / ATR", minval = 0.05, maxval = 1.00, step = 0.05, group = groupMap)
-noChaseFuelMax = input.float(65.0, "أقصى وقود عند منع المطاردة", minval = 20, maxval = 90, step = 1, group = groupMap)
-includeMA200 = input.bool(true, "MA200 كتلاقٍ بصري فقط", group = groupMap)
-includeMA1000 = input.bool(true, "MA1000 كتلاقٍ بصري فقط", group = groupMap)
-usePsychLevels = input.bool(true, "المستويات النفسية للكريبتو كتلاقٍ بصري فقط", group = groupMap)
+nearObstacleAtr = input.float(0.35, "اعتبار العائق قريبًا / ATR", minval = 0.05, maxval = 1.50, step = 0.05, group = groupMap, display = display.none)
+awarenessObstacleAtr = input.float(0.85, "مسافة وعي الطريق بالعائق / ATR", minval = 0.30, maxval = 2.50, step = 0.05, group = groupMap, display = display.none)
+noChaseAtr = input.float(0.30, "منطقة منع المطاردة / ATR", minval = 0.05, maxval = 1.00, step = 0.05, group = groupMap, display = display.none)
+noChaseFuelMax = input.float(65.0, "أقصى وقود عند منع المطاردة", minval = 20, maxval = 90, step = 1, group = groupMap, display = display.none)
+includeMA200 = input.bool(true, "MA200 كتلاقٍ بصري فقط", group = groupMap, display = display.none)
+includeMA1000 = input.bool(true, "MA1000 كتلاقٍ بصري فقط", group = groupMap, display = display.none)
+usePsychLevels = input.bool(true, "المستويات النفسية للكريبتو كتلاقٍ بصري فقط", group = groupMap, display = display.none)
 
 // Zone Engine v0.4.7 — initial values from the frozen architecture (G5 calibrates them).
 groupEngine = "محرك المناطق v0.4.7"
-qEnter = input.float(55.0, "Q_enter — عتبة دخول الخانة", minval = 0, maxval = 100, step = 1, group = groupEngine)
-qStay = input.float(45.0, "Q_stay — عتبة البقاء في الخانة", minval = 0, maxval = 100, step = 1, group = groupEngine)
-kLocal = input.float(8.0, "k_L — أفق البنية المحلية / ATR", minval = 2.0, maxval = 40.0, step = 0.5, group = groupEngine)
-kA1 = input.float(2.5, "k_1 — مدى A1 / ATR_A1", minval = 0.5, maxval = 10.0, step = 0.25, group = groupEngine)
-kA2 = input.float(2.0, "k_2 — مدى A2 / ATR_A2", minval = 0.5, maxval = 10.0, step = 0.25, group = groupEngine)
-kTact = input.float(6.0, "H_tact — الأفق التكتيكي / ATR", minval = 1.0, maxval = 20.0, step = 0.5, group = groupEngine)
-mergeGapK = input.float(0.35, "mergeGap / ATR", minval = 0.05, maxval = 1.0, step = 0.01, group = groupEngine)
-maxWidthK = input.float(1.0, "أقصى عرض للمنطقة / ATR", minval = 0.3, maxval = 3.0, step = 0.05, group = groupEngine)
-mitAlpha = input.float(0.6, "α — معامل الاستهلاك", minval = 0.1, maxval = 1.0, step = 0.05, group = groupEngine)
-rejAtrK = input.float(1.0, "R_rej — ابتعاد الرفض الكامل / ATR", minval = 0.2, maxval = 3.0, step = 0.1, group = groupEngine)
-breakBufK = input.float(0.10, "b — هامش الكسر / ATR", minval = 0.01, maxval = 0.5, step = 0.01, group = groupEngine)
-dispBodyK = input.float(0.80, "d — جسم الاندفاع / ATR", minval = 0.3, maxval = 2.0, step = 0.05, group = groupEngine)
-legEff = input.float(0.55, "e — كفاءة ساق الاندفاع", minval = 0.2, maxval = 0.95, step = 0.05, group = groupEngine)
-eventEpsK = input.float(0.15, "ε — تطابق الحدث بين الفريمات / ATR الأعلى", minval = 0.02, maxval = 0.5, step = 0.01, group = groupEngine)
-strongQ = input.float(72.0, "حد المنطقة القوية", minval = 40, maxval = 95, step = 1, group = groupEngine)
-mediumQ = input.float(48.0, "حد المنطقة المتوسطة", minval = 20, maxval = 80, step = 1, group = groupEngine)
-useDOZ = input.bool(true, "Displacement Origin Zones (DOZ)", group = groupEngine)
+qEnter = input.float(55.0, "Q_enter — عتبة دخول الخانة", minval = 0, maxval = 100, step = 1, group = groupEngine, display = display.none)
+qStay = input.float(45.0, "Q_stay — عتبة البقاء في الخانة", minval = 0, maxval = 100, step = 1, group = groupEngine, display = display.none)
+kLocal = input.float(8.0, "k_L — أفق البنية المحلية / ATR", minval = 2.0, maxval = 40.0, step = 0.5, group = groupEngine, display = display.none)
+kA1 = input.float(2.5, "k_1 — مدى A1 / ATR_A1", minval = 0.5, maxval = 10.0, step = 0.25, group = groupEngine, display = display.none)
+kA2 = input.float(2.0, "k_2 — مدى A2 / ATR_A2", minval = 0.5, maxval = 10.0, step = 0.25, group = groupEngine, display = display.none)
+kTact = input.float(6.0, "H_tact — الأفق التكتيكي / ATR", minval = 1.0, maxval = 20.0, step = 0.5, group = groupEngine, display = display.none)
+mergeGapK = input.float(0.35, "mergeGap / ATR", minval = 0.05, maxval = 1.0, step = 0.01, group = groupEngine, display = display.none)
+maxWidthK = input.float(1.0, "أقصى عرض للمنطقة / ATR", minval = 0.3, maxval = 3.0, step = 0.05, group = groupEngine, display = display.none)
+mitAlpha = input.float(0.6, "α — معامل الاستهلاك", minval = 0.1, maxval = 1.0, step = 0.05, group = groupEngine, display = display.none)
+rejAtrK = input.float(1.0, "R_rej — ابتعاد الرفض الكامل / ATR", minval = 0.2, maxval = 3.0, step = 0.1, group = groupEngine, display = display.none)
+breakBufK = input.float(0.10, "b — هامش الكسر / ATR", minval = 0.01, maxval = 0.5, step = 0.01, group = groupEngine, display = display.none)
+dispBodyK = input.float(0.80, "d — جسم الاندفاع / ATR", minval = 0.3, maxval = 2.0, step = 0.05, group = groupEngine, display = display.none)
+legEff = input.float(0.55, "e — كفاءة ساق الاندفاع", minval = 0.2, maxval = 0.95, step = 0.05, group = groupEngine, display = display.none)
+eventEpsK = input.float(0.15, "ε — تطابق الحدث بين الفريمات / ATR الأعلى", minval = 0.02, maxval = 0.5, step = 0.01, group = groupEngine, display = display.none)
+strongQ = input.float(72.0, "حد المنطقة القوية", minval = 40, maxval = 95, step = 1, group = groupEngine, display = display.none)
+mediumQ = input.float(48.0, "حد المنطقة المتوسطة", minval = 20, maxval = 80, step = 1, group = groupEngine, display = display.none)
+useDOZ = input.bool(true, "Displacement Origin Zones (DOZ)", group = groupEngine, display = display.none)
 
 groupDebug = "DEBUG"
-strictDebug = input.bool(false, "strictDebug — إيقاف المؤشر عند كسر invariant حرج", group = groupDebug)
-validationMode = input.bool(false, "validationMode — مقاييس التحقق في Data Window فقط", group = groupDebug)
-studyExtraBars = input.int(0, "studyExtraBars — شموع إحماء إضافية للدراسة (فعّالة فقط مع validationMode)", minval = 0, maxval = 20000, group = groupDebug)
-captureFrom = input.time(0, "captureFrom — بداية التقاط snapshot كامل في Pine Logs (0 = معطّل)", group = groupDebug)
-captureTo = input.time(0, "captureTo — نهاية الالتقاط (مدى قصير فقط)", group = groupDebug)
+strictDebug = input.bool(false, "strictDebug — إيقاف المؤشر عند كسر invariant حرج", group = groupDebug, display = display.none)
+validationMode = input.bool(false, "validationMode — مقاييس التحقق في Data Window فقط", group = groupDebug, display = display.none)
+studyExtraBars = input.int(0, "studyExtraBars — شموع إحماء إضافية للدراسة (فعّالة فقط مع validationMode)", minval = 0, maxval = 20000, group = groupDebug, display = display.none)
+captureFrom = input.time(0, "captureFrom — بداية التقاط snapshot كامل في Pine Logs (0 = معطّل)", group = groupDebug, display = display.none)
+captureTo = input.time(0, "captureTo — نهاية الالتقاط (مدى قصير فقط)", group = groupDebug, display = display.none)
 
 // Input contract (R3): Q_stay is the lower-or-equal hold threshold of the Q_enter /
 // Q_stay hysteresis pair. With Q_stay > Q_enter a held zone fails its own hold test
@@ -2290,41 +2290,41 @@ if barstate.islast
         table.cell(dash, 0, 0, "GTG v0.4.7", text_color = color.aqua, bgcolor = color.new(color.black, 4), text_size = dSize)
         table.cell(dash, 1, 0, assetLabel, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = dSize)
 
-        table.cell(dash, 0, 1, routeText + " " + str.tostring(math.round(routeStrength)), text_color = routeColor, bgcolor = color.new(color.black, 18), text_size = dSize)
-        table.cell(dash, 1, 1, "المسار", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 0, 1, routeText + " " + str.tostring(math.round(routeStrength)), text_color = routeColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 1, "المسار", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
 
-        table.cell(dash, 0, 2, headingText + " " + str.tostring(math.round(headingStrength)), text_color = headingColor, bgcolor = color.new(color.black, 18), text_size = dSize)
-        table.cell(dash, 1, 2, "الآن", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 0, 2, headingText + " " + str.tostring(math.round(headingStrength)), text_color = headingColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 2, "الآن", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
 
-        table.cell(dash, 0, 3, str.tostring(math.round(speedScore)) + " " + speedTrend, text_color = speedColor, bgcolor = color.new(color.black, 18), text_size = dSize)
-        table.cell(dash, 1, 3, "السرعة", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 0, 3, str.tostring(math.round(speedScore)) + " " + speedTrend, text_color = speedColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 3, "السرعة", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
 
         string fuelHud = str.tostring(math.round(fuelScore)) + " " + fuelTrend + (fuelExhaustion ? " • يتآكل" : "")
-        table.cell(dash, 0, 4, fuelHud, text_color = fuelColor, bgcolor = color.new(color.black, 18), text_size = dSize)
-        table.cell(dash, 1, 4, "الوقود", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 0, 4, fuelHud, text_color = fuelColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 4, "الوقود", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
 
-        table.cell(dash, 0, 5, roadStatus, text_color = roadColor, bgcolor = color.new(color.black, 18), text_size = dSize)
-        table.cell(dash, 1, 5, "الطريق", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+        table.cell(dash, 0, 5, roadStatus, text_color = roadColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 5, "الطريق", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
 
         if dashboardMode != "COMPACT"
             string d1 = not na(dest1Low) ? fmtZone(dest1Low, dest1High) + " • " + strengthText(dest1Strength) + (dest1Tag != "" ? " • " + dest1Tag : "") : "—"
-            table.cell(dash, 0, 6, d1, text_color = color.white, bgcolor = color.new(color.black, 18), text_size = dSize)
-            table.cell(dash, 1, 6, "العائق", text_color = color.silver, bgcolor = color.new(color.black, 18), text_size = dSize)
+            table.cell(dash, 0, 6, d1, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = dSize)
+            table.cell(dash, 1, 6, "العائق", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
 
-            table.cell(dash, 0, 7, sessionText + " • HTF " + resolvedHTF + " • A " + a1Tf + "/" + a2Tf, text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
-            table.cell(dash, 1, 7, "السياق", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 0, 7, sessionText + " • HTF " + resolvedHTF + " • A " + a1Tf + "/" + a2Tf, text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 7, "السياق", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
 
         if dashboardMode == "DEBUG"
             string normalBand = na(speedNaturalLow) or na(speedNaturalHigh) ? "جارٍ المعايرة" : fmtPrice(speedNaturalLow) + "–" + fmtPrice(speedNaturalHigh)
             string d2 = not na(dest2Low) ? dest2Type + " " + fmtZone(dest2Low, dest2High) : "—"
             string d3 = not na(dest3Low) ? dest3Type + " " + fmtZone(dest3Low, dest3High) : "—"
             string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • keys " + str.tostring(tel.maxSlotKeys) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr) + " • cap " + str.tostring(tel.zoneCapHits) + " • eng " + str.tostring(tel.engineBars) + " • hs " + str.tostring(tel.hashSlots, "#")
-            table.cell(dash, 0, 8, normalBand + " • فوري " + fmtScore(instantSpeedScore), text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
-            table.cell(dash, 1, 8, "المعايرة", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
-            table.cell(dash, 0, 9, d2 + " | " + d3, text_color = color.white, bgcolor = color.new(color.black, 18), text_size = size.tiny)
-            table.cell(dash, 1, 9, "العوائق", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
-            table.cell(dash, 0, 10, obstacleState + " • " + fuelSource + " • " + engineDebug, text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
-            table.cell(dash, 1, 10, "Debug", text_color = color.gray, bgcolor = color.new(color.black, 18), text_size = size.tiny)
+            table.cell(dash, 0, 8, normalBand + " • فوري " + fmtScore(instantSpeedScore), text_color = color.white, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 8, "المعايرة", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 0, 9, d2 + " | " + d3, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 9, "العوائق", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 0, 10, obstacleState + " • " + fuelSource + " • " + engineDebug, text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 10, "Debug", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
 
 
 // ============================================================================

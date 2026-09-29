@@ -272,3 +272,24 @@ test('C19 E41 R5 fingerprint: capture-window only, warmed rule, fold order, tabl
   assert.doesNotMatch(pine, /^\s*plot\([^\n]*r5/m);
   assert.match(pine, /\+ "\\nINV=" \+ diagText\(diagInvV\) \+ "\\nR5=" \+ \(captureFrom > 0 \? diagText\(r5N\) \+ "," \+ diagText\(r5Cold\) \+ "," \+ diagText\(r5From\) \+ "," \+ diagText\(r5To\) \+ "," \+ diagText\(r5HSlots\) \+ "," \+ diagText\(r5HState\) \+ "," \+ diagText\(r5HEvents\) : "na"\)/);
 });
+
+test('C20 release presentation and compile gate: shorttitle, status line, HUD opacity, output call', () => {
+  const lines = pine.split('\n');
+  // Mobile/Desktop compiler: SHORT_TITLE_TOO_LONG above 10 characters.
+  const st = pine.match(/shorttitle\s*=\s*"([^"]*)"/);
+  assert.ok(st, 'shorttitle missing');
+  assert.ok([...st[1]].length <= 10, `shorttitle "${st[1]}" is ${[...st[1]].length} characters`);
+  // G5 F-G5-1: no input value in the status line (the list crossed the HUD).
+  const inputs = lines.filter((l) => /input\.[a-z]+\(/.test(l));
+  assert.equal(inputs.length, 67);
+  const shown = inputs.filter((l) => !/display = display\.none\)\s*$/.test(l));
+  assert.deepEqual(shown, []);
+  // G5 F-G5-2: HUD rows as opaque as the header (section 16).
+  const s = lines.findIndex((l) => l.startsWith('// 16. COMPACT ARABIC HUD'));
+  const e = lines.findIndex((l) => l.startsWith('// 17. NAVIGATION ALERTS'));
+  const hud = lines.slice(s, e).join('\n');
+  assert.equal((hud.match(/color\.new\(color\.black, 18\)/g) || []).length, 0);
+  assert.ok((hud.match(/color\.new\(color\.black, 4\)/g) || []).length >= 22);
+  // CE10213: at least one top-level output call (a source cut before it fails to add).
+  assert.ok(lines.some((l) => /^(plot|plotshape|plotchar|bgcolor|barcolor|fill|hline)\(/.test(l)), 'no top-level output call');
+});
