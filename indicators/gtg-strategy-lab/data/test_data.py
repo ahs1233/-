@@ -119,49 +119,47 @@ class Aggregation(unittest.TestCase):
 
 
 class History(unittest.TestCase):
-    def test_ticks_preferred_and_freeze_cutoff(self):
+    def test_official_m1_candles_and_freeze_cutoff(self):
         day = datetime(2026, 9, 29, tzinfo=UTC)
-        files = {dk.tick_url(day + timedelta(hours=13)): tick_file([(30 * 60_000, 3800.5, 3800.2, 1, 1),   # 13:30 kept
-                                                                     (31 * 60_000, 3801.5, 3801.2, 1, 1),   # 13:31 minute contains T_freeze
-                                                                     (40 * 60_000, 3802.5, 3802.2, 1, 1)])}  # after freeze
+        m = lambda hh, mm: (hh * 3600 + mm * 60)
+        bid = [(m(14, 57), 3800, 3801, 3799, 3802, 5),   # 14:57 kept (ends 14:58 ≤ T_freeze 14:58:45)
+               (m(14, 58), 3801, 3802, 3800, 3803, 5),   # 14:58 minute contains T_freeze → dropped
+               (m(15, 10), 3802, 3803, 3801, 3804, 5)]   # after freeze → dropped
+        ask = [(s_, o + 0.3, c + 0.3, lo + 0.3, h + 0.3, v) for s_, o, c, lo, h, v in bid]
+        files = {dk.candle_url(day, "BID"): candle_file(bid), dk.candle_url(day, "ASK"): candle_file(ask)}
         with tempfile.TemporaryDirectory() as d:
-            r = build_history.build_day(day, fetch=lambda u: files.get(u, b""), root=Path(d))
-            self.assertEqual(r["entry"]["source"], "tick")
-            self.assertEqual([b["t"] for b in r["bars"]], [int(datetime(2026, 9, 29, 13, 30, tzinfo=UTC).timestamp() * 1000)])
+            r = build_history.build_day(day, fetch=lambda u: files.get(u), root=Path(d))
+            self.assertEqual(r["entry"]["source"], "m1")
+            self.assertEqual([b["t"] for b in r["bars"]], [int(datetime(2026, 9, 29, 14, 57, tzinfo=UTC).timestamp() * 1000)])
             self.assertTrue(all(b["t"] + 60_000 <= T_FREEZE_MS for b in r["bars"]))
-            (m,) = read_manifest(Path(d))
-            self.assertEqual(m["bars"], 1)
-            self.assertEqual(read_day(Path(d) / m["m1_file"])[0]["bc"], 3800.2)
+            (e,) = read_manifest(Path(d))
+            self.assertEqual((e["bars"], e["ask_coverage"]), (1, 1.0))
+            self.assertEqual(read_day(Path(d) / e["m1_file"])[0]["ah"], 3802.3)
 
-    def test_candle_fallback_only_when_no_tick_file_at_all(self):
-        day = datetime(2020, 5, 5, tzinfo=UTC)
-        files = {dk.candle_url(day, "BID"): candle_file([(0, 1700, 1701, 1699, 1702, 5)]),
-                 dk.candle_url(day, "ASK"): candle_file([(0, 1700.3, 1701.3, 1699.3, 1702.3, 5)])}
-        r = build_history.build_day(day, fetch=lambda u: files.get(u))
-        self.assertEqual(r["entry"]["source"], "m1")
-        self.assertEqual(r["bars"][0]["ah"], 1702.3)
+    def test_ticks_are_never_requested(self):
+        asked = []
+        build_history.build_day(datetime(2020, 5, 5, tzinfo=UTC), fetch=lambda u: asked.append(u) or None)
+        self.assertTrue(asked and all("candles_min_1" in u for u in asked))
 
 
 class Forward(unittest.TestCase):
-    def test_capture_starts_at_freeze_hour_is_idempotent_and_raw(self):
+    def test_capture_complete_days_from_freeze_day_idempotent_and_raw(self):
         calls = []
 
         def fetch(u):
             calls.append(u)
-            return tick_file([(0, 3800.0, 3799.5, 1, 1)])
+            return candle_file([(0, 3800.0, 3800.5, 3799.5, 3801.0, 1)])
 
-        now = T_FREEZE.replace(minute=0, second=0) + timedelta(hours=5)
+        now = T_FREEZE.replace(hour=0, minute=0, second=0) + timedelta(days=2, hours=4)
         with tempfile.TemporaryDirectory() as d:
             rows = capture_forward.capture(Path(d), now, fetch=fetch)
-            self.assertEqual(rows[0]["hour"], T_FREEZE.strftime("%Y-%m-%dT%HZ"))
-            self.assertEqual(len(rows), 3)  # hours 13,14,15 complete + 2h publish lag
-            self.assertEqual(rows[0]["sha256"], sha256(fetch(dk.tick_url(T_FREEZE))))
+            self.assertEqual([r["day"] for r in rows], [f"{T_FREEZE:%Y-%m-%d}", f"{T_FREEZE + timedelta(days=1):%Y-%m-%d}"])
+            self.assertEqual(rows[0]["bid_sha256"], sha256(fetch(dk.candle_url(T_FREEZE, "BID"))))
             n = len(calls)
             self.assertEqual(capture_forward.capture(Path(d), now, fetch=fetch), [])
             self.assertEqual(len(calls), n)
-            stored = sorted(p.name for p in Path(d).rglob("*.bi5"))
-            self.assertEqual(stored, ["13h_ticks.bi5", "14h_ticks.bi5", "15h_ticks.bi5"])
-            self.assertFalse(list(Path(d).rglob("*.csv.gz")))  # no bars built: sealed
+            self.assertEqual(len(list(Path(d).rglob("*.bi5"))), 4)
+            self.assertFalse(list(Path(d).rglob("*.csv.gz")))  # nothing decoded: sealed
 
 
 class Fetch(unittest.TestCase):

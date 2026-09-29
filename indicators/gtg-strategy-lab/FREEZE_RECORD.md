@@ -1,5 +1,21 @@
 # GTG Strategy Lab — FREEZE_RECORD
 
+## Current freeze — v0.2.1
+
+| Field | Value |
+|---|---|
+| Contract | `TRADE_CONTRACT.md` — v0.2.1 FROZEN (data-acquisition amendment, messages 13–14) |
+| Freeze commit SHA | `e5eefacfdf54625ac3b968b5e24460822d3f8758` |
+| **T_freeze_v0.2.1 (UTC)** | **2026-09-29T14:58:45Z** |
+| Contract blob | `7f1e09b9aa72ee49603230efffbab541179946f0` |
+| Production HEAD / Pine blob | `0a77819…` / `0c7cbe3…` (unchanged) |
+
+Pristine OOS = data with timestamp **> 2026-09-29T14:58:45Z** only (§22). The v0.2 record below is kept for history.
+
+Integrity Gate v0.2.1 — PASS: production unchanged (`git diff 0a77819 HEAD -- indicators/gtg-navigator` empty); Pine blob `0c7cbe3`; the freeze commit holds only the contract and the failure log; BID/ASK convention stated (§2.1, §8); H5 without H4 regime; D in all matching; H3/H4 without episode age, with level/zone age; no "OOS" wording on pre-freeze history.
+
+## Previous freeze — v0.2
+
 | Field | Value |
 |---|---|
 | Contract | `indicators/gtg-strategy-lab/TRADE_CONTRACT.md` — v0.2 FROZEN |

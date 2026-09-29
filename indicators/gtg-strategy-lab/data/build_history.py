@@ -1,11 +1,11 @@
-"""Build the historical (RETROSPECTIVE) M1 dataset from Dukascopy — Step 3.
+"""Build the historical (RETROSPECTIVE) M1 dataset — TRADE_CONTRACT v0.2.1 §2.2.
 
-Per UTC day: ticks first (24 hourly files); only when Dukascopy has no tick file for
-any hour of the day does the day fall back to M1 candles (BID + ASK). Every tick at or
-after T_freeze is dropped: data after the freeze belongs to the Pristine OOS capture and
-never enters the historical set.
+Source: the official Dukascopy M1 candles, BID and ASK files per UTC day. Ticks are not
+used (full tick history = REJECTED_METHOD, F-002/F-003). Every minute whose bar would end
+after T_freeze_v0.2.1 is dropped: that data belongs to the sealed Pristine OOS capture.
 
-Usage: python3 build_history.py --from 2010-01-01 --to 2026-09-30 [--root DIR] [--keep-raw]
+Usage: python build_history.py --from 2010-01-01 --to 2026-09-30 [--root DIR] [--keep-raw]
+Idempotent: days already in the manifest are skipped.
 """
 from __future__ import annotations
 
@@ -13,47 +13,31 @@ import argparse
 from datetime import datetime, timedelta, timezone
 
 import dukascopy as dk
-from bars import candles_to_m1, ticks_to_m1
+from bars import candles_to_m1
 from lab_config import T_FREEZE_MS
-from store import append_manifest, root_dir, sha256, write_day, write_raw
+from store import append_manifest, read_manifest, root_dir, sha256, write_day, write_raw
 
 
 def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False) -> dict:
     day = day.replace(hour=0, minute=0, second=0, microsecond=0)
     day_ms = int(day.timestamp() * 1000)
-    ticks, raw_hours, missing = [], [], 0
-    for h in range(24):
-        hour = day + timedelta(hours=h)
-        url = dk.tick_url(hour)
-        raw = fetch(url)
-        if raw is None:
-            missing += 1
-            continue
-        raw_hours.append({"hour": h, "sha256": sha256(raw), "bytes": len(raw)})
-        if keep_raw and root is not None:
-            write_raw(root, "tick", hour, f"{h:02d}h_ticks", raw)
-        ticks.extend(dk.decode_ticks(raw, day_ms + h * 3_600_000))
-    if missing == 24:
-        bid_raw = fetch(dk.candle_url(day, "BID"))
-        ask_raw = fetch(dk.candle_url(day, "ASK"))
-        bid = dk.decode_candles(bid_raw or b"", day_ms // 1000)
-        ask = dk.decode_candles(ask_raw or b"", day_ms // 1000)
-        bars = candles_to_m1(bid, ask)
-        source = "m1" if bid_raw else "none"
-        raw_info = {"bid_sha256": sha256(bid_raw) if bid_raw else None,
-                    "ask_sha256": sha256(ask_raw) if ask_raw else None}
-    else:
-        bars = ticks_to_m1(ticks)
-        source = "tick"
-        raw_info = {"hours": raw_hours, "missing_hours": missing}
-    bars = [b for b in bars if b["t"] + 60_000 <= T_FREEZE_MS]  # whole minutes strictly before the freeze
+    bid_raw = fetch(dk.candle_url(day, "BID"))
+    ask_raw = fetch(dk.candle_url(day, "ASK"))
+    if keep_raw and root is not None:
+        for side, raw in (("BID", bid_raw), ("ASK", ask_raw)):
+            if raw is not None:
+                write_raw(root, "m1", day, f"{side}_candles_min_1", raw)
+    bid = dk.decode_candles(bid_raw or b"", day_ms // 1000)
+    ask = dk.decode_candles(ask_raw or b"", day_ms // 1000)
+    bars = [b for b in candles_to_m1(bid, ask) if b["t"] + 60_000 <= T_FREEZE_MS]
     ask_cov = sum(1 for b in bars if b["ao"] is not None) / len(bars) if bars else None
-    entry = {"kind": "history_day", "day": f"{day:%Y-%m-%d}", "source": source, "bars": len(bars),
-             "ask_coverage": ask_cov, **raw_info}
+    entry = {"kind": "history_day", "day": f"{day:%Y-%m-%d}", "source": "m1" if bid_raw else "none",
+             "bars": len(bars), "ask_coverage": ask_cov,
+             "bid_sha256": sha256(bid_raw) if bid_raw else None, "ask_sha256": sha256(ask_raw) if ask_raw else None}
     if root is not None:
         if bars:
             p = write_day(root, day, bars)
-            entry["m1_file"] = str(p.relative_to(root))
+            entry["m1_file"] = str(p.relative_to(root)).replace("\\", "/")
             entry["m1_sha256"] = sha256(p.read_bytes())
         append_manifest(root, entry)
     return {"entry": entry, "bars": bars}
@@ -67,11 +51,13 @@ def main(argv=None):
     ap.add_argument("--keep-raw", action="store_true")
     a = ap.parse_args(argv)
     root = root_dir(a.root)
+    done = {e["day"] for e in read_manifest(root) if e.get("kind") == "history_day"}
     d = datetime.fromisoformat(a.start).replace(tzinfo=timezone.utc)
     end = datetime.fromisoformat(a.end).replace(tzinfo=timezone.utc)
     while d < end and int(d.timestamp() * 1000) < T_FREEZE_MS:
-        r = build_day(d, root=root, keep_raw=a.keep_raw)["entry"]
-        print(f"{r['day']} {r['source']:>4} bars={r['bars']} ask={r['ask_coverage']}")
+        if f"{d:%Y-%m-%d}" not in done:
+            r = build_day(d, root=root, keep_raw=a.keep_raw)["entry"]
+            print(f"{r['day']} {r['source']:>4} bars={r['bars']} ask={r['ask_coverage']}", flush=True)
         d += timedelta(days=1)
 
 
