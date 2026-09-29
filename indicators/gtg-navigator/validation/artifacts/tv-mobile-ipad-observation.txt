@@ -1,0 +1,23 @@
+Mobile observation — TradingView iPad app, Ahmed, 2026-09-29 08:57–08:58 (device time), OANDA:XAUUSD
+Images: tv-mobile-ipad-XAU_{H4,H1,M15,M5,M1}.png. Stated by Ahmed as the final version of the indicator (v24 = 0c7cbe3);
+the source hash is not visible on the device (legend collapsed), so the version is as stated, not hashed.
+
+Compile/run: the script runs on all five timeframes; no compile error, no runtime error; HUD, zones and labels drawn.
+Status line: collapsed ("4" chip); no input values across the HUD. HUD opaque, top right, nothing crosses it.
+
+HUD readings and the runtime K rules (route strong 62 / clear 22; heading 60 / 20; speed 70 / 90; fuel 25 / 70):
+H4  route "↘ هابط 62" red | now "↘ هابط 60" red | speed 10 white | fuel 10 orange | road "توقف/تجميع داخل المسار" white
+    62/60 without "بقوة": displayed values are rounded; the raw scores sit just inside the strong thresholds (allowed).
+    Road: speed < slow and fuel < low with a route sign -> "توقف/تجميع داخل المسار" (rule order). OK
+H1  route "↓ هابط بقوة 83" red | now "→ غير حاسم 4" lime (tactical micro sign) | speed 33 white | fuel 28 white |
+    road "ارتداد صاعد داخل مسار هابط" white (route −, tactical +). OK
+M15 route "↓ هابط بقوة 62" red | now "↗ ميل صاعد ضعيف 19" lime | speed "41 ↑ تتسارع" white | fuel "62 ↑ يزيد" white |
+    road "(Flip مؤكد) اختبار مقاومة" orange (hazard word). OK
+M5  route "↘ هابط 41" red | now "↗ صاعد 45" lime | speed 90 orange (>= 90) | fuel "74 ↓ ينخفض • يتآكل" orange (exhaustion) |
+    road "الصعود مستمر لكن الوقود يتآكل" orange (exhaustion branch precedes the route/tactical split). OK
+M1  route "→ غير حاسم 1" silver | now "↗ صاعد 21" lime | speed 81 yellow (70–90) | fuel 36 white | road "أدلة الحركة مختلطة" white. OK
+Zones: at most 2 above and 2 below the price on every timeframe; labels name slot, strength, source and state.
+Not the indicator: the vertical dashed lines are the chart's session breaks; the floating drawing toolbar is TradingView UI
+(it covers the tail of the R2 label on H4).
+
+Result: Mobile run observed — PASS.
