@@ -89,3 +89,17 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Recorded difference | The **server revision changed** (24.0 → 25.0 wrong → 26.0 recovery) while the **frozen source blob is identical** (`0c7cbe3`). Any later reference to "the production script" must name v26.0 as the current server revision of the same frozen source |
 | Status | `RECOVERED / CONTAINED` — not "did not happen" |
 | Attempt | 1 |
+
+### F-005 — Measurement copy exceeded TradingView's plot limit (RE10140: 71 > 64)
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T15:2xZ |
+| Step | 5 (Parity capture, temporary unsaved study) |
+| Layer | 3 Measurement/export |
+| Symptom | The temporary study `h2Ieae` failed with runtime error RE10140 "The script creates too many plots (71). The limit is 64" |
+| Root cause | The static budget counted `plot()` calls (62 ≤ 64), but TradingView counts some plots more than once: the frozen release is already at 62 by TradingView's count, so +12 exports −3 removed = 71 |
+| Evidence | Study status `{"type":3,"errorDescription":{"ctx":{"countPLots":71,"maxPlotsNumber":64,"code":"RE10140"}}}`; the frozen study `v5XkYX` on the same chart computes normally (5,975 bars) |
+| Method | Plot-call counting as the budget rule (test PC3) |
+| Result | Replaced: the copy removes 30 diagnostic `v_*` plots not used by the parity tool (each line replaced by a `[MEASURE]` comment; hashes, event bits, obstacle state, invariant counters, slot bounds, MAs and the 12 `m_*` exports kept). PC3 now enforces "the copy has no more plot() calls than the frozen release" (31 vs 52). No computation changed (PC1) |
+| Status | `FIXED (regression: pine-copy.test.mjs PC1–PC3)` — pending the TradingView run |
+| Attempt | 1 |
