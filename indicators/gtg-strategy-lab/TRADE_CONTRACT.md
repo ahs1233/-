@@ -1,10 +1,11 @@
-# GTG Strategy Lab — TRADE_CONTRACT v0.2 (FROZEN)
+# GTG Strategy Lab — TRADE_CONTRACT v0.2.1 (FROZEN)
 
 > **Status: FROZEN — Pre-registration.**
 > This file is the research protocol. It is not a strategy, and it is not a claim that GTG is profitable.
 > Every value in it is fixed before any GTG event outcome has been computed.
 > Any later change needs a new version (v0.3+), a stated reason, and a new freeze commit. Data before that new freeze can no longer serve as Pristine OOS for the changed parts.
 > T_freeze = the timestamp of the first commit that contains this version (recorded in `FREEZE_RECORD.md`).
+> **v0.2.1** changes only the data-acquisition layer (§2.2, §2.3), before any GTG event outcome was computed (messages 13–14). Its freeze commit defines **T_freeze_v0.2.1**, which replaces the v0.2 T_freeze for the Pristine OOS definition (§22).
 
 The source of this contract is the GTG Lab dialogue (messages 1–11, GPT ↔ Claude), with methodological decisions delegated to both parties by the user. The change log is at the end (§32).
 
@@ -31,7 +32,7 @@ Allowed wording for the final verdict (§24). No wording stronger than the evide
 - A separate project inside `indicators/gtg-strategy-lab/`. Its only job is to reproduce the logic of the frozen release and export its internal state.
 - **JS**: a complete implementation of geometry, identity, aggregation, state machine, events, Speed, Heading, Route, Fuel, the consumer layer (sections 13–17) and MTF logic, plus the extra fields in §6.
 - **Pine "GTG Engine"**: a copy of the frozen file whose only change is exporting (Data Window / Pine Logs). It does not change the logic. It exists only for parity captures.
-- The Zone Engine reuses `indicators/gtg-navigator/reference/engine.mjs` as it stands, or a verbatim copy of it. It is not rewritten.
+- The Zone Engine reuses `indicators/gtg-navigator/reference/engine.mjs` as it stands, or a verbatim copy of it. It is not rewritten. (The lab reads it from its own byte-identical copy `gtg-engine/` of the production tree at `0a77819`.)
 
 ### 1.3 Parity Gate (before any event study)
 - Parity runs **only on the TradingView feed** that the production release uses (Parity Feed). Input bars (the chart and the higher timeframes as TradingView delivers them) are captured together with Pine outputs, and JS is run on the same bars.
@@ -53,15 +54,31 @@ Allowed wording for the final verdict (§24). No wording stronger than the evide
 - **ASK is used for execution only** (§8). It is never used in signals or in Δ_info.
 - The result is described explicitly as: *GTG logic evaluated on the Dukascopy XAUUSD feed*. It does not claim to match, tick for tick, what the user sees on TradingView.
 
-### 2.2 Building bars
-- **Priority:** Dukascopy ticks → M1 per side (BID OHLC from bid ticks, ASK OHLC from ask ticks). M1 volume = sum of BID-side volume. Bar time = start of the UTC minute. A minute with no ticks has no bar (no forward fill).
-- **If ticks are unavailable** for a period: use Dukascopy M1 candles. Only bars with `volume = 0 AND O = H = L = C` are excluded. A flat bar with volume is not excluded.
-- Every period built from M1 candles instead of ticks is recorded in the data manifest.
+### 2.2 Building bars (v0.2.1)
+- **Primary source (historical and forward):** the official Dukascopy **M1 candles**, BID and ASK files per UTC day (`{BID|ASK}_candles_min_1.bi5`). M1 volume = the BID candle volume. Bar time = start of the UTC minute.
+- **Sanitation:** only candles with `volume = 0 AND O = H = L = C` are excluded (no trading); the timestamp simply has no bar. A flat candle with volume is kept. No forward fill.
+- **Ticks are not used to build the history.** `Full historical tick download from the Dukascopy endpoint under the current access pattern` is a **REJECTED_METHOD** (FAILURE_LOG F-002/F-003: HTTP 429 then 503 under a paced probe; ≈144k requests would be needed). It may only be reopened if the access path changes fundamentally.
+- Ticks serve only the **Tick Audit** (§2.3).
 - **Higher-timeframe aggregation is by UTC calendar time**, not by counting bars: M5/M15/H1 on UTC clock boundaries, H4 on 00/04/08/12/16/20 UTC, D = UTC calendar day (needed only because the Route layer on H4 requests D). Removing an empty bar never shifts a boundary.
 - Sessions use the same Pine time strings and time zones (`Europe/London 0700-1600`, `America/New_York 0800-1700`, `Asia/Tokyo 0900-1700`, Mon–Fri), with daylight saving time.
 - The data manifest records, per file or day: source, type (tick/M1), sha256, bar count, ASK coverage.
 
-### 2.3 Known feed constraint
+### 2.3 Tick Audit — validation of the official M1 candles (v0.2.1)
+- **Sample: 20 UTC days, deterministic and stratified**, selected by this rule before any comparison is made:
+  - 5 year buckets: the historical span (first valid day → T_freeze_v0.2.1) cut into 5 equal time ranges; in each, one calendar month drawn with `seed = 20260929` (Python `random.Random(seed)`, buckets in time order).
+  - In each month, 4 day types from the official BID M1 of that month (full trading days only: ≥ 1200 M1 bars): **week-reopen** (the first trading day of the second week of the month), **high volatility** (largest BID daily range), **low volatility** (smallest BID daily range), **normal** (daily range closest to the month median; ties → earliest). A day already chosen is replaced by the next-closest day of the same type.
+  - Every audit day spans Asia, London and New York.
+- **Comparison:** tick-built M1 (BID OHLC from bid ticks, ASK OHLC from ask ticks, per UTC minute) against the official M1, per side, after the same sanitation:
+  - **Timestamps:** the same set of minutes.
+  - **OHLC:** `|Δ| ≤ one feed tick` (0.001 for XAUUSD, one Dukascopy point) on every field. This tolerance is frozen.
+  - **Volume:** recorded, not required to be equal: correlation, scale ratio, missingness, zero-volume behaviour. The decision-level question is whether Fuel changes: `fuelClass`, `fuelSurge` and `fuelExhaustion` computed on M1 with the official volume vs the tick-derived volume (all else identical), on the bars of each audit day after the M1 Fuel warm-up.
+- **Verdict:**
+  - **PASS-A:** timestamps and OHLC within tolerance, and Fuel decisions identical. → Official M1 accepted.
+  - **PASS-B:** timestamps and OHLC within tolerance; volume scale differs but Fuel decisions identical. → Accepted, with the recorded constraint *volume representation differs, event semantics stable on the audit sample*. (Fuel uses `volume / SMA(volume)`, so a constant scale factor cancels.)
+  - **FAIL:** any OHLC/timestamp difference beyond tolerance, or a changed Fuel decision. → Official M1 may not be used before the cause is found.
+- **If the source throttles even the 20-day sample:** record `TICK_AUDIT_BLOCKED_BY_SOURCE`. That is **not** a FAIL of the M1 data; an alternative tick source or an archived Dukascopy dataset is sought for the audit, without hammering the same endpoint.
+
+### 2.4 Known feed constraint
 - Fuel depends on volume, so `Fuel_TradingView ≠ Fuel_Dukascopy` is expected. This is feed dependence, not an engine error.
 - Fuel conclusions apply to Fuel as computed from Dukascopy only.
 - **Feed Sensitivity Check (exploratory):** on a common period between the Parity Feed and Dukascopy: event agreement, direction agreement, and zone/flip agreement where comparable. It is not used to choose a feed or change any threshold.
@@ -365,7 +382,7 @@ Single-TF · MTF-Route · MTF-Heading · Incremental: M5 → +M15 → +H1 → +H
 
 ## 22. Pristine OOS and Forward
 
-- **Pristine OOS** = only data with timestamp > T_freeze, and only if the contract is not modified.
+- **Pristine OOS** = only data with timestamp > T_freeze_v0.2.1 (the freeze of the current version), and only if the contract is not modified.
 - Recording raw forward data starts at T_freeze. It is **not analysed**.
 - It is opened by **one** rule, registered in the §17 commit before any look: either an information-based stop (the target N_eff from the power design) or a calendar stop.
 - Looking repeatedly, then stopping when the result looks good, is forbidden. Interim looks need an alpha-spending protocol (O'Brien-Fleming) registered in advance.
@@ -458,4 +475,5 @@ Long/Short Entry at `open(t+1)`; Logical Invalidation (confirmed acceptance thro
 | v0.2 amendments | Messages 6–9 | Risk-set by episode age; covariates at t−1; placebo ladder P0/P1/P2; δ_econ from the eligible population with N_eff; H6 → exploratory; CE = E2 without E4; information decision separate from economic decision; side-aware execution; Measurement Engine JS with parity on the TradingView feed |
 | **v0.2 pre-freeze fixes** | Message 10 (Claude) | **F1** D is an exact stratum in all matching, and episode age is removed from H3/H4. **F2** H4 regime is removed from H5 matching. **F3** Dukascopy BID for signal and volume; ASK for execution only |
 | v0.2 clarification | Message 11 (GPT) | Level/zone age stays a pre-event covariate in H3/H4 (distinct from episode age in H1/H2/H5) |
-| **v0.2 FROZEN** | This commit | Freeze approved (message 11) |
+| **v0.2 FROZEN** | Commit `e4ceb8e` | Freeze approved (message 11) |
+| **v0.2.1 FROZEN** | Messages 13–14 | Data acquisition only: official Dukascopy M1 BID/ASK candles as primary source (history + forward); full tick history = REJECTED_METHOD (F-002/F-003); Tick Audit protocol with PASS-A / PASS-B / FAIL (§2.3). No change to hypotheses, thresholds, CEM, horizons, costs or decision rules. New T_freeze_v0.2.1 |

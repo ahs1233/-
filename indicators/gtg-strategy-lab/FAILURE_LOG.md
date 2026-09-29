@@ -27,7 +27,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 
 | Method | Reason | Failure entries |
 |---|---|---|
-| — | — | — |
+| Full historical tick download from the Dukascopy endpoint under the current access pattern | Server-side throttling (429, then 503 on 11/12 paced requests); ≈144k requests needed. Declared by the contract v0.2.1 §2.2 (message 14). Reopen only if the access path changes fundamentally | F-002, F-003 |
 
 ## Log
 
