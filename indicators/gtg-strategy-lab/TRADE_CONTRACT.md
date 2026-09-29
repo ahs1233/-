@@ -1,4 +1,4 @@
-# GTG Strategy Lab — TRADE_CONTRACT v0.2.1 (FROZEN)
+# GTG Strategy Lab — TRADE_CONTRACT v0.2.2 (FROZEN)
 
 > **Status: FROZEN — Pre-registration.**
 > This file is the research protocol. It is not a strategy, and it is not a claim that GTG is profitable.
@@ -6,6 +6,7 @@
 > Any later change needs a new version (v0.3+), a stated reason, and a new freeze commit. Data before that new freeze can no longer serve as Pristine OOS for the changed parts.
 > T_freeze = the timestamp of the first commit that contains this version (recorded in `FREEZE_RECORD.md`).
 > **v0.2.1** changes only the data-acquisition layer (§2.2, §2.3), before any GTG event outcome was computed (messages 13–14). Its freeze commit defines **T_freeze_v0.2.1**, which replaces the v0.2 T_freeze for the Pristine OOS definition (§22).
+> **v0.2.2** changes only the calendar of higher timeframes (§2.2) and the two day definitions that depend on it (§14 P2, §18 block length): the lab now uses the session calendar of the chart GTG runs on (OANDA:XAUUSD on TradingView), found by the parity investigation (messages 19–20), before any GTG event outcome was computed. Its freeze commit defines **T_freeze_v0.2.2**, which replaces T_freeze_v0.2.1 for the Pristine OOS definition (§22). Nothing else changes.
 
 The source of this contract is the GTG Lab dialogue (messages 1–11, GPT ↔ Claude), with methodological decisions delegated to both parties by the user. The change log is at the end (§32).
 
@@ -52,14 +53,22 @@ Allowed wording for the final verdict (§24). No wording stronger than the evide
 - **Dukascopy XAUUSD** is the primary historical source.
 - **Signal and volume series = Dukascopy BID** (F3). GTG runs on BID bars, and the Fuel volume is BID-side volume.
 - **ASK is used for execution only** (§8). It is never used in signals or in Δ_info.
-- The result is described explicitly as: *GTG logic evaluated on the Dukascopy XAUUSD feed*. It does not claim to match, tick for tick, what the user sees on TradingView.
+- The result is described explicitly as: *GTG logic evaluated on the Dukascopy XAUUSD prices, with the timeframe calendar of OANDA:XAUUSD on TradingView* (§2.2). It does not claim to match, tick for tick, what the user sees on TradingView; the final report states this split (prices = Dukascopy, temporal semantics = the chart GTG runs on).
 
-### 2.2 Building bars (v0.2.1)
+### 2.2 Building bars (v0.2.1; calendar v0.2.2)
 - **Primary source (historical and forward):** the official Dukascopy **M1 candles**, BID and ASK files per UTC day (`{BID|ASK}_candles_min_1.bi5`). M1 volume = the BID candle volume. Bar time = start of the UTC minute.
 - **Sanitation:** only candles with `volume = 0 AND O = H = L = C` are excluded (no trading); the timestamp simply has no bar. A flat candle with volume is kept. No forward fill.
 - **Ticks are not used to build the history.** `Full historical tick download from the Dukascopy endpoint under the current access pattern` is a **REJECTED_METHOD** (FAILURE_LOG F-002/F-003: HTTP 429 then 503 under a paced probe; ≈144k requests would be needed). It may only be reopened if the access path changes fundamentally.
 - Ticks serve only the **Tick Audit** (§2.3).
-- **Higher-timeframe aggregation is by UTC calendar time**, not by counting bars: M5/M15/H1 on UTC clock boundaries, H4 on 00/04/08/12/16/20 UTC, D = UTC calendar day (needed only because the Route layer on H4 requests D). Removing an empty bar never shifts a boundary.
+- **Higher-timeframe aggregation follows the session calendar of the chart GTG runs on (v0.2.2)**, not a count of bars and not UTC days. The rule is taken literally from the OANDA:XAUUSD symbol definition on TradingView (`session "1700-1700"`, `timezone "America/New_York"`, trading days Mon–Fri, session correction `1700-1430:20241128;1800-1445:20241129`; captured 2026-09-29, `parity/captures/2026-09-29-mtf/symbolinfo.json`, sha256 `da510d1…`), with real daylight saving time from the time-zone rule (no fixed UTC hours):
+  - **M1 / M5 / M15 / H1:** clock boundaries (unchanged; New York offsets are whole hours).
+  - **Trading day:** opens 17:00 New York on the previous calendar day and closes 17:00 New York, unless the correction list says otherwise.
+  - **D** = the trading day; bar time = its open.
+  - **H4** = the trading day's open + 4h·k (17:00 / 21:00 / 01:00 / 05:00 / 09:00 / 13:00 New York on a normal day; the grid follows a corrected open).
+  - **W** = from Sunday 17:00 New York (the open of the week's Monday session).
+  - A minute outside every session (weekend, a corrected early close or late open) belongs to no bar; it is dropped before aggregation and counted in the manifest.
+  - Verified against TradingView's own bars before the freeze: every H4 / D / W open lies on the calendar (5,792 / 5,302 / 1,083 bars), and H1 → H4/D/W and H4 → D/W rebuild TradingView's bars with identical OHLC (`data/test_calendar.py`).
+  - Removing an empty bar never shifts a boundary.
 - Sessions use the same Pine time strings and time zones (`Europe/London 0700-1600`, `America/New_York 0800-1700`, `Asia/Tokyo 0900-1700`, Mon–Fri), with daylight saving time.
 - The data manifest records, per file or day: source, type (tick/M1), sha256, bar count, ASK coverage.
 
@@ -300,7 +309,7 @@ For H3/H4/H5 the primary comparator is the one defined in §11.
 | **P0 Random** | A level at a random distance from price, with width (in ATR) and daily count matched to GTG slots. seed = hash(timestamp, TF) | Sanity check |
 | **P1 Naive online pivot** | `ta.pivothigh/pivotlow(pivotLen, pivotLen)` on the event timeframe. Zone = [ph − w·ATR, ph] / [pl, pl + w·ATR], where w = median width/ATR_eng of displayed GTG zones in **Train**. No quality, no merging, no selection | **Primary for H3** |
 | **P1-rejected** | P1 levels that **were not in any GTG slot up to t** (not "never appeared later") | Secondary: the value of the selection layer |
-| **P2 Structural** | PDH/PDL (UTC day) and round numbers (the release's psychStep) | Structural Comparators — secondary, not a null |
+| **P2 Structural** | PDH/PDL (trading day, §2.2) and round numbers (the release's psychStep) | Structural Comparators — secondary, not a null |
 
 - **Online:** each P1 level carries `availableFromTimestamp` = the close of the bar where the pivot was confirmed (pivot bar + pivotLen). It does not exist before that. Drawing it retroactively at the pivot's centre is forbidden.
 - **Same Reaction Engine:** every P0/P1/P2 level passes through the release's `runEpisode`/`updateLevel` with the same `rejAtrK`, `breakBufK`, `mitAlpha`, pivotLen spacing and maxAgeLocal. Writing a different detector is forbidden.
@@ -338,7 +347,7 @@ Single-TF · MTF-Route · MTF-Heading · Incremental: M5 → +M15 → +H1 → +H
 ## 18. Bootstrap
 
 - Moving/stationary **block bootstrap** that preserves episode dependence and intraday clustering. B = 10,000 for decisions. Frozen seed: `20260929`.
-- **Block length (a frozen rule applied to Train):** the smallest L in {1, 2, 5, 10} trading days (the day starts 22:00 UTC) such that |ACF| of the daily mean R_12 of the eligible population (not the event−control difference) at lag L < 0.10. For H1/H4 exploratory: the same rule on {5, 10, 20} days.
+- **Block length (a frozen rule applied to Train):** the smallest L in {1, 2, 5, 10} trading days (the trading day of §2.2) such that |ACF| of the daily mean R_12 of the eligible population (not the event−control difference) at lag L < 0.10. For H1/H4 exploratory: the same rule on {5, 10, 20} days.
 - Block length is not changed because of results.
 
 ---
@@ -382,7 +391,7 @@ Single-TF · MTF-Route · MTF-Heading · Incremental: M5 → +M15 → +H1 → +H
 
 ## 22. Pristine OOS and Forward
 
-- **Pristine OOS** = only data with timestamp > T_freeze_v0.2.1 (the freeze of the current version), and only if the contract is not modified.
+- **Pristine OOS** = only data with timestamp > T_freeze_v0.2.2 (the freeze of the current version), and only if the contract is not modified.
 - Recording raw forward data starts at T_freeze. It is **not analysed**.
 - It is opened by **one** rule, registered in the §17 commit before any look: either an information-based stop (the target N_eff from the power design) or a calendar stop.
 - Looking repeatedly, then stopping when the result looks good, is forbidden. Interim looks need an alpha-spending protocol (O'Brien-Fleming) registered in advance.
@@ -477,3 +486,4 @@ Long/Short Entry at `open(t+1)`; Logical Invalidation (confirmed acceptance thro
 | v0.2 clarification | Message 11 (GPT) | Level/zone age stays a pre-event covariate in H3/H4 (distinct from episode age in H1/H2/H5) |
 | **v0.2 FROZEN** | Commit `e4ceb8e` | Freeze approved (message 11) |
 | **v0.2.1 FROZEN** | Messages 13–14 | Data acquisition only: official Dukascopy M1 BID/ASK candles as primary source (history + forward); full tick history = REJECTED_METHOD (F-002/F-003); Tick Audit protocol with PASS-A / PASS-B / FAIL (§2.3). No change to hypotheses, thresholds, CEM, horizons, costs or decision rules. New T_freeze_v0.2.1 |
+| **v0.2.2 FROZEN** | Messages 19–20 | Calendar / feed semantics only: H4, D and W follow the OANDA:XAUUSD session calendar on TradingView (New York 17:00, DST, the symbol's session correction) instead of UTC boundaries; M1–H1 unchanged; P2 PDH/PDL and the block-length day use the same trading day. Found by the MTF parity investigation (F-009, message 19) before any edge computation, Historical Holdout or outcome. No change to H1–H5, E1–E4, thresholds, CEM, horizons, δ_econ, costs or decision rules. New T_freeze_v0.2.2 |
