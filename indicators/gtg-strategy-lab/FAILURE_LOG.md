@@ -57,7 +57,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Evidence | The same URL fetched once from PowerShell returned 200; the failure appeared only in the rapid sequence of 24 hourly requests |
 | Method | Unpaced urllib requests, default User-Agent, no 429 handling |
 | Result | That method is replaced (not repeated): explicit User-Agent, a minimum interval between requests, 429 → `Retry-After` or bounded exponential backoff (≤ 6), then `RateLimited`. Regression tests: `Fetch.test_429_*`, `test_persistent_429_*`, `test_404_is_no_file_and_500_raises` |
-| Status | `FIXED (regression: test_data.Fetch)` — pending confirmation on real data |
+| Status | `FIXED (regression: test_data.Fetch)` — confirmed on real data: the desktop acquisition completes days through 429/503/resets (throughput: F-008) |
 | Attempt | 1 |
 
 ### F-003 — HTTP 503 from Dukascopy even when paced; the tick-history volume is infeasible at this rate
@@ -71,7 +71,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Evidence | The probe above; the same URL returned 200 earlier in the session; no `Retry-After` header is sent |
 | Method | Throttling handled for 429 only |
 | Result | 503 is now handled like 429: bounded backoff, then `RateLimited`. Regression: `Fetch.test_503_is_throttling_like_429`. **Not retried in bulk:** the throttle is still active. The full tick history (≈ 24 files × ~6,000 trading days ≈ 144k requests) is infeasible at the observed rate. That is a methodological choice (§2.2 tick priority vs M1 candles) and goes to GPT, not decided here |
-| Status | `OPEN — waiting for (a) the throttle to cool down before a paced re-probe and (b) a methodological decision on the source granularity` |
+| Status | `REJECTED_METHOD` for the full tick history (message 14, contract v0.2.1 §2.2: official M1 candles primary, 20-day Tick Audit). 503 handling: `FIXED (regression: Fetch.test_503_is_throttling_like_429)` |
 | Attempt | 1 |
 
 ### F-004 — INCIDENT: the production Pine script was overwritten for ~30 s (restored)
@@ -87,6 +87,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Prevention | REJECTED_METHOD (table above). Any later automation must: (1) record the production script version first and re-check it after every step; (2) verify the editor's script identity (header name / script id), not only its content; (3) never dispatch Ctrl+S or click Pine Save; (4) stop at the first unexpected state |
 | Production Integrity Check (read-only, message 16) | **PASS**, 2026-09-29 ~15:3xZ: saved server source of `USER;389fcdd…` (fetched from pine-facade) = blob `0c7cbe366668fba20c9bc128448f908ce9314041`; title "GTG Navigator v0.4.7 — Structural Zone Engine", short title "GTG v0.4.7"; editor markers 0 errors at restore; chart study `v5XkYX` → that script at 26.0; all 67 user inputs (`in_0…in_66`) identical to the layout backup taken before the incident; no saved script carries the measurement title; alerts: `NOT_OBSERVABLE` (alert service not exposed to CDP, runbook E-G5) — no alert was created or touched |
 | Recorded difference | The **server revision changed** (24.0 → 25.0 wrong → 26.0 recovery) while the **frozen source blob is identical** (`0c7cbe3`). Any later reference to "the production script" must name v26.0 as the current server revision of the same frozen source |
+| Final check after the Parity Gate (2026-09-29 ~15:5xZ) | Same result: saved source blob `0c7cbe3`, v26.0, `modified` unchanged since the recovery, all 67 inputs identical; temporary studies removed; unsaved editor closed without saving (no dialog); chart back to 15; autosave back on, layout saved with no pending changes |
 | Status | `RECOVERED / CONTAINED` — not "did not happen" |
 | Attempt | 1 |
 
@@ -101,7 +102,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Evidence | Study status `{"type":3,"errorDescription":{"ctx":{"countPLots":71,"maxPlotsNumber":64,"code":"RE10140"}}}`; the frozen study `v5XkYX` on the same chart computes normally (5,975 bars) |
 | Method | Plot-call counting as the budget rule (test PC3) |
 | Result | Replaced: the copy removes 30 diagnostic `v_*` plots not used by the parity tool (each line replaced by a `[MEASURE]` comment; hashes, event bits, obstacle state, invariant counters, slot bounds, MAs and the 12 `m_*` exports kept). PC3 now enforces "the copy has no more plot() calls than the frozen release" (31 vs 52). No computation changed (PC1) |
-| Status | `FIXED (regression: pine-copy.test.mjs PC1–PC3)` — pending the TradingView run |
+| Status | `FIXED (regression: pine-copy.test.mjs PC1–PC3)` — confirmed on TradingView: the copy computes on M5 and M1 (captures 2026-09-29) |
 | Attempt | 1 |
 
 ### F-006 — M1 replay missed the history TradingView computed before the chart's first bar
@@ -115,5 +116,33 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Evidence | `study.data().size() = 9303` vs `series.size() = 8310`; `valueAt(-1000993)` = bar 2026-09-20T22:04Z with 42 values |
 | Method | Extraction over the chart series indices only |
 | Result | Replaced: the copy also exports `m_open/m_high/m_low/m_close` (export only, PC2 = 16 exports) and the extractor reads every row the study computed on, from the study's own data, sorted by time. M5 and M1 are both re-run with this copy |
-| Status | `OPEN → re-run pending` |
+| Status | `FIXED (regression: parity/captures.test.mjs PG8 M1)` — M1 re-run with the export copy (`7cba55e`): 9,306 rows incl. the 993 pre-history rows |
+| Attempt | 1 |
+
+### F-007 — JavaScript compares floats exactly; Pine compares them with an absolute tolerance
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T15:3xZ |
+| Step | 5 (Parity, M1 cell) |
+| Layer | 3 Measurement/export |
+| Symptom | M1 replay with EMA seed `sma`: exactly 1 mismatch in 3,986 engine rows — `v_eventBits` at 2026-09-25T07:28Z, Pine 5120 (headingDown + noChaseEvent), JS 1024 |
+| Root cause | `nearestObstacleAtr = 0.30000000000016824` vs `noChaseAtr = 0.30`: JavaScript `<=` is false, Pine `<=` is true. Pine treats \|a − b\| < 1e-10 as equal in every float comparison |
+| Evidence | Ruled out first: the SMA summation order and the slot bounds (bit-identical to Pine). Two unsaved probe studies on TradingView Desktop (never saved; production v26.0 checked before and after each): `1+1e-11<=1` true, `1+1e-10<=1` false, `0.1+0.2==0.3` true, `4000+5e-11<=4000` true, `4000+2e-10<=4000` false, `1e6+1e-6<=1e6` false, `1e-6+1e-12<=1e-6` true, `0+5e-11<=0` true → absolute tolerance 1e-10, not relative |
+| Method | Exact JavaScript comparison operators in the port |
+| Result | Replaced: `engine/pine-cmp.mjs` (eq/ne/lt/gt/le/ge with the measured tolerance; na stays false). The verbatim sources stay the reference (ZE2); `engine/pinecmp/build.mjs` derives Pine-comparison variants of the zone engine, sensors, consumer and obstacle latch (373 comparisons), and the measurement pipeline runs those. Built-ins (`ta.*`, percentrank) are not transformed. Re-run: M1 0 mismatches, M5 0 mismatches. On the M1 capture the variant differs from the exact pipeline on that one bar only |
+| Status | `FIXED (regression: engine/pinecmp.test.mjs PCMP1–PCMP5, parity/captures.test.mjs PG8)` |
+| Attempt | 1 |
+
+### F-008 — Official M1 acquisition is far slower than planned (source throttling)
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T15:17Z → ongoing |
+| Step | 3 (quiet newest-first acquisition, message 16 option A) |
+| Layer | 1 Data (source access) |
+| Symptom | Desktop run (`build_history.py --from 2003-01-01 --newest-first --keep-raw`): about 7 days per 33 min, with a 600 s cool-down after connection resets (`WinError 10054`) and timeouts (`WinError 10060`) every few days |
+| Root cause hypothesis | Dukascopy throttles this client (the same pattern as F-002/F-003; the GitHub runner probe saw 15–31 s per successful request). Not a code or data-format fault: every completed day decodes with full ASK coverage and the expected session bar counts (1,380 weekday, 1,260 Friday, 120 Sunday) |
+| Evidence | `C:\Users\alk\gtg-lab-data-acq.log`; idempotent manifest |
+| Method | Paced sequential requests (2 s), bounded backoff, 600 s cool-downs |
+| Result | At this rate 2003→2026 (≈ 6,000 trading days) needs weeks, not the planned ≈ 3.5 days. The run continues (newest first, so the most recent years land first) |
+| Status | `OPEN — plan B (bulk archive / alternative official path) goes to GPT; no retry of the same method at higher speed` |
 | Attempt | 1 |
