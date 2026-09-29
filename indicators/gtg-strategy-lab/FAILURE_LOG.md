@@ -188,3 +188,18 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Result | The panel's `prev` now carries ATR_eng; width = (hi − lo) at t−1 / ATR_eng at t−1. Every covariate has a declared timing (`COVARIATE_TIMING`) and CV1/CV2 enforce it for H1–H5. No real data had been processed |
 | Status | `FIXED (regression: events/covariates.test.mjs CV1, mutation-checked)` |
 | Attempt | 1 |
+
+### F-012 — JForex cache (Path B) is not byte-identical to the public datafeed candle files
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T22:1xZ |
+| Step | 3 (Path B acquisition, message 26/28) |
+| Layer | 1 Data (source construction) |
+| Symptom | JForex 4 (demo, Historical Data Download → local cache `JForex4\.cache\XAUUSD\yyyy\mm0\dd\{BID,ASK}_candles_min_1.bi5`, uncompressed 24-byte records, the datafeed layout) compared with the decompressed datafeed files already downloaded (Path A), on every overlapping day: 196 of 208 files byte-identical; 13 minute records differ |
+| Evidence | (1) **Recent-day last minute**: 7 records, all at 23:59 UTC on the most recent days (2026-09-22…28): JForex holds a flat, zero-volume candle where the datafeed has a traded one. It reappears after deleting the cache and downloading through a different range preset, so it is not a download-boundary artefact; July–August days show none. (2) **Volume only**: 2 records (2026-09-22 07:07, ratio ≈ 1.026). (3) **Price**: 2 minutes (both sides): 2026-07-07 12:20 and 2026-07-14 10:08. The datafeed is stable (re-downloaded now = copy downloaded earlier, byte for byte). Dukascopy's own tick file is the arbiter: for 07-07 12:20 the ticks rebuild **JForex's** candle exactly (O 4168.685, H 4170.035, V 0.04878) — the datafeed candle misses the start of the minute; for 07-14 10:08 the ticks rebuild the **datafeed's** open (4018.705) — JForex's open is off |
+| Ruled out | timezone (every other minute aligned), format (same binary records), rounding (prices bit-identical elsewhere), data revision of the datafeed (stable) |
+| Root cause hypothesis | Two constructions of M1 candles inside Dukascopy: the public datafeed candle files and the JForex history service. Each disagrees with the tick record on rare minutes; JForex additionally leaves the last minute of the most recent days unconsolidated |
+| Method | JForex cache used as a byte-identical substitute for the datafeed |
+| Result | Not byte-identical; nothing imported, nothing altered to pass. The JForex CSV export is also unsuitable as primary (EET time column, Arabic-Indic digits). Full-history download into the JForex cache continues (harmless) so the extent can be measured before any decision |
+| Status | `OPEN — source decision to GPT (message 29)` |
+| Attempt | 1 |
