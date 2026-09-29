@@ -1,0 +1,329 @@
+{
+  "replay": {
+    "verdict": "PASS",
+    "emaSeed": "sma",
+    "tf": "H4",
+    "mintick": 0.001,
+    "mode": "feed",
+    "htfStart": {
+      "start": 0,
+      "t": 1144702800000,
+      "basis": "full-history",
+      "compared": 5792
+    },
+    "bars": 5792,
+    "W": 5441,
+    "jsStartBar": 0,
+    "pineFirstEngineRow": 0,
+    "lowPrecision": [],
+    "runs": {
+      "first": {
+        "fields": {
+          "v_hashSlots": {
+            "compared": 5791,
+            "mismatched": 201,
+            "first": {
+              "bar": 21,
+              "t": 1672999200000,
+              "pine": 1373560208,
+              "js": 429373468
+            }
+          },
+          "v_hashState": {
+            "compared": 5791,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_eventBits": {
+            "compared": 5791,
+            "mismatched": 11,
+            "first": {
+              "bar": 1,
+              "t": 1672711200000,
+              "pine": 40965,
+              "js": 41093
+            }
+          },
+          "v_obsState": {
+            "compared": 5791,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_speedScore": {
+            "compared": 5792,
+            "mismatched": 178,
+            "first": {
+              "bar": 1,
+              "t": 1672711200000,
+              "pine": 50,
+              "js": 94.88484047574063
+            }
+          },
+          "m_instantSpeedScore": {
+            "compared": 5792,
+            "mismatched": 179,
+            "first": {
+              "bar": 1,
+              "t": 1672711200000,
+              "pine": 50,
+              "js": 94.88484047574063
+            }
+          },
+          "m_fuelScore": {
+            "compared": 5792,
+            "mismatched": 208,
+            "first": {
+              "bar": 15,
+              "t": 1672912800000,
+              "pine": 50,
+              "js": 67.04031524273898
+            }
+          },
+          "m_htfClose": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA50": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA200": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA50Past": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfATR": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_atr": {
+            "compared": 5779,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA14(ticks)": {
+            "compared": 5779,
+            "mismatched": 53,
+            "first": {
+              "bar": 13,
+              "t": 1672884000000,
+              "pine": 1846.7392857142856,
+              "js": 1847.8285425936988
+            }
+          },
+          "m_headingScore": {
+            "compared": 5771,
+            "mismatched": 93,
+            "first": {
+              "bar": 21,
+              "t": 1672999200000,
+              "pine": 17.32458521642258,
+              "js": 31.80305485700329
+            }
+          },
+          "MA22(ticks)": {
+            "compared": 5771,
+            "mismatched": 96,
+            "first": {
+              "bar": 21,
+              "t": 1672999200000,
+              "pine": 1843.8411363636362,
+              "js": 1841.2957197339008
+            }
+          },
+          "headingSign": {
+            "compared": 5771,
+            "mismatched": 6,
+            "first": {
+              "bar": 21,
+              "t": 1672999200000,
+              "pine": 0,
+              "js": 1
+            }
+          },
+          "MA50(ticks)": {
+            "compared": 5743,
+            "mismatched": 235,
+            "first": {
+              "bar": 49,
+              "t": 1673575200000,
+              "pine": 1863.8905,
+              "js": 1867.6478675928029
+            }
+          },
+          "m_routeScore": {
+            "compared": 5738,
+            "mismatched": 332,
+            "first": {
+              "bar": 54,
+              "t": 1673820000000,
+              "pine": 44.30892217846031,
+              "js": 82.2724631090301
+            }
+          },
+          "routeSign": {
+            "compared": 5738,
+            "mismatched": 58,
+            "first": {
+              "bar": 141,
+              "t": 1675418400000,
+              "pine": 1,
+              "js": 0
+            }
+          },
+          "MA200(ticks)": {
+            "compared": 5593,
+            "mismatched": 1058,
+            "first": {
+              "bar": 199,
+              "t": 1676599200000,
+              "pine": 1890.6367,
+              "js": 1877.6028451426355
+            }
+          },
+          "MA1000(ticks)": {
+            "compared": 4793,
+            "mismatched": 4733,
+            "first": {
+              "bar": 999,
+              "t": 1692867600000,
+              "pine": 1934.0616600000003,
+              "js": 1925.4447914792001
+            }
+          }
+        },
+        "mismatched": 7441
+      },
+      "sma": {
+        "fields": {
+          "v_hashSlots": {
+            "compared": 5791,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_hashState": {
+            "compared": 5791,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_eventBits": {
+            "compared": 5791,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_obsState": {
+            "compared": 5791,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_speedScore": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_instantSpeedScore": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_fuelScore": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfClose": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA50": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA200": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA50Past": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfATR": {
+            "compared": 5792,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_atr": {
+            "compared": 5779,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA14(ticks)": {
+            "compared": 5779,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_headingScore": {
+            "compared": 5771,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA22(ticks)": {
+            "compared": 5771,
+            "mismatched": 0,
+            "first": null
+          },
+          "headingSign": {
+            "compared": 5771,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA50(ticks)": {
+            "compared": 5743,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_routeScore": {
+            "compared": 5738,
+            "mismatched": 0,
+            "first": null
+          },
+          "routeSign": {
+            "compared": 5738,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA200(ticks)": {
+            "compared": 5593,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA1000(ticks)": {
+            "compared": 4793,
+            "mismatched": 0,
+            "first": null
+          }
+        },
+        "mismatched": 0
+      }
+    }
+  },
+  "copyVsFrozen": {
+    "verdict": "PASS",
+    "shared": 5792,
+    "compared": 23164,
+    "mismatched": 0,
+    "first": null
+  }
+}
