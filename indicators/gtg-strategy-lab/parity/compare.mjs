@@ -8,6 +8,8 @@
 import { htfBarsOf } from '../gtg-engine/reference/history.mjs';
 import { priceTol } from '../gtg-engine/reference/snapshot.mjs';
 import { runTimeframe } from '../engine/measure.mjs';
+import { containingIndex } from '../engine/pinecmp/sensors.mjs';
+import { maOf } from '../engine/pine-ta.mjs';
 import { profileFor, INPUTS } from '../engine/profiles.mjs';
 import { DEFAULTS, engineWindowFor } from '../engine/zone-engine.mjs';
 import { zoneParams } from '../engine/profiles.mjs';
@@ -54,6 +56,38 @@ export function feedFromTvBars(dump) {
   return out;
 }
 
+// TradingView computes request.security on an HTF history that starts where the platform
+// chose to load it, not at the first HTF bar of the feed; a seeded MA (EMA 200) carries
+// that start for hundreds of HTF bars (F-009). The start is a platform fact, recovered here
+// as the unique HTF bar s whose MA seeded at s reproduces the exported column on every row.
+// Full history is used when it already reproduces it (converged).
+export function inferHtfStart(rows, htfBars, mintick, { col = 'm_htfMA200', len = 200, back = 4000, maType = INPUTS.maType } = {}) {
+  const k = containingIndex(rows.map((r) => ({ t: r.t })), htfBars);
+  const k0 = k.find((x) => x >= 0);
+  const closes = htfBars.map((b) => b.c);
+  const badFor = (s) => {
+    const m = maOf(maType, closes.slice(s), len, 'sma');
+    let bad = 0, cmp = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const j = k[i] - 1 - s, p = rows[i][col];
+      if (j < 0 || !Number.isFinite(p)) continue;
+      cmp++;
+      if (!(Math.abs(m[j] - p) <= Math.max(priceTol(m[j], mintick), priceTol(p, mintick)))) bad++;
+    }
+    return { bad, cmp };
+  };
+  const full = badFor(0);
+  if (full.cmp > 0 && full.bad === 0) return { start: 0, t: htfBars[0].t, basis: 'full-history', compared: full.cmp };
+  const zero = [];
+  let nextBest = Infinity;
+  for (let s = Math.max(0, k0 - back); s <= k0; s++) {
+    const r = badFor(s);
+    if (r.cmp > 0 && r.bad === 0) zero.push(s); else nextBest = Math.min(nextBest, r.bad);
+  }
+  if (zero.length !== 1) return { start: null, basis: zero.length ? 'ambiguous' : 'none', candidates: zero.length, fullHistoryBad: full.bad };
+  return { start: zero[0], t: htfBars[zero[0]].t, basis: 'unique', compared: full.cmp, nextBestBad: nextBest, fullHistoryBad: full.bad };
+}
+
 // Builds the JS inputs from the export.
 // Export mode (feed = null): route HTF values are taken from the export, and anchor bars
 // are rebuilt from the chart bars by UTC time buckets, which equals the feed's own HTF bars
@@ -62,13 +96,15 @@ export function feedFromTvBars(dump) {
 // Feed mode (feed = { [resolution]: bars }): the route HTF and both anchors come from the
 // feed's own bars of those timeframes (t = open time, ms), and JS computes every HTF value
 // itself; this is the MTF parity (message 18). Any timeframe M1..H4.
-export function inputsFromExport(rows, tf, feed = null) {
+export function inputsFromExport(rows, tf, feed = null, mintick = 0.001) {
   const prof = profileFor(tf);
   const bars = rows.map((r) => ({ t: r.t, o: r.open, h: r.high, l: r.low, c: r.close, v: r.m_volume }));
   if (feed) {
     const k = feedKeysFor(tf);
     for (const [role, res] of Object.entries(k)) if (!feed[res]) throw new Error(`feed mode: no bars for ${role} (${res})`);
-    return { prof, bars, htfInputs: null, htfBars: feed[k.htf], a1Bars: feed[k.a1], a2Bars: feed[k.a2], mode: 'feed' };
+    const htfStart = inferHtfStart(rows, feed[k.htf], mintick);
+    const htfBars = htfStart.start == null ? feed[k.htf] : feed[k.htf].slice(htfStart.start);
+    return { prof, bars, htfInputs: null, htfBars, htfStart, a1Bars: feed[k.a1], a2Bars: feed[k.a2], mode: 'feed' };
   }
   if (tf !== 'M1' && tf !== 'M5') throw new Error(`parity replay supports M1 and M5 (clock-aligned anchors); got ${tf}`);
   const from = bars[0].t, to = bars[bars.length - 1].t;
@@ -128,7 +164,7 @@ function compareRun(rows, js, mintick, feedMode = false) {
 export function compareExport(parsed, { tf, mintick, studyExtraBars = 0, feed = null }) {
   const { rows, decimals } = parsed;
   const lowPrecision = SCORES.map(([c]) => c).filter((c) => decimals.has(c) && decimals.get(c) < MIN_EXPORT_DECIMALS);
-  const inp = inputsFromExport(rows, tf, feed);
+  const inp = inputsFromExport(rows, tf, feed, mintick);
   const { start, W } = pineStartBar(rows.length, tf, mintick, studyExtraBars);
   const hasEngineCols = rows.some((r) => Number.isFinite(r.v_hashSlots));
   const pineFirstEngineRow = rows.findIndex((r) => Number.isFinite(r.v_hashSlots));
@@ -143,7 +179,7 @@ export function compareExport(parsed, { tf, mintick, studyExtraBars = 0, feed = 
   if (lowPrecision.length) verdict = 'FAIL_EXPORT_PRECISION';
   if (hasEngineCols && pineFirstEngineRow !== start) verdict = verdict.startsWith('FAIL') ? verdict : 'FAIL_ENGINE_START';
   return {
-    verdict, emaSeed: passing[0] ?? null, tf, mintick, mode: inp.mode, bars: rows.length, W, jsStartBar: start, pineFirstEngineRow,
+    verdict, emaSeed: passing[0] ?? null, tf, mintick, mode: inp.mode, htfStart: inp.htfStart ?? null, bars: rows.length, W, jsStartBar: start, pineFirstEngineRow,
     lowPrecision, runs,
   };
 }

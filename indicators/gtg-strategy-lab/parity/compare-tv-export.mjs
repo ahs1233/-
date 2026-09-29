@@ -26,6 +26,7 @@ if (args.frozen) report.copyVsFrozen = compareCopyToFrozen(copy, parseTvCsv(read
 
 const r = report.replay;
 console.log(`replay: ${r.verdict}  (mode ${r.mode}, bars ${r.bars}, W ${r.W}, JS engine start ${r.jsStartBar}, Pine first engine row ${r.pineFirstEngineRow}, ema seed ${r.emaSeed})`);
+if (r.htfStart) console.log(`  route HTF history start: ${JSON.stringify({ ...r.htfStart, t: r.htfStart.t != null ? new Date(r.htfStart.t).toISOString() : null })}`);
 for (const [seed, run] of Object.entries(r.runs)) {
   console.log(`  seed=${seed}: ${run.mismatched} mismatches`);
   for (const [f, s] of Object.entries(run.fields)) if (s.mismatched) console.log(`    ${f}: ${s.mismatched}/${s.compared}, first at bar ${s.first.bar} (pine ${s.first.pine}, js ${s.first.js})`);
