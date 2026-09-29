@@ -273,7 +273,7 @@ test('C19 E41 R5 fingerprint: capture-window only, warmed rule, fold order, tabl
   assert.match(pine, /\+ "\\nINV=" \+ diagText\(diagInvV\) \+ "\\nR5=" \+ \(captureFrom > 0 \? diagText\(r5N\) \+ "," \+ diagText\(r5Cold\) \+ "," \+ diagText\(r5From\) \+ "," \+ diagText\(r5To\) \+ "," \+ diagText\(r5HSlots\) \+ "," \+ diagText\(r5HState\) \+ "," \+ diagText\(r5HEvents\) : "na"\)/);
 });
 
-test('C20 release presentation and compile gate: shorttitle, status line, HUD opacity, output call', () => {
+test('C20 release presentation and compile gate: shorttitle, status line, HUD opacity and z-order, output call', () => {
   const lines = pine.split('\n');
   // Mobile/Desktop compiler: SHORT_TITLE_TOO_LONG above 10 characters.
   const st = pine.match(/shorttitle\s*=\s*"([^"]*)"/);
@@ -290,6 +290,10 @@ test('C20 release presentation and compile gate: shorttitle, status line, HUD op
   const hud = lines.slice(s, e).join('\n');
   assert.equal((hud.match(/color\.new\(color\.black, 18\)/g) || []).length, 0);
   assert.ok((hud.match(/color\.new\(color\.black, 4\)/g) || []).length >= 22);
+  // G5 F-G5-2 root cause: v6 overlay scripts draw behind the candles by default (behind_chart = true),
+  // so candles crossed the HUD on H1. The HUD must be drawn in front of the chart.
+  const decl = pine.slice(0, pine.indexOf('\n)\n') + 3);
+  assert.match(decl, /behind_chart = false/);
   // CE10213: at least one top-level output call (a source cut before it fails to add).
   assert.ok(lines.some((l) => /^(plot|plotshape|plotchar|bgcolor|barcolor|fill|hline)\(/.test(l)), 'no top-level output call');
 });

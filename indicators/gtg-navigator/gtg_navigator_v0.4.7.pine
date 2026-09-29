@@ -5,7 +5,8 @@ indicator(
      overlay = true,
      max_labels_count = 20,
      max_lines_count = 10,
-     max_boxes_count = 10
+     max_boxes_count = 10,
+     behind_chart = false
 )
 
 // ============================================================================
