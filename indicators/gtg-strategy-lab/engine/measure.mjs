@@ -10,12 +10,14 @@
 // startBar: the first bar on which the Zone Engine runs. Pine runs it on the last
 // W (+ studyExtraBars) bars only; research runs it from bar 0 (the determinism window
 // makes the state at a warmed bar independent of the start, reference tests T7/R5).
-import { DEFAULTS, Engine, computeSeries, engineWindowFor, ST, TYP } from './zone-engine.mjs';
+// Pine float comparisons (F-007): the pipeline runs the generated pinecmp/ variants of the
+// modules whose logic is Pine script; the verbatim sources stay the reference (ZE2).
+import { DEFAULTS, Engine, computeSeries, engineWindowFor, ST, TYP } from './pinecmp/zone-engine.mjs';
 import { htfFeedValues } from '../gtg-engine/reference/history.mjs';
 import { canonicalSnapshot, hashSlots, hashState } from '../gtg-engine/reference/snapshot.mjs';
 import { profileFor, zoneParams, INPUTS } from './profiles.mjs';
-import { computeSensors, containingIndex } from './sensors.mjs';
-import { consumerStep, displayQOf, newConsumerState } from './consumer.mjs';
+import { computeSensors, containingIndex } from './pinecmp/sensors.mjs';
+import { consumerStep, displayQOf, newConsumerState } from './pinecmp/consumer.mjs';
 
 export const SLOT_NAMES = ['R1', 'R2', 'S1', 'S2'];
 

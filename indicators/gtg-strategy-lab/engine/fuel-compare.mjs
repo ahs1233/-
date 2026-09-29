@@ -4,7 +4,7 @@
 // fuelExhaustion on the bars after the M1 Fuel warm-up (rankLen = 1000).
 //   node fuel-compare.mjs official.json tickvol.json   → JSON on stdout
 import { readFileSync } from 'node:fs';
-import { computeSensors } from './sensors.mjs';
+import { computeSensors } from './pinecmp/sensors.mjs';  // Pine comparisons (F-007)
 import { profileFor, INPUTS } from './profiles.mjs';
 
 export function fuelCompare(a, b, mintick = 0.001) {
