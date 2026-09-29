@@ -1,0 +1,35 @@
+name: GTG Strategy Lab
+
+# Measurement Engine (Node) and data layer (Python stdlib) tests. Offline: no feed access.
+on:
+  push:
+    branches: [main, "claude/**", "lab/**"]
+    paths:
+      - "indicators/gtg-strategy-lab/**"
+      - "indicators/gtg-navigator/reference/**"
+      - ".github/workflows/gtg-lab.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "indicators/gtg-strategy-lab/**"
+      - "indicators/gtg-navigator/reference/**"
+      - ".github/workflows/gtg-lab.yml"
+
+jobs:
+  lab-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Measurement Engine tests
+        run: node --test indicators/gtg-strategy-lab/engine/*.test.mjs
+      - name: Data layer tests
+        working-directory: indicators/gtg-strategy-lab/data
+        run: python3 -m unittest -v test_data
+      - name: Production reference still intact (116)
+        run: node --test indicators/gtg-navigator/reference/*.test.mjs
