@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Measurement Engine tests
-        run: node --test indicators/gtg-strategy-lab/engine/*.test.mjs indicators/gtg-strategy-lab/parity/*.test.mjs
+        run: node --test indicators/gtg-strategy-lab/engine/*.test.mjs indicators/gtg-strategy-lab/parity/*.test.mjs indicators/gtg-strategy-lab/events/*.test.mjs
       - name: Data layer tests
         working-directory: indicators/gtg-strategy-lab/data
         run: python3 -m unittest -v test_data test_tick_audit test_calendar

@@ -130,6 +130,7 @@ export function runEpisode(lv, h, l, c, pc, atr, bi, P = DEFAULTS) {
     lv.epActive = true;
     lv.epSide = pc > lv.hi ? 1 : pc < lv.lo ? -1 : (lv.polarity > 0 ? -1 : 1);
     lv.epMaxDepth = 0;
+    lv.epStartQ = lv.q; lv.epStartBar = bi; // [MEASURE] Q at the start of the test episode (§11.4)
   }
   if (lv.epActive) {
     const depth = lv.epSide < 0 ? (h - lv.lo) / width : (lv.hi - l) / width;
@@ -157,7 +158,7 @@ function acceptBreak(lv, bi, ev) {
 }
 
 function markRejection(lv, rej, ev, inSlot) {
-  if (rej !== null) ev.log.push({ k: 'test', key: lv.key, rej, side: lv.epSide, inSlot: !!inSlot, state: lv.state }); // [MEASURE]
+  if (rej !== null) ev.log.push({ k: 'test', key: lv.key, rej, side: lv.epSide, inSlot: !!inSlot, state: lv.state, epStartQ: lv.epStartQ, epStartBar: lv.epStartBar }); // [MEASURE]
   if (rej !== null && rej >= 0.5 && inSlot) { if (lv.epSide < 0) ev.rejectR = true; else ev.rejectS = true; }
 }
 
@@ -217,7 +218,7 @@ export function updateLevel(lv, bar, pc, atr, bi, ev, inSlot, P = DEFAULTS) {
       if (rej !== null && rej >= 0.5 && lv.epSide === dir && bi - lv.stateChartBar <= P.flipWindow) {
         lv.polarity = -lv.polarity; lv.s = Math.min(100, lv.s + 8); lv.state = ST.FLIP;
         if (lv.navArmed) ev.flipConfirmed = true; // follows the arm (R4-B)
-        ev.log.push({ k: 'flip', key: lv.key, dir, rej, armed: !!lv.navArmed, newPolarity: lv.polarity }); // [MEASURE] FLIP-1 direction = breakDir
+        ev.log.push({ k: 'flip', key: lv.key, dir, rej, armed: !!lv.navArmed, newPolarity: lv.polarity, epStartQ: lv.epStartQ, epStartBar: lv.epStartBar }); // [MEASURE] FLIP-1 direction = breakDir
         lv.navArmed = false;
       }
       markRejection(lv, rej, ev, inSlot);
