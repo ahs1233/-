@@ -88,7 +88,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Production Integrity Check (read-only, message 16) | **PASS**, 2026-09-29 ~15:3xZ: saved server source of `USER;389fcdd…` (fetched from pine-facade) = blob `0c7cbe366668fba20c9bc128448f908ce9314041`; title "GTG Navigator v0.4.7 — Structural Zone Engine", short title "GTG v0.4.7"; editor markers 0 errors at restore; chart study `v5XkYX` → that script at 26.0; all 67 user inputs (`in_0…in_66`) identical to the layout backup taken before the incident; no saved script carries the measurement title; alerts: `NOT_OBSERVABLE` (alert service not exposed to CDP, runbook E-G5) — no alert was created or touched |
 | Recorded difference | The **server revision changed** (24.0 → 25.0 wrong → 26.0 recovery) while the **frozen source blob is identical** (`0c7cbe3`). Any later reference to "the production script" must name v26.0 as the current server revision of the same frozen source |
 | Final check after the Parity Gate (2026-09-29 ~15:5xZ) | Same result: saved source blob `0c7cbe3`, v26.0, `modified` unchanged since the recovery, all 67 inputs identical; temporary studies removed; unsaved editor closed without saving (no dialog); chart back to 15; autosave back on, layout saved with no pending changes |
-| Status | `RECOVERED / CONTAINED` — not "did not happen" |
+| Status | `RECOVERED / CONTAINED / VERIFIED` (message 18) — kept in the log; not "did not happen". Re-checked after the MTF parity session too: same blob, version, `modified`, 67/67 inputs |
 | Attempt | 1 |
 
 ### F-005 — Measurement copy exceeded TradingView's plot limit (RE10140: 71 > 64)
@@ -130,7 +130,7 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Evidence | Ruled out first: the SMA summation order and the slot bounds (bit-identical to Pine). Two unsaved probe studies on TradingView Desktop (never saved; production v26.0 checked before and after each): `1+1e-11<=1` true, `1+1e-10<=1` false, `0.1+0.2==0.3` true, `4000+5e-11<=4000` true, `4000+2e-10<=4000` false, `1e6+1e-6<=1e6` false, `1e-6+1e-12<=1e-6` true, `0+5e-11<=0` true → absolute tolerance 1e-10, not relative |
 | Method | Exact JavaScript comparison operators in the port |
 | Result | Replaced: `engine/pine-cmp.mjs` (eq/ne/lt/gt/le/ge with the measured tolerance; na stays false). The verbatim sources stay the reference (ZE2); `engine/pinecmp/build.mjs` derives Pine-comparison variants of the zone engine, sensors, consumer and obstacle latch (373 comparisons), and the measurement pipeline runs those. Built-ins (`ta.*`, percentrank) are not transformed. Re-run: M1 0 mismatches, M5 0 mismatches. On the M1 capture the variant differs from the exact pipeline on that one bar only |
-| Status | `FIXED (regression: engine/pinecmp.test.mjs PCMP1–PCMP5, parity/captures.test.mjs PG8)` |
+| Status | `FIXED (regression: engine/pinecmp.test.mjs PCMP1–PCMP5, parity/captures.test.mjs PG8/PG9)` — **frozen by message 18: the tolerance is never widened for a later failure; any new mismatch is a logic/data bug until proven otherwise** |
 | Attempt | 1 |
 
 ### F-008 — Official M1 acquisition is far slower than planned (source throttling)
@@ -145,4 +145,18 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Method | Paced sequential requests (2 s), bounded backoff, 600 s cool-downs |
 | Result | At this rate 2003→2026 (≈ 6,000 trading days) needs weeks, not the planned ≈ 3.5 days. The run continues (newest first, so the most recent years land first) |
 | Status | `OPEN — plan B (bulk archive / alternative official path) goes to GPT; no retry of the same method at higher speed` |
+| Attempt | 1 |
+
+### F-009 — Feed-mode M1 replay: route-HTF EMA 200 differs because TradingView loads a short HTF history
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T16:1xZ |
+| Step | 5 (MTF parity, message 18) |
+| Layer | 3 Measurement/export |
+| Symptom | With JS computing the route HTF from the feed's own M15 bars (feed mode), M1 replay had 6,085 rows with `m_htfMA200` off by up to 2.4e-4 (≈ 0.24 tick); every other field, including `m_routeScore`, matched |
+| Root cause | `request.security` runs on an HTF history that starts where TradingView chose to load it (here M15 from 2026-08-31T22:00Z), not at the first bar of the feed; the SMA-seeded EMA 200 carries that start for hundreds of HTF bars. A platform fact, not indicator logic |
+| Evidence | Searching every HTF start in the 4,000 bars before the chart: exactly one start reproduces `m_htfMA200` on all 9,306 rows (max |Δ| 2.7e-11); the next best fails 1,136 rows. Same on H1 (H4 route, start 2025-01-01T22:00Z = the H4 bar holding the chart's first bar; next best fails 3,067). M5, M15, H4 converge on the full history |
+| Method | Feed mode with the full HTF history |
+| Result | `inferHtfStart` (parity/compare.mjs) recovers the start as the **unique** exact solution and reports it (`htfStart.basis` = unique / full-history); no tolerance changed. Research runs on the full Dukascopy history, where the EMA is converged; warm-up rows are excluded as before |
+| Status | `FIXED (regression: parity/captures.test.mjs PG9)` |
 | Attempt | 1 |

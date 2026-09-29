@@ -27,5 +27,5 @@ node indicators/gtg-strategy-lab/engine/pinecmp/build.mjs   # after editing a so
 | 2 Raw forward capture | ✅ Code (`data/capture_forward.py`, sealed; hashes only). ⏳ The daily run on the desktop is not scheduled yet (F-001: the container cannot reach the feed) |
 | 3 Data layer | ✅ Code + 33 Python tests (fetch/throttling, quiet acquisition, history, forward, Tick Audit). ⏳ Official M1 acquisition running on the desktop, newest first; throughput far below plan (F-008 → plan B to GPT) |
 | 4 Measurement Engine | ✅ JS + Pine copy + Pine float semantics (F-007); 41 Node tests |
-| 5 **Parity Gate** | ✅ **PASS** 2026-09-29 on OANDA:XAUUSD: M5 (5,976 rows) and M1 (9,306 rows) replay with 0 mismatches, EMA seed `sma`; copy = frozen 0/14,404 and 0/15,944. Evidence: `parity/captures/2026-09-29/` (PG8). Production integrity re-checked afterwards: PASS |
+| 5 **Parity Gate** | ✅ **PASS, full MTF** 2026-09-29 on OANDA:XAUUSD: M1, M5, M15, H1, H4 replay with 0 mismatches (EMA seed `sma`), route HTF + anchors computed by JS from the feed's own HTF bars (feed mode, F-009); copy = frozen on every cell. Evidence: `parity/captures/` (PG8, PG9). Production integrity re-checked afterwards: PASS |
 | 6–10 | Allowed from here on the official M1 data once acquired (no event study on partial data without GPT's approval) |
