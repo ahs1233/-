@@ -42,5 +42,19 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Evidence | `$HTTPS_PROXY/__agentproxy/status` → `connect_rejected … gateway answered 403 to CONNECT (policy denial)` for `datafeed.dukascopy.com:443` |
 | Method | Direct HTTPS request through the proxy |
 | Result | No data downloaded |
-| Status | `BLOCKED` — needs the user to add `datafeed.dukascopy.com` to the environment's network allow-list. No retry until the policy changes. The data layer is built and tested on synthetic bi5 files meanwhile |
+| Status | `BLOCKED` in the cloud container. **Different path adopted (not a retry):** on the user's instruction (2026-09-29) the data work runs on the user's desktop (DESKTOP-208FC6J, via Desktop Commander), where `datafeed.dukascopy.com` is reachable (HTTP 200) |
+| Attempt | 1 |
+
+### F-002 — HTTP 429 Too Many Requests from Dukascopy on the first real download
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T14:2xZ |
+| Step | 3 (data layer, real-data smoke test on the desktop, day 2026-07-15) |
+| Layer | 1 Data (source access) |
+| Symptom | `build_history.py` raised `urllib.error.HTTPError: HTTP Error 429: Too Many Requests` a few hourly files into the first day |
+| Root cause hypothesis | Unpaced back-to-back requests with urllib's default User-Agent trigger Dukascopy's rate limiter. `fetch` treated 429 like any other non-404 status and raised immediately |
+| Evidence | The same URL fetched once from PowerShell returned 200; the failure appeared only in the rapid sequence of 24 hourly requests |
+| Method | Unpaced urllib requests, default User-Agent, no 429 handling |
+| Result | That method is replaced (not repeated): explicit User-Agent, a minimum interval between requests, 429 → `Retry-After` or bounded exponential backoff (≤ 6), then `RateLimited`. Regression tests: `Fetch.test_429_*`, `test_persistent_429_*`, `test_404_is_no_file_and_500_raises` |
+| Status | `FIXED (regression: test_data.Fetch)` — pending confirmation on real data |
 | Attempt | 1 |

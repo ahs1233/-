@@ -164,6 +164,57 @@ class Forward(unittest.TestCase):
             self.assertFalse(list(Path(d).rglob("*.csv.gz")))  # no bars built: sealed
 
 
+class Fetch(unittest.TestCase):
+    """F-002 regression: HTTP 429 is paced and retried with bounded backoff, never parsed as data."""
+
+    class _Resp:
+        def __init__(self, b): self.b = b
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self): return self.b
+
+    def _err(self, code, retry_after=None):
+        import email.message
+        import urllib.error
+        h = email.message.Message()
+        if retry_after is not None:
+            h["Retry-After"] = str(retry_after)
+        return urllib.error.HTTPError("u", code, "x", h, None)
+
+    def test_429_waits_retry_after_then_succeeds_with_user_agent(self):
+        calls, sleeps = [], []
+        answers = [self._err(429, 7), self._err(429), self._Resp(b"ok")]
+
+        def opener(req, timeout):
+            calls.append(req.get_header("User-agent"))
+            a = answers.pop(0)
+            if isinstance(a, Exception):
+                raise a
+            return a
+        self.assertEqual(dk.fetch("https://x.test/f.bi5", opener=opener, sleep=sleeps.append), b"ok")
+        self.assertTrue(all(ua == dk.USER_AGENT for ua in calls))
+        self.assertIn(7.0, sleeps)   # Retry-After honoured
+        self.assertIn(10.0, sleeps)  # then 5·2^1
+
+    def test_persistent_429_raises_rate_limited_after_bounded_retries(self):
+        n = [0]
+
+        def opener(req, timeout):
+            n[0] += 1
+            raise self._err(429)
+        with self.assertRaises(dk.RateLimited):
+            dk.fetch("https://x.test/f.bi5", opener=opener, sleep=lambda s: None, rate_retries=3)
+        self.assertEqual(n[0], 4)
+
+    def test_404_is_no_file_and_500_raises(self):
+        def o404(req, timeout): raise self._err(404)
+        def o500(req, timeout): raise self._err(500)
+        self.assertIsNone(dk.fetch("https://x.test/f.bi5", opener=o404, sleep=lambda s: None))
+        import urllib.error
+        with self.assertRaises(urllib.error.HTTPError):
+            dk.fetch("https://x.test/f.bi5", opener=o500, sleep=lambda s: None)
+
+
 class Store(unittest.TestCase):
     def test_day_file_is_deterministic(self):
         bars = [{"t": 0, "bo": 1.5, "bh": 2.0, "bl": 1.0, "bc": 1.25, "ao": None, "ah": None, "al": None, "ac": None, "v": 3.0, "n": 0, "src": "m1"}]

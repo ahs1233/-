@@ -91,22 +91,54 @@ def decode_candles(raw: bytes, day_start_s: int) -> list[tuple[int, float, float
     return out
 
 
-def fetch(url: str, retries: int = 3, timeout: float = 30.0) -> bytes | None:
+USER_AGENT = "gtg-strategy-lab/0.2 (research; +https://github.com/ahs1233)"
+MIN_INTERVAL_S = 0.35     # polite pacing between requests (FAILURE_LOG F-002)
+_last_request = [0.0]
+
+
+class RateLimited(ConnectionError):
+    """Dukascopy kept answering 429 after the bounded backoff."""
+
+
+def _pace(sleep=time.sleep, clock=time.monotonic):
+    wait = _last_request[0] + MIN_INTERVAL_S - clock()
+    if wait > 0:
+        sleep(wait)
+    _last_request[0] = clock()
+
+
+def fetch(url: str, retries: int = 3, timeout: float = 30.0, rate_retries: int = 6,
+          opener=urllib.request.urlopen, sleep=time.sleep) -> bytes | None:
     """Raw bytes, or None when Dukascopy has no file (HTTP 404).
 
-    Only network-level errors are retried (bounded; Anti-Loop §30). An HTTP status
-    other than 200/404 is raised at once: repeating the same request cannot fix it.
+    Requests carry an explicit User-Agent and are paced (MIN_INTERVAL_S). HTTP 429 is a
+    rate limit, not a data answer: it waits Retry-After (or 5·2^k s, capped at 120 s) and
+    retries at most `rate_retries` times, then raises RateLimited. Network errors are
+    retried `retries` times. Any other HTTP status is raised at once (Anti-Loop §30).
     """
     last: Exception | None = None
-    for attempt in range(retries):
+    net_fail = rate_fail = 0
+    while True:
+        _pace(sleep)
         try:
-            with urllib.request.urlopen(url, timeout=timeout) as r:
+            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+            with opener(req, timeout=timeout) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 return None
+            if e.code == 429:
+                rate_fail += 1
+                if rate_fail > rate_retries:
+                    raise RateLimited(f"{url}: HTTP 429 after {rate_retries} backoffs") from e
+                ra = e.headers.get("Retry-After") if e.headers else None
+                delay = float(ra) if ra and ra.isdigit() else min(120.0, 5.0 * 2 ** (rate_fail - 1))
+                sleep(delay)
+                continue
             raise
         except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
             last = e
-            time.sleep(2 ** (attempt + 1))
-    raise ConnectionError(f"{url}: {last}")
+            net_fail += 1
+            if net_fail >= retries:
+                raise ConnectionError(f"{url}: {last}")
+            sleep(2 ** net_fail)
