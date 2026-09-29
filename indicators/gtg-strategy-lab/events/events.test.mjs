@@ -251,3 +251,16 @@ test('EV8 P0 is deterministic, mirrors GTG appearances (side, width, bar) and ru
   assert.equal(a.levels, appear);
   assert.ok(a.events.length > 0 && a.events.every((e) => e.D === 1 || e.D === -1));
 });
+
+test('CG4 the Causality Gate tool (used on real data) passes on synthetic feeds and reports vacuity (leak detection: CG3)', async () => {
+  const { causalityGate, rebuildFromM5 } = await import('./causality.mjs');
+  const { m1 } = full();
+  const feeds = feedsOf(m1.slice(0, 24_000));
+  const g = causalityGate(feeds, { mintick: 0.01, w: 0.3 });
+  assert.ok(g.checks.every((c) => c.diffs.length === 0), JSON.stringify(g.checks));
+  assert.equal(g.verdict, 'VACUOUS');                       // no Macro events without 200 D bars
+  assert.ok(g.vacuous.includes('TC-H1 events') && g.counts.H3 > 0);
+  // rebuilding HTF bars from M5 reproduces the aggregated OHLC exactly
+  const h1 = rebuildFromM5(feeds.M5, feeds.H1.map((b) => b.t));
+  assert.deepEqual(h1.map((b) => [b.t, b.o, b.h, b.l, b.c]), feeds.H1.map((b) => [b.t, b.o, b.h, b.l, b.c]));
+});
