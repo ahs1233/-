@@ -33,7 +33,7 @@ function htfRouteInputs(chartBars, htfBars, mintick, I, seed) {
 // htfInputs (optional): per-chart-bar route HTF values as exported by the Pine copy
 // (m_htfClose, m_htfMA50, m_htfMA200, m_htfMA50Past, m_htfATR). Used by the Parity Gate,
 // where the HTF history before the chart's first bar is not available to JS.
-export function computeSensors(bars, htfBars, prof, mintick, { inputs = INPUTS, emaSeed = 'first', htfInputs = null } = {}) {
+export function computeSensors(bars, htfBars, prof, mintick, { inputs = INPUTS, emaSeed = 'sma', htfInputs = null } = {}) {
   const I = inputs, n = bars.length, seed = emaSeed;
   const close = bars.map((b) => b.c), open = bars.map((b) => b.o), high = bars.map((b) => b.h), low = bars.map((b) => b.l);
   const volume = bars.map((b) => (b.v == null ? NaN : b.v));

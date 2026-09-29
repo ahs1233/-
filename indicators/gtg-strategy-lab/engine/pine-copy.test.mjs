@@ -34,7 +34,7 @@ test('PC2 section 19 only adds data-window plots gated by validationMode', () =>
   const tail = copy.slice(sec19 + 1).filter((l) => l.trim() && !l.startsWith('//'));
   assert.equal(tail[0], 'bool mOn = validationMode');
   const plots = tail.slice(1);
-  assert.equal(plots.length, 12);
+  assert.equal(plots.length, 16);
   for (const l of plots) assert.match(l, /^plot\(mOn \? \w+ : na, "m_\w+", display = display\.data_window, precision = 10\)$/);
 });
 

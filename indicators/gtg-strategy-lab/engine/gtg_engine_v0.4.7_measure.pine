@@ -2627,11 +2627,16 @@ if captureOn
 // ============================================================================
 // 19. [MEASURE] STRATEGY LAB PARITY EXPORTS — DATA WINDOW ONLY (validationMode)
 // Read by nothing above. Inputs the JS Measurement Engine needs to replay this chart
-// (volume, the route HTF values) and sensor outputs to compare. Export with
+// (OHLC and volume of every bar the study computed on — including history before the
+// chart's first loaded bar, F-006 — and the route HTF values) and sensor outputs to compare. Export with
 // TradingView "Export chart data".
 // ============================================================================
 bool mOn = validationMode
 plot(mOn ? volume : na, "m_volume", display = display.data_window, precision = 10)
+plot(mOn ? open : na, "m_open", display = display.data_window, precision = 10)
+plot(mOn ? high : na, "m_high", display = display.data_window, precision = 10)
+plot(mOn ? low : na, "m_low", display = display.data_window, precision = 10)
+plot(mOn ? close : na, "m_close", display = display.data_window, precision = 10)
 plot(mOn ? htfClose : na, "m_htfClose", display = display.data_window, precision = 10)
 plot(mOn ? htfMA50 : na, "m_htfMA50", display = display.data_window, precision = 10)
 plot(mOn ? htfMA200 : na, "m_htfMA200", display = display.data_window, precision = 10)

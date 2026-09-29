@@ -103,3 +103,17 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Result | Replaced: the copy removes 30 diagnostic `v_*` plots not used by the parity tool (each line replaced by a `[MEASURE]` comment; hashes, event bits, obstacle state, invariant counters, slot bounds, MAs and the 12 `m_*` exports kept). PC3 now enforces "the copy has no more plot() calls than the frozen release" (31 vs 52). No computation changed (PC1) |
 | Status | `FIXED (regression: pine-copy.test.mjs PC1–PC3)` — pending the TradingView run |
 | Attempt | 1 |
+
+### F-006 — M1 replay missed the history TradingView computed before the chart's first bar
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-29T15:4xZ |
+| Step | 5 (Parity, M1 cell) |
+| Layer | 3 Measurement/export |
+| Symptom | M1: copy vs frozen PASS (15,944 values, 0 mismatches) but replay FAIL: Pine had values at row 0 (e.g. MA50, and MA1000 from row 6) where JS had na |
+| Root cause | The study was computed on 993 bars before the chart series' first loaded bar (2026-09-20 22:04 → 2026-09-21 14:36 UTC). TradingView stores those rows at shifted indices (−1000993…−1000001) in the study data; the extractor iterated only the chart series, whose OHLC does not include them. (M5 had no such pre-history: 5,976 = 5,976, replay PASS) |
+| Evidence | `study.data().size() = 9303` vs `series.size() = 8310`; `valueAt(-1000993)` = bar 2026-09-20T22:04Z with 42 values |
+| Method | Extraction over the chart series indices only |
+| Result | Replaced: the copy also exports `m_open/m_high/m_low/m_close` (export only, PC2 = 16 exports) and the extractor reads every row the study computed on, from the study's own data, sorted by time. M5 and M1 are both re-run with this copy |
+| Status | `OPEN → re-run pending` |
+| Attempt | 1 |

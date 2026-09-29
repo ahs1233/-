@@ -45,7 +45,7 @@ function slotsHolding(slots, key) {
   return out;
 }
 
-export function runTimeframe({ tf, bars, htfBars = [], a1Bars, a2Bars, mintick, startBar = 0, emaSeed = 'first', htfInputs = null, symbol = 'XAUUSD', onRow = null, keepRows = true }) {
+export function runTimeframe({ tf, bars, htfBars = [], a1Bars, a2Bars, mintick, startBar = 0, emaSeed = 'sma', htfInputs = null, symbol = 'XAUUSD', onRow = null, keepRows = true }) {
   const prof = profileFor(tf);
   const P = zoneParams(DEFAULTS, prof, mintick);
   const S = computeSensors(bars, htfBars, prof, mintick, { emaSeed, htfInputs });

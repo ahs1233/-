@@ -4,12 +4,13 @@
 // propagates it, every comparison with it is false, and Math.max/Math.min return it.
 // Every function is causal: output[i] depends on inputs[0..i] only.
 //
-// Open parity points (decided by the Parity Gate, never by tuning):
-//   EMA_SEED   ta.ema seed. Pine documents `na(sum[1]) ? src : α·src + (1−α)·nz(sum[1])`
-//              (seed = first value). 'sma' (seed = SMA of the first `len` values, na
-//              before) is kept as the alternative hypothesis.
-//   PERCENTRANK na handling: na until `len` previous bars exist; na neighbours are not
-//              counted as ≤ (the comparison is false), and the divisor stays `len`.
+// Parity points, DECIDED by the Parity Gate on TradingView (OANDA:XAUUSD M5, 5,976 bars,
+// 2026-09-29, parity/captures/report_M5*.txt):
+//   EMA_SEED   ta.ema is seeded with the SMA of the first `len` values (na before): the
+//              'sma' hypothesis matched every field; the documented `na(sum[1]) ? src` form
+//              ('first') produced 6,603 mismatches. 'first' is kept only as a negative control.
+//   PERCENTRANK na until `len` previous bars exist; na neighbours are not counted; divisor
+//              `len`. Confirmed by exact Speed/Fuel score parity from the first bar.
 
 export const na = NaN;
 export const isNa = (x) => x === null || x === undefined || Number.isNaN(x);
@@ -30,7 +31,7 @@ export function sma(src, len) {
   return out;
 }
 
-export function ema(src, len, seed = 'first') {
+export function ema(src, len, seed = 'sma') {
   const n = src.length, out = new Array(n).fill(NaN);
   const a = 2 / (len + 1);
   const seedSma = seed === 'sma' ? sma(src, len) : null;
