@@ -1,6 +1,26 @@
 # GTG Strategy Lab — FREEZE_RECORD
 
-## Current freeze — v0.2.1
+## Current freeze — v0.2.2
+
+| Field | Value |
+|---|---|
+| Contract | `TRADE_CONTRACT.md` — v0.2.2 FROZEN (calendar / feed-semantics amendment, messages 19–20) |
+| Freeze commit SHA | `08757a278aa8c6fe788bce9ad81f222e01168e8c` |
+| **T_freeze_v0.2.2 (UTC)** | **2026-09-29T20:47:26Z** (committer timestamp) |
+| Contract blob | `ed67f4f7e4416993aedb6a3f3f5899f49727981e` |
+| Production HEAD / Pine blob | `0a77819…` / `0c7cbe3…` (unchanged) |
+| Calendar source | OANDA:XAUUSD symbolInfo on TradingView, sha256 `da510d1ee12c6c15e5578021feb9e3fffaf2487948819a4eff66fa7fe9e80a0f` |
+
+Pristine OOS = data with timestamp **> 2026-09-29T20:47:26Z** only (§22). The v0.2.1 and v0.2 records below are kept for history.
+
+Integrity Gate v0.2.2 — PASS:
+- production unchanged (`git diff 0a77819 HEAD -- indicators/gtg-navigator` empty); Pine blob `0c7cbe3`;
+- the freeze commit holds only the contract;
+- the diff v0.2.1 → v0.2.2 touches only §2.1 (description sentence), §2.2 (calendar), §14 P2 (PDH/PDL day), §18 (block-length day), §22 (T_freeze reference), the header and the change log; hypotheses, events, thresholds, CEM, horizons, δ_econ, costs and decision rules are byte-identical;
+- no GTG event outcome, edge statistic or Historical Holdout value was computed before the freeze (none exists in the repository);
+- calendar implementation (`data/tv_calendar.py`, commit `c213fb5`, before the freeze) passes `data/test_calendar.py` against TradingView's own bars.
+
+## Previous freeze — v0.2.1
 
 | Field | Value |
 |---|---|

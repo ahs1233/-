@@ -1,7 +1,7 @@
 # GTG Strategy Lab
 
 A separate research project: does GTG Navigator v0.4.7 carry a real, repeatable edge on XAUUSD?
-- The protocol is frozen in `TRADE_CONTRACT.md` (v0.2.1 FROZEN, T_freeze_v0.2.1 = 2026-09-29T14:58:45Z; see `FREEZE_RECORD.md`).
+- The protocol is frozen in `TRADE_CONTRACT.md` (v0.2.2 FROZEN, T_freeze_v0.2.2 = 2026-09-29T20:47:26Z; see `FREEZE_RECORD.md`). Prices = Dukascopy; timeframe calendar = OANDA:XAUUSD on TradingView (§2.2).
 - The production indicator is not modified (`BASELINE_LOCK.md`).
 
 | Folder / file | Contents |
@@ -23,7 +23,7 @@ node indicators/gtg-strategy-lab/engine/pinecmp/build.mjs   # after editing a so
 
 | Step | Status |
 |---|---|
-| 1 Freeze + Integrity Gate | ✅ v0.2 `e4ceb8e`, v0.2.1 `e5eefac` |
+| 1 Freeze + Integrity Gate | ✅ v0.2 `e4ceb8e`, v0.2.1 `e5eefac`, v0.2.2 `08757a2` (calendar) |
 | 2 Raw forward capture | ✅ Code (`data/capture_forward.py`, sealed; hashes only). ⏳ The daily run on the desktop is not scheduled yet (F-001: the container cannot reach the feed) |
 | 3 Data layer | ✅ Code + 33 Python tests (fetch/throttling, quiet acquisition, history, forward, Tick Audit). ⏳ Official M1 acquisition running on the desktop, newest first; throughput far below plan (F-008 → plan B to GPT) |
 | 4 Measurement Engine | ✅ JS + Pine copy + Pine float semantics (F-007); 41 Node tests |
