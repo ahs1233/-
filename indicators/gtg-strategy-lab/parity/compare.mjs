@@ -30,6 +30,12 @@ const SCORES = [
   ['m_fuelScore', (r) => r.fuelScore],
 ];
 const PRICES = [['m_atr', (r) => r.atr]];
+// Route HTF values (request.security, lookahead_on, [1]/[6]). Compared only when JS computes
+// them from the feed's own HTF bars (feed mode); in export mode they are the JS inputs.
+const HTF_PRICES = [
+  ['m_htfClose', (r) => r.htfClose], ['m_htfMA50', (r) => r.htfMA50], ['m_htfMA200', (r) => r.htfMA200],
+  ['m_htfMA50Past', (r) => r.htfMA50Past], ['m_htfATR', (r) => r.htfATR],
+];
 const TICK_ONLY = [['MA50', (r) => r.ma50], ['MA200', (r) => r.ma200], ['MA1000', (r) => r.ma1000], ['MA14', (r) => r.ma14], ['MA22', (r) => r.ma22]];
 const sign = (x, th) => (x > th ? 1 : x < -th ? -1 : 0);
 const BANDS = [
@@ -37,16 +43,37 @@ const BANDS = [
   ['headingSign', 'm_headingScore', (r) => r.headingSign, (v) => sign(v, INPUTS.headingClearThreshold)],
 ];
 
-// Builds the JS inputs from the export. Anchor bars are rebuilt from the chart bars by
-// UTC time buckets, which equals the feed's own HTF bars only when every anchor
-// timeframe is ≤ H1 (clock-aligned): M1 (A1 M5, A2 M15) and M5 (A1 M15, A2 H1).
-export function inputsFromExport(rows, tf) {
-  if (tf !== 'M1' && tf !== 'M5') throw new Error(`parity replay supports M1 and M5 (clock-aligned anchors); got ${tf}`);
+// Pine timeframe string of a profile's HTF / anchor → the feed file key (TradingView resolution).
+export const RES_OF = Object.freeze({ M1: '1', M5: '5', M15: '15', H1: '60', H4: '240', D: '1D', 1: '1', 5: '5', 15: '15', 60: '60', 240: '240', W: '1W' });
+export const feedKeysFor = (tf) => { const p = profileFor(tf); return { htf: RES_OF[p.htfTf], a1: RES_OF[p.a1Tf], a2: RES_OF[p.a2Tf] }; };
+
+// tv_bars.mjs dump { resolution, bars: [[t_sec, o, h, l, c, v], ...] } → feed bars (t in ms).
+export function feedFromTvBars(dump) {
+  const out = dump.bars.map(([t, o, h, l, c, v]) => ({ t: t * 1000, o, h, l, c, v }));
+  for (let i = 1; i < out.length; i++) if (!(out[i].t > out[i - 1].t)) throw new Error(`${dump.resolution}: bars not strictly time-ordered at ${i}`);
+  return out;
+}
+
+// Builds the JS inputs from the export.
+// Export mode (feed = null): route HTF values are taken from the export, and anchor bars
+// are rebuilt from the chart bars by UTC time buckets, which equals the feed's own HTF bars
+// only when every anchor timeframe is ≤ H1 (clock-aligned): M1 (A1 M5, A2 M15) and M5
+// (A1 M15, A2 H1).
+// Feed mode (feed = { [resolution]: bars }): the route HTF and both anchors come from the
+// feed's own bars of those timeframes (t = open time, ms), and JS computes every HTF value
+// itself; this is the MTF parity (message 18). Any timeframe M1..H4.
+export function inputsFromExport(rows, tf, feed = null) {
   const prof = profileFor(tf);
   const bars = rows.map((r) => ({ t: r.t, o: r.open, h: r.high, l: r.low, c: r.close, v: r.m_volume }));
+  if (feed) {
+    const k = feedKeysFor(tf);
+    for (const [role, res] of Object.entries(k)) if (!feed[res]) throw new Error(`feed mode: no bars for ${role} (${res})`);
+    return { prof, bars, htfInputs: null, htfBars: feed[k.htf], a1Bars: feed[k.a1], a2Bars: feed[k.a2], mode: 'feed' };
+  }
+  if (tf !== 'M1' && tf !== 'M5') throw new Error(`parity replay supports M1 and M5 (clock-aligned anchors); got ${tf}`);
   const from = bars[0].t, to = bars[bars.length - 1].t;
   const htfInputs = rows.map((r) => ({ htfClose: r.m_htfClose, htfMA50: r.m_htfMA50, htfMA200: r.m_htfMA200, htfMA50Past: r.m_htfMA50Past, htfATR: r.m_htfATR }));
-  return { prof, bars, htfInputs, a1Bars: htfBarsOf(bars, prof.a1Sec, from, to), a2Bars: htfBarsOf(bars, prof.a2Sec, from, to) };
+  return { prof, bars, htfInputs, htfBars: [], a1Bars: htfBarsOf(bars, prof.a1Sec, from, to), a2Bars: htfBarsOf(bars, prof.a2Sec, from, to), mode: 'export' };
 }
 
 // Pine: engineOn = bar_index >= last_bar_index − (engineWindow + studyExtraBars).
@@ -56,7 +83,7 @@ export function pineStartBar(nRows, tf, mintick, studyExtraBars) {
   return { start: Math.max(0, nRows - 1 - (W + studyExtraBars)), W };
 }
 
-function compareRun(rows, js, mintick) {
+function compareRun(rows, js, mintick, feedMode = false) {
   const fields = new Map();
   const note = (name, i, a, b) => {
     const f = fields.get(name) ?? { compared: 0, mismatched: 0, first: null };
@@ -76,7 +103,7 @@ function compareRun(rows, js, mintick) {
       const v = get(r);
       note(col, i, Math.abs(v - p[col]) <= SCORE_TOL ? undefined : p[col], v);
     }
-    for (const [col, get] of PRICES) {
+    for (const [col, get] of feedMode ? [...PRICES, ...HTF_PRICES] : PRICES) {
       if (!(col in p) || Number.isNaN(p[col])) continue;
       const v = get(r);
       const ok = Math.abs(v - p[col]) <= Math.max(priceTol(v, mintick), priceTol(p[col], mintick)) && Math.round(v / mintick) === Math.round(p[col] / mintick);
@@ -98,17 +125,17 @@ function compareRun(rows, js, mintick) {
   return { fields: out, mismatched };
 }
 
-export function compareExport(parsed, { tf, mintick, studyExtraBars = 0 }) {
+export function compareExport(parsed, { tf, mintick, studyExtraBars = 0, feed = null }) {
   const { rows, decimals } = parsed;
   const lowPrecision = SCORES.map(([c]) => c).filter((c) => decimals.has(c) && decimals.get(c) < MIN_EXPORT_DECIMALS);
-  const inp = inputsFromExport(rows, tf);
+  const inp = inputsFromExport(rows, tf, feed);
   const { start, W } = pineStartBar(rows.length, tf, mintick, studyExtraBars);
   const hasEngineCols = rows.some((r) => Number.isFinite(r.v_hashSlots));
   const pineFirstEngineRow = rows.findIndex((r) => Number.isFinite(r.v_hashSlots));
   const runs = {};
   for (const seed of EMA_SEEDS) {
-    const js = runTimeframe({ tf, mintick, bars: inp.bars, htfInputs: inp.htfInputs, a1Bars: inp.a1Bars, a2Bars: inp.a2Bars, startBar: start, emaSeed: seed }).rows;
-    runs[seed] = compareRun(rows, js, mintick);
+    const js = runTimeframe({ tf, mintick, bars: inp.bars, htfBars: inp.htfBars, htfInputs: inp.htfInputs, a1Bars: inp.a1Bars, a2Bars: inp.a2Bars, startBar: start, emaSeed: seed }).rows;
+    runs[seed] = compareRun(rows, js, mintick, inp.mode === 'feed');
   }
   const passing = EMA_SEEDS.filter((s) => runs[s].mismatched === 0 && Object.keys(runs[s].fields).length > 0);
   let verdict = passing.length === 1 ? 'PASS' : passing.length > 1 ? 'PASS_SEED_UNDECIDED' : 'FAIL';
@@ -116,7 +143,7 @@ export function compareExport(parsed, { tf, mintick, studyExtraBars = 0 }) {
   if (lowPrecision.length) verdict = 'FAIL_EXPORT_PRECISION';
   if (hasEngineCols && pineFirstEngineRow !== start) verdict = verdict.startsWith('FAIL') ? verdict : 'FAIL_ENGINE_START';
   return {
-    verdict, emaSeed: passing[0] ?? null, tf, mintick, bars: rows.length, W, jsStartBar: start, pineFirstEngineRow,
+    verdict, emaSeed: passing[0] ?? null, tf, mintick, mode: inp.mode, bars: rows.length, W, jsStartBar: start, pineFirstEngineRow,
     lowPrecision, runs,
   };
 }
