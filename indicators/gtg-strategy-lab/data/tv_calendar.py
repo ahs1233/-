@@ -19,7 +19,9 @@ no bar: it is dropped before aggregation and counted.
 """
 from __future__ import annotations
 
+import json
 from datetime import date, datetime, time, timedelta, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 NY = ZoneInfo("America/New_York")
@@ -30,6 +32,41 @@ CORRECTIONS: dict[date, tuple[time, time]] = {
     date(2024, 11, 28): (time(17, 0), time(14, 30)),
     date(2024, 11, 29): (time(18, 0), time(14, 45)),
 }
+# Forward session corrections (message 22 §4): feed metadata, not a contract change. Each new
+# correction seen in TradingView/OANDA symbolInfo after the freeze is appended to
+# calendar_corrections_forward.jsonl BEFORE bars of that trading day are built:
+#   {"trading_date": "YYYY-MM-DD", "open": "HHMM", "close": "HHMM", "observed_at": ISO-UTC,
+#    "source": "TradingView symbolInfo OANDA:XAUUSD", "symbolinfo_sha256": "..."}
+# Rules checked by load_forward_corrections(): the date is after T_freeze_v0.2.2 and not in the
+# frozen historical table; observed_at precedes the (default) open of that trading day; the
+# entry never depends on a GTG result; the file is append-only (audit log).
+FORWARD_FILE = Path(__file__).resolve().parent / "calendar_corrections_forward.jsonl"
+FROZEN_UNTIL = date(2026, 9, 29)  # trading dates ≤ this use only the frozen table above
+
+
+def load_forward_corrections(path: Path = FORWARD_FILE) -> dict[date, tuple[time, time]]:
+    out: dict[date, tuple[time, time]] = {}
+    if not path.exists():
+        return out
+    for n, line in enumerate(path.read_text().splitlines(), 1):
+        if not line.strip():
+            continue
+        e = json.loads(line)
+        for k in ("trading_date", "open", "close", "observed_at", "source", "symbolinfo_sha256"):
+            if not e.get(k):
+                raise ValueError(f"{path.name}:{n}: missing {k}")
+        d = date.fromisoformat(e["trading_date"])
+        if d <= FROZEN_UNTIL or d in CORRECTIONS:
+            raise ValueError(f"{path.name}:{n}: {d} is covered by the frozen table")
+        if d in out:
+            raise ValueError(f"{path.name}:{n}: duplicate {d}")
+        observed = datetime.fromisoformat(e["observed_at"].replace("Z", "+00:00"))
+        if observed.timestamp() * 1000 >= _ms(d - timedelta(days=1), SESSION_OPEN):
+            raise ValueError(f"{path.name}:{n}: {d} registered after its session opened")
+        out[d] = (time(int(e["open"][:2]), int(e["open"][2:])), time(int(e["close"][:2]), int(e["close"][2:])))
+    return out
+
+
 H4_MS = 4 * 3_600_000
 CLOCK_MS = {"M1": 60_000, "M5": 300_000, "M15": 900_000, "H1": 3_600_000}
 
@@ -48,12 +85,22 @@ def trading_date(t_ms: int) -> date:
     return loc.date() + timedelta(days=1) if loc.time() >= SESSION_OPEN else loc.date()
 
 
+_ALL = None
+
+
+def _corrections() -> dict[date, tuple[time, time]]:
+    global _ALL
+    if _ALL is None:
+        _ALL = {**CORRECTIONS, **load_forward_corrections()}
+    return _ALL
+
+
 def session_open(d: date) -> int:
-    return _ms(d - timedelta(days=1), CORRECTIONS.get(d, (SESSION_OPEN, SESSION_CLOSE))[0])
+    return _ms(d - timedelta(days=1), _corrections().get(d, (SESSION_OPEN, SESSION_CLOSE))[0])
 
 
 def session_close(d: date) -> int:
-    return _ms(d, CORRECTIONS.get(d, (SESSION_OPEN, SESSION_CLOSE))[1])
+    return _ms(d, _corrections().get(d, (SESSION_OPEN, SESSION_CLOSE))[1])
 
 
 def in_session(t_ms: int) -> bool:

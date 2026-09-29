@@ -81,6 +81,35 @@ class SymbolInfo(unittest.TestCase):
         self.assertEqual({d: (o.strftime("%H%M"), c.strftime("%H%M")) for d, (o, c) in cal.CORRECTIONS.items()}, parsed)
 
 
+class ForwardCorrections(unittest.TestCase):
+    """Message 22 §4: forward session corrections are feed metadata with an audit trail."""
+
+    def write(self, *entries):
+        import tempfile
+        f = Path(tempfile.mkdtemp()) / "fwd.jsonl"
+        f.write_text("".join(json.dumps(e) + "\n" for e in entries))
+        return f
+
+    base = {"trading_date": "2026-11-27", "open": "1700", "close": "1345", "observed_at": "2026-11-20T12:00:00Z",
+            "source": "TradingView symbolInfo OANDA:XAUUSD", "symbolinfo_sha256": "ab" * 32}
+
+    def test_valid_entry_is_loaded(self):
+        from datetime import date, time
+        got = cal.load_forward_corrections(self.write(self.base))
+        self.assertEqual(got, {date(2026, 11, 27): (time(17, 0), time(13, 45))})
+
+    def test_rejects_late_registration_frozen_dates_duplicates_and_missing_source(self):
+        late = {**self.base, "observed_at": "2026-11-26T23:00:00Z"}             # after 17:00 NY on the 26th
+        frozen = {**self.base, "trading_date": "2024-11-29"}
+        nosrc = {**self.base, "source": ""}
+        for bad in ([late], [frozen], [self.base, self.base], [nosrc]):
+            with self.assertRaises(ValueError):
+                cal.load_forward_corrections(self.write(*bad))
+
+    def test_repository_log_is_valid(self):
+        cal.load_forward_corrections()   # the committed audit log (may be empty) must pass the rules
+
+
 class AgainstTradingView(unittest.TestCase):
     """The calendar reproduces TradingView's own H4 / D / W bars of OANDA:XAUUSD."""
 
