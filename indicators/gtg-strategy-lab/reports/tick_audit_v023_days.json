@@ -1,0 +1,122 @@
+[
+ {
+  "bucket": 0,
+  "month": "2019-03",
+  "type": "week_reopen",
+  "day": "2019-03-08"
+ },
+ {
+  "bucket": 0,
+  "month": "2019-03",
+  "type": "high_vol",
+  "day": "2019-03-01"
+ },
+ {
+  "bucket": 0,
+  "month": "2019-03",
+  "type": "low_vol",
+  "day": "2019-03-06"
+ },
+ {
+  "bucket": 0,
+  "month": "2019-03",
+  "type": "normal",
+  "day": "2019-03-27"
+ },
+ {
+  "bucket": 1,
+  "month": "2021-03",
+  "type": "week_reopen",
+  "day": "2021-03-08"
+ },
+ {
+  "bucket": 1,
+  "month": "2021-03",
+  "type": "high_vol",
+  "day": "2021-03-09"
+ },
+ {
+  "bucket": 1,
+  "month": "2021-03",
+  "type": "low_vol",
+  "day": "2021-03-15"
+ },
+ {
+  "bucket": 1,
+  "month": "2021-03",
+  "type": "normal",
+  "day": "2021-03-29"
+ },
+ {
+  "bucket": 2,
+  "month": "2022-05",
+  "type": "week_reopen",
+  "day": "2022-05-09"
+ },
+ {
+  "bucket": 2,
+  "month": "2022-05",
+  "type": "high_vol",
+  "day": "2022-05-12"
+ },
+ {
+  "bucket": 2,
+  "month": "2022-05",
+  "type": "low_vol",
+  "day": "2022-05-26"
+ },
+ {
+  "bucket": 2,
+  "month": "2022-05",
+  "type": "normal",
+  "day": "2022-05-06"
+ },
+ {
+  "bucket": 3,
+  "month": "2025-01",
+  "type": "week_reopen",
+  "day": "2025-01-08"
+ },
+ {
+  "bucket": 3,
+  "month": "2025-01",
+  "type": "high_vol",
+  "day": "2025-01-21"
+ },
+ {
+  "bucket": 3,
+  "month": "2025-01",
+  "type": "low_vol",
+  "day": "2025-01-17"
+ },
+ {
+  "bucket": 3,
+  "month": "2025-01",
+  "type": "normal",
+  "day": "2025-01-28"
+ },
+ {
+  "bucket": 4,
+  "month": "2026-03",
+  "type": "week_reopen",
+  "day": "2026-03-09"
+ },
+ {
+  "bucket": 4,
+  "month": "2026-03",
+  "type": "high_vol",
+  "day": "2026-03-23"
+ },
+ {
+  "bucket": 4,
+  "month": "2026-03",
+  "type": "low_vol",
+  "day": "2026-03-16"
+ },
+ {
+  "bucket": 4,
+  "month": "2026-03",
+  "type": "normal",
+  "day": "2026-03-02"
+ }
+]
