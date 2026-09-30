@@ -39,6 +39,33 @@ class Cache(unittest.TestCase):
             dk.decode_candles(candle_file(BID), int(DAY.timestamp()), compressed=False)
 
 
+class Export(unittest.TestCase):
+    def test_export_imports_with_provenance_and_freeze_clip(self):
+        from datetime import timedelta
+        from lab_config import T_FREEZE, T_FREEZE_MS
+        from store import read_manifest
+        fd = T_FREEZE.replace(hour=0, minute=0, second=0)
+        prev = fd - timedelta(days=1)
+        fm = T_FREEZE.hour * 3600 + T_FREEZE.minute * 60
+        late = [(fm - 60, 4000.0, 4000.5, 3999.5, 4001.0, 7.0), (fm, 4000.5, 4001.0, 4000.0, 4001.5, 3.0)]
+        export = Path(tempfile.mkdtemp())
+        for day, rows in ((prev, BID), (fd, late)):
+            for side, rr in (("BID", rows), ("ASK", [(s_, o + 0.2, c + 0.2, lo + 0.2, h + 0.2, v) for s_, o, c, lo, h, v in rows])):
+                f = il.cache_path(export, dk.candle_url(day, side))
+                f.parent.mkdir(parents=True, exist_ok=True)
+                f.write_bytes(lzma.decompress(candle_file(rr)))
+        (export / "export_log.csv").write_text(f"day,side,rows,ms,exported_at_utc,from,to\n{prev:%Y-%m-%d},BID,2,1,2026-10-01T00:00:00Z,a,b\n")
+        root = Path(tempfile.mkdtemp())
+        r = il.import_export(export, root, prev, fd + timedelta(days=3), log=lambda *_: None)
+        self.assertEqual(r, {"processed": 2, "with_data": 2})
+        m = {e["day"]: e for e in read_manifest(root)}
+        e = m[f"{prev:%Y-%m-%d}"]
+        self.assertEqual((e["origin"], e["raw_format"], e["exported_at"], e["provenance"]["channel"]),
+                         ("jforex-ihistory-export", "plain", "2026-10-01T00:00:00Z", "JForex API/IHistory -> local export"))
+        self.assertEqual(m[f"{fd:%Y-%m-%d}"]["bars"], 1)                         # the minute holding T_freeze is dropped
+        self.assertEqual(il.import_export(export, root, prev, fd, log=lambda *_: None)["processed"], 0)   # idempotent
+
+
 class Csv(unittest.TestCase):
     def write(self, rows, header="Gmt time,Open,High,Low,Close,Volume"):
         p = Path(tempfile.mkdtemp()) / "x.csv"

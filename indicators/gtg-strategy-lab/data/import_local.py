@@ -8,10 +8,14 @@ Two modes; neither changes the feed, the decoding or the sanitation of §2.2:
   csv    Historical Data Manager CSV exports (one BID file, one ASK file, GMT, 1 minute) are
          parsed into the same candle tuples, then candles_to_m1 → write_day. Timezone must be
          GMT/UTC; anything else is refused.
+  export v0.2.3 canonical source: the JForex IHistory export (jforex/GtgFullExport.java) writes the
+         same records and layout as the cache (uncompressed); imported like the cache, with
+         origin "jforex-ihistory-export", the export time and the platform/API version per day.
 Both tag the manifest with `origin`. `crosscheck` compares imported days with days already
 downloaded from the datafeed: identical raw sha256 (cache) or identical bars (csv).
 
   python import_local.py cache --cache <dir containing XAUUSD/...> --root <data root> --from 2003-01-01 --to 2026-09-30
+  python import_local.py export --export <jforex_export/canonical> --root <data root> --from 2018-03-01 --to 2026-09-30
   python import_local.py csv --bid bid.csv --ask ask.csv --root <data root>
   python import_local.py crosscheck --root <data root> --ref <datafeed data root>
 """
@@ -58,6 +62,41 @@ def import_cache(cache: Path, root: Path, start: datetime, end: datetime, log=pr
         n += 1
         found += r["source"] == "m1"
     log(f"cache import: {n} days processed, {found} with data")
+    return {"processed": n, "with_data": found}
+
+
+# ---------- export mode (v0.2.3 canonical) ----------
+JFOREX_PROVENANCE = {"channel": "JForex API/IHistory -> local export", "platform": "JForex 4.8.18", "api": "jforex-api 4.8.13",
+                     "filter": "NO_FILTER", "account": "demo (Dukascopy: demo history = live history)"}
+
+
+def export_times(export: Path) -> dict[str, str]:
+    """day → UTC time of its latest export (both sides), from export_log.csv."""
+    out: dict[str, str] = {}
+    log = export / "export_log.csv"
+    if log.exists():
+        with open(log, newline="") as fh:
+            for r in csv.DictReader(fh):
+                if r.get("day") and r["day"] != "day":
+                    out[r["day"]] = max(out.get(r["day"], ""), r["exported_at_utc"])
+    return out
+
+
+def import_export(export: Path, root: Path, start: datetime, end: datetime, log=print) -> dict:
+    """Every UTC day in [start, end] up to the freeze day (no publish lag: the export is the source)."""
+    done = {e["day"] for e in read_manifest(root) if e.get("kind") == "history_day" and e.get("source") == "m1"}
+    times = export_times(export)
+    n = found = 0
+    d = start
+    while d <= end and int(d.timestamp() * 1000) < T_FREEZE_MS:
+        key = f"{d:%Y-%m-%d}"
+        if key not in done:
+            extra = {"provenance": JFOREX_PROVENANCE, "exported_at": times.get(key)}
+            r = build_day(d, fetch=cache_fetch(export), root=root, origin="jforex-ihistory-export", compressed=False, extra=extra)["entry"]
+            n += 1
+            found += r["source"] == "m1"
+        d += timedelta(days=1)
+    log(f"export import: {n} days processed, {found} with data")
     return {"processed": n, "with_data": found}
 
 
@@ -149,12 +188,17 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="mode", required=True)
     c = sub.add_parser("cache"); c.add_argument("--cache", required=True); c.add_argument("--root", required=True)
     c.add_argument("--from", dest="start", required=True); c.add_argument("--to", dest="end", required=True)
+    g = sub.add_parser("export"); g.add_argument("--export", required=True); g.add_argument("--root", required=True)
+    g.add_argument("--from", dest="start", required=True); g.add_argument("--to", dest="end", required=True)
     v = sub.add_parser("csv"); v.add_argument("--bid", required=True); v.add_argument("--ask", required=True); v.add_argument("--root", required=True)
     x = sub.add_parser("crosscheck"); x.add_argument("--root", required=True); x.add_argument("--ref", required=True); x.add_argument("--out")
     a = ap.parse_args(argv)
     if a.mode == "cache":
         s = datetime.fromisoformat(a.start).replace(tzinfo=UTC); e = datetime.fromisoformat(a.end).replace(tzinfo=UTC)
         print(json.dumps(import_cache(Path(a.cache), root_dir(a.root), s, e)))
+    elif a.mode == "export":
+        s = datetime.fromisoformat(a.start).replace(tzinfo=UTC); e = datetime.fromisoformat(a.end).replace(tzinfo=UTC)
+        print(json.dumps(import_export(Path(a.export), root_dir(a.root), s, e)))
     elif a.mode == "csv":
         print(json.dumps(import_csv(Path(a.bid), Path(a.ask), root_dir(a.root))))
     else:

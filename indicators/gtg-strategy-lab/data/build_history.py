@@ -19,7 +19,8 @@ from lab_config import T_FREEZE_MS
 from store import append_manifest, read_manifest, root_dir, sha256, write_day, write_raw
 
 
-def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False, origin: str = "datafeed", compressed: bool = True) -> dict:
+def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False, origin: str = "datafeed", compressed: bool = True,
+              extra: dict | None = None) -> dict:
     day = day.replace(hour=0, minute=0, second=0, microsecond=0)
     day_ms = int(day.timestamp() * 1000)
     bid_raw = fetch(dk.candle_url(day, "BID"))
@@ -35,7 +36,8 @@ def build_day(day: datetime, fetch=dk.fetch, root=None, keep_raw=False, origin: 
     entry = {"kind": "history_day", "day": f"{day:%Y-%m-%d}", "source": "m1" if bid_raw else "none", "origin": origin,
              "raw_format": "lzma" if compressed else "plain",
              "bars": len(bars), "ask_coverage": ask_cov,
-             "bid_sha256": sha256(bid_raw) if bid_raw else None, "ask_sha256": sha256(ask_raw) if ask_raw else None}
+             "bid_sha256": sha256(bid_raw) if bid_raw else None, "ask_sha256": sha256(ask_raw) if ask_raw else None,
+             **(extra or {})}
     if root is not None:
         if bars:
             p = write_day(root, day, bars)
