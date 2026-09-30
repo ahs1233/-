@@ -106,3 +106,25 @@ class FuelJs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Classes(unittest.TestCase):
+    def test_price_volume_timestamp_and_boundary_classes(self):
+        import gzip, tempfile
+        from pathlib import Path
+        m0 = 1_700_000_040_000 - 1_700_000_040_000 % 60_000
+        ticks = [(m0 + 1_000, 4000.3, 4000.0, 1.0, 1.0), (m0 + 30_000, 4000.8, 4000.5, 1.0, 1.0),
+                 (m0 + 60_000, 4000.4, 4000.1, 1.0, 2.0),                       # exactly on the next minute's start
+                 (m0 + 90_000, 4000.6, 4000.3, 1.0, 1.0), (m0 + 150_000, 4001.3, 4001.0, 1.0, 1.0)]
+        tick_bars = ta.ticks_to_m1(ticks)
+        off = [dict(b) for b in tick_bars]
+        off[0].update(bc=4000.1, bh=4000.5)                                     # the (m, m+60s] reading of minute 0
+        off[1]["v"] += 5                                                        # volume only
+        off[2].update(bh=off[2]["bh"] + 0.5)                                    # a real price difference
+        off.append(dict(off[2], t=m0 + 180_000))                                 # a minute only in the official M1
+        c = ta.classify(ticks, tick_bars, off)["BID"]
+        self.assertEqual((c["aggregation_semantic"], c["volume_only"], c["price"], c["timestamp"]), (1, 1, 1, 1))
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "x_ticks.csv.gz"
+            f.write_bytes(gzip.compress(("t,ask,bid,askVol,bidVol\n" + "".join(f"{a},{b},{c_},{v},{w}\n" for a, b, c_, v, w in ticks)).encode()))
+            self.assertEqual(ta.read_tick_export(f), ticks)

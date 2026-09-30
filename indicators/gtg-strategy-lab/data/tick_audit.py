@@ -7,11 +7,20 @@
 3. verdict(): PASS-A / PASS-B / FAIL, or TICK_AUDIT_BLOCKED_BY_SOURCE when the source
    throttles (that is not a FAIL of the M1 data).
 
-Usage: python tick_audit.py --root DIR [--select-only]
+v0.2.3 (GPT message 57): the audit runs on the JForex canonical M1 with IHistory raw ticks
+(--ticks-dir: <day>_ticks.csv.gz from jforex/GtgTickExport.java); each differing minute is
+classified as price / volume_only / timestamp (only on one side) / aggregation_semantic (the
+official candle is rebuilt by the same ticks with the minute boundary taken as (m, m+60s]).
+Nothing is corrected or replaced: audit only.
+
+Usage: python tick_audit.py --root DIR [--select-only] [--ticks-dir DIR]
 """
 from __future__ import annotations
 
 import argparse
+import csv
+import gzip
+import io
 import json
 import math
 import random
@@ -115,19 +124,58 @@ def fuel_check(off_bars, vol_by_t: dict[int, float], node: str = "node") -> dict
     return json.loads(out.stdout)
 
 
-def audit_day(day: str, off_bars: list[dict], fetch=dk.fetch, fuel=fuel_check) -> dict:
+def read_tick_export(path: Path) -> list[tuple]:
+    """IHistory ticks exported as CSV (t, ask, bid, askVol, bidVol) → the tuples of dk.decode_ticks."""
+    rows = csv.DictReader(io.TextIOWrapper(gzip.open(path), encoding="utf-8"))
+    return [(int(r["t"]), float(r["ask"]), float(r["bid"]), float(r["askVol"]), float(r["bidVol"])) for r in rows]
+
+
+def _tick_candle(ticks, m: int, side: str, shifted: bool) -> tuple | None:
+    lo, hi = (m, m + 60_000) if not shifted else (m + 1, m + 60_001)
+    px = [(t[2] if side == "BID" else t[1]) for t in ticks if lo <= t[0] < hi]
+    return (px[0], max(px), min(px), px[-1]) if px else None
+
+
+def classify(ticks, tick_bars, off_bars) -> dict:
+    """Per side: counts of price / volume_only / timestamp / aggregation_semantic minutes (0.001 tolerance)."""
+    out = {}
+    for side, p in (("BID", "b"), ("ASK", "a")):
+        t_map = {b["t"]: b for b in tick_bars}
+        o_map = {b["t"]: b for b in off_bars if b[p + "o"] is not None}
+        k = {"price": 0, "volume_only": 0, "timestamp": len(set(t_map) ^ set(o_map)), "aggregation_semantic": 0}
+        examples = []
+        for t in sorted(set(t_map) & set(o_map)):
+            off = tuple(o_map[t][p + f] for f in ("o", "h", "l", "c"))
+            tb = tuple(t_map[t][p + f] for f in ("o", "h", "l", "c"))
+            if all(abs(x - y) <= OHLC_TOL for x, y in zip(off, tb)):
+                if p == "b" and abs(t_map[t]["v"] - o_map[t]["v"]) > 1e-6 * max(1.0, o_map[t]["v"]):
+                    k["volume_only"] += 1
+                continue
+            alt = _tick_candle(ticks, t, side, shifted=True)
+            if alt and all(abs(x - y) <= OHLC_TOL for x, y in zip(off, alt)):
+                k["aggregation_semantic"] += 1
+            else:
+                k["price"] += 1
+                if len(examples) < 3:
+                    examples.append(datetime.fromtimestamp(t / 1000, UTC).strftime("%H:%M"))
+        out[side] = {**k, "price_examples_utc": examples}
+    return out
+
+
+def audit_day(day: str, off_bars: list[dict], fetch=dk.fetch, fuel=fuel_check, ticks=None) -> dict:
     d0 = datetime.fromisoformat(day).replace(tzinfo=UTC)
-    ticks = []
-    try:
-        for h in range(24):
-            raw = fetch(dk.tick_url(d0 + timedelta(hours=h)))
-            if raw:
-                ticks.extend(dk.decode_ticks(raw, int((d0 + timedelta(hours=h)).timestamp() * 1000)))
-    except dk.RateLimited as e:
-        return {"day": day, "status": "TICK_AUDIT_BLOCKED_BY_SOURCE", "detail": str(e)}
+    if ticks is None:
+        ticks = []
+        try:
+            for h in range(24):
+                raw = fetch(dk.tick_url(d0 + timedelta(hours=h)))
+                if raw:
+                    ticks.extend(dk.decode_ticks(raw, int((d0 + timedelta(hours=h)).timestamp() * 1000)))
+        except dk.RateLimited as e:
+            return {"day": day, "status": "TICK_AUDIT_BLOCKED_BY_SOURCE", "detail": str(e)}
     tick_bars = [b for b in ticks_to_m1(ticks) if not is_dead_candle(b["bo"], b["bh"], b["bl"], b["bc"], b["v"])]
     res = {"day": day, "status": "done", "bid": compare_side(tick_bars, off_bars, "BID"), "ask": compare_side(tick_bars, off_bars, "ASK"),
-           "volume": volume_stats(tick_bars, off_bars)}
+           "volume": volume_stats(tick_bars, off_bars), "classes": classify(ticks, tick_bars, off_bars)}
     res["fuel"] = fuel(off_bars, {b["t"]: b["v"] for b in tick_bars})
     return res
 
@@ -149,16 +197,21 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--root")
     ap.add_argument("--select-only", action="store_true")
+    ap.add_argument("--ticks-dir", help="IHistory tick exports <day>_ticks.csv.gz (v0.2.3)")
     a = ap.parse_args(argv)
     root = root_dir(a.root)
     files = {e["day"]: root / e["m1_file"] for e in read_manifest(root) if e.get("kind") == "history_day" and e.get("m1_file")}
     day_bars = {d: read_day(p) for d, p in files.items()}
     days = select_days(day_bars)
-    (root / "tick_audit_days.json").write_text(json.dumps(days, indent=1))
-    print(json.dumps(days, indent=1))
+    body = json.dumps(days, indent=1)
+    (root / "tick_audit_days.json").write_text(body)
+    import hashlib
+    print(body)
+    print("DAYS_SHA256", hashlib.sha256(body.encode()).hexdigest())
     if a.select_only:
         return
-    results = [audit_day(x["day"], day_bars[x["day"]]) for x in days]
+    tick_of = (lambda d: read_tick_export(Path(a.ticks_dir) / f"{d}_ticks.csv.gz")) if a.ticks_dir else (lambda d: None)
+    results = [audit_day(x["day"], day_bars[x["day"]], ticks=tick_of(x["day"])) for x in days]
     report = {"verdict": verdict(results), "days": days, "results": results}
     (root / "tick_audit_report.json").write_text(json.dumps(report, indent=1))
     print("VERDICT", report["verdict"])
