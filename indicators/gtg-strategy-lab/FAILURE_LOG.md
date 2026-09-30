@@ -201,5 +201,34 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Root cause hypothesis | Two constructions of M1 candles inside Dukascopy: the public datafeed candle files and the JForex history service. Each disagrees with the tick record on rare minutes; JForex additionally leaves the last minute of the most recent days unconsolidated |
 | Method | JForex cache used as a byte-identical substitute for the datafeed |
 | Result | Not byte-identical; nothing imported, nothing altered to pass. The JForex CSV export is also unsuitable as primary (EET time column, Arabic-Indic digits). Full-history download into the JForex cache continues (harmless) so the extent can be measured before any decision |
-| Status | `OPEN — source decision to GPT (message 29)` |
+| Follow-up (2026-09-30) | Fixed sample on 10 random weekdays (seed 20260929, drawn from 2004-01-01…2026-09-21 before any comparison; the user cut the 88-day sample of message 30 to this): 2008-08-13, 2011-06-03, 2013-02-14, 2015-06-30, 2016-01-06, 2017-09-11, 2018-07-17, 2020-04-03, 2022-10-31, 2024-11-25. 8 days byte-identical. **2013-02-14**: 250 BID + 254 ASK traded minutes differ over the whole day (high/low); the raw ticks rebuild the **datafeed** candle on every one of them, never JForex's. **2015-06-30**: 21:00–23:59 UTC flat zero-volume candles filled with a different price on each side (BID 1171.889 datafeed vs 1171.998 JForex), no ticks, no verdict (see F-014). Before the fix, 4 files of 2004–2005 on the full sample were also identical |
+| Status | `CLOSED — JForex rejected as primary source (GPT message 31): public bi5 stays canonical, JForex is an audit reference only; no hybrid, no correction` |
+| Attempt | 1 |
+
+### F-013 — First F-012 run pointed at the wrong cache root
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-30T07:4xZ |
+| Step | 3 (F-012 evidence, message 30) |
+| Layer | 7 Environment |
+| Symptom | Every row `not_in_cache` (88 sample + 14 recent), zero files compared |
+| Root cause | `--cache` was given as `JForex4\.cache\XAUUSD`; the tool joins the datafeed path (`XAUUSD/yyyy/mm0/dd/...`) onto it, so it looked for `XAUUSD\XAUUSD\...` |
+| Evidence | The cache root lists `EURUSD`, `XAUUSD`; under `XAUUSD\2010\00\01` sit `ASK_/BID_candles_min_1.bi5` |
+| Method | Rerun with `--cache JForex4\.cache`; the empty report was moved aside (`xcheck_jforex.wrongroot.json`) because resume treats `not_in_cache` rows as done |
+| Result | Comparison ran; no data read or altered by the wrong run |
+| Status | `FIXED` |
+| Attempt | 1 |
+
+### F-014 — Tick arbiter gave a verdict without ticks
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-30T08:2xZ |
+| Step | 3 (F-012 evidence) |
+| Layer | 6 Implementation |
+| Symptom | On 2015-06-30 the report counted 358 `price:datafeed` verdicts for minutes with 0 ticks |
+| Root cause | `arbitrate(None, x, z)` returned "datafeed" whenever the datafeed candle was flat, even when the JForex candle was flat too — a default, not evidence |
+| Evidence | Old code: `arbitrate(None, flat_5, flat_6)` → `datafeed` |
+| Method | — |
+| Result | Without ticks the answer is always `no_ticks`. The 2013-02-14 verdicts are unaffected (every differing traded minute there had ticks; none returned `neither`) |
+| Status | `FIXED (regression: data/test_xcheck_jforex.py test_no_ticks_is_no_verdict)` |
 | Attempt | 1 |

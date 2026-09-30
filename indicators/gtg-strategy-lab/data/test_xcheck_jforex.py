@@ -43,7 +43,12 @@ class Classify(unittest.TestCase):
         good, bad = BASE[0], (0, 1100100, 1100500, 1099500, 1101000, 2.0)
         self.assertEqual(xj.arbitrate(tc, good, bad)["price_matches"], "datafeed")
         self.assertEqual(xj.arbitrate(tc, bad, good)["price_matches"], "jforex")
-        self.assertEqual(xj.arbitrate(None, (0, 5, 5, 5, 5, 0.0), good)["price_matches"], "datafeed")
+
+    def test_no_ticks_is_no_verdict(self):
+        # F-014: two differently filled flat candles with no ticks were reported as "datafeed"
+        flat_df, flat_jf = (0, 5, 5, 5, 5, 0.0), (0, 6, 6, 6, 6, 0.0)
+        for x, z in ((flat_df, flat_jf), (flat_df, BASE[0]), (BASE[0], flat_jf), (BASE[0], BASE[1])):
+            self.assertEqual(xj.arbitrate(None, x, z), {"ticks": 0, "price_matches": "no_ticks"})
 
 
 class Run(unittest.TestCase):

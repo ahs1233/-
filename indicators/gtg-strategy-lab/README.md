@@ -21,13 +21,19 @@ node --test indicators/gtg-strategy-lab/engine/*.test.mjs indicators/gtg-strateg
 node indicators/gtg-strategy-lab/engine/pinecmp/build.mjs   # after editing a source listed in build.mjs (PCMP3 checks)
 ```
 
+## Research window (GPT message 32)
+
+- Research window: **2021-09-29 → 2026-09-29** (T_freeze). Train/Validation/Holdout are cut inside it.
+- Pre-history is loaded only for warm-up and never enters a result. The binding need is H4: 5,441 closed H4 bars before 2021-09-29 reach back to **2018-04-09** on the contract calendar (M5 2021-09-21, M15 2021-08-29, H1 2021-03-30, D 2020-12-23). Days without bars (holiday closures ≈ 2 weeks over 3.5 years) push it earlier, so acquisition starts at **2018-03-01**; the real first valid bar is checked on the data (`firstValidTime`) before any split.
+- If the Power Gate shows a hypothesis cannot be evaluated inside the window, work stops for discussion; the window is never extended automatically.
+
 ## Status (execution order §31)
 
 | Step | Status |
 |---|---|
 | 1 Freeze + Integrity Gate | ✅ v0.2 `e4ceb8e`, v0.2.1 `e5eefac`, v0.2.2 `08757a2` (calendar) |
 | 2 Raw forward capture | ✅ Code (`data/capture_forward.py`, sealed; hashes only). ⏳ The daily run on the desktop is not scheduled yet (F-001: the container cannot reach the feed) |
-| 3 Data layer | ✅ Code + 33 Python tests (fetch/throttling, quiet acquisition, history, forward, Tick Audit). ⏳ Official M1 acquisition running on the desktop, newest first; throughput far below plan (F-008 → plan B to GPT) |
+| 3 Data layer | ✅ Code + Python tests (fetch/throttling, quiet acquisition, history, forward, Tick Audit, Path B tools). Source: public Dukascopy bi5 (canonical; JForex rejected as primary, F-012). ⏳ Acquisition on the desktop, newest first, down to 2018-03-01 (research window + warm-up, below) |
 | 4 Measurement Engine | ✅ JS + Pine copy + Pine float semantics (F-007); 41 Node tests |
 | 5 **Parity Gate** | ✅ **PASS, full MTF** 2026-09-29 on OANDA:XAUUSD: M1, M5, M15, H1, H4 replay with 0 mismatches (EMA seed `sma`), route HTF + anchors computed by JS from the feed's own HTF bars (feed mode, F-009); copy = frozen on every cell. Evidence: `parity/captures/` (PG8, PG9). Production integrity re-checked afterwards: PASS |
 | 6 Event Engine | ✅ code + definition tests (EV1–EV7) + **Causality Gate PASS** on synthetic data (future truncation, future perturbation, negative control). To re-run on real data before any analysis |

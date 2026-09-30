@@ -92,7 +92,7 @@ def tick_candle(ticks, t0_ms: int, side: str):
 def arbitrate(tc, x, z) -> dict:
     """Which candle the ticks reproduce (exact points for prices; volume reported as numbers)."""
     if tc is None:
-        return {"ticks": 0, "price_matches": "datafeed" if x and dead(x) else ("jforex" if z and dead(z) else "neither")}
+        return {"ticks": 0, "price_matches": "no_ticks"}
     def m(r):
         return r is not None and not dead(r) and list(r[1:5]) == tc["ocLh"]
     pa, pz = m(x), m(z)
