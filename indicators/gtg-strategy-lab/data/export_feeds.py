@@ -47,13 +47,19 @@ def main(argv=None):
     ap.add_argument("--out", required=True)
     ap.add_argument("--from", dest="start")
     ap.add_argument("--to", dest="end")
+    ap.add_argument("--until", help="ISO instant: keep only M1 minutes that end at or before it (Train-only snapshot)")
     a = ap.parse_args(argv)
     m1 = load_m1(Path(a.root), a.start, a.end)
+    if a.until:
+        from datetime import datetime
+        cut = int(datetime.fromisoformat(a.until.replace("Z", "+00:00")).timestamp() * 1000)
+        m1 = [b for b in m1 if b["t"] + 60_000 <= cut]
     feeds, stats = build_feeds(m1)
     body = json.dumps(feeds, separators=(",", ":"))
     meta = {"m1_bars": len(m1), "out_of_session_dropped": stats.get("out_of_session", 0),
             "counts": {tf: len(v) for tf, v in feeds.items()}, "feeds_sha256": hashlib.sha256(body.encode()).hexdigest(),
-            "first": feeds["M5"][0][0] if feeds["M5"] else None, "last": feeds["M5"][-1][0] if feeds["M5"] else None}
+            "first": feeds["M5"][0][0] if feeds["M5"] else None, "last": feeds["M5"][-1][0] if feeds["M5"] else None,
+            "last_m1_end": m1[-1]["t"] + 60_000 if m1 else None, "until": a.until}
     Path(a.out).write_text(json.dumps({"meta": meta, "feeds": feeds}, separators=(",", ":")))
     print(json.dumps(meta, indent=1))
 

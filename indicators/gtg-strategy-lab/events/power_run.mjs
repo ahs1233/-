@@ -1,5 +1,5 @@
-// Power Gate — Train only (GPT message 57). Input: feeds cut at the day of the Train end, so no
-// Holdout bar ever reaches this process (asserted below); rows outside Train are dropped.
+// Power Gate — Train only (GPT messages 57–58). Input: feeds cut at the Train end (export_feeds
+// --until), so no Validation or Holdout bar reaches this process (guard below).
 //   node --max-old-space-size=12000 power_run.mjs feeds_train.json report.json <firstValidISO> <tFreezeISO> [mintick]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { makeSplit } from './split.mjs';
@@ -23,8 +23,10 @@ if (process.argv[1] && process.argv[1].endsWith('power_run.mjs') && process.argv
   const feeds = Object.fromEntries(Object.entries(doc.feeds).map(([k, v]) => [k, v.map(([t, o, h, l, c, vol]) => ({ t, o, h, l, c, v: vol }))]));
   const split = makeSplit(Date.parse(fv), Date.parse(tf));
   const lastBar = feeds.M5.at(-1).t;
-  if (lastBar >= split.boundaries[1] - split.embargoMs)
-    throw new Error(`feeds reach the Holdout (${new Date(lastBar).toISOString()}): refuse to run`);
+  // guard (GPT message 58): the last bar must end at or before the Train boundary
+  if (lastBar + 300_000 > split.boundaries[0]) throw new Error(`feeds cross the Train boundary (${new Date(lastBar).toISOString()}): refuse to run`);
+  for (const tf of Object.keys(feeds)) if (feeds[tf].at(-1).t >= split.boundaries[0]) throw new Error(`${tf} has a bar opening after the Train boundary: refuse to run`);
+  console.log(`guard PASS: last M5 bar ${new Date(lastBar).toISOString()} ends ≤ Train end ${new Date(split.boundaries[0]).toISOString()}`);
   const t0 = Date.now();
   const hyp = buildHypotheses(feeds, { mintick: Number(mt ?? 0.001), split });
   const t1 = Date.now();
