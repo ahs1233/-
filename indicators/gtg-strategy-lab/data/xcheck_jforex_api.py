@@ -17,6 +17,7 @@ import argparse
 import csv
 import json
 import struct
+import time
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -39,11 +40,19 @@ def read_csv(path: Path) -> list[dict]:
         return [{k: float(v) for k, v in r.items()} for r in csv.DictReader(fh)]
 
 
-def fetch_cached(url: str, out: Path, fetch=dk.fetch) -> bytes | None:
+def fetch_cached(url: str, out: Path, fetch=dk.fetch, sleep=time.sleep, cooldown_s=120, max_cooldowns=6) -> bytes | None:
+    """Public file, cached in --out; a throttled request waits a cool-down (same policy as Path A)."""
     p = out / "public" / url.split("/datafeed/", 1)[1]
     if p.exists():
         return p.read_bytes() or None
-    raw = fetch(url)
+    for k in range(max_cooldowns):
+        try:
+            raw = fetch(url)
+            break
+        except (dk.RateLimited, ConnectionError):
+            if k == max_cooldowns - 1:
+                raise
+            sleep(cooldown_s)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_bytes(raw or b"")
     return raw
