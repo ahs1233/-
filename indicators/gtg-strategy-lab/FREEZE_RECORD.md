@@ -1,6 +1,25 @@
 # GTG Strategy Lab — FREEZE_RECORD
 
-## Current freeze — v0.2.2
+## Current freeze — v0.2.3
+
+| Field | Value |
+|---|---|
+| Contract | `TRADE_CONTRACT.md` — v0.2.3 FROZEN (Data Source Amendment, GPT decision on Claude message 51) |
+| Freeze commit SHA | `c47b71997d0b4e87d48f653184bbcff641db1259` |
+| **T_freeze_v0.2.3 (UTC)** | **2026-09-30T13:40:49Z** (committer timestamp) |
+| Contract blob | `b1899f94faa67daa3c5807940d62b4a81c6770cc` |
+| Production HEAD / Pine blob | `0a77819…` / `0c7cbe3…` (unchanged) |
+| Canonical prices | Dukascopy JForex / IHistory M1 BID + ASK, 2018-03-01 → T_freeze_v0.2.3 (public datafeed bi5 = audit only) |
+
+Pristine OOS = data with timestamp **> 2026-09-30T13:40:49Z** only (§22). The records below are kept for history.
+
+Integrity Gate v0.2.3 — PASS:
+- production unchanged (`git diff 0a77819 HEAD -- indicators/gtg-navigator` empty); Pine blob `0c7cbe3`;
+- the freeze commit holds only the contract;
+- the diff v0.2.2 → v0.2.3 touches only the header, §2.1 (source sentence), §2.2 (primary source, one-source window, no hybrid, audit role of the public bi5, finalization rule, documented 2013/2015 divergence), the tick sentence of §2.2, §22 (T_freeze reference), §31 step 3 wording and the change log; events, H1–H5, E1–E4, thresholds, CEM, horizons, δ_econ, split, costs and decision rules are byte-identical;
+- no GTG event outcome, edge statistic or Historical Holdout value was computed before the freeze (the engineering smoke test and the source-parity tools report PASS/FAIL or agreement ratios only).
+
+## Previous freeze — v0.2.2
 
 | Field | Value |
 |---|---|

@@ -121,17 +121,18 @@ class Aggregation(unittest.TestCase):
 
 class History(unittest.TestCase):
     def test_official_m1_candles_and_freeze_cutoff(self):
-        day = datetime(2026, 9, 29, tzinfo=UTC)
-        m = lambda hh, mm: (hh * 3600 + mm * 60)
-        bid = [(m(20, 46), 3800, 3801, 3799, 3802, 5),   # 20:46 kept (ends 20:47 ≤ T_freeze_v0.2.2 20:47:26)
-               (m(20, 47), 3801, 3802, 3800, 3803, 5),   # 20:47 minute contains T_freeze → dropped
-               (m(21, 10), 3802, 3803, 3801, 3804, 5)]   # after freeze → dropped
+        day = T_FREEZE.replace(hour=0, minute=0, second=0)
+        fm = T_FREEZE.hour * 60 + T_FREEZE.minute                        # the minute that contains T_freeze
+        m = lambda k: k * 60
+        bid = [(m(fm - 1), 3800, 3801, 3799, 3802, 5),   # ends ≤ T_freeze → kept
+               (m(fm), 3801, 3802, 3800, 3803, 5),       # contains T_freeze → dropped
+               (m(fm + 23), 3802, 3803, 3801, 3804, 5)]  # after the freeze → dropped
         ask = [(s_, o + 0.3, c + 0.3, lo + 0.3, h + 0.3, v) for s_, o, c, lo, h, v in bid]
         files = {dk.candle_url(day, "BID"): candle_file(bid), dk.candle_url(day, "ASK"): candle_file(ask)}
         with tempfile.TemporaryDirectory() as d:
             r = build_history.build_day(day, fetch=lambda u: files.get(u), root=Path(d))
             self.assertEqual(r["entry"]["source"], "m1")
-            self.assertEqual([b["t"] for b in r["bars"]], [int(datetime(2026, 9, 29, 20, 46, tzinfo=UTC).timestamp() * 1000)])
+            self.assertEqual([b["t"] for b in r["bars"]], [int((day + timedelta(minutes=fm - 1)).timestamp() * 1000)])
             self.assertTrue(all(b["t"] + 60_000 <= T_FREEZE_MS for b in r["bars"]))
             (e,) = read_manifest(Path(d))
             self.assertEqual((e["bars"], e["ask_coverage"]), (1, 1.0))
@@ -145,13 +146,13 @@ class History(unittest.TestCase):
 
 class QuietRun(unittest.TestCase):
     def test_newest_first_clipped_to_freeze_and_complete_days(self):
-        late = datetime(2026, 10, 5, tzinfo=UTC)
-        days = build_history.days_between(datetime(2026, 9, 27, tzinfo=UTC), datetime(2026, 10, 3, tzinfo=UTC), True, now=late)
-        self.assertEqual([f"{d:%m-%d}" for d in days], ["09-29", "09-28", "09-27"])
+        fd = T_FREEZE.replace(hour=0, minute=0, second=0)
+        span = (fd - timedelta(days=2), fd + timedelta(days=4))
+        days = build_history.days_between(*span, True, now=fd + timedelta(days=6))
+        self.assertEqual(days, [fd, fd - timedelta(days=1), fd - timedelta(days=2)])
         # the freeze day itself is not requested before it has ended + the publish lag
-        early = datetime(2026, 9, 29, 16, 0, tzinfo=UTC)
-        days = build_history.days_between(datetime(2026, 9, 27, tzinfo=UTC), datetime(2026, 10, 3, tzinfo=UTC), True, now=early)
-        self.assertEqual([f"{d:%m-%d}" for d in days], ["09-28", "09-27"])
+        days = build_history.days_between(*span, True, now=fd + timedelta(hours=16))
+        self.assertEqual(days, [fd - timedelta(days=1), fd - timedelta(days=2)])
 
     def test_none_entries_are_retried(self):
         with tempfile.TemporaryDirectory() as t:
