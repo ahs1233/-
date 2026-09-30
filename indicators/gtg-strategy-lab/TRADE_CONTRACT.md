@@ -1,4 +1,4 @@
-# GTG Strategy Lab — TRADE_CONTRACT v0.2.2 (FROZEN)
+# GTG Strategy Lab — TRADE_CONTRACT v0.2.3 (FROZEN)
 
 > **Status: FROZEN — Pre-registration.**
 > This file is the research protocol. It is not a strategy, and it is not a claim that GTG is profitable.
@@ -7,6 +7,7 @@
 > T_freeze = the timestamp of the first commit that contains this version (recorded in `FREEZE_RECORD.md`).
 > **v0.2.1** changes only the data-acquisition layer (§2.2, §2.3), before any GTG event outcome was computed (messages 13–14). Its freeze commit defines **T_freeze_v0.2.1**, which replaces the v0.2 T_freeze for the Pristine OOS definition (§22).
 > **v0.2.2** changes only the calendar of higher timeframes (§2.2) and the two day definitions that depend on it (§14 P2, §18 block length): the lab now uses the session calendar of the chart GTG runs on (OANDA:XAUUSD on TradingView), found by the parity investigation (messages 19–20), before any GTG event outcome was computed. Its freeze commit defines **T_freeze_v0.2.2**, which replaces T_freeze_v0.2.1 for the Pristine OOS definition (§22). Nothing else changes.
+> **v0.2.3** changes only the price source (§2.1–§2.3, Data Source Amendment, GPT message after Claude 51): the canonical prices become the official Dukascopy **JForex / IHistory** M1 BID + ASK candles, one source for the whole history 2018-03-01 → T_freeze; the public datafeed bi5 becomes an audit reference. Found before any GTG event outcome was computed (FAILURE_LOG F-012; messages 49–51). Its freeze commit defines **T_freeze_v0.2.3**, which replaces T_freeze_v0.2.2 for the Pristine OOS definition (§22). Events, H1–H5, matching, endpoints, split, costs and statistical gates are unchanged.
 
 The source of this contract is the GTG Lab dialogue (messages 1–11, GPT ↔ Claude), with methodological decisions delegated to both parties by the user. The change log is at the end (§32).
 
@@ -50,15 +51,21 @@ Allowed wording for the final verdict (§24). No wording stronger than the evide
 ## 2. Data
 
 ### 2.1 Research Feed
-- **Dukascopy XAUUSD** is the primary historical source.
+- **Dukascopy XAUUSD** is the primary historical source, read through the official **JForex API (IHistory)** (v0.2.3, §2.2).
 - **Signal and volume series = Dukascopy BID** (F3). GTG runs on BID bars, and the Fuel volume is BID-side volume.
 - **ASK is used for execution only** (§8). It is never used in signals or in Δ_info.
 - The result is described explicitly as: *GTG logic evaluated on the Dukascopy XAUUSD prices, with the timeframe calendar of OANDA:XAUUSD on TradingView* (§2.2). It does not claim to match, tick for tick, what the user sees on TradingView; the final report states this split (prices = Dukascopy, temporal semantics = the chart GTG runs on).
 
 ### 2.2 Building bars (v0.2.1; calendar v0.2.2)
-- **Primary source (historical and forward):** the official Dukascopy **M1 candles**, BID and ASK files per UTC day (`{BID|ASK}_candles_min_1.bi5`). M1 volume = the BID candle volume. Bar time = start of the UTC minute.
+- **Primary source (historical and forward, v0.2.3):** the official Dukascopy **JForex API** — `IHistory.getBars(XAUUSD, ONE_MIN, BID|ASK, Filter.NO_FILTER, day)` from an authenticated JForex session (the user's Demo account; the Demo history is the Live history), exported per UTC day to local files. M1 volume = the BID candle volume. Bar time = start of the UTC minute.
+  - **One source for the whole history:** 2018-03-01 → T_freeze_v0.2.3 (warm-up pre-history and research window alike). Earlier data is not used without a new decision.
+  - **The JForex local cache** is the platform's storage of the same bars and may be the export channel (it was identical to the IHistory bars on every compared day, messages 49–51). Provenance per day: `JForex API/IHistory → local cache/export`, platform and API version, export time, sha256 of the exported files.
+  - **No hybrid:** JForex and the public datafeed are never mixed, per minute, per day or per period; no "best candle" is chosen between them.
+  - **Public datafeed bi5** (`{BID|ASK}_candles_min_1.bi5`, the v0.2.1–v0.2.2 source) = **audit / reference source only**, not ingestion.
+  - **Finalization:** a day is complete only once its last candle has settled (the JForex history can leave the last minute of the most recent days unconsolidated, F-012). The history is exported after the day has settled and the last days before T_freeze are re-exported and compared before use; forward ingestion uses delayed finalization (re-check of the last candle). A minute still missing after settlement is **missing data** under the integrity rules (§2.2 sanitation, `data/integrity.py`); it is never back-filled from another source.
+  - Known and documented: on 2013-02-14 and 2015-06-30 the JForex and public histories differ (another version of the same days, F-012); both lie outside the data used. On the 2025-10-16 → 2026-09-28 overlap the two agree on 99.99% of minutes (8 price minutes of 336,445, tick arbitration split 4 public / 3 JForex / 1 both; message 51).
 - **Sanitation:** only candles with `volume = 0 AND O = H = L = C` are excluded (no trading); the timestamp simply has no bar. A flat candle with volume is kept. No forward fill.
-- **Ticks are not used to build the history.** `Full historical tick download from the Dukascopy endpoint under the current access pattern` is a **REJECTED_METHOD** (FAILURE_LOG F-002/F-003: HTTP 429 then 503 under a paced probe; ≈144k requests would be needed). It may only be reopened if the access path changes fundamentally.
+- **Ticks are not used to build the history** (v0.2.3: ticks — public tick bi5 or IHistory — are for audit and arbitration only). `Full historical tick download from the Dukascopy endpoint under the current access pattern` is a **REJECTED_METHOD** (FAILURE_LOG F-002/F-003: HTTP 429 then 503 under a paced probe; ≈144k requests would be needed). It may only be reopened if the access path changes fundamentally.
 - Ticks serve only the **Tick Audit** (§2.3).
 - **Higher-timeframe aggregation follows the session calendar of the chart GTG runs on (v0.2.2)**, not a count of bars and not UTC days. The rule is taken literally from the OANDA:XAUUSD symbol definition on TradingView (`session "1700-1700"`, `timezone "America/New_York"`, trading days Mon–Fri, session correction `1700-1430:20241128;1800-1445:20241129`; captured 2026-09-29, `parity/captures/2026-09-29-mtf/symbolinfo.json`, sha256 `da510d1…`), with real daylight saving time from the time-zone rule (no fixed UTC hours):
   - **M1 / M5 / M15 / H1:** clock boundaries (unchanged; New York offsets are whole hours).
@@ -391,7 +398,7 @@ Single-TF · MTF-Route · MTF-Heading · Incremental: M5 → +M15 → +H1 → +H
 
 ## 22. Pristine OOS and Forward
 
-- **Pristine OOS** = only data with timestamp > T_freeze_v0.2.2 (the freeze of the current version), and only if the contract is not modified.
+- **Pristine OOS** = only data with timestamp > T_freeze_v0.2.3 (the freeze of the current version), and only if the contract is not modified.
 - Recording raw forward data starts at T_freeze. It is **not analysed**.
 - It is opened by **one** rule, registered in the §17 commit before any look: either an information-based stop (the target N_eff from the power design) or a calendar stop.
 - Looking repeatedly, then stopping when the result looks good, is forbidden. Interim looks need an alpha-spending protocol (O'Brien-Fleming) registered in advance.
@@ -464,7 +471,7 @@ Long/Short Entry at `open(t+1)`; Logical Invalidation (confirmed acceptance thro
 0. Branch `claude/gtg-strategy-lab-edge-f0h5ra` on top of `lab/gtg-strategy-lab-v0.1`.
 1. This commit (T_freeze) + `FREEZE_RECORD.md`, then the Integrity Gate.
 2. Raw forward capture (no analysis).
-3. Dukascopy data layer + data integrity tests.
+3. Dukascopy data layer + data integrity tests (v0.2.3: JForex IHistory export → store → integrity).
 4. GTG Measurement Engine (JS + the Pine "GTG Engine" copy).
 5. **Parity Gate** — stop and report status before any event study.
 6. Event extraction + causality tests (cutting the future does not change any past event).
@@ -487,3 +494,4 @@ Long/Short Entry at `open(t+1)`; Logical Invalidation (confirmed acceptance thro
 | **v0.2 FROZEN** | Commit `e4ceb8e` | Freeze approved (message 11) |
 | **v0.2.1 FROZEN** | Messages 13–14 | Data acquisition only: official Dukascopy M1 BID/ASK candles as primary source (history + forward); full tick history = REJECTED_METHOD (F-002/F-003); Tick Audit protocol with PASS-A / PASS-B / FAIL (§2.3). No change to hypotheses, thresholds, CEM, horizons, costs or decision rules. New T_freeze_v0.2.1 |
 | **v0.2.2 FROZEN** | Messages 19–20 | Calendar / feed semantics only: H4, D and W follow the OANDA:XAUUSD session calendar on TradingView (New York 17:00, DST, the symbol's session correction) instead of UTC boundaries; M1–H1 unchanged; P2 PDH/PDL and the block-length day use the same trading day. Found by the MTF parity investigation (F-009, message 19) before any edge computation, Historical Holdout or outcome. No change to H1–H5, E1–E4, thresholds, CEM, horizons, δ_econ, costs or decision rules. New T_freeze_v0.2.2 |
+| **v0.2.3 FROZEN** | GPT decision on Claude message 51 | Data Source Amendment only: canonical prices = official Dukascopy JForex / IHistory M1 BID + ASK, one source for 2018-03-01 → T_freeze (warm-up and research window); public datafeed bi5 = audit/reference only; ticks = audit/arbitration only; last-candle finalization rule; no hybrid; nothing before 2018 without a new decision. Found before any GTG event outcome (F-012, messages 49–51). No change to events, H1–H5, E1–E4, thresholds, CEM, horizons, δ_econ, split, costs or decision rules. New T_freeze_v0.2.3 |
