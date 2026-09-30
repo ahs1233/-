@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { marketBars } from '../gtg-engine/reference/history.mjs';
-import { smokeTest, feedErrors, aggregationErrors, LABEL } from './smoke.mjs';
+import { smokeTest, feedErrors, aggregationErrors, engineErrors, LABEL } from './smoke.mjs';
 
 const agg = (m1, s) => {
   const out = [];
@@ -29,7 +29,7 @@ test('SM1 report carries PASS/FAIL and error names only — no counts', () => {
   }
   // synthetic data has no 200 D bars → no Macro events: the tool must say so, by name only
   assert.deepEqual(status(rep), { Feeds: 'PASS', Aggregation: 'PASS', 'Event Engine': 'FAIL', Causality: 'FAIL' });
-  assert.match(rep.checks[2].errors.join(), /no events generated: TC-H1 events/);
+  assert.deepEqual(rep.checks[2].errors, ['no events generated: TC-H1 events, CE events']);   // ATR's leading na is not an error
   assert.ok(rep.checks[3].errors.every((e) => e.startsWith('vacuous:')), 'no truncation/perturbation difference');
 });
 
@@ -41,4 +41,16 @@ test('SM2 a broken HTF bar or time axis fails its check', () => {
   const g = feedsOf();
   [g.M5[10], g.M5[11]] = [g.M5[11], g.M5[10]];
   assert.deepEqual(feedErrors(g), ['M5: time not strictly increasing']);
+});
+
+test('SM3 ATR may be na only as a leading prefix', () => {
+  const M5 = [0, 1, 2, 3].map((k) => ({ t: k * 300_000 }));
+  const panel = (atr) => atr.map((a, i) => ({ t: M5[i].t, o: 1, h: 1, l: 1, c: 1, atr: a, atrEng: 1 }));
+  const one = [{ t: 1 }];
+  const r = (atr) => ({
+    panel: panel(atr), tcH1: { rows: [], events: one }, h5: { events: [] }, ce: { rows: [], events: one, e3: [], e4: [], abstains: [] }, ceAny: { rows: [] },
+    zone: { h3: one, flip1: one, flip1Unarmed: [], flip2: [], h4Comparator: [] }, p0: { events: [] }, p1: { events: [], p1Rejected: [] }, p2: { events: [] },
+  });
+  assert.deepEqual(engineErrors(r([NaN, NaN, 2, 3]), { M5 }), []);
+  assert.deepEqual(engineErrors(r([NaN, 2, NaN, 3]), { M5 }), ['panel.atr: NaN/Infinity after its warm-up prefix']);
 });

@@ -51,13 +51,18 @@ function nonFinite(x, path = 'panel', seen = new Set()) {
   return null;
 }
 
-function engineErrors(r, feeds) {
+export function engineErrors(r, feeds) {
   const errs = [];
   const M5 = feeds.M5;
   if (r.panel.length !== M5.length) errs.push('panel length ≠ M5 bars');
   if (r.panel.some((p, i) => p.t !== M5[i].t)) errs.push('panel time ≠ M5 time');
-  const nf = r.panel.map((p) => nonFinite({ o: p.o, h: p.h, l: p.l, c: p.c, atr: p.atr, atrEng: p.atrEng })).find(Boolean);
+  const nf = r.panel.map((p) => nonFinite({ o: p.o, h: p.h, l: p.l, c: p.c })).find(Boolean);
   if (nf) errs.push(`NaN/Infinity in ${nf}`);
+  // ATR series are na (NaN) until their length is filled, as in Pine; once defined they stay defined
+  for (const k of ['atr', 'atrEng']) {
+    const first = r.panel.findIndex((p) => Number.isFinite(p[k]));
+    if (first < 0 || r.panel.slice(first).some((p) => !Number.isFinite(p[k]))) errs.push(`panel.${k}: NaN/Infinity after its warm-up prefix`);
+  }
   for (const [name, get] of FAMILIES) {
     const list = get(r) ?? [];
     let prev = -1;

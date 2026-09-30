@@ -232,3 +232,16 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Result | Without ticks the answer is always `no_ticks`. The 2013-02-14 verdicts are unaffected (every differing traded minute there had ticks; none returned `neither`) |
 | Status | `FIXED (regression: data/test_xcheck_jforex.py test_no_ticks_is_no_verdict)` |
 | Attempt | 1 |
+
+### F-015 — Smoke test flagged the Pine `na` prefix of ATR as an engine error
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-30T11:3xZ |
+| Step | Engineering Smoke Test (GPT message 38) — not research evidence |
+| Layer | 6 Implementation (the smoke tool, not the engine) |
+| Symptom | On real feeds: `Event Engine: FAIL — NaN/Infinity in panel.atr`; Feeds, Aggregation and Causality PASS |
+| Root cause | The tool required every ATR value to be finite. ATR is `na` (NaN) until its length is filled, exactly as in Pine (synthetic data: the first 13 M5 rows, none warmed); the same false error was present on synthetic data but the test only matched the vacuity message |
+| Method | — |
+| Result | ATR / ATR_eng may be NaN only as a leading prefix, never after the first defined value; OHLC must always be finite. The test now asserts the exact error list (would have caught this) and SM3 checks a mid-series NaN is still reported |
+| Status | `FIXED (regression: events/smoke.test.mjs SM1, SM3)` |
+| Attempt | 1 |
