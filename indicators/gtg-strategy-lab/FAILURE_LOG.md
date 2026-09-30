@@ -245,3 +245,17 @@ The failure log for the Anti-Loop Protocol (`TRADE_CONTRACT.md` §30).
 | Result | ATR / ATR_eng may be NaN only as a leading prefix, never after the first defined value; OHLC must always be finite. The test now asserts the exact error list (would have caught this) and SM3 checks a mid-series NaN is still reported |
 | Status | `FIXED (regression: events/smoke.test.mjs SM1, SM3)` |
 | Attempt | 1 |
+
+### F-016 — JForex export folders named with Arabic-Indic digits
+| Field | Value |
+|---|---|
+| Date (UTC) | 2026-09-30T14:2xZ |
+| Step | 3 (v0.2.3 canonical ingestion) |
+| Layer | 7 Environment |
+| Symptom | `import_local.py export` processed 3,136 days and found no data; every folder under `jforex_export/canonical/XAUUSD` was named like `٢٠١٨/٠٢/٠١` |
+| Root cause | `String.format("%04d…")` in `GtgFullExport.java` used the machine's default (Arabic) locale, as the JForex CSV export did earlier (F-012 note) |
+| Evidence | Files inside were complete (34,560 bytes = 1,440 records each); only the path digits differed |
+| Method | — |
+| Result | Folders renamed by a deterministic digit map (3,248 renames, 0 non-ASCII left; file contents untouched); the strategy now formats with `Locale.ROOT`; the empty store created by the failed import was removed and the import re-run |
+| Status | `FIXED` |
+| Attempt | 1 |

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Canonical price export, TRADE_CONTRACT v0.2.3 §2.2: IHistory M1 BID and ASK bars
@@ -44,7 +45,7 @@ public class GtgFullExport implements IStrategy {
                     long day0 = d.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli();
                     long end = Math.min(day0 + 86_400_000L - 60_000L, lastBar);
                     if (end < day0) break;
-                    File dir = new File(root, String.format("XAUUSD/%04d/%02d/%02d", d.getYear(), d.getMonthValue() - 1, d.getDayOfMonth()));
+                    File dir = new File(root, String.format(Locale.ROOT, "XAUUSD/%04d/%02d/%02d", d.getYear(), d.getMonthValue() - 1, d.getDayOfMonth()));
                     dir.mkdirs();
                     for (OfferSide side : new OfferSide[]{OfferSide.BID, OfferSide.ASK}) {
                         long t0 = System.currentTimeMillis();
