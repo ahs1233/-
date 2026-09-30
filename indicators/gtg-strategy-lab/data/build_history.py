@@ -59,13 +59,16 @@ def days_between(start: datetime, end: datetime, newest_first: bool, now: dateti
     return out[::-1] if newest_first else out
 
 
-def run(days, root, keep_raw=False, build=build_day, sleep=time.sleep, cooldown_s=600, max_cooldowns=6, log=print):
-    """Quiet acquisition: sequential, paced by dukascopy.fetch; a throttled day triggers a long
-    cool-down and is retried; after `max_cooldowns` consecutive cool-downs the run stops cleanly.
-    Days already in the manifest are never downloaded again."""
+def run(days, root, keep_raw=False, build=build_day, sleep=time.sleep, cooldown_s=120, long_cooldown_s=600,
+        burst=3, burst_window_s=1800, max_cooldowns=6, log=print, clock=time.monotonic):
+    """Quiet acquisition: sequential, paced by dukascopy.fetch; a throttled day triggers a cool-down
+    and is retried. The cool-down is `cooldown_s`, or `long_cooldown_s` once `burst` cool-downs fall
+    within `burst_window_s` (GPT message 36); after `max_cooldowns` consecutive cool-downs the run
+    stops cleanly. Days already in the manifest are never downloaded again."""
     # a "none" entry (no file answered) is not final: it is retried on the next run
     done = {e["day"] for e in read_manifest(root) if e.get("kind") == "history_day" and e.get("source") != "none"}
     streak = 0
+    recent: list[float] = []
     for d in days:
         if f"{d:%Y-%m-%d}" in done:
             continue
@@ -77,11 +80,14 @@ def run(days, root, keep_raw=False, build=build_day, sleep=time.sleep, cooldown_
                 break
             except (dk.RateLimited, ConnectionError) as e:
                 streak += 1
-                log(f"{d:%Y-%m-%d} THROTTLED ({e}); cool-down {cooldown_s}s [{streak}/{max_cooldowns}]")
+                now = clock()
+                recent = [t for t in recent if now - t < burst_window_s] + [now]
+                wait = long_cooldown_s if len(recent) >= burst else cooldown_s
+                log(f"{d:%Y-%m-%d} THROTTLED ({e}); cool-down {wait}s [{streak}/{max_cooldowns}]")
                 if streak >= max_cooldowns:
                     log("STOP: source persistently throttled; rerun later (idempotent)")
                     return False
-                sleep(cooldown_s)
+                sleep(wait)
     return True
 
 

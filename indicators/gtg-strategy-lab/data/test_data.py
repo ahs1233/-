@@ -178,7 +178,45 @@ class QuietRun(unittest.TestCase):
             ok = build_history.run(days, Path(t), build=build, sleep=sleeps.append, log=logs.append)
         self.assertTrue(ok)
         self.assertEqual(len(calls), 3)           # 2 throttled attempts + 1 success; the done day is skipped
-        self.assertEqual(sleeps, [600, 600])
+        self.assertEqual(sleeps, [120, 120])
+
+    def test_cooldown_turns_long_after_a_burst_and_short_again_when_it_passes(self):
+        t = [0.0]
+        sleeps = []
+        fails = iter([1, 1, 1, 0, 1, 0])   # per build call: 1 = throttled
+
+        def build(d, root, keep_raw):
+            if next(fails):
+                raise ConnectionError("timeout")
+            return {"entry": {"day": f"{d:%Y-%m-%d}", "source": "m1", "bars": 1, "ask_coverage": 1.0}}
+
+        def sleep(s):
+            sleeps.append(s); t[0] += s
+        days = [datetime(2020, 1, 3, tzinfo=UTC), datetime(2020, 1, 2, tzinfo=UTC)]
+        with tempfile.TemporaryDirectory() as tmp:
+            ok = build_history.run(days, Path(tmp), build=build, sleep=sleep, log=lambda s: None,
+                                   clock=lambda: t[0], burst_window_s=1800)
+        self.assertTrue(ok)
+        # cool-downs at t=0, 120, 240 → the 3rd within 30 min is long; at t=840 the burst is still inside the window
+        self.assertEqual(sleeps, [120, 120, 600, 600])
+
+    def test_cooldown_is_short_again_outside_the_window(self):
+        t = [0.0]
+        sleeps = []
+        fails = iter([1, 0, 1, 0])
+
+        def build(d, root, keep_raw):
+            t[0] += 1000                    # each attempt takes long enough that cool-downs spread out
+            if next(fails):
+                raise ConnectionError("timeout")
+            return {"entry": {"day": f"{d:%Y-%m-%d}", "source": "m1", "bars": 1, "ask_coverage": 1.0}}
+
+        def sleep(s):
+            sleeps.append(s); t[0] += s
+        days = [datetime(2020, 1, 3, tzinfo=UTC), datetime(2020, 1, 2, tzinfo=UTC)]
+        with tempfile.TemporaryDirectory() as tmp:
+            build_history.run(days, Path(tmp), build=build, sleep=sleep, log=lambda s: None, clock=lambda: t[0], burst=2)
+        self.assertEqual(sleeps, [120, 120])   # the two cool-downs are > 30 min apart
 
     def test_persistent_throttle_stops_cleanly(self):
         def build(d, root, keep_raw):
