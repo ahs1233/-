@@ -125,6 +125,7 @@ export function powerGateTwoStage(hyps, dEcon, { L, nDays, Bout = 2_000, BinA = 
     const i = rate.findIndex((r) => r >= target);
     const mde = i < 0 ? null : g[i];
     return { name: h.name, MDE: mde, deltaEcon: dEcon[k], verdict: powerVerdict(mde, dEcon[k]), refinedCells: cells[k].filter(Boolean).length,
+      powerAtDeltaEcon: claimRate(B ?? A, k, dEcon[k]),
       stageA_MDE: (() => { const j = rateA[k].findIndex((r) => r >= target); return j < 0 ? null : g[j]; })(), BinA, BinB: needB ? BinB : null, seed };
   });
 }

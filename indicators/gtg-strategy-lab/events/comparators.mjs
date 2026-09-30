@@ -53,7 +53,9 @@ export function extractP1(bars, P, { w, maxAge = P.maxAge[0], gtgSlotKeys = null
     if (gtgSlotKeys) for (const k of gtgSlotKeys[j] ?? []) seen.add(k);
     reactionStep(levels, bars, j, atrEng, P, (lv, r) => {
       const D = r.side < 0 ? -1 : 1;
-      events.push({ family: 'P1', t: j, time: bars[j].t, D, rej: r.rej, key: lv.key, levelAge: j - lv.birthBar, pivotBar: lv.birthBar,
+      // zone width / ATR_eng at t−1, as for the GTG zones (H3 matching, §7, §11.3)
+      const width = j > 0 && atrEng[j - 1] > 0 ? (lv.hi - lv.lo) / atrEng[j - 1] : null;
+      events.push({ family: 'P1', t: j, time: bars[j].t, D, rej: r.rej, key: lv.key, levelAge: j - lv.birthBar, pivotBar: lv.birthBar, width,
         availableFrom: lv.availableFrom, rejectedByGtg: gtgSlotKeys ? !seen.has(lv.key) : null });
     }, maxAge);
     // confirmations at j become levels from j + 1 (availableFromTimestamp = close of bar j)
