@@ -410,7 +410,14 @@ def replicate(root: Path, out: Path):
     freeze_info = json.loads(freeze.read_text(encoding="utf-8"))
     if freeze_info["selected_sha256"] != sha(frozen):
         raise ValueError("selected equation file changed after freeze")
+    if freeze_info.get("replication_opened"):
+        raise ValueError("replication already opened for this run")
     selected = json.loads(frozen.read_text(encoding="utf-8"))
+
+    # Record the opening event before reading any replication-era market data.
+    freeze_info["replication_opened"] = True
+    freeze_info["replication_opened_utc"] = datetime.now(timezone.utc).isoformat()
+    freeze.write_text(json.dumps(freeze_info, indent=2), encoding="utf-8")
 
     # Only now open replication-era raw data.
     rows = load_source(root, REPLICATION_END, out / "input_manifest_replication.json")
