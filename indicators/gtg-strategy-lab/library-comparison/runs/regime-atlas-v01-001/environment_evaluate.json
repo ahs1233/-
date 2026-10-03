@@ -1,0 +1,11 @@
+{
+  "stage": "evaluate",
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1"
+  },
+  "protocol_sha256": "21194437c337d35daad9f60912dc231b1a57928f25c486765454f6ed8df8a7d6",
+  "created_utc": "2026-10-03T16:24:58.302589+00:00"
+}

@@ -128,3 +128,10 @@
 - Pre-registered descriptive regimes: agreement with both drift+DC C1 +0.0868 (n=192), London session +0.1382 (n=155), prediction magnitude 0.25-0.5 ATR +0.0919 (n=152), spread/ATR >0.10 strongly negative (-0.4331, n=198).
 - These regime findings are diagnostic only. No filter is promoted from this same sample.
 - Decision: current Kronos-mini always-trade Swing hypothesis rejected; Holdout remains closed.
+
+## Regime Atlas v0.1 — completed
+- Frozen causal H1 atlas selected k=4 by fit-period silhouette only; atlas SHA256 `77907757195387913a993d5e13dff957cd9884a7ef942a93c78de68b2a9e6e7b`.
+- Evaluation: 18,749 H1 bars and 825 non-overlapping 12h anchors from 2021-01-01 to 2024-03-20 exclusive; Validation/Holdout not read.
+- Four coarse persistent states emerged: bullish trend (R0), bearish trend (R1), high-volatility bullish recovery/impulse (R2), and low-efficiency bullish reset/recovery (R3).
+- No state/horizon passed the registered distributional screen. Closest was R3 at 12h: mean lift +0.163 ATR, bootstrap 95% CI [-0.115,+0.419].
+- State persistence is high (86.7%-92.9%), so next research tests model-regime interaction rather than state-alone prediction.

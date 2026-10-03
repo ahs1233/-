@@ -2,5 +2,6 @@
   "atlas_file": "ATLAS_FROZEN.json",
   "atlas_sha256": "77907757195387913a993d5e13dff957cd9884a7ef942a93c78de68b2a9e6e7b",
   "frozen_utc": "2026-10-03T16:24:19.838549+00:00",
-  "evaluation_opened": false
+  "evaluation_opened": true,
+  "evaluation_opened_utc": "2026-10-03T16:24:58.283654+00:00"
 }
