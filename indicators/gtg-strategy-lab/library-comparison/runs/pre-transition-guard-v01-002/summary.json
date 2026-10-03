@@ -1,0 +1,276 @@
+{
+  "scope": "GTG Pre-Transition Guard v0.1 Train-development diagnostic",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "threshold": 0.5,
+  "classification": {
+    "n": 1139,
+    "handoff_prevalence": 0.6391571553994733,
+    "accuracy": 0.5575065847234416,
+    "balanced_accuracy": 0.5388943477447127,
+    "roc_auc": 0.5636547151145691,
+    "brier": 0.25408792553287074,
+    "confusion_matrix": [
+      [
+        194,
+        217
+      ],
+      [
+        287,
+        441
+      ]
+    ],
+    "safe": {
+      "precision": 0.40332640332640335,
+      "recall": 0.4720194647201946,
+      "f1": 0.4349775784753363,
+      "support": 411
+    },
+    "handoff": {
+      "precision": 0.6702127659574468,
+      "recall": 0.6057692307692307,
+      "f1": 0.6363636363636364,
+      "support": 728
+    },
+    "p_quantiles": {
+      "q10": 0.31417268190087166,
+      "q25": 0.40217991654416474,
+      "q50": 0.5377631099225799,
+      "q75": 0.6665950289211282,
+      "q90": 0.7845245743587788
+    }
+  },
+  "evaluation_sample_censor": {
+    "ENTRY_HARD_GAP": 9,
+    "HARD_GAP": 74
+  },
+  "guarded_execution": {
+    "flat_candidate_signals": 889,
+    "allowed_signals": 328,
+    "skipped_signals": 561,
+    "coverage": 0.3689538807649044,
+    "completed_trades": 304,
+    "censored_counts": {
+      "ENTRY_HARD_GAP": 2,
+      "HARD_GAP": 22
+    },
+    "overall": {
+      "n": 304,
+      "long_n": 167,
+      "short_n": 137,
+      "directional_accuracy": 0.45394736842105265,
+      "c0_mean_per_trade": -0.015868174328936273,
+      "c1_mean_per_trade": -0.2061474139722046,
+      "c2_mean_per_trade": -0.39642665361547297,
+      "c1_win_rate": 0.4440789473684211,
+      "duration_median_bars": 6.0,
+      "duration_mean_bars": 6.957236842105263,
+      "elapsed_wall_hours_mean": 7.266447368421052,
+      "mean_mfe_atr": 1.2940518350949108,
+      "mean_mae_atr": 1.3137433505226868,
+      "exit_reason_counts": {
+        "STATE_EXIT": 174,
+        "TARGET": 120,
+        "TARGET_AND_STATE_EXIT": 10
+      },
+      "target_exit_fraction": 0.4276315789473684,
+      "state_exit_before_target_fraction": 0.5723684210526315
+    },
+    "c1_mean_per_flat_opportunity": -0.07049360387800922,
+    "actual_handoff_rate_allowed": 0.5737704918032787,
+    "actual_handoff_rate_skipped": 0.6513409961685823,
+    "by_direction": {
+      "long": {
+        "n": 167,
+        "long_n": 167,
+        "short_n": 0,
+        "directional_accuracy": 0.46706586826347307,
+        "c0_mean_per_trade": 0.0009900067242520107,
+        "c1_mean_per_trade": -0.19260759947006575,
+        "c2_mean_per_trade": -0.3862052056643835,
+        "c1_win_rate": 0.4491017964071856,
+        "duration_median_bars": 5.0,
+        "duration_mean_bars": 7.107784431137724,
+        "elapsed_wall_hours_mean": 7.4431137724550895,
+        "mean_mfe_atr": 1.2533321945199851,
+        "mean_mae_atr": 1.345058914333732,
+        "exit_reason_counts": {
+          "STATE_EXIT": 94,
+          "TARGET": 67,
+          "TARGET_AND_STATE_EXIT": 6
+        },
+        "target_exit_fraction": 0.437125748502994,
+        "state_exit_before_target_fraction": 0.562874251497006
+      },
+      "short": {
+        "n": 137,
+        "long_n": 0,
+        "short_n": 137,
+        "directional_accuracy": 0.43795620437956206,
+        "c0_mean_per_trade": -0.03641792787552347,
+        "c1_mean_per_trade": -0.22265215135802358,
+        "c2_mean_per_trade": -0.4088863748405236,
+        "c1_win_rate": 0.43795620437956206,
+        "duration_median_bars": 6.0,
+        "duration_mean_bars": 6.773722627737226,
+        "elapsed_wall_hours_mean": 7.0510948905109485,
+        "mean_mfe_atr": 1.3436881852847837,
+        "mean_mae_atr": 1.2755703639792957,
+        "exit_reason_counts": {
+          "STATE_EXIT": 80,
+          "TARGET": 53,
+          "TARGET_AND_STATE_EXIT": 4
+        },
+        "target_exit_fraction": 0.41605839416058393,
+        "state_exit_before_target_fraction": 0.583941605839416
+      }
+    },
+    "by_year": {
+      "2021": {
+        "n": 96,
+        "long_n": 50,
+        "short_n": 46,
+        "directional_accuracy": 0.40625,
+        "c0_mean_per_trade": -0.16144035065618326,
+        "c1_mean_per_trade": -0.34732533719146197,
+        "c2_mean_per_trade": -0.5332103237267406,
+        "c1_win_rate": 0.3854166666666667,
+        "duration_median_bars": 5.0,
+        "duration_mean_bars": 6.270833333333333,
+        "elapsed_wall_hours_mean": 6.541666666666667,
+        "mean_mfe_atr": 1.1322937420318617,
+        "mean_mae_atr": 1.3080459399065476,
+        "exit_reason_counts": {
+          "STATE_EXIT": 60,
+          "TARGET": 34,
+          "TARGET_AND_STATE_EXIT": 2
+        },
+        "target_exit_fraction": 0.375,
+        "state_exit_before_target_fraction": 0.625
+      },
+      "2022": {
+        "n": 96,
+        "long_n": 57,
+        "short_n": 39,
+        "directional_accuracy": 0.4166666666666667,
+        "c0_mean_per_trade": -0.13272117456000246,
+        "c1_mean_per_trade": -0.3237126844189268,
+        "c2_mean_per_trade": -0.5147041942778512,
+        "c1_win_rate": 0.4166666666666667,
+        "duration_median_bars": 6.0,
+        "duration_mean_bars": 7.385416666666667,
+        "elapsed_wall_hours_mean": 7.625,
+        "mean_mfe_atr": 1.2788184452353788,
+        "mean_mae_atr": 1.4077375090523914,
+        "exit_reason_counts": {
+          "STATE_EXIT": 57,
+          "TARGET": 36,
+          "TARGET_AND_STATE_EXIT": 3
+        },
+        "target_exit_fraction": 0.40625,
+        "state_exit_before_target_fraction": 0.59375
+      },
+      "2023": {
+        "n": 83,
+        "long_n": 45,
+        "short_n": 38,
+        "directional_accuracy": 0.5180722891566265,
+        "c0_mean_per_trade": 0.13153768458754458,
+        "c1_mean_per_trade": -0.04933126312288836,
+        "c2_mean_per_trade": -0.23020021083332126,
+        "c1_win_rate": 0.5180722891566265,
+        "duration_median_bars": 6.0,
+        "duration_mean_bars": 7.216867469879518,
+        "elapsed_wall_hours_mean": 7.650602409638554,
+        "mean_mfe_atr": 1.405450341145827,
+        "mean_mae_atr": 1.2207877496569148,
+        "exit_reason_counts": {
+          "TARGET_AND_STATE_EXIT": 4,
+          "TARGET": 37,
+          "STATE_EXIT": 42
+        },
+        "target_exit_fraction": 0.4939759036144578,
+        "state_exit_before_target_fraction": 0.5060240963855421
+      },
+      "2024": {
+        "n": 29,
+        "long_n": 15,
+        "short_n": 14,
+        "directional_accuracy": 0.5517241379310345,
+        "c0_mean_per_trade": 0.4309639173790002,
+        "c1_mean_per_trade": 0.20156314021540872,
+        "c2_mean_per_trade": -0.027837636948182864,
+        "c1_win_rate": 0.5172413793103449,
+        "duration_median_bars": 6.0,
+        "duration_mean_bars": 7.068965517241379,
+        "elapsed_wall_hours_mean": 7.379310344827586,
+        "mean_mfe_atr": 1.5611244681411776,
+        "mean_mae_atr": 1.2874960081832652,
+        "exit_reason_counts": {
+          "TARGET": 13,
+          "STATE_EXIT": 15,
+          "TARGET_AND_STATE_EXIT": 1
+        },
+        "target_exit_fraction": 0.4827586206896552,
+        "state_exit_before_target_fraction": 0.5172413793103449
+      }
+    }
+  },
+  "no_guard_baseline": {
+    "n": 548,
+    "long_n": 283,
+    "short_n": 265,
+    "directional_accuracy": 0.4233576642335766,
+    "c0_mean_per_trade": 0.006084787844446948,
+    "c1_mean_per_trade": -0.1811011018983893,
+    "c2_mean_per_trade": -0.36828699164122547,
+    "c1_win_rate": 0.4032846715328467,
+    "duration_median_bars": 5.0,
+    "duration_mean_bars": 6.428832116788321,
+    "elapsed_wall_hours_mean": 6.704379562043796,
+    "mean_mfe_atr": 1.341670674521082,
+    "mean_mae_atr": 1.2953080360262224,
+    "exit_reason_counts": {
+      "STATE_EXIT": 345,
+      "TARGET": 186,
+      "TARGET_AND_STATE_EXIT": 17
+    },
+    "target_exit_fraction": 0.3704379562043796,
+    "state_exit_before_target_fraction": 0.6295620437956204
+  },
+  "registered_screen": {
+    "evaluation_labels_ge_500": true,
+    "balanced_accuracy_gt_0_60": false,
+    "handoff_recall_ge_0_60": true,
+    "completed_trades_ge_100": true,
+    "long_completed_ge_40": true,
+    "short_completed_ge_40": true,
+    "coverage_ge_0_25": true,
+    "c0_positive": false,
+    "c1_positive": false,
+    "c2_nonnegative": false,
+    "c1_win_gt_0_50": false,
+    "c1_better_than_no_guard": false,
+    "state_exit_fraction_lower_than_no_guard": true,
+    "two_full_years_positive_c1": false,
+    "pass": false
+  },
+  "integrity": {
+    "frozen_model_hash_unchanged": "PASS",
+    "training_samples_hash_unchanged": "PASS",
+    "state_file_hash_unchanged": "PASS",
+    "state_content_hash_unchanged": "PASS",
+    "source_manifest_unchanged": "PASS",
+    "no_guard_hash_unchanged": "PASS",
+    "feature_order_frozen": "PASS",
+    "threshold_0_50": "PASS",
+    "one_active_trade": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "TEMPORALLY_SEPARATED_TRAIN_DEVELOPMENT_NOT_INDEPENDENT_CONFIRMATION"
+}

@@ -1,0 +1,9 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "protocol_sha256": "1fc845b9bce90baab04181ff3506b3a9eaeaceadb7c1a7090fe79373268fbc6e",
+  "code_sha256": "3f05db9b7cc8e489db6581a07f804a62f2354a2d7944c97f22719e634560bcd5",
+  "created_utc": "2026-10-03T18:47:59.321224+00:00",
+  "threshold": 0.5,
+  "validation_read": false,
+  "holdout_read": false
+}
