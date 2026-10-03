@@ -1,216 +1,156 @@
-# GTG State + Transition Engine v0.2 — confirmed handoff protocol
+# GTG State + Transition Engine v0.2 — trading-time continuity correction
 
-Registered 2026-10-03 before v0.2 historical outcomes are computed.
+Registered 2026-10-03 after v0.1 exposed a timing-definition defect and before any v0.2 outcomes are computed.
 
-## What changes from v0.1
-v0.1 is frozen evidence and is not rewritten.
+## Why v0.2 exists
+v0.1 treated every H1 timestamp gap >1 hour as a hard reset and required wall-clock-contiguous H1 paths for outcomes.
 
-v0.2 keeps every structural threshold from v0.1 unchanged and changes only:
-1. market continuity semantics,
-2. the primary outcome anchor from TRANSITION onset to TRANSITION resolution.
+On canonical XAUUSD data this is inappropriate because normal market-maintenance closures create many 2-hour gaps:
+- 1h gaps: 33,013
+- 2h gaps: 1,080
+- 3h gaps: 235
+- >24h gaps: 320, mostly weekends/holidays
 
-Reason established by v0.1:
-- XAUUSD has normal daily maintenance gaps of 2-3 timestamp hours.
-- exact-one-hour continuity fragmented state runs and produced zero mature 24h paths.
-- TRANSITION onset is better interpreted as "stop range execution / wait" than as an immediate directional swing signal.
+As a result, v0.1 reset the finite-state machine around normal daily closures and produced zero mature 24-bar outcomes. v0.1 is preserved as failed timing evidence.
 
-No v0.1 outcome is used to tune state thresholds.
+v0.2 changes **only trading-time continuity semantics**. Market-state thresholds, cores, transition rules, range-age requirement, DC thresholds, and outcome definitions remain unchanged.
 
-## States
-Unchanged:
+## State contract
+Same four online states as v0.1:
 - RANGE
 - TRANSITION
 - TREND_UP
 - TREND_DOWN
 
-Operational meaning:
-- RANGE: future Scalper engine may operate.
-- TRANSITION: Range/Scalper engine stands down; no automatic Swing direction.
-- TREND_UP: candidate Swing-long regime.
-- TREND_DOWN: candidate Swing-short regime.
+Same causal measurements and same fixed thresholds from PROTOCOL_STATE_TRANSITION_ENGINE_V0_1.md.
 
-## Data gate
-Canonical JForex BID/ASK M1 -> complete H1 bars.
+## Trading-time continuity
+Let STEP = 1 hour.
 
-2018-03-01 <= raw timestamp < 2024-03-20T00:00:00Z.
+Two successive complete H1 bars are considered part of the same trading episode when:
+- timestamp difference > 0
+- timestamp difference <= 3 hours
 
-Validation and Historical Holdout remain closed.
+Rationale:
+- includes the observed normal/extended daily maintenance gaps,
+- does not bridge weekends/large holidays,
+- avoids treating market closure as evidence that market structure disappeared.
 
-Descriptive split:
-- library: before 2021-01-01
-- evaluation: 2021-01-01 through raw gate
+A gap >3 hours:
+- resets transient FSM memory,
+- closes an open transition as UNRESOLVED_GAP,
+- resets RANGE age and confirmation streaks,
+- splits state run-length statistics.
 
-## Structural features and thresholds
-IDENTICAL to v0.1:
-- DC thresholds 0.0025 / 0.005 / 0.010 / 0.020
-- drift12 / drift24 / drift48
-- efficiency24 / efficiency48
-- spread/ATR
-- ATR/week ratio
-- prior 24 complete trading-H1 channel
-- breakout excursion
+No parameter below is selected from outcome performance.
+
+## Trading-bar horizons
+h in {1,4,12,24} means the next h **observed complete H1 trading bars**, not h wall-clock hours.
+
+For an outcome at start index i to mature:
+- i+h exists,
+- every adjacent gap from i through i+h is >0 and <=3 hours,
+- endpoint timestamp remains < 2024-03-20T00:00:00Z,
+- ATR at i is finite and positive.
+
+Thus:
+- ordinary daily maintenance closures may occur inside the path,
+- weekend/large holiday gaps may not occur inside the path.
+
+Record endpoint elapsed wall-clock hours for every mature horizon so trading-bar time and calendar time remain distinguishable.
+
+## Data boundary
+Unchanged:
+- canonical local JForex BID/ASK M1
+- complete H1 bars only
+- raw gate 2018-03-01 <= timestamp < 2024-03-20T00:00:00Z
+- library/discovery before 2021-01-01
+- evaluation 2021-01-01 through raw end
+- Validation and Historical Holdout remain closed
+
+## State rules
+Unchanged from v0.1.
 
 RANGE core:
-- efficiency24 <=0.35
-- efficiency48 <=0.35
-- abs(drift24) <=1.50 ATR
-- abs(drift48) <=3.00 ATR
-At least 3 of 4.
+- efficiency24 <= 0.35
+- efficiency48 <= 0.35
+- abs(drift24) <= 1.50 ATR
+- abs(drift48) <= 3.00 ATR
+- at least 3/4 conditions
 
 TREND_UP:
 - dc_up_count >=3
-- drift24 >=+1.00 ATR
+- drift24 >= +1.00 ATR
 - efficiency24 >=0.35
 
-TREND_DOWN symmetric.
+TREND_DOWN:
+- dc_down_count >=3
+- drift24 <= -1.00 ATR
+- efficiency24 >=0.35
 
 Breakout:
-- >=0.10 ATR beyond the prior-24-bar channel boundary.
+- close beyond prior 24-trading-bar boundary by >=0.10 ATR.
 
-FSM transition/confirmation logic remains identical to v0.1.
+TRANSITION:
+- same source, direction, frozen range-boundary and 4-trading-bar maximum-age rules as v0.1.
 
-## Market-aware continuity
-A sequence of complete H1 bars is considered operationally continuous when every adjacent timestamp gap is <=3 hours.
+Primary RANGE -> TRANSITION library:
+- source RANGE
+- range_age >=6 trading bars
 
-Rationale fixed before v0.2 scoring:
-- observed regular XAU maintenance produces 2h gaps,
-- some session/DST closures produce 3h gaps,
-- weekend closures are around 50h and therefore remain hard resets.
+## Outputs
+Persist:
+- state_sequence.csv.gz
+- transition_library.jsonl
+- state_freeze.json
+- input_manifest.json
+- summary.json
 
-Rules:
-- gap <=3h: state memory, range age and transition confirmation continue.
-- gap >3h: reset transient FSM memory and split run statistics.
-- outcome paths reject any gap >3h.
-- horizons are counted in subsequent complete H1 trading bars, not wall-clock hours.
-
-Thus "24-bar outcome" means the next 24 complete H1 trading bars without a >3h closure.
-
-## Primary range-exit workflow
-
-### Step A — TRANSITION onset
-When RANGE enters TRANSITION:
-- record the same causal event features as v0.1,
-- freeze the range boundaries,
-- record onset candidate direction and trigger,
-- mark this timestamp as SCALPER_STAND_DOWN.
-
-No Swing direction is authorized at Step A.
-
-### Step B — resolution
-The unchanged FSM resolves within max 4 complete H1 bars to one of:
-- TREND_UP
-- TREND_DOWN
-- RANGE
-- unresolved because of a >3h market closure/data end
-
-Interpretation:
-- TREND_UP -> SWING_LONG_CANDIDATE
-- TREND_DOWN -> SWING_SHORT_CANDIDATE
-- RANGE -> RANGE_RESUMED / fake-break family
-
-Minimum source range age for primary episodes remains 6 complete H1 trading bars.
-
-## Primary evaluation anchor
-For episodes resolved to TREND_UP or TREND_DOWN:
-- primary outcome anchor = resolution bar
-- primary direction = resolved trend direction
-- use ATR at resolution
-
-For episodes resolved RANGE:
-- no directional Swing outcome is assigned.
-- they count as range resumptions.
-
-## Post-resolution outcomes
-For confirmed trend resolutions and horizons of next:
-- 1 complete H1 trading bar
-- 4 bars
-- 12 bars
-- 24 bars
-
-Require:
-- enough future bars,
-- every adjacent timestamp gap in path <=3h,
-- outcome remains before 2024-03-20.
-
-Record:
-- signed displacement ATR in resolved trend direction
-- MFE ATR
-- MAE ATR
-- directional correctness = sign(future displacement) equals resolved trend
-- whether final close remains beyond frozen range boundary
-- whether price returned inside frozen range at any point
-
-## Onset comparison
-Retain onset outcomes using the same market-aware trading-bar horizons only as a secondary comparator.
-
-Purpose:
-quantify whether waiting for confirmation improves directional persistence versus trading the first attempted break.
-
-This comparison is descriptive, not a trading rule.
-
-## Core reports
-Separately for library and evaluation:
-
-State structure:
+Report library and evaluation separately:
 - occupancy
-- run length
+- run lengths
 - transition matrix
-
-Range exits:
-- total primary episodes
-- onset trigger direction balance
-- resolution counts
-- resolution delay distribution
-- fraction returning to RANGE
-- fraction resolving into trend
-
-Confirmed-trend handoff:
-- n by resolved direction
-- directional accuracy after resolution at 1/4/12/24 bars
-- signed displacement mean/median
+- primary transition count
+- up/down balance
+- resolution counts/delay
+- source range age
+- 1/4/12/24 trading-bar signed displacement
 - MFE/MAE
-- final-close-beyond-range fraction
-- return-inside-range fraction
+- close beyond frozen boundary
+- returned inside frozen range
+- wall-clock elapsed hours
+- transition counts by calendar year
 
-Compare:
-- onset candidate direction vs post-onset outcomes
-- confirmed resolution direction vs post-resolution outcomes
+## Sanity screens
+Same conceptual screens, corrected for trading-time:
+1. RANGE median efficiency24 below both trend-state medians.
+2. TREND_UP median drift24 >0 and TREND_DOWN median drift24 <0.
+3. primary transitions exist in both splits.
+4. at least 100 mature evaluation transitions at 24 trading bars.
+5. mature evaluation transitions contain both candidate directions.
+6. no single calendar year contributes >60% of mature evaluation transitions.
+7. at least 100 mature library transitions at 24 trading bars.
 
-## Registered v0.2 sanity gates
-All are descriptive integrity/utility gates, not trading-profit gates:
+These are structural sanity checks, not profitability gates.
 
-1. state feature prefix invariance PASS.
-2. max TRANSITION age <=4 bars.
-3. evaluation has >=100 primary RANGE->TRANSITION episodes.
-4. evaluation has >=100 confirmed TREND resolutions with mature 24-bar outcomes.
-5. confirmed resolutions include both TREND_UP and TREND_DOWN.
-6. no single evaluation calendar year contributes >60% of mature confirmed-trend 24-bar outcomes.
-7. RANGE median efficiency24 < both trend-state medians.
-8. TREND_UP median drift24 >0 and TREND_DOWN median drift24 <0.
-9. resolved-trend 4-bar direction accuracy is reported but has no required pass threshold in v0.2.
+## Integrity tests
+Before accepting:
+- short closure gap (<=3h) preserves FSM episode continuity
+- long gap (>3h) resets FSM
+- 24-trading-bar outcomes may bridge <=3h closure gaps
+- outcomes reject >3h gaps
+- feature prefix invariance
+- fake-break return path
+- breakout-to-trend path
+- transition forced resolution <=4 trading bars
+- raw date gate
+- state sequence frozen before outcome attachment
+- Validation read=false
+- Holdout read=false
 
-No state threshold may be modified from the result of these gates.
+## Scientific status
+v0.2 does not reinterpret v0.1 outcome values as evidence.
+v0.1 remains a failed timing implementation.
+v0.2 is a new frozen run with the same market-state hypothesis and corrected clock semantics.
 
-## Integrity
-- protocol committed before v0.2 outcomes
-- raw manifest hashes
-- no Validation/Holdout
-- state assignment contains no future outcome
-- frozen state sequence before outcomes
-- frozen range boundaries during transition
-- market gap rule <=3h fixed before scoring
-- future path uses only post-anchor data
-- no profitability threshold or execution cost filter selected in v0.2
-
-## Next step
-If v0.2 shows that confirmed resolution has meaningfully more stable directional persistence than onset:
-- freeze State Engine v0.2,
-- construct the Transition Memory dataset,
-- use STUMPY/DTW and later ML to estimate:
-  P(RANGE resumes),
-  P(TREND_UP resolves),
-  P(TREND_DOWN resolves)
-from TRANSITION-onset features,
-- use Kronos only as one feature/expert inside TRANSITION.
-
-If confirmed resolution itself is unstable, revise the structural representation in a new protocol rather than opening Holdout.
+No threshold tuning is allowed from v0.2 outcomes. Any later predictive model for transition direction must use a separately preregistered train/evaluation design.
