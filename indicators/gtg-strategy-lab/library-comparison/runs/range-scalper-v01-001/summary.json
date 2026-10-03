@@ -1,0 +1,479 @@
+{
+  "scope": "GTG Range Scalper v0.1 development diagnostic",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "reports": {
+    "library": {
+      "range_bars": 5921,
+      "flat_edge_signals": 503,
+      "completed_trades": 432,
+      "censored_counts": {
+        "ENTRY_HARD_GAP": 15,
+        "HARD_GAP": 55,
+        "SPLIT_END": 1
+      },
+      "overall": {
+        "n": 432,
+        "long_n": 191,
+        "short_n": 241,
+        "directional_accuracy": 0.4351851851851852,
+        "c0_mean_per_trade": -0.01240365190228556,
+        "c1_mean_per_trade": -0.22639910212994752,
+        "c2_mean_per_trade": -0.4403945523576095,
+        "c1_win_rate": 0.40046296296296297,
+        "duration_median_bars": 5.0,
+        "duration_mean_bars": 6.763888888888889,
+        "elapsed_wall_hours_mean": 7.141203703703703,
+        "mean_mfe_atr": 1.2988223805554515,
+        "mean_mae_atr": 1.1875132381393614,
+        "exit_reason_counts": {
+          "STATE_EXIT": 280,
+          "TARGET_AND_STATE_EXIT": 14,
+          "TARGET": 138
+        },
+        "target_exit_fraction": 0.35185185185185186,
+        "state_exit_before_target_fraction": 0.6481481481481481
+      },
+      "by_direction": {
+        "long": {
+          "n": 191,
+          "long_n": 191,
+          "short_n": 0,
+          "directional_accuracy": 0.43455497382198954,
+          "c0_mean_per_trade": -0.0006069667930761422,
+          "c1_mean_per_trade": -0.2113821388202443,
+          "c2_mean_per_trade": -0.4221573108474123,
+          "c1_win_rate": 0.38219895287958117,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 6.654450261780105,
+          "elapsed_wall_hours_mean": 6.979057591623037,
+          "mean_mfe_atr": 1.1584356039168913,
+          "mean_mae_atr": 1.2944452018751096,
+          "exit_reason_counts": {
+            "STATE_EXIT": 126,
+            "TARGET": 58,
+            "TARGET_AND_STATE_EXIT": 7
+          },
+          "target_exit_fraction": 0.3403141361256545,
+          "state_exit_before_target_fraction": 0.6596858638743456
+        },
+        "short": {
+          "n": 241,
+          "long_n": 0,
+          "short_n": 241,
+          "directional_accuracy": 0.43568464730290457,
+          "c0_mean_per_trade": -0.02175289196809053,
+          "c1_mean_per_trade": -0.2383005128857705,
+          "c2_mean_per_trade": -0.45484813380345035,
+          "c1_win_rate": 0.4149377593360996,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 6.850622406639004,
+          "elapsed_wall_hours_mean": 7.269709543568465,
+          "mean_mfe_atr": 1.4100832699246013,
+          "mean_mae_atr": 1.1027663291205738,
+          "exit_reason_counts": {
+            "STATE_EXIT": 154,
+            "TARGET_AND_STATE_EXIT": 7,
+            "TARGET": 80
+          },
+          "target_exit_fraction": 0.36099585062240663,
+          "state_exit_before_target_fraction": 0.6390041493775933
+        }
+      },
+      "by_year": {
+        "2018": {
+          "n": 132,
+          "long_n": 59,
+          "short_n": 73,
+          "directional_accuracy": 0.42424242424242425,
+          "c0_mean_per_trade": -0.023360962713691782,
+          "c1_mean_per_trade": -0.2546713160422384,
+          "c2_mean_per_trade": -0.4859816693707851,
+          "c1_win_rate": 0.4090909090909091,
+          "duration_median_bars": 4.5,
+          "duration_mean_bars": 6.545454545454546,
+          "elapsed_wall_hours_mean": 6.856060606060606,
+          "mean_mfe_atr": 1.3525515444837075,
+          "mean_mae_atr": 1.1747133729999737,
+          "exit_reason_counts": {
+            "STATE_EXIT": 83,
+            "TARGET_AND_STATE_EXIT": 5,
+            "TARGET": 44
+          },
+          "target_exit_fraction": 0.3712121212121212,
+          "state_exit_before_target_fraction": 0.6287878787878788
+        },
+        "2019": {
+          "n": 145,
+          "long_n": 68,
+          "short_n": 77,
+          "directional_accuracy": 0.46206896551724136,
+          "c0_mean_per_trade": 0.039622089394199096,
+          "c1_mean_per_trade": -0.19062368938539176,
+          "c2_mean_per_trade": -0.42086946816498266,
+          "c1_win_rate": 0.41379310344827586,
+          "duration_median_bars": 4.0,
+          "duration_mean_bars": 6.220689655172414,
+          "elapsed_wall_hours_mean": 6.682758620689655,
+          "mean_mfe_atr": 1.3424626915858335,
+          "mean_mae_atr": 1.198870498667864,
+          "exit_reason_counts": {
+            "STATE_EXIT": 92,
+            "TARGET": 49,
+            "TARGET_AND_STATE_EXIT": 4
+          },
+          "target_exit_fraction": 0.36551724137931035,
+          "state_exit_before_target_fraction": 0.6344827586206897
+        },
+        "2020": {
+          "n": 155,
+          "long_n": 64,
+          "short_n": 91,
+          "directional_accuracy": 0.41935483870967744,
+          "c0_mean_per_trade": -0.05174150648863815,
+          "c1_mean_per_trade": -0.2357894415592262,
+          "c2_mean_per_trade": -0.41983737662981424,
+          "c1_win_rate": 0.38064516129032255,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 7.458064516129032,
+          "elapsed_wall_hours_mean": 7.812903225806451,
+          "mean_mfe_atr": 1.2122411241816764,
+          "mean_mae_atr": 1.1877892344088217,
+          "exit_reason_counts": {
+            "STATE_EXIT": 105,
+            "TARGET": 45,
+            "TARGET_AND_STATE_EXIT": 5
+          },
+          "target_exit_fraction": 0.3225806451612903,
+          "state_exit_before_target_fraction": 0.6774193548387096
+        }
+      },
+      "by_exit_reason": {
+        "TARGET": {
+          "n": 138,
+          "long_n": 58,
+          "short_n": 80,
+          "directional_accuracy": 1.0,
+          "c0_mean_per_trade": 1.87181578289843,
+          "c1_mean_per_trade": 1.647944956488758,
+          "c2_mean_per_trade": 1.424074130079086,
+          "c1_win_rate": 1.0,
+          "duration_median_bars": 6.0,
+          "duration_mean_bars": 7.6521739130434785,
+          "elapsed_wall_hours_mean": 8.108695652173912,
+          "mean_mfe_atr": 2.269387957549826,
+          "mean_mae_atr": 0.5924758292051501,
+          "exit_reason_counts": {
+            "TARGET": 138
+          },
+          "target_exit_fraction": 1.0,
+          "state_exit_before_target_fraction": 0.0
+        },
+        "STATE_EXIT": {
+          "n": 280,
+          "long_n": 126,
+          "short_n": 154,
+          "directional_accuracy": 0.12857142857142856,
+          "c0_mean_per_trade": -1.078018369462353,
+          "c1_mean_per_trade": -1.2864810649903058,
+          "c2_mean_per_trade": -1.4949437605182583,
+          "c1_win_rate": 0.075,
+          "duration_median_bars": 3.5,
+          "duration_mean_bars": 5.828571428571428,
+          "elapsed_wall_hours_mean": 6.1535714285714285,
+          "mean_mfe_atr": 0.7276579263161458,
+          "mean_mae_atr": 1.4906516101481209,
+          "exit_reason_counts": {
+            "STATE_EXIT": 280
+          },
+          "target_exit_fraction": 0.0,
+          "state_exit_before_target_fraction": 1.0
+        },
+        "TARGET_AND_STATE_EXIT": {
+          "n": 14,
+          "long_n": 7,
+          "short_n": 7,
+          "directional_accuracy": 1.0,
+          "c0_mean_per_trade": 2.7268705562634423,
+          "c1_mean_per_trade": 2.499563005835691,
+          "c2_mean_per_trade": 2.27225545540794,
+          "c1_win_rate": 1.0,
+          "duration_median_bars": 16.0,
+          "duration_mean_bars": 16.714285714285715,
+          "elapsed_wall_hours_mean": 17.357142857142858,
+          "mean_mfe_atr": 3.155107920682734,
+          "mean_mae_atr": 0.990114543172831,
+          "exit_reason_counts": {
+            "TARGET_AND_STATE_EXIT": 14
+          },
+          "target_exit_fraction": 1.0,
+          "state_exit_before_target_fraction": 0.0
+        }
+      }
+    },
+    "evaluation": {
+      "range_bars": 6955,
+      "flat_edge_signals": 590,
+      "completed_trades": 548,
+      "censored_counts": {
+        "ENTRY_HARD_GAP": 4,
+        "HARD_GAP": 38
+      },
+      "overall": {
+        "n": 548,
+        "long_n": 283,
+        "short_n": 265,
+        "directional_accuracy": 0.4233576642335766,
+        "c0_mean_per_trade": 0.006084787844446948,
+        "c1_mean_per_trade": -0.1811011018983893,
+        "c2_mean_per_trade": -0.36828699164122547,
+        "c1_win_rate": 0.4032846715328467,
+        "duration_median_bars": 5.0,
+        "duration_mean_bars": 6.428832116788321,
+        "elapsed_wall_hours_mean": 6.704379562043796,
+        "mean_mfe_atr": 1.341670674521082,
+        "mean_mae_atr": 1.2953080360262224,
+        "exit_reason_counts": {
+          "STATE_EXIT": 345,
+          "TARGET": 186,
+          "TARGET_AND_STATE_EXIT": 17
+        },
+        "target_exit_fraction": 0.3704379562043796,
+        "state_exit_before_target_fraction": 0.6295620437956204
+      },
+      "by_direction": {
+        "long": {
+          "n": 283,
+          "long_n": 283,
+          "short_n": 0,
+          "directional_accuracy": 0.4275618374558304,
+          "c0_mean_per_trade": 0.021996908029231096,
+          "c1_mean_per_trade": -0.1663644039620826,
+          "c2_mean_per_trade": -0.35472571595339625,
+          "c1_win_rate": 0.40636042402826855,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 6.4840989399293285,
+          "elapsed_wall_hours_mean": 6.76678445229682,
+          "mean_mfe_atr": 1.2479915815837972,
+          "mean_mae_atr": 1.3113050101678299,
+          "exit_reason_counts": {
+            "STATE_EXIT": 176,
+            "TARGET": 99,
+            "TARGET_AND_STATE_EXIT": 8
+          },
+          "target_exit_fraction": 0.37809187279151946,
+          "state_exit_before_target_fraction": 0.6219081272084805
+        },
+        "short": {
+          "n": 265,
+          "long_n": 0,
+          "short_n": 265,
+          "directional_accuracy": 0.4188679245283019,
+          "c0_mean_per_trade": -0.010908155598171631,
+          "c1_mean_per_trade": -0.196838783090747,
+          "c2_mean_per_trade": -0.3827694105833224,
+          "c1_win_rate": 0.4,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 6.369811320754717,
+          "elapsed_wall_hours_mean": 6.637735849056604,
+          "mean_mfe_atr": 1.4417128756578808,
+          "mean_mae_atr": 1.2782244749617886,
+          "exit_reason_counts": {
+            "STATE_EXIT": 169,
+            "TARGET": 87,
+            "TARGET_AND_STATE_EXIT": 9
+          },
+          "target_exit_fraction": 0.3622641509433962,
+          "state_exit_before_target_fraction": 0.6377358490566037
+        }
+      },
+      "by_year": {
+        "2021": {
+          "n": 177,
+          "long_n": 87,
+          "short_n": 90,
+          "directional_accuracy": 0.4180790960451977,
+          "c0_mean_per_trade": 0.04445432713030899,
+          "c1_mean_per_trade": -0.1415643055182576,
+          "c2_mean_per_trade": -0.32758293816682416,
+          "c1_win_rate": 0.4011299435028249,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 6.271186440677966,
+          "elapsed_wall_hours_mean": 6.536723163841808,
+          "mean_mfe_atr": 1.2635999041099477,
+          "mean_mae_atr": 1.2415220770849806,
+          "exit_reason_counts": {
+            "STATE_EXIT": 111,
+            "TARGET": 61,
+            "TARGET_AND_STATE_EXIT": 5
+          },
+          "target_exit_fraction": 0.3728813559322034,
+          "state_exit_before_target_fraction": 0.6271186440677966
+        },
+        "2022": {
+          "n": 165,
+          "long_n": 91,
+          "short_n": 74,
+          "directional_accuracy": 0.40606060606060607,
+          "c0_mean_per_trade": -0.0747879733895354,
+          "c1_mean_per_trade": -0.25912646417417123,
+          "c2_mean_per_trade": -0.4434649549588071,
+          "c1_win_rate": 0.3939393939393939,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 6.654545454545454,
+          "elapsed_wall_hours_mean": 6.903030303030303,
+          "mean_mfe_atr": 1.3652481078875127,
+          "mean_mae_atr": 1.3488216616153914,
+          "exit_reason_counts": {
+            "STATE_EXIT": 103,
+            "TARGET": 58,
+            "TARGET_AND_STATE_EXIT": 4
+          },
+          "target_exit_fraction": 0.37575757575757573,
+          "state_exit_before_target_fraction": 0.6242424242424243
+        },
+        "2023": {
+          "n": 165,
+          "long_n": 84,
+          "short_n": 81,
+          "directional_accuracy": 0.42424242424242425,
+          "c0_mean_per_trade": -0.11273195430197137,
+          "c1_mean_per_trade": -0.2936462033165162,
+          "c2_mean_per_trade": -0.47456045233106087,
+          "c1_win_rate": 0.3939393939393939,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 6.218181818181818,
+          "elapsed_wall_hours_mean": 6.533333333333333,
+          "mean_mfe_atr": 1.2384736443254765,
+          "mean_mae_atr": 1.3071702989114438,
+          "exit_reason_counts": {
+            "STATE_EXIT": 108,
+            "TARGET_AND_STATE_EXIT": 5,
+            "TARGET": 52
+          },
+          "target_exit_fraction": 0.34545454545454546,
+          "state_exit_before_target_fraction": 0.6545454545454545
+        },
+        "2024": {
+          "n": 41,
+          "long_n": 21,
+          "short_n": 20,
+          "directional_accuracy": 0.5121951219512195,
+          "c0_mean_per_trade": 0.6440691684339234,
+          "c1_mean_per_trade": 0.4151455700579922,
+          "c2_mean_per_trade": 0.18622197168206095,
+          "c1_win_rate": 0.4878048780487805,
+          "duration_median_bars": 5.0,
+          "duration_mean_bars": 7.048780487804878,
+          "elapsed_wall_hours_mean": 7.317073170731708,
+          "mean_mfe_atr": 1.9991282315841228,
+          "mean_mae_atr": 1.2644078685707414,
+          "exit_reason_counts": {
+            "TARGET": 15,
+            "STATE_EXIT": 23,
+            "TARGET_AND_STATE_EXIT": 3
+          },
+          "target_exit_fraction": 0.43902439024390244,
+          "state_exit_before_target_fraction": 0.5609756097560976
+        }
+      },
+      "by_exit_reason": {
+        "TARGET": {
+          "n": 186,
+          "long_n": 99,
+          "short_n": 87,
+          "directional_accuracy": 1.0,
+          "c0_mean_per_trade": 1.9350885074898827,
+          "c1_mean_per_trade": 1.7506062294924636,
+          "c2_mean_per_trade": 1.566123951495044,
+          "c1_win_rate": 1.0,
+          "duration_median_bars": 6.0,
+          "duration_mean_bars": 6.682795698924731,
+          "elapsed_wall_hours_mean": 6.924731182795699,
+          "mean_mfe_atr": 2.3065616107928197,
+          "mean_mae_atr": 0.6013930942047958,
+          "exit_reason_counts": {
+            "TARGET": 186
+          },
+          "target_exit_fraction": 1.0,
+          "state_exit_before_target_fraction": 0.0
+        },
+        "STATE_EXIT": {
+          "n": 345,
+          "long_n": 176,
+          "short_n": 169,
+          "directional_accuracy": 0.08405797101449275,
+          "c0_mean_per_trade": -1.2305600811779405,
+          "c1_mean_per_trade": -1.4190080901491067,
+          "c2_mean_per_trade": -1.607456099120273,
+          "c1_win_rate": 0.05217391304347826,
+          "duration_median_bars": 4.0,
+          "duration_mean_bars": 5.83768115942029,
+          "elapsed_wall_hours_mean": 6.110144927536232,
+          "mean_mfe_atr": 0.6618476659934709,
+          "mean_mae_atr": 1.6743096952036916,
+          "exit_reason_counts": {
+            "STATE_EXIT": 345
+          },
+          "target_exit_fraction": 0.0,
+          "state_exit_before_target_fraction": 1.0
+        },
+        "TARGET_AND_STATE_EXIT": {
+          "n": 17,
+          "long_n": 8,
+          "short_n": 9,
+          "directional_accuracy": 1.0,
+          "c0_mean_per_trade": 3.997131138354593,
+          "c1_mean_per_trade": 3.805978151501545,
+          "c2_mean_per_trade": 3.6148251646484963,
+          "c1_win_rate": 1.0,
+          "duration_median_bars": 17.0,
+          "duration_mean_bars": 15.647058823529411,
+          "elapsed_wall_hours_mean": 16.352941176470587,
+          "mean_mfe_atr": 4.581036780137715,
+          "mean_mae_atr": 1.1960496102943718,
+          "exit_reason_counts": {
+            "TARGET_AND_STATE_EXIT": 17
+          },
+          "target_exit_fraction": 1.0,
+          "state_exit_before_target_fraction": 0.0
+        }
+      }
+    }
+  },
+  "registered_stability_screen": {
+    "library_completed_ge_100": true,
+    "evaluation_completed_ge_100": true,
+    "evaluation_long_ge_40": true,
+    "evaluation_short_ge_40": true,
+    "library_c1_positive": false,
+    "evaluation_c1_positive": false,
+    "library_c2_nonnegative": false,
+    "evaluation_c2_nonnegative": false,
+    "library_c1_win_gt_0_50": false,
+    "evaluation_c1_win_gt_0_50": false,
+    "positive_c1_two_full_evaluation_years": false,
+    "no_full_year_over_60pct": true,
+    "pass": false
+  },
+  "integrity": {
+    "state_file_hash_unchanged": "PASS",
+    "state_content_hash_unchanged": "PASS",
+    "source_manifest_unchanged": "PASS",
+    "range_state_only_signals": "PASS",
+    "frozen_channel_per_trade": "PASS",
+    "entry_after_signal_close": "PASS",
+    "single_active_trade": "PASS",
+    "causal_target_or_state_exit": "PASS",
+    "exit_after_exit_signal_close": "PASS",
+    "no_hard_gap_bridging": "PASS",
+    "split_boundary_not_crossed": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "DEVELOPMENT_DIAGNOSTIC_NOT_INDEPENDENT_VALIDATION"
+}
