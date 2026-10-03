@@ -1,6 +1,6 @@
 {
   "created_utc": "2026-10-03T19:35:30.109300+00:00",
-  "evaluation_opened": false,
+  "evaluation_opened": true,
   "model_sha256": "44fc6c53ab0820edb6ac974ffaddd7d77d6e8f24eb2707ebab50ba3d85e32b79",
   "training_samples_sha256": "31239f229fc1b16b99448c0431d20dff8066ba2de3e5f0759fa15ed8c5b28d7f",
   "source_utility_freeze_sha256": "5671d7872d36769784d2540e9a90485c33b359e1da4b44769a79a557c8553dda",
@@ -61,5 +61,6 @@
     2.482509481885177
   ],
   "validation_read": false,
-  "holdout_read": false
+  "holdout_read": false,
+  "evaluation_opened_utc": "2026-10-03T19:36:25.958755+00:00"
 }
