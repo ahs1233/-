@@ -1,0 +1,20 @@
+[
+  "dc0p5_dir",
+  "dc0p5_age",
+  "dc0p5_amp_atr",
+  "dc0p5_retrace",
+  "dc1p0_dir",
+  "dc1p0_age",
+  "dc1p0_amp_atr",
+  "dc1p0_retrace",
+  "dc2p0_dir",
+  "dc2p0_age",
+  "dc2p0_amp_atr",
+  "dc2p0_retrace",
+  "dc4p0_dir",
+  "dc4p0_age",
+  "dc4p0_amp_atr",
+  "dc4p0_retrace",
+  "drift12",
+  "spread_atr"
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "table_position": 0,
+    "complexity": 1,
+    "selection_mae": 0.8065111924071163,
+    "equation": "0.015042431",
+    "sympy": "0.0150424310000000"
+  },
+  {
+    "table_position": 1,
+    "complexity": 3,
+    "selection_mae": 0.8064578311106232,
+    "equation": "dc4p0_age * 0.003889442",
+    "sympy": "dc4p0_age*0.003889442"
+  },
+  {
+    "table_position": 2,
+    "complexity": 4,
+    "selection_mae": 0.8063410081906217,
+    "equation": "abs(drift12 * -0.011965656)",
+    "sympy": "0.011965656*Abs(drift12)"
+  },
+  {
+    "table_position": 3,
+    "complexity": 5,
+    "selection_mae": 0.8064047799129463,
+    "equation": "drift12 * (drift12 / 300.05203)",
+    "sympy": "drift12*drift12/300.05203"
+  },
+  {
+    "table_position": 4,
+    "complexity": 6,
+    "selection_mae": 0.8063379414959805,
+    "equation": "abs((dc4p0_age / 337.33627) * drift12)",
+    "sympy": "0.00296440107077724*Abs(dc4p0_age*drift12)"
+  },
+  {
+    "table_position": 5,
+    "complexity": 7,
+    "selection_mae": 0.8058047699730219,
+    "equation": "(drift12 - dc0p5_age) * (drift12 / 337.33627)",
+    "sympy": "drift12*(-dc0p5_age + drift12)/337.33627"
+  },
+  {
+    "table_position": 6,
+    "complexity": 8,
+    "selection_mae": 0.8064493768527837,
+    "equation": "abs(((dc1p0_age - dc2p0_age) * drift12) / 156.14711)",
+    "sympy": "0.00640421715137731*Abs(drift12*(dc1p0_age - dc2p0_age))"
+  }
+]

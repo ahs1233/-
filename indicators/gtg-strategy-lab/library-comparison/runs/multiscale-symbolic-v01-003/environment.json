@@ -1,0 +1,18 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "pysr": "2.6.0",
+    "juliacall": "0.9.36",
+    "juliapkg": "0.1.27"
+  },
+  "protocol_sha256": "c9cbb69b6df7b978527f388f6ec6d61ef82e122cbe12a2afc17de97dbcfdc6ae",
+  "created_utc": "2026-10-03T16:01:20.465816+00:00",
+  "symbolic_runtime": {
+    "pysr": "2.6.0",
+    "julia": "1.13.1",
+    "SymbolicRegression.jl": "2.5.1"
+  },
+  "stage": "discover_select"
+}

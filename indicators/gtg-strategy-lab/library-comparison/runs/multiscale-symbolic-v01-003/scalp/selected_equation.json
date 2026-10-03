@@ -1,0 +1,32 @@
+{
+  "table_position": 5,
+  "complexity": 7,
+  "selection_mae": 0.8058047699730219,
+  "equation": "(drift12 - dc0p5_age) * (drift12 / 337.33627)",
+  "sympy": "drift12*(-dc0p5_age + drift12)/337.33627",
+  "track": "scalp",
+  "feature_names": [
+    "dc0p5_dir",
+    "dc0p5_age",
+    "dc0p5_amp_atr",
+    "dc0p5_retrace",
+    "dc1p0_dir",
+    "dc1p0_age",
+    "dc1p0_amp_atr",
+    "dc1p0_retrace",
+    "dc2p0_dir",
+    "dc2p0_age",
+    "dc2p0_amp_atr",
+    "dc2p0_retrace",
+    "dc4p0_dir",
+    "dc4p0_age",
+    "dc4p0_amp_atr",
+    "dc4p0_retrace",
+    "drift12",
+    "spread_atr"
+  ],
+  "discovery_n": 21571,
+  "selection_n": 4396,
+  "selected_utc": "2026-10-03T16:03:32.379443+00:00",
+  "selection_rule": "min MAE; tie lower complexity then table order"
+}
