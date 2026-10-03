@@ -1,0 +1,143 @@
+{
+  "scope": "GTG DC Correction -> Resumption H4 Validation Gate v0.1",
+  "evidence_status": "FORMAL_VALIDATION_DRY_RUN_TRAIN_SELECTED_CANDIDATE",
+  "validation_read": true,
+  "holdout_read": false,
+  "pristine_oos_read": false,
+  "boundaries": {
+    "first_valid": "2021-09-08T17:00:00Z",
+    "train_end": "2024-03-20T15:20:24.500Z",
+    "validation_start": "2024-03-20T19:20:24.500Z",
+    "validation_end": "2025-03-25T01:04:34.300Z",
+    "holdout_start": "2025-03-25T05:04:34.300Z",
+    "raw_cap": "2025-03-25T01:00:00Z"
+  },
+  "quality": {
+    "complete_h1": 40750,
+    "incomplete_dropped": 1015
+  },
+  "prefix_parity": {
+    "rows_compared": 34816,
+    "last_overlap_time": 1710889200000,
+    "state_content_sha256": "c0b4a52d14e0c83826638b7669401eb817d392dd2867c241f9a5d0923e2b7c3e",
+    "continuous_float_atol": 1e-12,
+    "max_abs_continuous_diff": 3.552713678800501e-15,
+    "status": "PASS"
+  },
+  "fsm_diagnostics": {
+    "gap_resets": 548,
+    "max_transition_age_seen": 4
+  },
+  "validation_primary_confirmed_trend_episodes": 82,
+  "signal_status_counts": {
+    "MACRO_REVERSAL_DURING_CORRECTION": 21,
+    "DC_RESUMPTION_ENTRY": 21,
+    "NO_RESUMPTION_BEFORE_TREND_END": 11,
+    "HARD_GAP": 9,
+    "MACRO_REVERSAL_BEFORE_CORRECTION": 10,
+    "NO_FINE_CORRECTION_BEFORE_TREND_END": 10
+  },
+  "eligible_resumption_signals": 21,
+  "mature_h4_trades": 20,
+  "overall": {
+    "n": 20,
+    "directional_accuracy": 0.65,
+    "c0_mean_per_trade": 0.09077784251470863,
+    "c1_mean_per_trade": -0.05416058344285561,
+    "c2_mean_per_trade": -0.19909900940042,
+    "c1_win_rate": 0.65,
+    "mean_signed_displacement_atr": 0.09114529717467734,
+    "mean_mfe_atr": 1.1670106422095818,
+    "mean_mae_atr": 1.050835380950866,
+    "correction_delay_median": 7.0,
+    "correction_duration_median": 2.5,
+    "total_delay_median": 11.0
+  },
+  "by_direction": {
+    "up": {
+      "n": 16,
+      "directional_accuracy": 0.6875,
+      "c0_mean_per_trade": 0.0912615660148206,
+      "c1_mean_per_trade": -0.06062580916146365,
+      "c2_mean_per_trade": -0.21251318433774768,
+      "c1_win_rate": 0.6875,
+      "mean_signed_displacement_atr": 0.08990232809093396,
+      "mean_mfe_atr": 1.2437268775664152,
+      "mean_mae_atr": 1.074048075852288,
+      "correction_delay_median": 8.0,
+      "correction_duration_median": 2.5,
+      "total_delay_median": 11.0
+    },
+    "down": {
+      "n": 4,
+      "directional_accuracy": 0.5,
+      "c0_mean_per_trade": 0.08884294851426094,
+      "c1_mean_per_trade": -0.028299680568423857,
+      "c2_mean_per_trade": -0.14544230965110888,
+      "c1_win_rate": 0.5,
+      "mean_signed_displacement_atr": 0.09611717350965104,
+      "mean_mfe_atr": 0.8601457007822484,
+      "mean_mae_atr": 0.957984601345176,
+      "correction_delay_median": 3.5,
+      "correction_duration_median": 2.0,
+      "total_delay_median": 5.5
+    }
+  },
+  "half_period_descriptive": {
+    "first_half": {
+      "n": 9,
+      "directional_accuracy": 0.6666666666666666,
+      "c0_mean_per_trade": -0.23015086033937637,
+      "c1_mean_per_trade": -0.3588143835773805,
+      "c2_mean_per_trade": -0.4874779068153845,
+      "c1_win_rate": 0.6666666666666666,
+      "mean_signed_displacement_atr": -0.2310730891724994,
+      "mean_mfe_atr": 0.8155822991096996,
+      "mean_mae_atr": 1.2883190294405693,
+      "correction_delay_median": 8.0,
+      "correction_duration_median": 3.0,
+      "total_delay_median": 11.0
+    },
+    "second_half": {
+      "n": 11,
+      "directional_accuracy": 0.6363636363636364,
+      "c0_mean_per_trade": 0.3533558721225964,
+      "c1_mean_per_trade": 0.1951016166672101,
+      "c2_mean_per_trade": 0.03684736121182379,
+      "c1_win_rate": 0.6363636363636364,
+      "mean_signed_displacement_atr": 0.35477852236782215,
+      "mean_mfe_atr": 1.4545429229276676,
+      "mean_mae_atr": 0.8565305776411081,
+      "correction_delay_median": 6.0,
+      "correction_duration_median": 2.0,
+      "total_delay_median": 11.0
+    }
+  },
+  "registered_screens": {
+    "mature_h4_ge_10": true,
+    "up_ge_3": true,
+    "down_ge_3": true,
+    "sample_adequate": true,
+    "c0_positive": true,
+    "c1_positive": false,
+    "c2_nonnegative": false,
+    "c1_win_gt_0_50": true,
+    "up_c1_nonnegative": false,
+    "down_c1_nonnegative": false
+  },
+  "validation_verdict": "FAIL",
+  "integrity": {
+    "protocol_committed_before_validation_read": "PASS",
+    "state_code_hash_unchanged": "PASS",
+    "dc_rule_code_hash_unchanged": "PASS",
+    "train_state_file_hash_unchanged": "PASS",
+    "train_prefix_parity": "PASS",
+    "fine_dc_exact_0p0025": "PASS",
+    "macro_dc_exact_0p0050": "PASS",
+    "horizon_exact_4": "PASS",
+    "end_embargo_respected": "PASS",
+    "holdout_timestamp_not_read": "PASS",
+    "historical_holdout_read": false,
+    "pristine_oos_read": false
+  }
+}

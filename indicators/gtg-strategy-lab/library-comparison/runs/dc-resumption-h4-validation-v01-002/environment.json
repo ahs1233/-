@@ -1,0 +1,16 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "created_utc": "2026-10-03T19:57:46.708289+00:00",
+  "protocol_sha256": "5cc1774d3026275fb17b62003a3095d46645be830b0d3ea3c8c334c7b5e06bdd",
+  "state_code_sha256": "6175f772389e2838a042a1ce344ac5a5b9d930b4b83fb6cca51ea6ca582fae0d",
+  "dc_rule_code_sha256": "e7a679be25ade481955f5970ac174a3c36317dfce2d20e10607e9be9ebccc817",
+  "first_valid": "2021-09-08T17:00:00Z",
+  "train_end": "2024-03-20T15:20:24.500Z",
+  "validation_start": "2024-03-20T19:20:24.500Z",
+  "validation_end": "2025-03-25T01:04:34.300Z",
+  "holdout_start": "2025-03-25T05:04:34.300Z",
+  "raw_cap": "2025-03-25T01:00:00Z",
+  "validation_read": true,
+  "holdout_read": false,
+  "pristine_oos_read": false
+}
