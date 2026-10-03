@@ -1,0 +1,14 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1"
+  },
+  "protocol_sha256": "6b91c74d717578a89766902441d4e883d63ae136740349b6a9a9d7c20afd8964",
+  "code_sha256": "37594a8c51fa4136c63a245fda6c308de1894da5031c1803fc0ff18ca21cbbac",
+  "created_utc": "2026-10-03T17:06:08.226405+00:00",
+  "source_run": "C:\\Users\\alk\\gtg-lab-library-comparison\\indicators\\gtg-strategy-lab\\library-comparison\\runs\\state-transition-v02-001",
+  "validation_read": false,
+  "holdout_read": false
+}
