@@ -1,0 +1,62 @@
+{
+  "scope": "GTG Microstructure Forward Readiness Gate v0.1",
+  "status": "COLLECTING",
+  "eligible_now": false,
+  "registered_eligibility": {
+    "minimum_elapsed_days": 30,
+    "minimum_valid_snapshots": 10000
+  },
+  "gates": {
+    "integrity_pass": true,
+    "elapsed_time_gate": false,
+    "snapshot_count_gate": false
+  },
+  "progress": {
+    "valid_snapshots": 92,
+    "snapshots_remaining": 9908,
+    "elapsed_days": 0.07906990452546296,
+    "days_remaining": 29.92093009547454,
+    "first_capture": "2026-10-03T21:37:13.099764+00:00",
+    "last_capture": "2026-10-03T23:31:04.739515+00:00",
+    "time_gate_unlock_utc": "2026-11-02T21:37:13.099764+00:00"
+  },
+  "quality": {
+    "grade_counts": {
+      "single_source_grade": 3,
+      "fusion_grade": 89
+    },
+    "fusion_grade_count": 89,
+    "fusion_grade_ratio": 0.967391304347826,
+    "source_coverage": {
+      "binance_xau_perp": {
+        "available_count": 90,
+        "coverage_ratio": 0.9782608695652174
+      },
+      "bitfinex_xaut": {
+        "available_count": 92,
+        "coverage_ratio": 1.0
+      },
+      "kraken_paxg_spot": {
+        "available_count": 89,
+        "coverage_ratio": 0.967391304347826
+      }
+    },
+    "cadence": {
+      "interval_count": 91,
+      "median_interval_seconds": 59.985048,
+      "max_gap_seconds": 1136.95406,
+      "gaps_over_90s": 4,
+      "gaps_over_300s": 1,
+      "recent_interval_count": 60,
+      "recent_median_interval_seconds": 59.977607,
+      "recent_max_gap_seconds": 61.419532,
+      "recent_gaps_over_90s": 0,
+      "recent_gaps_over_300s": 0
+    }
+  },
+  "research_locks": {
+    "historical_holdout_read": false,
+    "pristine_price_oos_decoded": false,
+    "trading_outcomes_read": false
+  }
+}
