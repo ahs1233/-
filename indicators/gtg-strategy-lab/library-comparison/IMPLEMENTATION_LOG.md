@@ -157,3 +157,14 @@
 - Initial transition direction did not replicate directionally in evaluation: signed mean -0.131 ATR at 1 bar, -0.150 at 4, -0.041 at 12, -0.092 at 24.
 - Decision: v0.2 is structurally usable, but TRANSITION onset is stand-down/uncertainty, not Swing direction. v0.3 tests confirmed resolution as the Swing handoff.
 - Validation/Holdout remain closed.
+
+## State + Transition confirmed handoff v0.3 — completed
+- Audited frozen v0.2 resolutions without refitting states; source SHA/manifest matched.
+- Evaluation: 456 primary transitions -> 174 RANGE, 148 TREND_UP, 132 TREND_DOWN, 2 unresolved.
+- Confirmed trend fraction 61.40%; median resolution delay 1 H1 bar.
+- Post-resolution direction accuracy was weak: 51.1% at 1 bar, 48.5% at 4, 48.5% at 12, 54.0% at 24.
+- However, the subset that eventually confirmed a trend already showed stronger onset alignment: 60.0% at 1 bar, 56.8% at 4, 54.3% at 12, 57.7% at 24.
+- This subset is not directly tradable because confirmation is known only later. It establishes the next problem: predict TREND_CONFIRMED vs RANGE_RESUMED at TRANSITION onset.
+- No primary event resolved to the opposite trend direction in library or evaluation; confirmed trend direction equals onset candidate direction.
+- Decision: State Engine v0.2 remains authority; confirmation is a label, not an entry. Build Transition Memory at onset.
+- Validation/Holdout remain closed.
