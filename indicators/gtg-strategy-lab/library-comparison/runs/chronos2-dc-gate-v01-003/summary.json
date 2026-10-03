@@ -1,0 +1,264 @@
+{
+  "scope": "GTG Chronos-2 DC Gate v0.1 zero-shot opened-history development",
+  "quality": {
+    "complete_h1": 40750,
+    "incomplete_dropped": 1015
+  },
+  "base_trades_n": 109,
+  "forecast_eligible_n": 109,
+  "context_rejected_n": 0,
+  "allowed_n": 62,
+  "rejected_by_gate_n": 47,
+  "direction_agreement_rate": 0.5688073394495413,
+  "overall": {
+    "n": 62,
+    "long_n": 34,
+    "short_n": 28,
+    "c0_mean_per_trade": 0.18246373715814673,
+    "c1_mean_per_trade": 0.004884055862404678,
+    "c2_mean_per_trade": -0.17269562543333736,
+    "c1_win_rate": 0.532258064516129,
+    "c1_total": 0.30281146346909005,
+    "exit_reason_counts": {
+      "TP": 22,
+      "SL": 17,
+      "TIMEOUT": 23
+    }
+  },
+  "by_period": {
+    "LIBRARY_2018_2020": {
+      "n": 20,
+      "long_n": 13,
+      "short_n": 7,
+      "c0_mean_per_trade": 0.026905152088964747,
+      "c1_mean_per_trade": -0.1924886978601,
+      "c2_mean_per_trade": -0.41188254780916483,
+      "c1_win_rate": 0.4,
+      "c1_total": -3.849773957202,
+      "exit_reason_counts": {
+        "TP": 7,
+        "SL": 8,
+        "TIMEOUT": 5
+      }
+    },
+    "TRAIN_2021_2024": {
+      "n": 29,
+      "long_n": 11,
+      "short_n": 18,
+      "c0_mean_per_trade": 0.2108103335675305,
+      "c1_mean_per_trade": 0.04814713477897986,
+      "c2_mean_per_trade": -0.11451606400957083,
+      "c1_win_rate": 0.5517241379310345,
+      "c1_total": 1.396266908590416,
+      "exit_reason_counts": {
+        "TP": 10,
+        "TIMEOUT": 13,
+        "SL": 6
+      }
+    },
+    "VALIDATION_2024_2025": {
+      "n": 13,
+      "long_n": 10,
+      "short_n": 3,
+      "c0_mean_per_trade": 0.35854992219749376,
+      "c1_mean_per_trade": 0.21202450092928268,
+      "c2_mean_per_trade": 0.06549907966107169,
+      "c1_win_rate": 0.6923076923076923,
+      "c1_total": 2.756318512080675,
+      "exit_reason_counts": {
+        "TIMEOUT": 5,
+        "SL": 3,
+        "TP": 5
+      }
+    }
+  },
+  "by_direction": {
+    "long": {
+      "n": 34,
+      "long_n": 34,
+      "short_n": 0,
+      "c0_mean_per_trade": 0.2224500551218324,
+      "c1_mean_per_trade": 0.030455588893158775,
+      "c2_mean_per_trade": -0.1615388773355149,
+      "c1_win_rate": 0.5882352941176471,
+      "c1_total": 1.0354900223673984,
+      "exit_reason_counts": {
+        "SL": 11,
+        "TP": 13,
+        "TIMEOUT": 10
+      }
+    },
+    "short": {
+      "n": 28,
+      "long_n": 0,
+      "short_n": 28,
+      "c0_mean_per_trade": 0.133908922487957,
+      "c1_mean_per_trade": -0.02616709138922526,
+      "c2_mean_per_trade": -0.18624310526640755,
+      "c1_win_rate": 0.4642857142857143,
+      "c1_total": -0.7326785588983072,
+      "exit_reason_counts": {
+        "TP": 9,
+        "TIMEOUT": 13,
+        "SL": 6
+      }
+    }
+  },
+  "by_year": {
+    "2018": {
+      "n": 5,
+      "long_n": 1,
+      "short_n": 4,
+      "c0_mean_per_trade": 0.15353966080248996,
+      "c1_mean_per_trade": -0.09460711940710927,
+      "c2_mean_per_trade": -0.34275389961670844,
+      "c1_win_rate": 0.4,
+      "c1_total": -0.4730355970355463,
+      "exit_reason_counts": {
+        "TP": 2,
+        "SL": 1,
+        "TIMEOUT": 2
+      }
+    },
+    "2019": {
+      "n": 6,
+      "long_n": 4,
+      "short_n": 2,
+      "c0_mean_per_trade": -0.13491718955754994,
+      "c1_mean_per_trade": -0.37950135154648246,
+      "c2_mean_per_trade": -0.6240855135354151,
+      "c1_win_rate": 0.3333333333333333,
+      "c1_total": -2.2770081092788947,
+      "exit_reason_counts": {
+        "TP": 2,
+        "SL": 3,
+        "TIMEOUT": 1
+      }
+    },
+    "2020": {
+      "n": 9,
+      "long_n": 8,
+      "short_n": 1,
+      "c0_mean_per_trade": 0.06443420834579382,
+      "c1_mean_per_trade": -0.1221922500986177,
+      "c2_mean_per_trade": -0.3088187085430293,
+      "c1_win_rate": 0.4444444444444444,
+      "c1_total": -1.0997302508875593,
+      "exit_reason_counts": {
+        "TP": 3,
+        "TIMEOUT": 2,
+        "SL": 4
+      }
+    },
+    "2021": {
+      "n": 12,
+      "long_n": 5,
+      "short_n": 7,
+      "c0_mean_per_trade": 0.19979610047705795,
+      "c1_mean_per_trade": 0.04803478553521617,
+      "c2_mean_per_trade": -0.10372652940662554,
+      "c1_win_rate": 0.4166666666666667,
+      "c1_total": 0.5764174264225941,
+      "exit_reason_counts": {
+        "TP": 4,
+        "TIMEOUT": 6,
+        "SL": 2
+      }
+    },
+    "2022": {
+      "n": 10,
+      "long_n": 3,
+      "short_n": 7,
+      "c0_mean_per_trade": 0.3608738893714035,
+      "c1_mean_per_trade": 0.19187808129107228,
+      "c2_mean_per_trade": 0.02288227321074101,
+      "c1_win_rate": 0.7,
+      "c1_total": 1.9187808129107229,
+      "exit_reason_counts": {
+        "TIMEOUT": 4,
+        "TP": 4,
+        "SL": 2
+      }
+    },
+    "2023": {
+      "n": 6,
+      "long_n": 2,
+      "short_n": 4,
+      "c0_mean_per_trade": 0.11851536378190941,
+      "c1_mean_per_trade": -0.042568790494186916,
+      "c2_mean_per_trade": -0.2036529447702835,
+      "c1_win_rate": 0.6666666666666666,
+      "c1_total": -0.2554127429651215,
+      "exit_reason_counts": {
+        "SL": 2,
+        "TIMEOUT": 2,
+        "TP": 2
+      }
+    },
+    "2024": {
+      "n": 11,
+      "long_n": 9,
+      "short_n": 2,
+      "c0_mean_per_trade": 0.18313950359711767,
+      "c1_mean_per_trade": 0.050732636737666106,
+      "c2_mean_per_trade": -0.08167423012178544,
+      "c1_win_rate": 0.6363636363636364,
+      "c1_total": 0.5580590041143272,
+      "exit_reason_counts": {
+        "TIMEOUT": 6,
+        "SL": 2,
+        "TP": 3
+      }
+    },
+    "2025": {
+      "n": 3,
+      "long_n": 2,
+      "short_n": 1,
+      "c0_mean_per_trade": 0.6809099467757737,
+      "c1_mean_per_trade": 0.4515803067295228,
+      "c2_mean_per_trade": 0.22225066668327187,
+      "c1_win_rate": 0.6666666666666666,
+      "c1_total": 1.3547409201885685,
+      "exit_reason_counts": {
+        "TP": 2,
+        "SL": 1
+      }
+    }
+  },
+  "forecast_displacement": {
+    "q10_mean_atr": -1.7716553653656366,
+    "q50_mean_atr": -0.08765794416191683,
+    "q90_mean_atr": 1.5841404165920316
+  },
+  "unguarded_reference": {
+    "n": 109,
+    "c1_mean_per_trade": 0.10129141966124279,
+    "c2_mean_per_trade": -0.07195092753991844
+  },
+  "registered_screen": {
+    "eligible_guarded_trades_ge_40": true,
+    "long_ge_10": true,
+    "short_ge_10": true,
+    "combined_c1_positive": true,
+    "combined_c2_nonnegative": false,
+    "c1_win_gt_0_50": true,
+    "library_c1_nonnegative": false,
+    "train_2021_2024_c1_nonnegative": true,
+    "validation_c1_nonnegative": true,
+    "c1_better_than_unguarded": false,
+    "c2_better_than_unguarded": false,
+    "four_years_nonnegative_c1": true,
+    "no_year_over_40pct": true,
+    "pass": false
+  },
+  "integrity": {
+    "model_revision": "254b5357164a84326913b0695216f690752ac55d",
+    "context_bars": 256,
+    "prediction_length": 4,
+    "gate": "Q50_STEP4_DIRECTION_SIGN_ONLY",
+    "fine_tuning": false,
+    "base_bracket_changed": false,
+    "historical_holdout_read": false,
+    "forward_oos_decoded": false
+  }
+}

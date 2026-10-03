@@ -1,0 +1,13 @@
+{
+  "created_utc": "2026-10-03T21:36:25.162198+00:00",
+  "protocol_sha256": "bc9a38edb66f359ec25f4b65c6ed56462e566bb0099f7f2cd49debea04ab962a",
+  "code_sha256": "6d708a16aa153f64c1ed086e16550cef8d411efcece3e6e5136e70c5354d2c93",
+  "chronos_forecasting": "2.3.2",
+  "torch": "2.5.1+cpu",
+  "model_revision": "254b5357164a84326913b0695216f690752ac55d",
+  "model_sha256": "ddcda3c7508bf2528087723e98a20707cc04b7f370ae275a9fd88078ddba4f42",
+  "config_sha256": "ef1143bfdc9c0376d9a056eefca46cb4b1ec3d0ffacd541ff56feb40fb708031",
+  "trades_sha256": "7788b4f76e79b8680a47c8706322c1b8991637298eba4782c2c016e2e5e3af2b",
+  "historical_holdout_read": false,
+  "forward_oos_decoded": false
+}
