@@ -1,93 +1,108 @@
 # GTG Confirmed Handoff v0.3 — Findings
 
 Date: 2026-10-03
-Scope: H1 XAUUSD Train-only confirmed handoff audit.
+Scope: Train-only confirmed handoff audit using frozen State + Transition Engine v0.2.
 Validation and Historical Holdout remained closed.
 
 ## Integrity
-All registered sanity gates PASS.
-- frozen v0.2 state sequence hash unchanged
-- canonical raw manifest matches v0.2
-- feature prefix causality inherited PASS
-- max transition age <=4 bars
-- both directions represented
-- no evaluation year >60%
-- Validation read=false
-- Holdout read=false
+- frozen v0.2 state SHA unchanged
+- raw manifest matches v0.2
+- inherited feature-prefix causality PASS
+- max transition age <=4 PASS
+- trading continuity <=3h unchanged
+- 12/12 combined v0.2 + v0.3 unit tests PASS before official run
+- all registered v0.3 sanity gates PASS
 
-## Evaluation sample
-- primary RANGE->TRANSITION episodes: 456
+## Evaluation cohort
+Primary RANGE -> TRANSITION episodes: 456
+
+Resolution:
 - RANGE resumed: 174 (38.2%)
-- confirmed trends: 280 (61.4%)
-- mature 24-bar confirmed trends: 213
-  - up: 115
-  - down: 98
-- median resolution delay: 1 trading bar
-- mean resolution delay: 1.47 bars
+- TREND_UP: 148
+- TREND_DOWN: 132
+- unresolved gap: 2
+- confirmed trend total: 280 (61.4%)
 
-## Important comparison
+Resolution delay:
+- median 1 trading bar
+- mean 1.47 bars
 
-### First breakout / onset — all primary episodes
-This is not a robust directional entry:
-- 4 bars: mean signed displacement -0.150 ATR
+Confirmed-trend mature 24-bar outcomes:
+- 213
+- up: 115
+- down: 98
+- year concentration max: 33.8%
+
+## What the transition onset tells us
+Using every transition onset and its initial candidate direction is weak:
+- 1 bar: mean signed displacement -0.131 ATR
+- 4 bars: -0.150 ATR
 - 12 bars: -0.041 ATR
 - 24 bars: -0.092 ATR
-- 24-bar positive fraction: 48.4%
 
-### Onset restricted to episodes that later became confirmed trends
-These episodes were structurally different:
-- 1 bar direction accuracy: 60.0%, mean +0.314 ATR
-- 4 bars: 56.8%, mean +0.477 ATR
-- 12 bars: 54.3%, mean +0.555 ATR
-- 24 bars: 57.7%, mean +0.636 ATR
+So RANGE -> first breakout is not sufficient for Swing entry.
 
-This is retrospective conditioning and cannot be used as an entry rule because future resolution is not known at onset.
+## Ex-post confirmed subset at the original onset
+If we look only at episodes that the causal FSM later confirms as TREND, their original onset direction was much cleaner:
 
-### Entry measured from the confirmed resolution bar
-This is the causal handoff test:
-- 1 bar: 51.1%, mean -0.005 ATR
-- 4 bars: 48.5%, mean +0.102 ATR
-- 12 bars: 48.5%, mean +0.193 ATR
-- 24 bars: 54.0%, mean +0.221 ATR
+Evaluation:
+- 1 bar: 60.0% direction accuracy, +0.314 ATR mean
+- 4 bars: 56.8%, +0.477 ATR
+- 12 bars: 54.3%, +0.555 ATR
+- 24 bars: 57.7%, +0.636 ATR
 
-At 24 bars:
-- n=213
-- direction accuracy=53.99%
-- mean signed displacement=+0.221 ATR
-- median=+0.276 ATR
-- mean MFE=2.963 ATR
-- mean MAE=2.829 ATR
-- final close still beyond original range boundary=66.2%
-- returned inside original range at some point=59.6%
+This is not directly tradable at onset because the future resolution label was not yet known. But it proves the key research target:
+the valuable information is distinguishing, during TRANSITION, which onset episodes will become a real trend versus return to RANGE.
 
-## Interpretation
-The FSM is useful as a controller:
-- RANGE: scalper context
-- TRANSITION: stand down / uncertainty
-- resolution back to RANGE: fake-break / range resumed
-- resolution to TREND_UP/TREND_DOWN: candidate swing regime
+## Entering only after full confirmation
+Post-resolution evaluation from the causal confirmation bar:
 
-However, the confirmed state alone is not yet a strong short-horizon entry trigger. The 4-bar resolved-direction accuracy is only 48.5%.
+- 1 bar:
+  - n=278
+  - direction accuracy 51.1%
+  - mean signed displacement -0.005 ATR
 
-The 24-bar post-resolution distribution is mildly favorable (+0.221 ATR mean, 54.0% directional accuracy) but still too weak and noisy to promote directly into a trading rule, especially before execution costs.
+- 4 bars:
+  - n=268
+  - direction accuracy 48.5%
+  - mean signed displacement +0.102 ATR
 
-## Decision
-Accept State Engine v0.2 as the market-state authority for the next research phase.
-Do not use first breakout as Swing entry.
-Do not use confirmed resolution alone as an automatic Swing entry.
+- 12 bars:
+  - n=231
+  - direction accuracy 48.5%
+  - mean signed displacement +0.193 ATR
 
-Next phase:
-Build Transition Memory / Resolution Model to estimate:
+- 24 bars:
+  - n=213
+  - direction accuracy 54.0%
+  - mean signed displacement +0.221 ATR
+
+Waiting for full confirmation removes many false breaks, but much of the early directional move has already occurred by the confirmation bar.
+
+## Core conclusion
+The architecture is now clearer:
+
+RANGE
+-> TRANSITION onset
+-> stop Scalper immediately
+-> classify the transition while it is unresolved
+-> if likely RANGE resume: do not Swing; later return Scalper
+-> if likely TREND_UP: prepare/allow Swing Long
+-> if likely TREND_DOWN: prepare/allow Swing Short
+
+The FSM should remain the market-state authority.
+Kronos/historical memory/ML should not decide whether the market is RANGE or TREND.
+Their best role is inside TRANSITION, where they estimate the three-way resolution:
 - P(RANGE resumes)
 - P(TREND_UP)
 - P(TREND_DOWN)
 
-Use only information available during TRANSITION:
-- source range geometry/age
-- DC multi-scale structure
-- drift/efficiency
-- volatility/spread/session
-- historical episode similarity
-- Kronos as an expert input, not as market-state authority
+This targets the 1-3 trading-bar window where the current deterministic confirmation logic is waiting.
 
-The objective is to identify which transitions are likely to resolve into a persistent trend early enough to improve the Swing handoff.
+## Decision
+- Accept State + Transition Engine v0.2 as the structural market-state layer.
+- Accept TRANSITION as a stand-down state for Range Scalper.
+- Do not use first breakout direction as an automatic Swing entry.
+- Do not treat confirmed TREND state alone as sufficient Swing edge.
+- Next experiment: Transition Memory / three-way causal classifier trained only on pre-2021 episodes and evaluated frozen on 2021-2024.
+- Validation/Holdout remain closed.
