@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from capture_microstructure_forward import (
+    _observed_at,
     audit_root,
     canonical_bytes,
     source_health_summary,
@@ -94,6 +95,15 @@ class MicrostructureForwardTests(unittest.TestCase):
             report = audit_root(root)
             self.assertEqual(report["status"], "FAIL")
             self.assertTrue(any(x["type"] == "SHA_MISMATCH" for x in report["issues"]))
+
+    def test_observed_at_uses_latest_venue_timestamp(self):
+        payload = {
+            "venues": [
+                {"observed_at": "2026-10-04T01:00:00+00:00"},
+                {"observed_at": "2026-10-04T01:02:00+00:00"},
+            ]
+        }
+        self.assertEqual(_observed_at(payload), "2026-10-04T01:02:00+00:00")
 
     def test_source_health_summary_minimal(self):
         got = source_health_summary(self.payload())

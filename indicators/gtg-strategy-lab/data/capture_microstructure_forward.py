@@ -156,15 +156,31 @@ def _capture_stamp(now: datetime) -> str:
 def _observed_at(payload: Any) -> str | None:
     if not isinstance(payload, dict):
         return None
+    candidates: list[str] = []
     direct = payload.get("observed_at")
     if isinstance(direct, str):
-        return direct
-    # Fusion may expose latest timestamps inside venue/source metadata.
+        candidates.append(direct)
     for key in ("fusion", "market_agreement", "composite"):
         row = payload.get(key)
         if isinstance(row, dict) and isinstance(row.get("observed_at"), str):
-            return str(row["observed_at"])
-    return None
+            candidates.append(str(row["observed_at"]))
+    venues = payload.get("venues")
+    if isinstance(venues, list):
+        for venue in venues:
+            if isinstance(venue, dict) and isinstance(venue.get("observed_at"), str):
+                candidates.append(str(venue["observed_at"]))
+    parsed: list[tuple[datetime, str]] = []
+    for value in candidates:
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            parsed.append((dt.astimezone(timezone.utc), value))
+        except ValueError:
+            continue
+    if not parsed:
+        return candidates[0] if candidates else None
+    return max(parsed, key=lambda item: item[0])[0].isoformat()
 
 
 def store_snapshot(
