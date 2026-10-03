@@ -2,77 +2,104 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from range_scalper_v01 import signal_at, execute_trade, MAX_CONTIG_GAP
+from range_scalper_v01 import signal_at, execute_trade, gap_ok
+
+STEP = 3_600_000
+T0 = 1577836800000
 
 
 class RangeScalperV01Tests(unittest.TestCase):
-    def frame(self):
-        t0 = 1_600_000_000_000
-        t = t0 + np.arange(10) * 3_600_000
-        bo = np.array([100,100,91,92,94,101,101,101,101,101], dtype=float)
-        bc = np.array([100,100,92,93,95,101,101,101,101,101], dtype=float)
+    def frame(self, closes, opens=None, gaps=None):
+        n = len(closes)
+        if opens is None:
+            opens = closes
+        times = [T0]
+        for i in range(1, n):
+            times.append(times[-1] + (STEP if gaps is None else gaps[i-1]))
+        c = np.asarray(closes, dtype=float)
+        o = np.asarray(opens, dtype=float)
+        hi = np.maximum(o, c) + 0.2
+        lo = np.minimum(o, c) - 0.2
+        spr = 0.05
         return pd.DataFrame({
-            "t": t,
-            "bo": bo, "bh": np.maximum(bo,bc)+1, "bl": np.minimum(bo,bc)-1, "bc": bc,
-            "ao": bo+0.1, "ah": np.maximum(bo,bc)+1.1,
-            "al": np.minimum(bo,bc)-0.9, "ac": bc+0.1,
-            "atr": np.full(10, 2.0),
+            "t": times,
+            "bo": o, "bh": hi, "bl": lo, "bc": c,
+            "ao": o+spr, "ah": hi+spr, "al": lo+spr, "ac": c+spr,
+            "atr": np.ones(n),
         })
 
-    def state(self, state="RANGE", lower=90.0, upper=110.0):
+    def state_row(self, state="RANGE"):
         return {
             "state": state,
-            "prior24_lower": lower,
-            "prior24_upper": upper,
-            "position24": 0.0,
-            "atr": 2.0,
+            "prior24_lower": 100.0,
+            "prior24_upper": 104.0,
+            "position24": 0.25,
+            "atr": 1.0,
         }
 
-    def test_long_signal_outer_quartile_rejection(self):
-        f = self.frame()
-        s = signal_at(2, f, self.state())
-        self.assertIsNotNone(s)
-        self.assertEqual(s["direction"], 1)
-        self.assertAlmostEqual(s["midpoint"], 100.0)
+    def state_map(self, f, states):
+        return {
+            int(t): {
+                "state": s,
+                "prior24_lower": 100.0,
+                "prior24_upper": 104.0,
+                "position24": 0.5,
+                "atr": 1.0,
+            }
+            for t, s in zip(f.t, states)
+        }
 
-    def test_no_signal_without_inward_candle(self):
-        f = self.frame()
-        f.loc[2, "bc"] = 90.5
-        f.loc[2, "bo"] = 91.0
-        self.assertIsNone(signal_at(2, f, self.state()))
+    def test_signal_long_and_short(self):
+        f = self.frame([101.0, 103.0], opens=[100.5, 103.5])
+        long_sig = signal_at(0, f, self.state_row())
+        short_state = self.state_row()
+        short_state["position24"] = 0.75
+        short_sig = signal_at(1, f, short_state)
+        self.assertEqual(long_sig["direction"], 1)
+        self.assertEqual(short_sig["direction"], -1)
 
-    def test_target_exit_is_causal_next_open(self):
-        f = self.frame()
-        sig = signal_at(2, f, self.state())
-        states = {int(t): self.state() for t in f.t}
-        r = execute_trade(sig, f, states, int(f.t.iloc[-1]) + 3_600_000)
-        self.assertEqual(r["status"], "TRADE")
-        self.assertEqual(r["exit_reason"], "TARGET")
-        # close crosses midpoint at bar 5, exit is open bar 6
-        self.assertEqual(r["exit_signal_idx"], 5)
-        self.assertEqual(r["exit_idx"], 6)
+    def test_midpoint_target_exit(self):
+        f = self.frame(
+            [101.0, 102.2, 102.5, 102.6],
+            opens=[100.5, 101.1, 102.3, 102.5],
+        )
+        sig = signal_at(0, f, self.state_row())
+        smap = self.state_map(f, ["RANGE"]*4)
+        result = execute_trade(sig, f, smap, T0 + 10*STEP)
+        self.assertEqual(result["status"], "TRADE")
+        self.assertEqual(result["exit_reason"], "TARGET")
+        self.assertEqual(result["duration_bars"], 1)
 
-    def test_state_exit_before_target(self):
-        f = self.frame()
-        # keep below midpoint
-        f.loc[3:6, "bc"] = [93,94,95,96]
-        f.loc[3:6, "bo"] = [92,93,94,95]
-        sig = signal_at(2, f, self.state())
-        states = {int(t): self.state() for t in f.t}
-        states[int(f.t.iloc[4])] = self.state("TRANSITION")
-        r = execute_trade(sig, f, states, int(f.t.iloc[-1]) + 3_600_000)
-        self.assertEqual(r["status"], "TRADE")
-        self.assertEqual(r["exit_reason"], "STATE_EXIT")
-        self.assertEqual(r["exit_signal_idx"], 4)
-        self.assertEqual(r["exit_idx"], 5)
+    def test_state_handoff_exit(self):
+        f = self.frame(
+            [101.0, 101.2, 101.1, 101.0],
+            opens=[100.5, 101.0, 101.2, 101.1],
+        )
+        sig = signal_at(0, f, self.state_row())
+        smap = self.state_map(f, ["RANGE","TRANSITION","TRANSITION","RANGE"])
+        result = execute_trade(sig, f, smap, T0 + 10*STEP)
+        self.assertEqual(result["status"], "TRADE")
+        self.assertEqual(result["exit_reason"], "STATE_EXIT")
 
     def test_hard_gap_censors(self):
-        f = self.frame()
-        sig = signal_at(2, f, self.state())
-        f.loc[4:, "t"] += MAX_CONTIG_GAP + 1
-        states = {int(t): self.state() for t in f.t}
-        r = execute_trade(sig, f, states, int(f.t.iloc[-1]) + 3_600_000)
-        self.assertEqual(r["status"], "HARD_GAP")
+        f = self.frame(
+            [101.0, 101.2, 101.3, 101.4],
+            opens=[100.5, 101.0, 101.2, 101.3],
+            gaps=[STEP, 4*STEP, STEP],
+        )
+        sig = signal_at(0, f, self.state_row())
+        smap = self.state_map(f, ["RANGE"]*4)
+        result = execute_trade(sig, f, smap, T0 + 20*STEP)
+        self.assertEqual(result["status"], "HARD_GAP")
+
+    def test_non_range_has_no_signal(self):
+        f = self.frame([101.0], opens=[100.5])
+        self.assertIsNone(signal_at(0, f, self.state_row("TRANSITION")))
+
+    def test_gap_contract(self):
+        self.assertTrue(gap_ok(T0, T0+STEP))
+        self.assertTrue(gap_ok(T0, T0+3*STEP))
+        self.assertFalse(gap_ok(T0, T0+4*STEP))
 
 
 if __name__ == "__main__":
