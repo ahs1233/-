@@ -20,3 +20,17 @@
 - Scalp: `dc_mass` and `kronos_mini` each 66.7% directional accuracy, but C1 remained negative (-0.287 and -0.300 ATR/opportunity respectively).
 - Swing: `dc_mass` and `dc_mass_dtw` each 62.5% directional accuracy and +0.167 ATR/opportunity at C1; +0.031 ATR/opportunity at C2. `kronos_mini` was negative at C1 (-0.157).
 - Interpretation remains exploratory: n=24/track, inside Train; no edge claim and no Holdout opening.
+
+## Stability v0.2 — Train-wide result
+- Registered in PROTOCOL_V02.md before execution; source gate 2021-07-31 <= raw day < 2024-03-20, with 240 deterministic anchors/track from 2021-09-29 onward.
+- Source: 934,372 M1 bars. Scalp: 186,628 complete M5 aggregates; swing: 15,349 complete H1 aggregates.
+- All six runtime safety checks PASS: prefix causality, 60-day rolling-bank bound, and Kronos same-seed repeat for both tracks.
+- Scalp remained economically unusable under C1 across all active models. dc_mass_dtw C1 = -0.705 ATR/opportunity; Kronos-mini C1 = -0.599.
+- Swing pilot optimism did not replicate: dc_mass C1 = -0.227 ATR/opportunity and dc_mass_dtw C1 = -0.230 over n=240.
+- The simple 12-bar drift comparator was the only active swing row with positive mean C1 in this run: +0.080 ATR/opportunity, while C2 was -0.099. This is Train-development evidence only, not an edge claim.
+- Conclusion: the 24-anchor pilot result was unstable. Fixed-bar analogue matching is not promoted. Continue with the separately preregistered causal Wave Memory representation.
+
+## Event Library v0.2 — superseded partial run
+- A separate event-library implementation was preregistered and safety-tested 8/8 PASS.
+- Its first execution processed 1,882 source days and reached 20 scalp anchors before exiting nonzero without a captured traceback.
+- Because Stability v0.2 and the more direct Wave Memory path were already running and cover the intended research question more cleanly, no parameter change or restart was made from this partial output. Partial files are retained locally as failed-run evidence and are not treated as scored results.

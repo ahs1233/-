@@ -1,0 +1,8 @@
+{
+  "scalp_prefix_causality": "PASS",
+  "scalp_rolling_bank_bound": "PASS",
+  "scalp_kronos_repeat": "PASS",
+  "swing_prefix_causality": "PASS",
+  "swing_rolling_bank_bound": "PASS",
+  "swing_kronos_repeat": "PASS"
+}

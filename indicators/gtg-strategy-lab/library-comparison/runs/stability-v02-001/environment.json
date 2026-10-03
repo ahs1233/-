@@ -1,0 +1,19 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "stumpy": "1.14.1",
+    "tslearn": "0.9.0",
+    "torch": "2.5.1+cpu",
+    "huggingface-hub": "2.1.1"
+  },
+  "protocol_sha256": "cf0e0d459ec27701488b8f38b2755739523ee3a0a2aef999d6630d8e9ada9e63",
+  "code_sha256": "441425cadce4941a641ad54310484fd1cf76ff1257e5a155485c52fb8839cede",
+  "created_utc": "2026-10-03T14:56:24.754589+00:00",
+  "source_start": "2021-07-31",
+  "eval_start": "2021-09-29",
+  "eval_end_exclusive": "2024-03-20",
+  "anchors_per_track": 240,
+  "rolling_bank_days": 60
+}
