@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 
 from pre_transition_guard_v01 import (
-    range_age_map, raw_features, structural_label, frozen_predict, SESSIONS
+    range_age_map, raw_features, structural_label, frozen_predict, SESSIONS,
+    row_dict_from_csv, STATE_COLUMNS
 )
 from range_scalper_v01 import signal_at
 
@@ -87,6 +88,13 @@ class PreTransitionGuardV01Tests(unittest.TestCase):
         sm = self.smap(f, ["RANGE","RANGE","TRANSITION","RANGE","RANGE"])
         ages = range_age_map(f, sm)
         self.assertEqual([ages[int(t)] for t in f.t], [1,2,0,1,2])
+
+    def test_blank_state_numeric_becomes_nan(self):
+        row = {k: "" for k in STATE_COLUMNS}
+        row["t"] = str(T0)
+        row["state"] = "RANGE"
+        parsed = row_dict_from_csv(row)
+        self.assertTrue(np.isnan(parsed["drift12"]))
 
     def test_features_and_frozen_prediction(self):
         f = self.frame([101.0], opens=[100.5])
