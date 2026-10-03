@@ -122,7 +122,8 @@ def row_dict_from_csv(raw: dict) -> dict:
         elif k == "t":
             out[k] = int(float(raw[k]))
         else:
-            out[k] = float(raw[k])
+            v = raw[k]
+            out[k] = float(v) if v not in ("", None) else float("nan")
     return out
 
 
