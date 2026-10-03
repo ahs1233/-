@@ -47,3 +47,36 @@
 - Full Train-only source loading completed and scalp cohort was materialized (33,767 confirmed events; 96 registered anchors).
 - Process produced 7/96 scalp anchors (35 model rows) then exited with code 1 without a Python traceback and without a Windows Application Error event. No summary was produced; this partial run is retained only as failure evidence and is not interpreted economically.
 - Resource-only implementation change for rerun: compute the exact same tslearn cdist_dtw distances in deterministic candidate chunks, then concatenate. No threshold, feature, anchor, K, radius, cost rule, model revision, or prediction rule changed.
+
+## Stability v0.2 — completed Train-wide replication
+- Scope: 240 deterministic anchors/track, 2021-09-29 <= anchor < 2024-03-20; Validation/Holdout not read.
+- All registered checks PASS: prefix causality, rolling-bank bound, Kronos same-seed repeat on both tracks.
+- Scalp: all active methods remained negative at C1. Kronos had the highest directional accuracy (58.8%) but C1 = -0.599 ATR/opportunity; dc_mass_dtw C1 = -0.705.
+- Swing: the small pilot's positive STUMPY/DTW result did not replicate. dc_mass C1 = -0.227; dc_mass_dtw C1 = -0.230. Simple drift was +0.080 at C1 but -0.099 at C2; only 5/11 descriptive quarters were C1-positive.
+- Interpretation: fixed 96-bar shape similarity is not established as a robust edge. This motivates testing the preregistered event-level wave representation rather than tuning the bar matcher.
+
+## Architecture correction — event KNN branch stopped
+- event-v02-001 (NearestNeighbors + DTW) was stopped before completion because the user's reference architecture prioritizes Directional Change + STUMPY/tslearn and Kronos comparison; KNN was not adopted as the primary path.
+- No result from event-v02-001 is used for model selection.
+
+## Wave Memory v0.1
+- Four dedicated safety tests PASS: confirmation timing, prefix-event invariance, signature causality, phase alignment/maturity.
+- wave-memory-001 was stopped before accepted scoring after detecting a comparator/protocol mismatch. The protocol was corrected before the official run.
+- Duplicate invocations were not reused or overwritten. wave-memory-003 is the official run because its recorded protocol/code SHA256 match the current preregistered files.
+
+## Wave Memory v0.1 — completed run 003
+- Authoritative completed run: `wave-memory-003`; patched code SHA256 `8b133a247dba1b094149bcdf634b1f245d0ff020c55be5fa6eecfe72265cf5ea`.
+- 96 deterministic anchors per track; all six runtime checks PASS; Validation/Holdout not read.
+- Scalp event_wave_dtw: direction accuracy 47.92%, C0 +0.055, C1 -0.716, C2 -1.486 ATR/opportunity.
+- Swing event_wave_dtw: coverage 98.96%, direction accuracy 53.68%, C0 -0.022, C1 -0.202, C2 -0.382 ATR/opportunity.
+- Conclusion: wave representation did not produce an always-trade edge. Research moves to preregistered selective/abstention rules on fresh disjoint Train anchors.
+
+
+## Wave Memory v0.1 — official run wave-memory-003
+- Exact protocol/code SHA256 matched the preregistered files: protocol 91b36f1f59d556f67c0a09cd9d53d165a07e3b432ad9cbbecca6dab924e41369; code 8b133a247dba1b094149bcdf634b1f245d0ff020c55be5fa6eecfe72265cf5ea.
+- Safety suite after completion: 5/5 PASS. Runtime checks PASS on both tracks: prefix-event causality, memory-label maturity, and Kronos same-seed repeat.
+- Scope: canonical JForex BID/ASK only, 2018-03 through 2024-03 Train-safe read; development anchors 2023-01 through 2024-03; Validation/Holdout not read.
+- Scalp: 33,767 confirmed DC events; event_wave_dtw direction accuracy 47.9%, C0 +0.055 ATR/opportunity but C1 -0.716 and C2 -1.486. No executable edge.
+- Swing: 1,668 confirmed DC events; event_wave_dtw direction accuracy 53.7%, C0 -0.022 ATR/opportunity, C1 -0.202, C2 -0.382. It improved direction classification relative to several baselines but did not produce a positive net expectancy.
+- Kronos remained negative after C1 on both tracks in this cohort and remains PRETRAINED_CONTAMINATION_UNKNOWN.
+- Interpretation: event-level wave representation contains some directional information on Swing, but direct nearest-wave sign trading is not established. Do not retune DC thresholds/K/radius from these outcomes. Next registered phase is symbolic rule extraction from causal wave-state features with an internal Train-only discovery/replication split.
