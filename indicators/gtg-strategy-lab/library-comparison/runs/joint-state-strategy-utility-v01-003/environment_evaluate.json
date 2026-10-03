@@ -1,0 +1,7 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "created_utc": "2026-10-03T19:21:09.859539+00:00",
+  "frozen_models_sha256": "4084536a3827a31c1c4c1e8fe577feece2e8874a4db7b06ee2f15a5e4be28c54",
+  "validation_read": false,
+  "holdout_read": false
+}

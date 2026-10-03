@@ -1,0 +1,447 @@
+{
+  "scope": "GTG Joint State + Strategy Utility v0.1 Train-development",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "threshold": 0.0,
+  "training_counts": {
+    "RANGE_LONG": 8183,
+    "RANGE_SHORT": 8183,
+    "TREND_LONG": 2974,
+    "TREND_SHORT": 2068
+  },
+  "evaluation_censor": {
+    "TREND_SHORT:HARD_GAP": 244,
+    "TREND_SHORT:ENTRY_HARD_GAP": 37,
+    "RANGE_LONG:HARD_GAP": 403,
+    "RANGE_SHORT:HARD_GAP": 403,
+    "RANGE_LONG:ENTRY_HARD_GAP": 119,
+    "RANGE_SHORT:ENTRY_HARD_GAP": 119,
+    "TREND_LONG:HARD_GAP": 495,
+    "TREND_LONG:ENTRY_HARD_GAP": 55,
+    "RANGE_LONG:SPLIT_END": 5,
+    "RANGE_SHORT:SPLIT_END": 5
+  },
+  "model_diagnostics": {
+    "RANGE_LONG": {
+      "n": 9810,
+      "target_mean_c1": -0.1586210929721775,
+      "target_median_c1": -0.17326992813724645,
+      "prediction_mean": -0.22272219932701365,
+      "mae": 1.1400539989990373,
+      "rmse": 1.6534622375760124,
+      "pearson_corr": -0.023672974045777128,
+      "c1_positive_sign_accuracy": 0.5441386340468909,
+      "predicted_positive_fraction": 0.1561671763506626,
+      "realized_mean_c1_predicted_positive": -0.18894264695931726,
+      "realized_c1_win_predicted_positive": 0.42689295039164493
+    },
+    "RANGE_SHORT": {
+      "n": 9810,
+      "target_mean_c1": -0.22261682461524207,
+      "target_median_c1": -0.1827816461167861,
+      "prediction_mean": -0.17938570402592968,
+      "mae": 1.1382604333856383,
+      "rmse": 1.6522768054794796,
+      "pearson_corr": -0.0333962516639099,
+      "c1_positive_sign_accuracy": 0.5487257900101937,
+      "predicted_positive_fraction": 0.17003058103975535,
+      "realized_mean_c1_predicted_positive": -0.26905380275521806,
+      "realized_c1_win_predicted_positive": 0.4292565947242206
+    },
+    "TREND_LONG": {
+      "n": 3302,
+      "target_mean_c1": -0.15563998147373526,
+      "target_median_c1": -0.19851128734463014,
+      "prediction_mean": -0.22765979592420135,
+      "mae": 1.6160731326346833,
+      "rmse": 2.3387630971393354,
+      "pearson_corr": -0.03391094482816871,
+      "c1_positive_sign_accuracy": 0.5484554815263477,
+      "predicted_positive_fraction": 0.32525741974560873,
+      "realized_mean_c1_predicted_positive": -0.18742972364948313,
+      "realized_c1_win_predicted_positive": 0.4720670391061452
+    },
+    "TREND_SHORT": {
+      "n": 2979,
+      "target_mean_c1": -0.1781494371708829,
+      "target_median_c1": -0.30038030546461675,
+      "prediction_mean": -0.5106820063617401,
+      "mae": 1.6662806979929559,
+      "rmse": 2.44271391630444,
+      "pearson_corr": 0.03448509587263237,
+      "c1_positive_sign_accuracy": 0.5686471970459885,
+      "predicted_positive_fraction": 0.2537764350453172,
+      "realized_mean_c1_predicted_positive": -0.08131239291926574,
+      "realized_c1_win_predicted_positive": 0.43915343915343913
+    }
+  },
+  "aggregate_model_diagnostics": {
+    "n": 25901,
+    "pearson_corr": -0.012286061707899679,
+    "c1_positive_sign_accuracy": 0.5492452028879193
+  },
+  "learned_policy": {
+    "counts": {
+      "opportunity_TRANSITION": 887,
+      "decision_opportunities": 10373,
+      "flat_decisions": 8394,
+      "opportunity_RANGE": 6229,
+      "opportunity_TREND_UP": 1605,
+      "trades": 1721,
+      "trade_TREND_UP": 260,
+      "trade_RANGE": 1265,
+      "opportunity_TREND_DOWN": 1652,
+      "trade_TREND_DOWN": 196,
+      "censored_HARD_GAP": 199,
+      "censored_ENTRY_HARD_GAP": 59
+    },
+    "overall": {
+      "n": 1721,
+      "long_n": 853,
+      "short_n": 868,
+      "c0_mean_per_trade": 0.026712688859658777,
+      "c1_mean_per_trade": -0.16103024502458543,
+      "c2_mean_per_trade": -0.34877317890882964,
+      "c1_win_rate": 0.43695525857059847,
+      "c1_total": -277.13305168731154,
+      "duration_median_bars": 4.0,
+      "duration_mean_bars": 4.8669378268448575,
+      "exit_kind_counts": {
+        "HORIZON": 1094,
+        "STATE_EXIT": 627
+      },
+      "entry_state_counts": {
+        "TREND_UP": 260,
+        "RANGE": 1265,
+        "TREND_DOWN": 196
+      },
+      "c1_mean_per_decision_opportunity": -0.026716769660398296
+    },
+    "by_branch": {
+      "RANGE": {
+        "n": 1265,
+        "long_n": 593,
+        "short_n": 672,
+        "c0_mean_per_trade": 0.052768438750313146,
+        "c1_mean_per_trade": -0.1394250546144196,
+        "c2_mean_per_trade": -0.33161854797915236,
+        "c1_win_rate": 0.45375494071146244,
+        "c1_total": -176.37269408724077,
+        "duration_median_bars": 4.0,
+        "duration_mean_bars": 3.399209486166008,
+        "exit_kind_counts": {
+          "STATE_EXIT": 406,
+          "HORIZON": 859
+        },
+        "entry_state_counts": {
+          "RANGE": 1265
+        }
+      },
+      "TREND": {
+        "n": 456,
+        "long_n": 260,
+        "short_n": 196,
+        "c0_mean_per_trade": -0.045569161165950334,
+        "c1_mean_per_trade": -0.2209656964913832,
+        "c2_mean_per_trade": -0.3963622318168162,
+        "c1_win_rate": 0.39035087719298245,
+        "c1_total": -100.76035760007073,
+        "duration_median_bars": 12.0,
+        "duration_mean_bars": 8.93859649122807,
+        "exit_kind_counts": {
+          "HORIZON": 235,
+          "STATE_EXIT": 221
+        },
+        "entry_state_counts": {
+          "TREND_UP": 260,
+          "TREND_DOWN": 196
+        }
+      }
+    },
+    "by_direction": {
+      "long": {
+        "n": 853,
+        "long_n": 853,
+        "short_n": 0,
+        "c0_mean_per_trade": 0.06400833474548477,
+        "c1_mean_per_trade": -0.13006623774694176,
+        "c2_mean_per_trade": -0.3241408102393684,
+        "c1_win_rate": 0.4243845252051583,
+        "c1_total": -110.94650079814133,
+        "duration_median_bars": 4.0,
+        "duration_mean_bars": 5.101992966002345,
+        "exit_kind_counts": {
+          "HORIZON": 536,
+          "STATE_EXIT": 317
+        },
+        "entry_state_counts": {
+          "TREND_UP": 260,
+          "RANGE": 593
+        }
+      },
+      "short": {
+        "n": 868,
+        "long_n": 0,
+        "short_n": 868,
+        "c0_mean_per_trade": -0.009938447016619499,
+        "c1_mean_per_trade": -0.19145916001056476,
+        "c2_mean_per_trade": -0.37297987300450997,
+        "c1_win_rate": 0.44930875576036866,
+        "c1_total": -166.1865508891702,
+        "duration_median_bars": 4.0,
+        "duration_mean_bars": 4.635944700460829,
+        "exit_kind_counts": {
+          "STATE_EXIT": 310,
+          "HORIZON": 558
+        },
+        "entry_state_counts": {
+          "TREND_DOWN": 196,
+          "RANGE": 672
+        }
+      }
+    },
+    "by_year": {
+      "2021": {
+        "n": 533,
+        "long_n": 274,
+        "short_n": 259,
+        "c0_mean_per_trade": 0.1737860880604695,
+        "c1_mean_per_trade": -0.020161217935786565,
+        "c2_mean_per_trade": -0.21410852393204266,
+        "c1_win_rate": 0.4652908067542214,
+        "c1_total": -10.745929159774239,
+        "duration_median_bars": 4.0,
+        "duration_mean_bars": 4.891181988742964,
+        "exit_kind_counts": {
+          "HORIZON": 336,
+          "STATE_EXIT": 197
+        },
+        "entry_state_counts": {
+          "TREND_UP": 81,
+          "RANGE": 390,
+          "TREND_DOWN": 62
+        }
+      },
+      "2022": {
+        "n": 530,
+        "long_n": 261,
+        "short_n": 269,
+        "c0_mean_per_trade": 0.09854259593087691,
+        "c1_mean_per_trade": -0.08603922119117391,
+        "c2_mean_per_trade": -0.2706210383132248,
+        "c1_win_rate": 0.4490566037735849,
+        "c1_total": -45.60078723132217,
+        "duration_median_bars": 4.0,
+        "duration_mean_bars": 4.956603773584906,
+        "exit_kind_counts": {
+          "HORIZON": 338,
+          "STATE_EXIT": 192
+        },
+        "entry_state_counts": {
+          "TREND_UP": 84,
+          "TREND_DOWN": 63,
+          "RANGE": 383
+        }
+      },
+      "2023": {
+        "n": 537,
+        "long_n": 267,
+        "short_n": 270,
+        "c0_mean_per_trade": -0.17295222896214826,
+        "c1_mean_per_trade": -0.35671368861937713,
+        "c2_mean_per_trade": -0.5404751482766059,
+        "c1_win_rate": 0.41154562383612664,
+        "c1_total": -191.55525078860552,
+        "duration_median_bars": 4.0,
+        "duration_mean_bars": 4.78584729981378,
+        "exit_kind_counts": {
+          "HORIZON": 340,
+          "STATE_EXIT": 197
+        },
+        "entry_state_counts": {
+          "TREND_UP": 80,
+          "RANGE": 397,
+          "TREND_DOWN": 60
+        }
+      },
+      "2024": {
+        "n": 121,
+        "long_n": 51,
+        "short_n": 70,
+        "c0_mean_per_trade": -0.04965021735081515,
+        "c1_mean_per_trade": -0.241579210806691,
+        "c2_mean_per_trade": -0.4335082042625668,
+        "c1_win_rate": 0.371900826446281,
+        "c1_total": -29.231084507609612,
+        "duration_median_bars": 4.0,
+        "duration_mean_bars": 4.7272727272727275,
+        "exit_kind_counts": {
+          "HORIZON": 80,
+          "STATE_EXIT": 41
+        },
+        "entry_state_counts": {
+          "RANGE": 95,
+          "TREND_DOWN": 11,
+          "TREND_UP": 15
+        }
+      }
+    }
+  },
+  "trend_always_baseline": {
+    "counts": {
+      "opportunity_TRANSITION": 1292,
+      "decision_opportunities": 12567,
+      "flat_decisions": 11262,
+      "opportunity_RANGE": 9970,
+      "opportunity_TREND_UP": 729,
+      "trades": 713,
+      "trade_TREND_UP": 378,
+      "opportunity_TREND_DOWN": 576,
+      "trade_TREND_DOWN": 335,
+      "censored_ENTRY_HARD_GAP": 92,
+      "censored_HARD_GAP": 500
+    },
+    "overall": {
+      "n": 713,
+      "long_n": 378,
+      "short_n": 335,
+      "c0_mean_per_trade": -0.05482428540324203,
+      "c1_mean_per_trade": -0.22916808253823906,
+      "c2_mean_per_trade": -0.40351187967323604,
+      "c1_win_rate": 0.3814866760168303,
+      "c1_total": -163.39684284976445,
+      "duration_median_bars": 12.0,
+      "duration_mean_bars": 8.670406732117812,
+      "exit_kind_counts": {
+        "HORIZON": 338,
+        "STATE_EXIT": 375
+      },
+      "entry_state_counts": {
+        "TREND_UP": 378,
+        "TREND_DOWN": 335
+      },
+      "c1_mean_per_decision_opportunity": -0.013002056405646889
+    },
+    "by_year": {
+      "2021": {
+        "n": 216,
+        "long_n": 121,
+        "short_n": 95,
+        "c0_mean_per_trade": 0.11313265160016588,
+        "c1_mean_per_trade": -0.05838913585856257,
+        "c2_mean_per_trade": -0.229910923317291,
+        "c1_win_rate": 0.39814814814814814,
+        "c1_total": -12.612053345449516,
+        "duration_median_bars": 11.0,
+        "duration_mean_bars": 8.574074074074074,
+        "exit_kind_counts": {
+          "HORIZON": 97,
+          "STATE_EXIT": 119
+        },
+        "entry_state_counts": {
+          "TREND_UP": 121,
+          "TREND_DOWN": 95
+        }
+      },
+      "2022": {
+        "n": 239,
+        "long_n": 124,
+        "short_n": 115,
+        "c0_mean_per_trade": -0.020291955523554624,
+        "c1_mean_per_trade": -0.19572118203811822,
+        "c2_mean_per_trade": -0.3711504085526817,
+        "c1_win_rate": 0.41422594142259417,
+        "c1_total": -46.777362507110254,
+        "duration_median_bars": 11.0,
+        "duration_mean_bars": 8.610878661087867,
+        "exit_kind_counts": {
+          "HORIZON": 108,
+          "STATE_EXIT": 131
+        },
+        "entry_state_counts": {
+          "TREND_UP": 124,
+          "TREND_DOWN": 115
+        }
+      },
+      "2023": {
+        "n": 222,
+        "long_n": 115,
+        "short_n": 107,
+        "c0_mean_per_trade": -0.2778945644850636,
+        "c1_mean_per_trade": -0.454698230424314,
+        "c2_mean_per_trade": -0.6315018963635644,
+        "c1_win_rate": 0.3333333333333333,
+        "c1_total": -100.94300715419772,
+        "duration_median_bars": 12.0,
+        "duration_mean_bars": 8.752252252252251,
+        "exit_kind_counts": {
+          "HORIZON": 112,
+          "STATE_EXIT": 110
+        },
+        "entry_state_counts": {
+          "TREND_UP": 115,
+          "TREND_DOWN": 107
+        }
+      },
+      "2024": {
+        "n": 36,
+        "long_n": 18,
+        "short_n": 18,
+        "c0_mean_per_trade": 0.08377784576850858,
+        "c1_mean_per_trade": -0.08512277341686003,
+        "c2_mean_per_trade": -0.25402339260222856,
+        "c1_win_rate": 0.3611111111111111,
+        "c1_total": -3.064419843006961,
+        "duration_median_bars": 12.0,
+        "duration_mean_bars": 9.13888888888889,
+        "exit_kind_counts": {
+          "HORIZON": 21,
+          "STATE_EXIT": 15
+        },
+        "entry_state_counts": {
+          "TREND_DOWN": 18,
+          "TREND_UP": 18
+        }
+      }
+    }
+  },
+  "registered_screen": {
+    "each_training_model_ge_1000": true,
+    "each_evaluation_model_ge_1000": true,
+    "evaluation_action_candidates_ge_1000": true,
+    "aggregate_corr_gt_0_10": false,
+    "aggregate_sign_accuracy_gt_0_55": false,
+    "sequential_trades_ge_150": true,
+    "range_trades_ge_50": true,
+    "trend_trades_ge_50": true,
+    "long_trades_ge_50": true,
+    "short_trades_ge_50": true,
+    "overall_c1_positive": false,
+    "overall_c2_nonnegative": false,
+    "overall_c1_win_gt_0_50": false,
+    "range_branch_c1_positive": false,
+    "trend_branch_c1_positive": false,
+    "two_full_years_positive_c1": false,
+    "policy_c1_better_than_trend_always": true,
+    "pass": false
+  },
+  "integrity": {
+    "frozen_models_hash_unchanged": "PASS",
+    "training_hashes_unchanged": "PASS",
+    "state_file_hash_unchanged": "PASS",
+    "state_content_hash_unchanged": "PASS",
+    "source_manifest_unchanged": "PASS",
+    "feature_order_frozen": "PASS",
+    "threshold_0_0": "PASS",
+    "symbolic_action_constraints": "PASS",
+    "transition_forced_flat": "PASS",
+    "one_active_trade": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "TEMPORALLY_SEPARATED_TRAIN_DEVELOPMENT_NOT_INDEPENDENT_CONFIRMATION"
+}
