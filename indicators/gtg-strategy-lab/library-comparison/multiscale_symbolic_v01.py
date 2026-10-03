@@ -169,6 +169,11 @@ def greedy_interval_anchors(f, start, end, h, step):
             continue
         if not complete_future(f, i, h, step):
             continue
+        # The target itself must mature inside the registered interval.
+        # This prevents the final discovery/selection anchor from borrowing
+        # outcome bars from the next split.
+        if t[i+h] >= ms(end):
+            continue
         if not result or i > result[-1] + h:
             result.append(i)
     if not result:

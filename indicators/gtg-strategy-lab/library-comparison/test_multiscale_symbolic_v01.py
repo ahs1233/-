@@ -58,6 +58,17 @@ class MultiScaleSymbolicSafetyTests(unittest.TestCase):
         for a, b in zip(anchors, anchors[1:]):
             self.assertGreater(b, a+h)
 
+    def test_split_outcomes_mature_before_boundary(self):
+        f = self.frame(n=8000, step=300000, start="2019-12-20")
+        h = 3
+        end = "2020-01-10"
+        anchors = greedy_interval_anchors(
+            f, "2020-01-01", end, h, 300000
+        )
+        self.assertTrue(anchors)
+        for i in anchors:
+            self.assertLess(int(f.t.iloc[i+h]), ms(end))
+
     def test_replication_exact_count_and_non_overlap(self):
         # Long synthetic H1 frame covering the full registered replication interval.
         start = "2020-06-01"

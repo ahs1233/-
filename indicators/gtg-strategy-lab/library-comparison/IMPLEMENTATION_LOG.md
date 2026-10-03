@@ -87,3 +87,18 @@
 - Primary agree2 rule: 59/160 active, 59.32% directional accuracy, but C0 -0.015, C1 -0.193 and C2 -0.370 ATR/trade. Only 1/6 eligible quarters was C1-positive. Registered criterion FAIL.
 - Secondary agree3: 29 active, 62.07% directional accuracy, C1 -0.335 and C2 -0.510 ATR/trade.
 - Conclusion: predictor consensus can raise direction accuracy without creating tradable magnitude. Do not add more voting thresholds. Next phase targets cost-aware expected displacement with symbolic regression on a disjoint Train-only split.
+
+## Selective Swing v0.3 — disjoint Train replication
+- Preregistered before scoring on disjoint anchors: 2019-01-01 <= anchor < 2021-07-31; 240 H1 anchors; Validation/Holdout not read.
+- Runtime checks PASS: exact anchor count, Kronos same-seed repeat, deterministic agreement rule.
+- Primary selective rule (Kronos sign == 12-bar drift sign) activated 91/240 opportunities (37.9% coverage).
+- Replication failed the registered screen: C1 = -0.101 ATR/trade; C2 = -0.287 ATR/trade; only 5/11 eligible quarters had positive C1/trade.
+- The prior post-hoc positive observation from Stability v0.2 is rejected and will not be threshold-tuned.
+- Next phase: preregistered PySR symbolic regression on causal wave-state features. Historical Holdout remains closed.
+
+## Multi-Scale Symbolic v0.1 — failed run 001 and integrity fix
+- `multiscale-symbolic-v01-001` is invalid and excluded from all evidence. During discovery/selection execution, a safety assertion detected that the final Discovery anchor's h-bar outcome could mature at/inside the Selection boundary.
+- The partially selected Scalp equation from run 001 is discarded and must not be reused.
+- Implementation fix: `greedy_interval_anchors` now requires `t[i+h] < interval_end`, so every target matures strictly inside its registered split.
+- Added explicit boundary-maturity regression test. Multi-scale symbolic safety suite now passes 8/8.
+- Protocol, features, thresholds, operators, iteration count, objective, and registered date splits are unchanged; this is a fail-closed temporal-integrity correction before any accepted run.
