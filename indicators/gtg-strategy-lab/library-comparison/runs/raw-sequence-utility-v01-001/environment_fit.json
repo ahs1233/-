@@ -1,0 +1,11 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "torch": "2.5.1+cpu",
+  "protocol_sha256": "18a13681a60c6aa3b86cb882c942ef80fa580397d220192ced4a6a69e90abb67",
+  "created_utc": "2026-10-03T19:30:52.230486+00:00",
+  "seed": 20261003,
+  "epochs": 20,
+  "batch_size": 256,
+  "validation_read": false,
+  "holdout_read": false
+}
