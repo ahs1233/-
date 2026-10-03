@@ -1,6 +1,6 @@
 {
   "created_utc": "2026-10-03T19:19:43.612568+00:00",
-  "evaluation_opened": false,
+  "evaluation_opened": true,
   "split_ms": 1609459200000,
   "frozen_models_sha256": "4084536a3827a31c1c4c1e8fe577feece2e8874a4db7b06ee2f15a5e4be28c54",
   "training_hashes": {
@@ -60,5 +60,6 @@
     "incomplete_dropped": 715
   },
   "validation_read": false,
-  "holdout_read": false
+  "holdout_read": false,
+  "evaluation_opened_utc": "2026-10-03T19:20:42.865443+00:00"
 }
