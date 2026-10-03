@@ -107,3 +107,12 @@
 - Run `multiscale-symbolic-v01-002` completed clean Discovery/Selection and froze equations before Replication, but its run-local `environment.json` omitted PySR/Julia/SymbolicRegression version fields even though those versions had been verified in the terminal before fitting.
 - To satisfy the preregistered evidence contract literally, run 002 is not promoted as the official run and Replication was not opened from it.
 - No search parameter or data boundary was changed. Runner now records PySR, juliacall/juliapkg, Julia, and SymbolicRegression.jl versions into `environment.json` before loading market data.
+
+## Multi-Scale Symbolic v0.1 — official run 003 completed
+- Official run: `multiscale-symbolic-v01-003`; 8/8 safety tests PASS; environment recorded before data read; equations frozen and committed before Replication opened.
+- Frozen equation SHA256: `94fa7df26271f53eb4a23a3499b05cd108f315670ba6c64f47a8cddd6271cc85`.
+- Symbolic primary screen failed on both tracks. Cost-selective symbolic rule produced zero trades because prediction magnitudes never exceeded the causal cost proxy.
+- Swing symbolic always-trade: direction 54.8%, C0 +0.041 ATR/trade, C1 -0.125, C2 -0.290.
+- Pinned Kronos on the exact same 240 Swing anchors: direction 56.1%, C0 +0.206, C1 +0.044, C2 -0.119. Evidence remains PRETRAINED_CONTAMINATION_UNKNOWN.
+- Cross-period check against already-preregistered Stability v0.2 (2021-09-29 to 2024-03-20) showed Kronos Swing C1 = -0.070 ATR/opportunity and direction 50.4%; therefore the earlier positive C1 did not persist.
+- Validation/Historical Holdout remain closed. No parameter tuning is authorized from these outcomes.
