@@ -1,0 +1,8 @@
+{
+  "state_sequence_sha256": "c0b4a52d14e0c83826638b7669401eb817d392dd2867c241f9a5d0923e2b7c3e",
+  "state_rows": 34636,
+  "range_transition_events": 1447,
+  "frozen_utc": "2026-10-03T16:59:48.797203+00:00",
+  "outcomes_opened": true,
+  "outcomes_opened_utc": "2026-10-03T16:59:51.100989+00:00"
+}

@@ -146,3 +146,14 @@
 - Protocol flaw found: exact 1h continuity treats normal XAU maintenance gaps as resets and yields zero mature 24h outcomes.
 - v0.1 preserved unchanged. Next protocol will keep state thresholds fixed but use market-aware <=3h continuity and evaluate confirmed transition resolution as the Swing handoff.
 - Validation/Holdout remain closed.
+
+## State + Transition Engine v0.2 — completed
+- Corrected trading-time continuity to allow <=3h maintenance/session gaps and reset only >3h closures.
+- 8/8 pre-run tests PASS; all 7 registered sanity screens PASS.
+- Evaluation state occupancy: RANGE 55.13%, TRANSITION 6.93%, TREND_UP 20.55%, TREND_DOWN 17.39%.
+- State persistence: RANGE 92.21%, TREND_UP 94.76%, TREND_DOWN 93.83%.
+- 456 primary evaluation RANGE->TRANSITION episodes; 337 mature at 24 trading bars.
+- Resolutions: 174 RANGE, 148 TREND_UP, 132 TREND_DOWN, 2 unresolved gap.
+- Initial transition direction did not replicate directionally in evaluation: signed mean -0.131 ATR at 1 bar, -0.150 at 4, -0.041 at 12, -0.092 at 24.
+- Decision: v0.2 is structurally usable, but TRANSITION onset is stand-down/uncertainty, not Swing direction. v0.3 tests confirmed resolution as the Swing handoff.
+- Validation/Holdout remain closed.
