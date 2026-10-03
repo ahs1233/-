@@ -1,0 +1,329 @@
+{
+  "scope": "GTG DC Resumption Market-Condition Atlas v0.1",
+  "n": 109,
+  "features": [
+    "aligned_drift12",
+    "aligned_drift24",
+    "aligned_drift48",
+    "efficiency24",
+    "efficiency48",
+    "spread_atr",
+    "atr_week_ratio",
+    "prior24_width_atr",
+    "aligned_position",
+    "aligned_breakout",
+    "aligned_dc_count",
+    "opposing_dc_count",
+    "total_delay_bars",
+    "correction_delay_bars",
+    "correction_duration_bars"
+  ],
+  "k": 4,
+  "n_init": 50,
+  "random_state": 20261003,
+  "silhouette": 0.16362286775187496,
+  "clusters": [
+    {
+      "cluster": 0,
+      "n": 12,
+      "long_n": 8,
+      "short_n": 4,
+      "centroid": {
+        "aligned_drift12": 0.7120326870647016,
+        "aligned_drift24": 7.911544491806616,
+        "aligned_drift48": 9.425452733266123,
+        "efficiency24": 0.531931946845742,
+        "efficiency48": 0.3293225712181225,
+        "spread_atr": 0.140497201023417,
+        "atr_week_ratio": 0.8681392482162229,
+        "prior24_width_atr": 9.887119553932047,
+        "aligned_position": 0.38633584147268546,
+        "aligned_breakout": -1.1106539500524382,
+        "aligned_dc_count": 4.0,
+        "opposing_dc_count": 8.326672684688674e-17,
+        "total_delay_bars": 20.166666666666664,
+        "correction_delay_bars": 13.500000000000002,
+        "correction_duration_bars": 6.666666666666666
+      },
+      "period_counts": {
+        "LIBRARY_2018_2020": 6,
+        "TRAIN_2021_2024": 5,
+        "VALIDATION_2024_2025": 1
+      },
+      "year_counts": {
+        "2018": 1,
+        "2019": 2,
+        "2020": 3,
+        "2021": 1,
+        "2022": 3,
+        "2023": 1,
+        "2025": 1
+      },
+      "c0_mean_per_trade": 0.28696469541819597,
+      "c1_mean_per_trade": 0.010066725738675647,
+      "c2_mean_per_trade": -0.26683124394084484,
+      "c1_win_rate": 0.5833333333333334,
+      "exit_reason_counts": {
+        "TP": 7,
+        "SL": 5
+      },
+      "by_period": {
+        "LIBRARY_2018_2020": {
+          "n": 6,
+          "c1_mean_per_trade": 0.20872048986340896,
+          "c2_mean_per_trade": -0.08372874999550146,
+          "c1_win_rate": 0.6666666666666666
+        },
+        "TRAIN_2021_2024": {
+          "n": 5,
+          "c1_mean_per_trade": -0.3936289934077787,
+          "c2_mean_per_trade": -0.6201849809712063,
+          "c1_win_rate": 0.4
+        },
+        "VALIDATION_2024_2025": {
+          "n": 1,
+          "c1_mean_per_trade": 0.8366227367225473,
+          "c2_mean_per_trade": 0.40132247753890243,
+          "c1_win_rate": 1.0
+        }
+      },
+      "hypothesis_candidate": false,
+      "hypothesis_reason": "n<15"
+    },
+    {
+      "cluster": 1,
+      "n": 32,
+      "long_n": 23,
+      "short_n": 9,
+      "centroid": {
+        "aligned_drift12": 0.8747492834684643,
+        "aligned_drift24": 4.500695666135427,
+        "aligned_drift48": 6.387956333242439,
+        "efficiency24": 0.36738437270188834,
+        "efficiency48": 0.2565105554372386,
+        "spread_atr": 0.09683057379875326,
+        "atr_week_ratio": 0.9063487127547621,
+        "prior24_width_atr": 6.424011158931777,
+        "aligned_position": 0.3682884884123064,
+        "aligned_breakout": -0.8112593645865681,
+        "aligned_dc_count": 3.5625,
+        "opposing_dc_count": 0.4375000000000001,
+        "total_delay_bars": 16.8125,
+        "correction_delay_bars": 9.40625,
+        "correction_duration_bars": 7.40625
+      },
+      "period_counts": {
+        "LIBRARY_2018_2020": 8,
+        "TRAIN_2021_2024": 18,
+        "VALIDATION_2024_2025": 6
+      },
+      "year_counts": {
+        "2018": 3,
+        "2019": 3,
+        "2020": 2,
+        "2021": 7,
+        "2022": 4,
+        "2023": 6,
+        "2024": 6,
+        "2025": 1
+      },
+      "c0_mean_per_trade": 0.3332563937183876,
+      "c1_mean_per_trade": 0.1336144749233628,
+      "c2_mean_per_trade": -0.06602744387166207,
+      "c1_win_rate": 0.59375,
+      "exit_reason_counts": {
+        "SL": 9,
+        "TIMEOUT": 7,
+        "TP": 16
+      },
+      "by_period": {
+        "LIBRARY_2018_2020": {
+          "n": 8,
+          "c1_mean_per_trade": -0.21103387563323942,
+          "c2_mean_per_trade": -0.5009778165870379,
+          "c1_win_rate": 0.375
+        },
+        "TRAIN_2021_2024": {
+          "n": 18,
+          "c1_mean_per_trade": 0.15675102784256012,
+          "c2_mean_per_trade": -0.02035140441025227,
+          "c1_win_rate": 0.6111111111111112
+        },
+        "VALIDATION_2024_2025": {
+          "n": 6,
+          "c1_mean_per_trade": 0.5237359502412403,
+          "c2_mean_per_trade": 0.37687826803127633,
+          "c1_win_rate": 0.8333333333333334
+        }
+      },
+      "hypothesis_candidate": false,
+      "hypothesis_reason": "c1_sign_not_stable"
+    },
+    {
+      "cluster": 2,
+      "n": 32,
+      "long_n": 19,
+      "short_n": 13,
+      "centroid": {
+        "aligned_drift12": 2.9012569169027307,
+        "aligned_drift24": 3.4396803987029165,
+        "aligned_drift48": 3.2528215735472252,
+        "efficiency24": 0.3204209136763613,
+        "efficiency48": 0.16388214895718262,
+        "spread_atr": 0.0664426838165379,
+        "atr_week_ratio": 1.2029478269748832,
+        "prior24_width_atr": 5.378168111046854,
+        "aligned_position": 0.3830738814993782,
+        "aligned_breakout": -0.6411832182835233,
+        "aligned_dc_count": 3.6875,
+        "opposing_dc_count": 0.3125,
+        "total_delay_bars": 5.53125,
+        "correction_delay_bars": 3.0312499999999996,
+        "correction_duration_bars": 2.5000000000000004
+      },
+      "period_counts": {
+        "LIBRARY_2018_2020": 9,
+        "TRAIN_2021_2024": 16,
+        "VALIDATION_2024_2025": 7
+      },
+      "year_counts": {
+        "2018": 1,
+        "2019": 1,
+        "2020": 7,
+        "2021": 5,
+        "2022": 9,
+        "2023": 2,
+        "2024": 5,
+        "2025": 2
+      },
+      "c0_mean_per_trade": 0.2268536234727825,
+      "c1_mean_per_trade": 0.09345714430164692,
+      "c2_mean_per_trade": -0.039939334869488675,
+      "c1_win_rate": 0.53125,
+      "exit_reason_counts": {
+        "SL": 8,
+        "TIMEOUT": 11,
+        "TP": 13
+      },
+      "by_period": {
+        "LIBRARY_2018_2020": {
+          "n": 9,
+          "c1_mean_per_trade": -0.12485689261557309,
+          "c2_mean_per_trade": -0.2614132004829026,
+          "c1_win_rate": 0.3333333333333333
+        },
+        "TRAIN_2021_2024": {
+          "n": 16,
+          "c1_mean_per_trade": 0.1873269219098148,
+          "c2_mean_per_trade": 0.04832853506325738,
+          "c1_win_rate": 0.5625
+        },
+        "VALIDATION_2024_2025": {
+          "n": 7,
+          "c1_mean_per_trade": 0.15958712866226032,
+          "c2_mean_per_trade": 0.04305764678719532,
+          "c1_win_rate": 0.7142857142857143
+        }
+      },
+      "hypothesis_candidate": false,
+      "hypothesis_reason": "c1_sign_not_stable"
+    },
+    {
+      "cluster": 3,
+      "n": 33,
+      "long_n": 19,
+      "short_n": 14,
+      "centroid": {
+        "aligned_drift12": 3.3441231419231183,
+        "aligned_drift24": 5.98969808859403,
+        "aligned_drift48": 6.271155757905673,
+        "efficiency24": 0.5081882227616911,
+        "efficiency48": 0.2963262567905256,
+        "spread_atr": 0.07099755493825492,
+        "atr_week_ratio": 1.2136664781647324,
+        "prior24_width_atr": 6.710331231974358,
+        "aligned_position": 0.5476942304151124,
+        "aligned_breakout": 0.24750232095441427,
+        "aligned_dc_count": 3.9393939393939394,
+        "opposing_dc_count": 0.06060606060606069,
+        "total_delay_bars": 11.0,
+        "correction_delay_bars": 7.696969696969697,
+        "correction_duration_bars": 3.3030303030303028
+      },
+      "period_counts": {
+        "LIBRARY_2018_2020": 13,
+        "TRAIN_2021_2024": 14,
+        "VALIDATION_2024_2025": 6
+      },
+      "year_counts": {
+        "2018": 3,
+        "2019": 3,
+        "2020": 7,
+        "2021": 3,
+        "2022": 8,
+        "2023": 2,
+        "2024": 6,
+        "2025": 1
+      },
+      "c0_mean_per_trade": 0.2593055664504921,
+      "c1_mean_per_trade": 0.11071733997003166,
+      "c2_mean_per_trade": -0.03787088651042864,
+      "c1_win_rate": 0.6060606060606061,
+      "exit_reason_counts": {
+        "TP": 12,
+        "TIMEOUT": 12,
+        "SL": 9
+      },
+      "by_period": {
+        "LIBRARY_2018_2020": {
+          "n": 13,
+          "c1_mean_per_trade": 0.05264124362073143,
+          "c2_mean_per_trade": -0.11548054487403113,
+          "c1_win_rate": 0.5384615384615384
+        },
+        "TRAIN_2021_2024": {
+          "n": 14,
+          "c1_mean_per_trade": 0.2215274107581958,
+          "c2_mean_per_trade": 0.07787219669810828,
+          "c1_win_rate": 0.7142857142857143
+        },
+        "VALIDATION_2024_2025": {
+          "n": 6,
+          "c1_mean_per_trade": -0.022007949778867403,
+          "c2_mean_per_trade": -0.13978382087587624,
+          "c1_win_rate": 0.5
+        }
+      },
+      "hypothesis_candidate": false,
+      "hypothesis_reason": "c1_sign_not_stable"
+    }
+  ],
+  "period_cluster_counts": {
+    "LIBRARY_2018_2020": {
+      "1": 8,
+      "3": 13,
+      "0": 6,
+      "2": 9
+    },
+    "TRAIN_2021_2024": {
+      "1": 18,
+      "3": 14,
+      "2": 16,
+      "0": 5
+    },
+    "VALIDATION_2024_2025": {
+      "2": 7,
+      "3": 6,
+      "1": 6,
+      "0": 1
+    }
+  },
+  "hypotheses": [],
+  "decision": "NO_STABLE_CONDITION_STRUCTURE",
+  "integrity": {
+    "outcome_fields_in_clustering_features": false,
+    "forward_oos_read": false,
+    "historical_holdout_read": false,
+    "trade_filter_emitted": false
+  }
+}
