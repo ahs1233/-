@@ -135,3 +135,14 @@
 - Four coarse persistent states emerged: bullish trend (R0), bearish trend (R1), high-volatility bullish recovery/impulse (R2), and low-efficiency bullish reset/recovery (R3).
 - No state/horizon passed the registered distributional screen. Closest was R3 at 12h: mean lift +0.163 ATR, bootstrap 95% CI [-0.115,+0.419].
 - State persistence is high (86.7%-92.9%), so next research tests model-regime interaction rather than state-alone prediction.
+
+## State + Transition Engine v0.1 — completed
+- Explicit causal states implemented: RANGE, TRANSITION, TREND_UP, TREND_DOWN.
+- 6/6 pre-run safety tests PASS.
+- Evaluation occupancy: RANGE 57.76%, TRANSITION 9.21%, TREND_UP 18.03%, TREND_DOWN 15.01%.
+- 428 primary evaluation RANGE->TRANSITION episodes (224 up / 204 down), median source range age 12 H1 bars.
+- Resolutions: 162 back to RANGE, 138 TREND_UP, 121 TREND_DOWN, 7 unresolved at gap.
+- Initial transition direction was not robust: 1h signed mean -0.137 ATR; 4h -0.283 ATR.
+- Protocol flaw found: exact 1h continuity treats normal XAU maintenance gaps as resets and yields zero mature 24h outcomes.
+- v0.1 preserved unchanged. Next protocol will keep state thresholds fixed but use market-aware <=3h continuity and evaluate confirmed transition resolution as the Swing handoff.
+- Validation/Holdout remain closed.

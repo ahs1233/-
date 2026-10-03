@@ -1,0 +1,13 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1"
+  },
+  "protocol_sha256": "272ba399e19dae907495f1838b7147cd0828c7388f10c83a1384f23abf844420",
+  "code_sha256": "1540d5da5fce5f253816080b481721bba9846e365589ac32c6632fde45172f94",
+  "created_utc": "2026-10-03T16:50:48.114095+00:00",
+  "validation_read": false,
+  "holdout_read": false
+}
