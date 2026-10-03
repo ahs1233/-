@@ -44,3 +44,6 @@ __pycache__/
 # GTG library-comparison local research environment/vendor checkout
 .research-vendor/
 .venv-research/
+
+# GTG symbolic-regression isolated environment
+.venv-pysr/
