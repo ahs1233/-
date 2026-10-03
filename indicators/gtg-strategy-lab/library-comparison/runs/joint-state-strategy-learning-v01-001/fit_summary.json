@@ -1,0 +1,26 @@
+{
+  "training_n": 21765,
+  "counts_by_state_action": {
+    "RANGE:-1": 8183,
+    "RANGE:1": 8183,
+    "TREND_DOWN:-1": 2209,
+    "TREND_UP:1": 3190
+  },
+  "target_c1_mean": -0.21534438405307718,
+  "target_c1_median": -0.21574168854871717,
+  "censor_counts": {
+    "HARD_GAP": 1532,
+    "ENTRY_HARD_GAP": 428,
+    "SPLIT_END": 4,
+    "DATA_END": 6
+  },
+  "quality": {
+    "complete_h1": 16067,
+    "incomplete_dropped": 715
+  },
+  "max_signal_time": 1609430400000,
+  "max_exit_time": 1609448400000,
+  "fit_end_exclusive": 1609459200000,
+  "validation_read": false,
+  "holdout_read": false
+}
