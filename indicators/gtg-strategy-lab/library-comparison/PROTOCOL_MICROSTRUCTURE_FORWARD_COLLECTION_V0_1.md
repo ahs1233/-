@@ -33,6 +33,14 @@ Preferred PanWatch surface:
 The collector accepts the exact endpoint URL as configuration.
 No hard-coded production host is required.
 
+Direct-import fallback is also allowed when the HTTP service is not running:
+- import the pinned PanWatch branch locally;
+- call `src.modules.xau.gold_market_fusion_runtime.get_gold_market_fusion(force=True)`;
+- store the returned JSON without feature transformation;
+- record `panwatch-direct://gold_market_fusion` as the endpoint identity and record the local PanWatch commit SHA.
+
+HTTP and direct-import captures are the same raw fusion representation; the transport used must be explicit in the manifest.
+
 Current PanWatch fusion may include:
 - OKX XAU swap executed trade flow
 - OKX XAUT spot executed trade flow

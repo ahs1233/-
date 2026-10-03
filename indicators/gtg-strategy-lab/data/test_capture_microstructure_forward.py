@@ -47,6 +47,23 @@ class MicrostructureForwardTests(unittest.TestCase):
             self.assertEqual(report["status"], "PASS")
             self.assertEqual(report["manifest_rows"], 1)
 
+    def test_direct_transport_metadata_persisted(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            now = datetime(2026, 10, 4, 1, 2, 3, tzinfo=timezone.utc)
+            store_snapshot(
+                root,
+                self.payload(),
+                endpoint="panwatch-direct://gold_market_fusion",
+                transport="direct_import",
+                panwatch_commit="abc123",
+                now=now,
+            )
+            row = json.loads((root / "manifest.jsonl").read_text(encoding="utf-8").strip())
+            self.assertEqual(row["transport"], "direct_import")
+            self.assertEqual(row["panwatch_commit"], "abc123")
+            self.assertEqual(row["endpoint"], "panwatch-direct://gold_market_fusion")
+
     def test_duplicate_same_day_skipped(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

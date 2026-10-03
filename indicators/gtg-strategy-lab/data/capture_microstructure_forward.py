@@ -6,10 +6,12 @@ This module never reads GTG price Forward OOS or Historical Holdout.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import hashlib
 import json
 import os
 import shutil
+import subprocess
 import sys
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -171,6 +173,8 @@ def store_snapshot(
     *,
     endpoint: str,
     http_status: int = 200,
+    transport: str = "http",
+    panwatch_commit: str | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     root = Path(root)
@@ -221,7 +225,9 @@ def store_snapshot(
             "sha256": digest,
             "bytes": len(raw),
             "endpoint": endpoint,
+            "transport": transport,
             "http_status": int(http_status),
+            "panwatch_commit": panwatch_commit,
             "fusion_status": payload.get("status") if isinstance(payload, dict) else None,
             "source_health": source_health_summary(payload),
             "panwatch_branch": "feat/ahmed-toolbox-xau",
@@ -315,10 +321,54 @@ def audit_root(root: Path) -> dict[str, Any]:
     }
 
 
+
+
+def git_output(repo: Path, *args: str) -> str:
+    return subprocess.check_output(
+        ["git", "-C", str(repo), *args],
+        text=True,
+        stderr=subprocess.STDOUT,
+    ).strip()
+
+
+def verify_panwatch_source(repo: Path) -> str:
+    repo = Path(repo)
+    if not (repo / ".git").exists():
+        raise FileNotFoundError(f"PanWatch git repository not found: {repo}")
+    head = git_output(repo, "rev-parse", "HEAD")
+    for path, expected_blob in PANWATCH_SOURCE_BLOBS.items():
+        actual = git_output(repo, "rev-parse", f"HEAD:{path}")
+        if actual != expected_blob:
+            raise ValueError(
+                f"PanWatch source blob changed for {path}: {actual} != {expected_blob}"
+            )
+    return head
+
+
+def fetch_direct_panwatch(repo: Path, *, data_root: Path) -> tuple[Any, str]:
+    repo = Path(repo)
+    head = verify_panwatch_source(repo)
+    runtime_dir = Path(data_root) / "panwatch_runtime"
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    os.environ["DATA_DIR"] = str(runtime_dir)
+    sys.path.insert(0, str(repo))
+    try:
+        from src.modules.xau.gold_market_fusion_runtime import get_gold_market_fusion
+
+        payload = asyncio.run(get_gold_market_fusion(force=True))
+    finally:
+        try:
+            sys.path.remove(str(repo))
+        except ValueError:
+            pass
+    return payload, head
+
+
 def main(argv: list[str] | None = None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(DEFAULT_ROOT))
     ap.add_argument("--url", default=os.environ.get("PANWATCH_GOLD_FUSION_URL"))
+    ap.add_argument("--direct-panwatch-repo")
     ap.add_argument("--timeout", type=float, default=30.0)
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--audit", action="store_true")
@@ -330,16 +380,29 @@ def main(argv: list[str] | None = None):
         print(json.dumps(report, indent=2, ensure_ascii=False))
         raise SystemExit(0 if report["status"] == "PASS" else 2)
 
-    if not args.url:
-        raise SystemExit("PANWATCH_GOLD_FUSION_URL or --url is required")
+    if bool(args.url) == bool(args.direct_panwatch_repo):
+        raise SystemExit("provide exactly one of --url/PANWATCH_GOLD_FUSION_URL or --direct-panwatch-repo")
 
-    payload, status, final_url = fetch_json(args.url, timeout=args.timeout, force=args.force)
-    result = store_snapshot(
-        root,
-        payload,
-        endpoint=final_url,
-        http_status=status,
-    )
+    if args.direct_panwatch_repo:
+        payload, head = fetch_direct_panwatch(Path(args.direct_panwatch_repo), data_root=root)
+        result = store_snapshot(
+            root,
+            payload,
+            endpoint="panwatch-direct://gold_market_fusion",
+            http_status=200,
+            transport="direct_import",
+            panwatch_commit=head,
+        )
+    else:
+        payload, status, final_url = fetch_json(args.url, timeout=args.timeout, force=args.force)
+        result = store_snapshot(
+            root,
+            payload,
+            endpoint=final_url,
+            http_status=status,
+            transport="http",
+            panwatch_commit=None,
+        )
     print(json.dumps(result, indent=2, ensure_ascii=False))
 
 
