@@ -1,0 +1,514 @@
+{"status": "HARD_GAP", "event_id": 9, "split": "library", "resolution_time": 1521208800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 338, "correction_idx": 348, "signal_idx": 353, "entry_idx": 354, "correction_delay_bars": 10, "correction_duration_bars": 5, "total_delay_bars": 15, "event_id": 14, "split": "library", "resolution_time": 1521644400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 22, "split": "library", "resolution_time": 1522832400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 552, "correction_idx": 561, "signal_idx": 563, "entry_idx": 564, "correction_delay_bars": 9, "correction_duration_bars": 2, "total_delay_bars": 11, "event_id": 23, "split": "library", "resolution_time": 1522890000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 24, "split": "library", "resolution_time": 1523296800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 25, "split": "library", "resolution_time": 1523430000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 29, "split": "library", "resolution_time": 1524049200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 31, "split": "library", "resolution_time": 1524232800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 32, "split": "library", "resolution_time": 1524657600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 33, "split": "library", "resolution_time": 1524754800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 35, "split": "library", "resolution_time": 1525089600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 40, "split": "library", "resolution_time": 1525348800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 42, "split": "library", "resolution_time": 1525788000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 43, "split": "library", "resolution_time": 1525953600000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 44, "split": "library", "resolution_time": 1526029200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 1178, "correction_idx": 1207, "signal_idx": 1214, "entry_idx": 1215, "correction_delay_bars": 29, "correction_duration_bars": 7, "total_delay_bars": 36, "event_id": 45, "split": "library", "resolution_time": 1526320800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 48, "split": "library", "resolution_time": 1526886000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 50, "split": "library", "resolution_time": 1527069600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 1354, "correction_idx": 1365, "signal_idx": 1373, "entry_idx": 1374, "correction_delay_bars": 11, "correction_duration_bars": 8, "total_delay_bars": 19, "event_id": 51, "split": "library", "resolution_time": 1527166800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 59, "split": "library", "resolution_time": 1527854400000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 1685, "correction_idx": 1689, "signal_idx": 1690, "entry_idx": 1691, "correction_delay_bars": 4, "correction_duration_bars": 1, "total_delay_bars": 5, "event_id": 63, "split": "library", "resolution_time": 1528966800000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 64, "split": "library", "resolution_time": 1529067600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 65, "split": "library", "resolution_time": 1529409600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 67, "split": "library", "resolution_time": 1529521200000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 69, "split": "library", "resolution_time": 1529906400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 70, "split": "library", "resolution_time": 1529982000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 1907, "correction_idx": 1910, "signal_idx": 1917, "entry_idx": 1918, "correction_delay_bars": 3, "correction_duration_bars": 7, "total_delay_bars": 10, "event_id": 73, "split": "library", "resolution_time": 1530169200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 75, "split": "library", "resolution_time": 1530540000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 77, "split": "library", "resolution_time": 1530666000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 78, "split": "library", "resolution_time": 1530784800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 79, "split": "library", "resolution_time": 1531116000000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 80, "split": "library", "resolution_time": 1531216800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 81, "split": "library", "resolution_time": 1531324800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 82, "split": "library", "resolution_time": 1531468800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 83, "split": "library", "resolution_time": 1531836000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 84, "split": "library", "resolution_time": 1531987200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 85, "split": "library", "resolution_time": 1532091600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 90, "split": "library", "resolution_time": 1532516400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 91, "split": "library", "resolution_time": 1532628000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 92, "split": "library", "resolution_time": 1533031200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 100, "split": "library", "resolution_time": 1533880800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 2620, "correction_idx": 2647, "signal_idx": 2651, "entry_idx": 2652, "correction_delay_bars": 27, "correction_duration_bars": 4, "total_delay_bars": 31, "event_id": 101, "split": "library", "resolution_time": 1534147200000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 102, "split": "library", "resolution_time": 1534532400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 103, "split": "library", "resolution_time": 1534939200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 106, "split": "library", "resolution_time": 1535050800000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 110, "split": "library", "resolution_time": 1535637600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 113, "split": "library", "resolution_time": 1536044400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 115, "split": "library", "resolution_time": 1536195600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 118, "split": "library", "resolution_time": 1536555600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 119, "split": "library", "resolution_time": 1536670800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 3119, "correction_idx": 3127, "signal_idx": 3137, "entry_idx": 3138, "correction_delay_bars": 8, "correction_duration_bars": 10, "total_delay_bars": 18, "event_id": 121, "split": "library", "resolution_time": 1536768000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 122, "split": "library", "resolution_time": 1536937200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 127, "split": "library", "resolution_time": 1537491600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 131, "split": "library", "resolution_time": 1537963200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 132, "split": "library", "resolution_time": 1538053200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 137, "split": "library", "resolution_time": 1539198000000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 138, "split": "library", "resolution_time": 1539244800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 139, "split": "library", "resolution_time": 1539586800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 142, "split": "library", "resolution_time": 1540278000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 144, "split": "library", "resolution_time": 1540425600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 145, "split": "library", "resolution_time": 1540566000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 146, "split": "library", "resolution_time": 1540803600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 148, "split": "library", "resolution_time": 1540897200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 150, "split": "library", "resolution_time": 1541422800000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 151, "split": "library", "resolution_time": 1541523600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 154, "split": "library", "resolution_time": 1541736000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 155, "split": "library", "resolution_time": 1542218400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 157, "split": "library", "resolution_time": 1542376800000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 162, "split": "library", "resolution_time": 1543334400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 175, "split": "library", "resolution_time": 1544108400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 176, "split": "library", "resolution_time": 1544209200000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 182, "split": "library", "resolution_time": 1545231600000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 183, "split": "library", "resolution_time": 1545325200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 186, "split": "library", "resolution_time": 1545663600000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 187, "split": "library", "resolution_time": 1546257600000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 188, "split": "library", "resolution_time": 1546408800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 190, "split": "library", "resolution_time": 1546545600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 193, "split": "library", "resolution_time": 1547046000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 204, "split": "library", "resolution_time": 1549479600000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 207, "split": "library", "resolution_time": 1549879200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 208, "split": "library", "resolution_time": 1550088000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 5440, "correction_idx": 5444, "signal_idx": 5447, "entry_idx": 5448, "correction_delay_bars": 4, "correction_duration_bars": 3, "total_delay_bars": 7, "event_id": 210, "split": "library", "resolution_time": 1550228400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 215, "split": "library", "resolution_time": 1551168000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 217, "split": "library", "resolution_time": 1551286800000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 234, "split": "library", "resolution_time": 1553770800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 238, "split": "library", "resolution_time": 1554382800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 6164, "correction_idx": 6173, "signal_idx": 6185, "entry_idx": 6186, "correction_delay_bars": 9, "correction_duration_bars": 12, "total_delay_bars": 21, "event_id": 240, "split": "library", "resolution_time": 1554814800000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 243, "split": "library", "resolution_time": 1555419600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 249, "split": "library", "resolution_time": 1556200800000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 250, "split": "library", "resolution_time": 1556287200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 253, "split": "library", "resolution_time": 1556737200000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 256, "split": "library", "resolution_time": 1557241200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 6692, "correction_idx": 6706, "signal_idx": 6712, "entry_idx": 6713, "correction_delay_bars": 14, "correction_duration_bars": 6, "total_delay_bars": 20, "event_id": 261, "split": "library", "resolution_time": 1558015200000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 268, "split": "library", "resolution_time": 1558440000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 272, "split": "library", "resolution_time": 1559048400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 273, "split": "library", "resolution_time": 1559203200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 6974, "correction_idx": 6978, "signal_idx": 6979, "entry_idx": 6980, "correction_delay_bars": 4, "correction_duration_bars": 1, "total_delay_bars": 5, "event_id": 275, "split": "library", "resolution_time": 1559718000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 276, "split": "library", "resolution_time": 1559912400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 277, "split": "library", "resolution_time": 1560142800000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 283, "split": "library", "resolution_time": 1560448800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 284, "split": "library", "resolution_time": 1560758400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 285, "split": "library", "resolution_time": 1560837600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 287, "split": "library", "resolution_time": 1560970800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 300, "split": "library", "resolution_time": 1562083200000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 302, "split": "library", "resolution_time": 1562331600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 304, "split": "library", "resolution_time": 1562662800000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 305, "split": "library", "resolution_time": 1562763600000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 309, "split": "library", "resolution_time": 1562958000000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 311, "split": "library", "resolution_time": 1563375600000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 313, "split": "library", "resolution_time": 1563843600000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 7834, "correction_idx": 7839, "signal_idx": 7843, "entry_idx": 7844, "correction_delay_bars": 5, "correction_duration_bars": 4, "total_delay_bars": 9, "event_id": 318, "split": "library", "resolution_time": 1564513200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 7951, "correction_idx": 7963, "signal_idx": 7964, "entry_idx": 7965, "correction_delay_bars": 12, "correction_duration_bars": 1, "total_delay_bars": 13, "event_id": 327, "split": "library", "resolution_time": 1565143200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 328, "split": "library", "resolution_time": 1565593200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 329, "split": "library", "resolution_time": 1565636400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 336, "split": "library", "resolution_time": 1566205200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 337, "split": "library", "resolution_time": 1566471600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 338, "split": "library", "resolution_time": 1566572400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 339, "split": "library", "resolution_time": 1566918000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 342, "split": "library", "resolution_time": 1567098000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 344, "split": "library", "resolution_time": 1567501200000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 346, "split": "library", "resolution_time": 1567620000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 8428, "correction_idx": 8431, "signal_idx": 8438, "entry_idx": 8439, "correction_delay_bars": 3, "correction_duration_bars": 7, "total_delay_bars": 10, "event_id": 347, "split": "library", "resolution_time": 1567692000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 348, "split": "library", "resolution_time": 1568041200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 350, "split": "library", "resolution_time": 1568271600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 351, "split": "library", "resolution_time": 1568390400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 353, "split": "library", "resolution_time": 1568833200000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 357, "split": "library", "resolution_time": 1569002400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 358, "split": "library", "resolution_time": 1569340800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 8749, "correction_idx": 8755, "signal_idx": 8766, "entry_idx": 8767, "correction_delay_bars": 6, "correction_duration_bars": 11, "total_delay_bars": 17, "event_id": 359, "split": "library", "resolution_time": 1569427200000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 361, "split": "library", "resolution_time": 1569844800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 8857, "correction_idx": 8862, "signal_idx": 8874, "entry_idx": 8875, "correction_delay_bars": 5, "correction_duration_bars": 12, "total_delay_bars": 17, "event_id": 362, "split": "library", "resolution_time": 1570021200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 364, "split": "library", "resolution_time": 1570471200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 372, "split": "library", "resolution_time": 1570716000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 374, "split": "library", "resolution_time": 1570795200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 377, "split": "library", "resolution_time": 1571148000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 380, "split": "library", "resolution_time": 1571328000000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 381, "split": "library", "resolution_time": 1571673600000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 383, "split": "library", "resolution_time": 1571814000000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 385, "split": "library", "resolution_time": 1571925600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 386, "split": "library", "resolution_time": 1572267600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 395, "split": "library", "resolution_time": 1572958800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 398, "split": "library", "resolution_time": 1573488000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 401, "split": "library", "resolution_time": 1573722000000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 402, "split": "library", "resolution_time": 1574067600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 403, "split": "library", "resolution_time": 1574236800000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 406, "split": "library", "resolution_time": 1574661600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 408, "split": "library", "resolution_time": 1575367200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 411, "split": "library", "resolution_time": 1575982800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 9932, "correction_idx": 9943, "signal_idx": 9950, "entry_idx": 9951, "correction_delay_bars": 11, "correction_duration_bars": 7, "total_delay_bars": 18, "event_id": 412, "split": "library", "resolution_time": 1576080000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 415, "split": "library", "resolution_time": 1576778400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 416, "split": "library", "resolution_time": 1577084400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 10214, "correction_idx": 10217, "signal_idx": 10222, "entry_idx": 10223, "correction_delay_bars": 3, "correction_duration_bars": 5, "total_delay_bars": 8, "event_id": 417, "split": "library", "resolution_time": 1577973600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 418, "split": "library", "resolution_time": 1578502800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 425, "split": "library", "resolution_time": 1578960000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 436, "split": "library", "resolution_time": 1579881600000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 445, "split": "library", "resolution_time": 1580407200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 447, "split": "library", "resolution_time": 1580806800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 449, "split": "library", "resolution_time": 1580983200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 456, "split": "library", "resolution_time": 1581566400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 461, "split": "library", "resolution_time": 1581688800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 469, "split": "library", "resolution_time": 1582869600000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 471, "split": "library", "resolution_time": 1583247600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 11222, "correction_idx": 11235, "signal_idx": 11236, "entry_idx": 11237, "correction_delay_bars": 13, "correction_duration_bars": 1, "total_delay_bars": 14, "event_id": 472, "split": "library", "resolution_time": 1583413200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 474, "split": "library", "resolution_time": 1583870400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 475, "split": "library", "resolution_time": 1583953200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 478, "split": "library", "resolution_time": 1584356400000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 11408, "correction_idx": 11409, "signal_idx": 11410, "entry_idx": 11411, "correction_delay_bars": 1, "correction_duration_bars": 1, "total_delay_bars": 2, "event_id": 479, "split": "library", "resolution_time": 1584457200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 480, "split": "library", "resolution_time": 1584687600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 481, "split": "library", "resolution_time": 1584968400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 483, "split": "library", "resolution_time": 1585645200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 485, "split": "library", "resolution_time": 1585832400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 11713, "correction_idx": 11725, "signal_idx": 11726, "entry_idx": 11727, "correction_delay_bars": 12, "correction_duration_bars": 1, "total_delay_bars": 13, "event_id": 488, "split": "library", "resolution_time": 1586160000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 489, "split": "library", "resolution_time": 1586419200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 491, "split": "library", "resolution_time": 1587034800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 492, "split": "library", "resolution_time": 1587110400000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 493, "split": "library", "resolution_time": 1587470400000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 11965, "correction_idx": 11966, "signal_idx": 11967, "entry_idx": 11968, "correction_delay_bars": 1, "correction_duration_bars": 1, "total_delay_bars": 2, "event_id": 494, "split": "library", "resolution_time": 1587549600000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 496, "split": "library", "resolution_time": 1588039200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 498, "split": "library", "resolution_time": 1588262400000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 12223, "correction_idx": 12227, "signal_idx": 12237, "entry_idx": 12238, "correction_delay_bars": 4, "correction_duration_bars": 10, "total_delay_bars": 14, "event_id": 508, "split": "library", "resolution_time": 1588867200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 510, "split": "library", "resolution_time": 1589382000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 12335, "correction_idx": 12354, "signal_idx": 12356, "entry_idx": 12357, "correction_delay_bars": 19, "correction_duration_bars": 2, "total_delay_bars": 21, "event_id": 512, "split": "library", "resolution_time": 1589464800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 514, "split": "library", "resolution_time": 1589940000000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 518, "split": "library", "resolution_time": 1590501600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 519, "split": "library", "resolution_time": 1590642000000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 520, "split": "library", "resolution_time": 1590753600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 12647, "correction_idx": 12649, "signal_idx": 12650, "entry_idx": 12651, "correction_delay_bars": 2, "correction_duration_bars": 1, "total_delay_bars": 3, "event_id": 523, "split": "library", "resolution_time": 1591174800000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 525, "split": "library", "resolution_time": 1591362000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 526, "split": "library", "resolution_time": 1591635600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 529, "split": "library", "resolution_time": 1592200800000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 534, "split": "library", "resolution_time": 1592568000000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 535, "split": "library", "resolution_time": 1592920800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 539, "split": "library", "resolution_time": 1593529200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 540, "split": "library", "resolution_time": 1593590400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 543, "split": "library", "resolution_time": 1594036800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 13198, "correction_idx": 13229, "signal_idx": 13233, "entry_idx": 13234, "correction_delay_bars": 31, "correction_duration_bars": 4, "total_delay_bars": 35, "event_id": 545, "split": "library", "resolution_time": 1594134000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 549, "split": "library", "resolution_time": 1594800000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 554, "split": "library", "resolution_time": 1596049200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 13597, "correction_idx": 13604, "signal_idx": 13605, "entry_idx": 13606, "correction_delay_bars": 7, "correction_duration_bars": 1, "total_delay_bars": 8, "event_id": 555, "split": "library", "resolution_time": 1596175200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 556, "split": "library", "resolution_time": 1596553200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 13758, "correction_idx": 13766, "signal_idx": 13767, "entry_idx": 13768, "correction_delay_bars": 8, "correction_duration_bars": 1, "total_delay_bars": 9, "event_id": 559, "split": "library", "resolution_time": 1597125600000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 13815, "correction_idx": 13816, "signal_idx": 13819, "entry_idx": 13820, "correction_delay_bars": 1, "correction_duration_bars": 3, "total_delay_bars": 4, "event_id": 560, "split": "library", "resolution_time": 1597338000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 13857, "correction_idx": 13862, "signal_idx": 13868, "entry_idx": 13869, "correction_delay_bars": 5, "correction_duration_bars": 6, "total_delay_bars": 11, "event_id": 562, "split": "library", "resolution_time": 1597669200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 563, "split": "library", "resolution_time": 1597849200000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 573, "split": "library", "resolution_time": 1598630400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 574, "split": "library", "resolution_time": 1598929200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 585, "split": "library", "resolution_time": 1599660000000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 586, "split": "library", "resolution_time": 1599742800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 587, "split": "library", "resolution_time": 1599793200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 588, "split": "library", "resolution_time": 1600088400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 14324, "correction_idx": 14328, "signal_idx": 14331, "entry_idx": 14332, "correction_delay_bars": 4, "correction_duration_bars": 3, "total_delay_bars": 7, "event_id": 589, "split": "library", "resolution_time": 1600138800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 14369, "correction_idx": 14373, "signal_idx": 14379, "entry_idx": 14380, "correction_delay_bars": 4, "correction_duration_bars": 6, "total_delay_bars": 10, "event_id": 590, "split": "library", "resolution_time": 1600308000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 592, "split": "library", "resolution_time": 1600678800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 593, "split": "library", "resolution_time": 1600833600000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 604, "split": "library", "resolution_time": 1601557200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 606, "split": "library", "resolution_time": 1601910000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 14736, "correction_idx": 14749, "signal_idx": 14752, "entry_idx": 14753, "correction_delay_bars": 13, "correction_duration_bars": 3, "total_delay_bars": 16, "event_id": 612, "split": "library", "resolution_time": 1602208800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 614, "split": "library", "resolution_time": 1602594000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 616, "split": "library", "resolution_time": 1603249200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 618, "split": "library", "resolution_time": 1603371600000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 619, "split": "library", "resolution_time": 1603882800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 620, "split": "library", "resolution_time": 1604062800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 15118, "correction_idx": 15128, "signal_idx": 15132, "entry_idx": 15133, "correction_delay_bars": 10, "correction_duration_bars": 4, "total_delay_bars": 14, "event_id": 621, "split": "library", "resolution_time": 1604336400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 622, "split": "library", "resolution_time": 1604566800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 624, "split": "library", "resolution_time": 1605103200000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 633, "split": "library", "resolution_time": 1605697200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 634, "split": "library", "resolution_time": 1605765600000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 15458, "correction_idx": 15460, "signal_idx": 15466, "entry_idx": 15467, "correction_delay_bars": 2, "correction_duration_bars": 6, "total_delay_bars": 8, "event_id": 636, "split": "library", "resolution_time": 1606143600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 637, "split": "library", "resolution_time": 1606485600000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 15580, "correction_idx": 15597, "signal_idx": 15602, "entry_idx": 15603, "correction_delay_bars": 17, "correction_duration_bars": 5, "total_delay_bars": 22, "event_id": 638, "split": "library", "resolution_time": 1606809600000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 643, "split": "library", "resolution_time": 1608019200000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 644, "split": "library", "resolution_time": 1608181200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 15929, "correction_idx": 15930, "signal_idx": 15931, "entry_idx": 15932, "correction_delay_bars": 1, "correction_duration_bars": 1, "total_delay_bars": 2, "event_id": 647, "split": "library", "resolution_time": 1608652800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 648, "split": "library", "resolution_time": 1609347600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 16168, "correction_idx": 16171, "signal_idx": 16172, "entry_idx": 16173, "correction_delay_bars": 3, "correction_duration_bars": 1, "total_delay_bars": 4, "event_id": 656, "split": "evaluation", "resolution_time": 1610092800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 657, "split": "evaluation", "resolution_time": 1610431200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 660, "split": "evaluation", "resolution_time": 1610726400000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 662, "split": "evaluation", "resolution_time": 1611108000000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 664, "split": "evaluation", "resolution_time": 1611313200000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 666, "split": "evaluation", "resolution_time": 1611720000000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 668, "split": "evaluation", "resolution_time": 1611842400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 669, "split": "evaluation", "resolution_time": 1611925200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 670, "split": "evaluation", "resolution_time": 1612252800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 16594, "correction_idx": 16598, "signal_idx": 16601, "entry_idx": 16602, "correction_delay_bars": 4, "correction_duration_bars": 3, "total_delay_bars": 7, "event_id": 672, "split": "evaluation", "resolution_time": 1612404000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 16650, "correction_idx": 16655, "signal_idx": 16662, "entry_idx": 16663, "correction_delay_bars": 5, "correction_duration_bars": 7, "total_delay_bars": 12, "event_id": 673, "split": "evaluation", "resolution_time": 1612785600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 675, "split": "evaluation", "resolution_time": 1613062800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 676, "split": "evaluation", "resolution_time": 1613480400000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 681, "split": "evaluation", "resolution_time": 1614175200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 686, "split": "evaluation", "resolution_time": 1614650400000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 17038, "correction_idx": 17039, "signal_idx": 17044, "entry_idx": 17045, "correction_delay_bars": 1, "correction_duration_bars": 5, "total_delay_bars": 6, "event_id": 687, "split": "evaluation", "resolution_time": 1614780000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 17065, "correction_idx": 17066, "signal_idx": 17069, "entry_idx": 17070, "correction_delay_bars": 1, "correction_duration_bars": 3, "total_delay_bars": 4, "event_id": 688, "split": "evaluation", "resolution_time": 1614880800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 17130, "correction_idx": 17131, "signal_idx": 17152, "entry_idx": 17153, "correction_delay_bars": 1, "correction_duration_bars": 21, "total_delay_bars": 22, "event_id": 691, "split": "evaluation", "resolution_time": 1615298400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 693, "split": "evaluation", "resolution_time": 1615532400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 698, "split": "evaluation", "resolution_time": 1616007600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 17453, "correction_idx": 17474, "signal_idx": 17479, "entry_idx": 17480, "correction_delay_bars": 21, "correction_duration_bars": 5, "total_delay_bars": 26, "event_id": 704, "split": "evaluation", "resolution_time": 1617030000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 17555, "correction_idx": 17559, "signal_idx": 17564, "entry_idx": 17565, "correction_delay_bars": 4, "correction_duration_bars": 5, "total_delay_bars": 9, "event_id": 705, "split": "evaluation", "resolution_time": 1617674400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 706, "split": "evaluation", "resolution_time": 1617890400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 17727, "correction_idx": 17736, "signal_idx": 17741, "entry_idx": 17742, "correction_delay_bars": 9, "correction_duration_bars": 5, "total_delay_bars": 14, "event_id": 714, "split": "evaluation", "resolution_time": 1618495200000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 715, "split": "evaluation", "resolution_time": 1618819200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 718, "split": "evaluation", "resolution_time": 1618970400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 721, "split": "evaluation", "resolution_time": 1619179200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 723, "split": "evaluation", "resolution_time": 1619571600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 733, "split": "evaluation", "resolution_time": 1620270000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 735, "split": "evaluation", "resolution_time": 1620856800000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 737, "split": "evaluation", "resolution_time": 1620975600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 742, "split": "evaluation", "resolution_time": 1621954800000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 743, "split": "evaluation", "resolution_time": 1622224800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 747, "split": "evaluation", "resolution_time": 1622559600000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 748, "split": "evaluation", "resolution_time": 1622707200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 18572, "correction_idx": 18579, "signal_idx": 18588, "entry_idx": 18589, "correction_delay_bars": 7, "correction_duration_bars": 9, "total_delay_bars": 16, "event_id": 750, "split": "evaluation", "resolution_time": 1623085200000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 759, "split": "evaluation", "resolution_time": 1623870000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 763, "split": "evaluation", "resolution_time": 1624957200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 764, "split": "evaluation", "resolution_time": 1625072400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 765, "split": "evaluation", "resolution_time": 1625119200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 19001, "correction_idx": 19004, "signal_idx": 19007, "entry_idx": 19008, "correction_delay_bars": 3, "correction_duration_bars": 3, "total_delay_bars": 6, "event_id": 766, "split": "evaluation", "resolution_time": 1625223600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 768, "split": "evaluation", "resolution_time": 1625734800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 773, "split": "evaluation", "resolution_time": 1626267600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 777, "split": "evaluation", "resolution_time": 1626786000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 778, "split": "evaluation", "resolution_time": 1626865200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 787, "split": "evaluation", "resolution_time": 1628078400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 788, "split": "evaluation", "resolution_time": 1628172000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 789, "split": "evaluation", "resolution_time": 1628251200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 19637, "correction_idx": 19638, "signal_idx": 19639, "entry_idx": 19640, "correction_delay_bars": 1, "correction_duration_bars": 1, "total_delay_bars": 2, "event_id": 790, "split": "evaluation", "resolution_time": 1628683200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 791, "split": "evaluation", "resolution_time": 1628859600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 792, "split": "evaluation", "resolution_time": 1629716400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 19867, "correction_idx": 19868, "signal_idx": 19879, "entry_idx": 19880, "correction_delay_bars": 1, "correction_duration_bars": 11, "total_delay_bars": 12, "event_id": 794, "split": "evaluation", "resolution_time": 1629900000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 795, "split": "evaluation", "resolution_time": 1630040400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 798, "split": "evaluation", "resolution_time": 1630674000000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 802, "split": "evaluation", "resolution_time": 1631304000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 810, "split": "evaluation", "resolution_time": 1632150000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 20297, "correction_idx": 20307, "signal_idx": 20309, "entry_idx": 20310, "correction_delay_bars": 10, "correction_duration_bars": 2, "total_delay_bars": 12, "event_id": 811, "split": "evaluation", "resolution_time": 1632229200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 815, "split": "evaluation", "resolution_time": 1632812400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 821, "split": "evaluation", "resolution_time": 1633507200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 823, "split": "evaluation", "resolution_time": 1633698000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 824, "split": "evaluation", "resolution_time": 1634018400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 826, "split": "evaluation", "resolution_time": 1634122800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 20707, "correction_idx": 20711, "signal_idx": 20712, "entry_idx": 20713, "correction_delay_bars": 4, "correction_duration_bars": 1, "total_delay_bars": 5, "event_id": 827, "split": "evaluation", "resolution_time": 1634292000000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 833, "split": "evaluation", "resolution_time": 1634886000000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 836, "split": "evaluation", "resolution_time": 1635256800000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 837, "split": "evaluation", "resolution_time": 1635397200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 838, "split": "evaluation", "resolution_time": 1635512400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 839, "split": "evaluation", "resolution_time": 1635778800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 20999, "correction_idx": 21005, "signal_idx": 21006, "entry_idx": 21007, "correction_delay_bars": 6, "correction_duration_bars": 1, "total_delay_bars": 7, "event_id": 842, "split": "evaluation", "resolution_time": 1635915600000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 21030, "correction_idx": 21032, "signal_idx": 21045, "entry_idx": 21046, "correction_delay_bars": 2, "correction_duration_bars": 13, "total_delay_bars": 15, "event_id": 843, "split": "evaluation", "resolution_time": 1636030800000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 845, "split": "evaluation", "resolution_time": 1636552800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 850, "split": "evaluation", "resolution_time": 1637053200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 855, "split": "evaluation", "resolution_time": 1637344800000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 863, "split": "evaluation", "resolution_time": 1638432000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 864, "split": "evaluation", "resolution_time": 1638554400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 868, "split": "evaluation", "resolution_time": 1638932400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 870, "split": "evaluation", "resolution_time": 1639054800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 871, "split": "evaluation", "resolution_time": 1639130400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 873, "split": "evaluation", "resolution_time": 1639490400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 886, "split": "evaluation", "resolution_time": 1640102400000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 887, "split": "evaluation", "resolution_time": 1640192400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 889, "split": "evaluation", "resolution_time": 1640674800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 891, "split": "evaluation", "resolution_time": 1640775600000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 892, "split": "evaluation", "resolution_time": 1640876400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 896, "split": "evaluation", "resolution_time": 1641376800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 22019, "correction_idx": 22024, "signal_idx": 22026, "entry_idx": 22027, "correction_delay_bars": 5, "correction_duration_bars": 2, "total_delay_bars": 7, "event_id": 897, "split": "evaluation", "resolution_time": 1641445200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 22089, "correction_idx": 22109, "signal_idx": 22119, "entry_idx": 22120, "correction_delay_bars": 20, "correction_duration_bars": 10, "total_delay_bars": 30, "event_id": 899, "split": "evaluation", "resolution_time": 1641880800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 22230, "correction_idx": 22249, "signal_idx": 22252, "entry_idx": 22253, "correction_delay_bars": 19, "correction_duration_bars": 3, "total_delay_bars": 22, "event_id": 901, "split": "evaluation", "resolution_time": 1642600800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 903, "split": "evaluation", "resolution_time": 1643122800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 906, "split": "evaluation", "resolution_time": 1643695200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 907, "split": "evaluation", "resolution_time": 1643817600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 909, "split": "evaluation", "resolution_time": 1643968800000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 912, "split": "evaluation", "resolution_time": 1644606000000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 913, "split": "evaluation", "resolution_time": 1645023600000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 914, "split": "evaluation", "resolution_time": 1645664400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 919, "split": "evaluation", "resolution_time": 1646132400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 922, "split": "evaluation", "resolution_time": 1646406000000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 928, "split": "evaluation", "resolution_time": 1647000000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 933, "split": "evaluation", "resolution_time": 1647482400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 935, "split": "evaluation", "resolution_time": 1647633600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 936, "split": "evaluation", "resolution_time": 1647961200000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 939, "split": "evaluation", "resolution_time": 1648062000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 942, "split": "evaluation", "resolution_time": 1648447200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 23337, "correction_idx": 23339, "signal_idx": 23344, "entry_idx": 23345, "correction_delay_bars": 2, "correction_duration_bars": 5, "total_delay_bars": 7, "event_id": 943, "split": "evaluation", "resolution_time": 1648497600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 944, "split": "evaluation", "resolution_time": 1648652400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 945, "split": "evaluation", "resolution_time": 1648742400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 949, "split": "evaluation", "resolution_time": 1649350800000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 950, "split": "evaluation", "resolution_time": 1649426400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 951, "split": "evaluation", "resolution_time": 1649775600000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 956, "split": "evaluation", "resolution_time": 1650373200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 23805, "correction_idx": 23807, "signal_idx": 23809, "entry_idx": 23810, "correction_delay_bars": 2, "correction_duration_bars": 2, "total_delay_bars": 4, "event_id": 960, "split": "evaluation", "resolution_time": 1651050000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 964, "split": "evaluation", "resolution_time": 1651194000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 23930, "correction_idx": 23931, "signal_idx": 23933, "entry_idx": 23934, "correction_delay_bars": 1, "correction_duration_bars": 2, "total_delay_bars": 3, "event_id": 967, "split": "evaluation", "resolution_time": 1651690800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 23986, "correction_idx": 23992, "signal_idx": 23997, "entry_idx": 23998, "correction_delay_bars": 6, "correction_duration_bars": 5, "total_delay_bars": 11, "event_id": 969, "split": "evaluation", "resolution_time": 1652076000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 24066, "correction_idx": 24074, "signal_idx": 24082, "entry_idx": 24083, "correction_delay_bars": 8, "correction_duration_bars": 8, "total_delay_bars": 16, "event_id": 972, "split": "evaluation", "resolution_time": 1652374800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 973, "split": "evaluation", "resolution_time": 1652688000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 978, "split": "evaluation", "resolution_time": 1652839200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 24174, "correction_idx": 24182, "signal_idx": 24191, "entry_idx": 24192, "correction_delay_bars": 8, "correction_duration_bars": 9, "total_delay_bars": 17, "event_id": 980, "split": "evaluation", "resolution_time": 1652954400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 981, "split": "evaluation", "resolution_time": 1653296400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 982, "split": "evaluation", "resolution_time": 1653400800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 989, "split": "evaluation", "resolution_time": 1654153200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 991, "split": "evaluation", "resolution_time": 1654628400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 994, "split": "evaluation", "resolution_time": 1654862400000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1002, "split": "evaluation", "resolution_time": 1655395200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1006, "split": "evaluation", "resolution_time": 1656486000000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1007, "split": "evaluation", "resolution_time": 1656586800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1008, "split": "evaluation", "resolution_time": 1656655200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1010, "split": "evaluation", "resolution_time": 1657011600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1012, "split": "evaluation", "resolution_time": 1657267200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1018, "split": "evaluation", "resolution_time": 1658336400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1020, "split": "evaluation", "resolution_time": 1658761200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 25298, "correction_idx": 25311, "signal_idx": 25314, "entry_idx": 25315, "correction_delay_bars": 13, "correction_duration_bars": 3, "total_delay_bars": 16, "event_id": 1021, "split": "evaluation", "resolution_time": 1658948400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 25358, "correction_idx": 25362, "signal_idx": 25364, "entry_idx": 25365, "correction_delay_bars": 4, "correction_duration_bars": 2, "total_delay_bars": 6, "event_id": 1022, "split": "evaluation", "resolution_time": 1659348000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 25425, "correction_idx": 25428, "signal_idx": 25430, "entry_idx": 25431, "correction_delay_bars": 3, "correction_duration_bars": 2, "total_delay_bars": 5, "event_id": 1026, "split": "evaluation", "resolution_time": 1659603600000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1027, "split": "evaluation", "resolution_time": 1659970800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 25585, "correction_idx": 25588, "signal_idx": 25599, "entry_idx": 25600, "correction_delay_bars": 3, "correction_duration_bars": 11, "total_delay_bars": 14, "event_id": 1032, "split": "evaluation", "resolution_time": 1660554000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 25636, "correction_idx": 25640, "signal_idx": 25642, "entry_idx": 25643, "correction_delay_bars": 4, "correction_duration_bars": 2, "total_delay_bars": 6, "event_id": 1034, "split": "evaluation", "resolution_time": 1660744800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1042, "split": "evaluation", "resolution_time": 1661410800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 25791, "correction_idx": 25794, "signal_idx": 25795, "entry_idx": 25796, "correction_delay_bars": 3, "correction_duration_bars": 1, "total_delay_bars": 4, "event_id": 1043, "split": "evaluation", "resolution_time": 1661508000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1047, "split": "evaluation", "resolution_time": 1661878800000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1048, "split": "evaluation", "resolution_time": 1662123600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1050, "split": "evaluation", "resolution_time": 1662476400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1052, "split": "evaluation", "resolution_time": 1662570000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 26066, "correction_idx": 26069, "signal_idx": 26076, "entry_idx": 26077, "correction_delay_bars": 3, "correction_duration_bars": 7, "total_delay_bars": 10, "event_id": 1058, "split": "evaluation", "resolution_time": 1663074000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 26247, "correction_idx": 26248, "signal_idx": 26251, "entry_idx": 26252, "correction_delay_bars": 1, "correction_duration_bars": 3, "total_delay_bars": 4, "event_id": 1065, "split": "evaluation", "resolution_time": 1663927200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1066, "split": "evaluation", "resolution_time": 1664222400000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1067, "split": "evaluation", "resolution_time": 1664330400000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1069, "split": "evaluation", "resolution_time": 1664517600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 26390, "correction_idx": 26399, "signal_idx": 26403, "entry_idx": 26404, "correction_delay_bars": 9, "correction_duration_bars": 4, "total_delay_bars": 13, "event_id": 1070, "split": "evaluation", "resolution_time": 1664809200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1071, "split": "evaluation", "resolution_time": 1665147600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1074, "split": "evaluation", "resolution_time": 1665774000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1075, "split": "evaluation", "resolution_time": 1666011600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1076, "split": "evaluation", "resolution_time": 1666155600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1079, "split": "evaluation", "resolution_time": 1666324800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1081, "split": "evaluation", "resolution_time": 1666692000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1082, "split": "evaluation", "resolution_time": 1666767600000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1083, "split": "evaluation", "resolution_time": 1666944000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1085, "split": "evaluation", "resolution_time": 1667246400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1087, "split": "evaluation", "resolution_time": 1667419200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1088, "split": "evaluation", "resolution_time": 1667462400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1089, "split": "evaluation", "resolution_time": 1667538000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 26975, "correction_idx": 26982, "signal_idx": 26989, "entry_idx": 26990, "correction_delay_bars": 7, "correction_duration_bars": 7, "total_delay_bars": 14, "event_id": 1094, "split": "evaluation", "resolution_time": 1667923200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 27019, "correction_idx": 27029, "signal_idx": 27030, "entry_idx": 27031, "correction_delay_bars": 10, "correction_duration_bars": 1, "total_delay_bars": 11, "event_id": 1095, "split": "evaluation", "resolution_time": 1668088800000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1096, "split": "evaluation", "resolution_time": 1668499200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1097, "split": "evaluation", "resolution_time": 1668654000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1100, "split": "evaluation", "resolution_time": 1668790800000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1101, "split": "evaluation", "resolution_time": 1669179600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1102, "split": "evaluation", "resolution_time": 1669233600000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1105, "split": "evaluation", "resolution_time": 1669662000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1106, "split": "evaluation", "resolution_time": 1669798800000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 27331, "correction_idx": 27336, "signal_idx": 27338, "entry_idx": 27339, "correction_delay_bars": 5, "correction_duration_bars": 2, "total_delay_bars": 7, "event_id": 1107, "split": "evaluation", "resolution_time": 1669838400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 27396, "correction_idx": 27404, "signal_idx": 27409, "entry_idx": 27410, "correction_delay_bars": 8, "correction_duration_bars": 5, "total_delay_bars": 13, "event_id": 1109, "split": "evaluation", "resolution_time": 1670256000000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1116, "split": "evaluation", "resolution_time": 1670871600000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1117, "split": "evaluation", "resolution_time": 1670940000000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 27563, "correction_idx": 27574, "signal_idx": 27576, "entry_idx": 27577, "correction_delay_bars": 11, "correction_duration_bars": 2, "total_delay_bars": 13, "event_id": 1118, "split": "evaluation", "resolution_time": 1671073200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 27638, "correction_idx": 27641, "signal_idx": 27642, "entry_idx": 27643, "correction_delay_bars": 3, "correction_duration_bars": 1, "total_delay_bars": 4, "event_id": 1121, "split": "evaluation", "resolution_time": 1671526800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1122, "split": "evaluation", "resolution_time": 1671721200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1125, "split": "evaluation", "resolution_time": 1672326000000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1130, "split": "evaluation", "resolution_time": 1673020800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1131, "split": "evaluation", "resolution_time": 1673416800000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1132, "split": "evaluation", "resolution_time": 1673528400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1134, "split": "evaluation", "resolution_time": 1673600400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1136, "split": "evaluation", "resolution_time": 1674046800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1137, "split": "evaluation", "resolution_time": 1674154800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1139, "split": "evaluation", "resolution_time": 1674543600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1140, "split": "evaluation", "resolution_time": 1674680400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1144, "split": "evaluation", "resolution_time": 1675141200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1155, "split": "evaluation", "resolution_time": 1676307600000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 28517, "correction_idx": 28533, "signal_idx": 28537, "entry_idx": 28538, "correction_delay_bars": 16, "correction_duration_bars": 4, "total_delay_bars": 20, "event_id": 1156, "split": "evaluation", "resolution_time": 1676448000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1162, "split": "evaluation", "resolution_time": 1676966400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1164, "split": "evaluation", "resolution_time": 1677096000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 28725, "correction_idx": 28732, "signal_idx": 28733, "entry_idx": 28734, "correction_delay_bars": 7, "correction_duration_bars": 1, "total_delay_bars": 8, "event_id": 1168, "split": "evaluation", "resolution_time": 1677600000000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1178, "split": "evaluation", "resolution_time": 1679054400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 29063, "correction_idx": 29071, "signal_idx": 29084, "entry_idx": 29085, "correction_delay_bars": 8, "correction_duration_bars": 13, "total_delay_bars": 21, "event_id": 1182, "split": "evaluation", "resolution_time": 1679407200000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1190, "split": "evaluation", "resolution_time": 1679911200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1191, "split": "evaluation", "resolution_time": 1680195600000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1195, "split": "evaluation", "resolution_time": 1680285600000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1198, "split": "evaluation", "resolution_time": 1680534000000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1206, "split": "evaluation", "resolution_time": 1681264800000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1207, "split": "evaluation", "resolution_time": 1681390800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1208, "split": "evaluation", "resolution_time": 1681830000000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1209, "split": "evaluation", "resolution_time": 1681894800000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1210, "split": "evaluation", "resolution_time": 1681995600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1211, "split": "evaluation", "resolution_time": 1682060400000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1220, "split": "evaluation", "resolution_time": 1683039600000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1221, "split": "evaluation", "resolution_time": 1683291600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1222, "split": "evaluation", "resolution_time": 1683561600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1223, "split": "evaluation", "resolution_time": 1683630000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1226, "split": "evaluation", "resolution_time": 1683817200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1228, "split": "evaluation", "resolution_time": 1684220400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1230, "split": "evaluation", "resolution_time": 1684803600000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1235, "split": "evaluation", "resolution_time": 1685019600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1239, "split": "evaluation", "resolution_time": 1685541600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 30224, "correction_idx": 30227, "signal_idx": 30235, "entry_idx": 30236, "correction_delay_bars": 3, "correction_duration_bars": 8, "total_delay_bars": 11, "event_id": 1240, "split": "evaluation", "resolution_time": 1685631600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1255, "split": "evaluation", "resolution_time": 1686578400000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1256, "split": "evaluation", "resolution_time": 1686672000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1257, "split": "evaluation", "resolution_time": 1686794400000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1260, "split": "evaluation", "resolution_time": 1687168800000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1262, "split": "evaluation", "resolution_time": 1687269600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1266, "split": "evaluation", "resolution_time": 1687446000000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1267, "split": "evaluation", "resolution_time": 1687878000000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1270, "split": "evaluation", "resolution_time": 1688043600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1271, "split": "evaluation", "resolution_time": 1688137200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1272, "split": "evaluation", "resolution_time": 1688392800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1274, "split": "evaluation", "resolution_time": 1688583600000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1275, "split": "evaluation", "resolution_time": 1688648400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1277, "split": "evaluation", "resolution_time": 1689058800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1279, "split": "evaluation", "resolution_time": 1689166800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1281, "split": "evaluation", "resolution_time": 1689692400000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1283, "split": "evaluation", "resolution_time": 1689926400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1284, "split": "evaluation", "resolution_time": 1690225200000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 31079, "correction_idx": 31085, "signal_idx": 31087, "entry_idx": 31088, "correction_delay_bars": 6, "correction_duration_bars": 2, "total_delay_bars": 8, "event_id": 1285, "split": "evaluation", "resolution_time": 1690354800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1288, "split": "evaluation", "resolution_time": 1690808400000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1289, "split": "evaluation", "resolution_time": 1690891200000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1292, "split": "evaluation", "resolution_time": 1690988400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1306, "split": "evaluation", "resolution_time": 1692208800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 31531, "correction_idx": 31537, "signal_idx": 31541, "entry_idx": 31542, "correction_delay_bars": 6, "correction_duration_bars": 4, "total_delay_bars": 10, "event_id": 1311, "split": "evaluation", "resolution_time": 1692799200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1312, "split": "evaluation", "resolution_time": 1692975600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1315, "split": "evaluation", "resolution_time": 1693321200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1322, "split": "evaluation", "resolution_time": 1694516400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1323, "split": "evaluation", "resolution_time": 1694696400000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1329, "split": "evaluation", "resolution_time": 1695056400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1330, "split": "evaluation", "resolution_time": 1695218400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1337, "split": "evaluation", "resolution_time": 1695654000000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1338, "split": "evaluation", "resolution_time": 1696003200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1341, "split": "evaluation", "resolution_time": 1697011200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1343, "split": "evaluation", "resolution_time": 1697191200000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1344, "split": "evaluation", "resolution_time": 1697594400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1345, "split": "evaluation", "resolution_time": 1698141600000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1346, "split": "evaluation", "resolution_time": 1698249600000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1349, "split": "evaluation", "resolution_time": 1698429600000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 32601, "correction_idx": 32614, "signal_idx": 32621, "entry_idx": 32622, "correction_delay_bars": 13, "correction_duration_bars": 7, "total_delay_bars": 20, "event_id": 1350, "split": "evaluation", "resolution_time": 1698775200000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1351, "split": "evaluation", "resolution_time": 1699016400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 32735, "correction_idx": 32743, "signal_idx": 32750, "entry_idx": 32751, "correction_delay_bars": 8, "correction_duration_bars": 7, "total_delay_bars": 15, "event_id": 1354, "split": "evaluation", "resolution_time": 1699459200000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1355, "split": "evaluation", "resolution_time": 1699628400000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 32820, "correction_idx": 32823, "signal_idx": 32832, "entry_idx": 32833, "correction_delay_bars": 3, "correction_duration_bars": 9, "total_delay_bars": 12, "event_id": 1356, "split": "evaluation", "resolution_time": 1699970400000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1357, "split": "evaluation", "resolution_time": 1700146800000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1358, "split": "evaluation", "resolution_time": 1700488800000, "direction": -1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1359, "split": "evaluation", "resolution_time": 1700528400000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 32934, "correction_idx": 32938, "signal_idx": 32950, "entry_idx": 32951, "correction_delay_bars": 4, "correction_duration_bars": 12, "total_delay_bars": 16, "event_id": 1360, "split": "evaluation", "resolution_time": 1700575200000, "direction": 1}
+{"status": "HARD_GAP", "event_id": 1361, "split": "evaluation", "resolution_time": 1700834400000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1366, "split": "evaluation", "resolution_time": 1701705600000, "direction": -1}
+{"status": "HARD_GAP", "event_id": 1373, "split": "evaluation", "resolution_time": 1702044000000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 33297, "correction_idx": 33301, "signal_idx": 33308, "entry_idx": 33309, "correction_delay_bars": 4, "correction_duration_bars": 7, "total_delay_bars": 11, "event_id": 1375, "split": "evaluation", "resolution_time": 1702497600000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1377, "split": "evaluation", "resolution_time": 1702998000000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1378, "split": "evaluation", "resolution_time": 1703167200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1382, "split": "evaluation", "resolution_time": 1703624400000, "direction": 1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1383, "split": "evaluation", "resolution_time": 1703692800000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1386, "split": "evaluation", "resolution_time": 1704283200000, "direction": -1}
+{"status": "MACRO_REVERSAL_BEFORE_CORRECTION", "event_id": 1390, "split": "evaluation", "resolution_time": 1704992400000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1391, "split": "evaluation", "resolution_time": 1705057200000, "direction": 1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1395, "split": "evaluation", "resolution_time": 1705989600000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1396, "split": "evaluation", "resolution_time": 1706112000000, "direction": -1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1402, "split": "evaluation", "resolution_time": 1706713200000, "direction": 1}
+{"status": "MACRO_REVERSAL_DURING_CORRECTION", "event_id": 1413, "split": "evaluation", "resolution_time": 1707397200000, "direction": -1}
+{"status": "NO_RESUMPTION_BEFORE_TREND_END", "event_id": 1421, "split": "evaluation", "resolution_time": 1707832800000, "direction": -1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 34351, "correction_idx": 34361, "signal_idx": 34367, "entry_idx": 34368, "correction_delay_bars": 10, "correction_duration_bars": 6, "total_delay_bars": 16, "event_id": 1426, "split": "evaluation", "resolution_time": 1708423200000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1432, "split": "evaluation", "resolution_time": 1709215200000, "direction": 1}
+{"status": "DC_RESUMPTION_ENTRY", "resolution_idx": 34533, "correction_idx": 34536, "signal_idx": 34537, "entry_idx": 34538, "correction_delay_bars": 3, "correction_duration_bars": 1, "total_delay_bars": 4, "event_id": 1433, "split": "evaluation", "resolution_time": 1709290800000, "direction": 1}
+{"status": "NO_FINE_CORRECTION_BEFORE_TREND_END", "event_id": 1435, "split": "evaluation", "resolution_time": 1710248400000, "direction": -1}
