@@ -20,13 +20,14 @@ from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
-COLLECTOR_VERSION = "microstructure-forward-v0.1"
+COLLECTOR_VERSION = "microstructure-forward-v0.2"
 DEFAULT_ROOT = Path(r"C:\Users\alk\gtg-lab-data-microstructure")
 
 PANWATCH_SOURCE_BLOBS = {
+    "src/platform/marketdata/gold_binance.py": "e4964e43c1c1c8bf8b8a64df3e53cc047d2fd8d8",
     "src/modules/xau/xaut_order_flow.py": "a4cda68e299c133b28cdd5322675063ef64dbb6a",
-    "src/modules/xau/gold_market_fusion.py": "a6caacb5032dd2143e1a16b1ca70e14f28660c7a",
-    "src/modules/xau/gold_market_fusion_runtime.py": "56f9291fe9fa1ecadf4a8553bb01679b10b9fe5a",
+    "src/modules/xau/gold_market_fusion.py": "93c00f3b8fd032e4dd06f5dade34ce03eb762a12",
+    "src/modules/xau/gold_market_fusion_runtime.py": "5db633eecd13d6462a4f96027859b9349c22faf7",
     "src/modules/xau/gold_tape_store.py": "74be14dcae08dc0c2eda7ea8c59fd98e7a8026f3",
     "src/modules/xau/api.py": "687b39bce3c38dfa2147161746310e95007997af",
 }
