@@ -127,6 +127,7 @@ Require k+1 exists and gap k -> k+1 >0 and <=3h.
 If a gap >3h occurs while the position is open:
 - censor as HARD_GAP
 - do not bridge the closure
+- for subsequent independent research episodes, reset flat at the first bar after the gap and resume scanning; the censored trade contributes no PnL
 
 If split/data boundary arrives before a causal exit:
 - censor as SPLIT_END / DATA_END
