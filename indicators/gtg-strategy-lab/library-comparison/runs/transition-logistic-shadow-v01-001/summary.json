@@ -1,0 +1,259 @@
+{
+  "scope": "GTG Transition Logistic Shadow v0.1 post-selection diagnostic",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "frozen_input_hashes": {
+    "frozen_memory.json": "0dc860e3291e3f288580aa7b52187f86d05108fc44d67061da0320a8db82e410",
+    "evaluation_predictions.jsonl": "a4da81fef57742c86d3ee341eef8862e9bd9321bca69917798b830b7927e0e6c",
+    "transition_memory_summary.json": "87f2cd444d11a859d35d735d0a989be7660e78ddad86f87d0d49e6e2576dd528",
+    "transition_library.jsonl": "e134c33eac1109efa7c1e81ad7d71de238344ad0fb763e0e93c47b29d2b5a565"
+  },
+  "threshold": 0.5,
+  "summary": {
+    "ALL_TRANSITIONS": {
+      "4": {
+        "eligible_opportunities": 445,
+        "active_trades": 445,
+        "coverage": 1.0,
+        "actual_trend_precision": 0.6134831460674157,
+        "directional_accuracy": 0.46292134831460674,
+        "mean_signed_displacement_atr": -0.15043225819836958,
+        "mean_mfe_atr": 1.4502530076126507,
+        "mean_mae_atr": 1.6488140840030783,
+        "returned_inside_fraction": 0.5685393258426966,
+        "c1_win_rate": 0.39775280898876403,
+        "c0_mean_per_trade": -0.15051289514544142,
+        "c0_mean_per_opportunity": -0.15051289514544142,
+        "c1_mean_per_trade": -0.33701915217698475,
+        "c1_mean_per_opportunity": -0.33701915217698475,
+        "c2_mean_per_trade": -0.5235254092085281,
+        "c2_mean_per_opportunity": -0.5235254092085281
+      },
+      "12": {
+        "eligible_opportunities": 379,
+        "active_trades": 379,
+        "coverage": 1.0,
+        "actual_trend_precision": 0.6174142480211082,
+        "directional_accuracy": 0.45910290237467016,
+        "mean_signed_displacement_atr": -0.041138965203835975,
+        "mean_mfe_atr": 2.1731286584340648,
+        "mean_mae_atr": 2.393752032811387,
+        "returned_inside_fraction": 0.6728232189973615,
+        "c1_win_rate": 0.43007915567282323,
+        "c0_mean_per_trade": -0.04076859182584706,
+        "c0_mean_per_opportunity": -0.04076859182584706,
+        "c1_mean_per_trade": -0.23235880278778906,
+        "c1_mean_per_opportunity": -0.23235880278778906,
+        "c2_mean_per_trade": -0.423949013749731,
+        "c2_mean_per_opportunity": -0.423949013749731
+      },
+      "24": {
+        "eligible_opportunities": 337,
+        "active_trades": 337,
+        "coverage": 1.0,
+        "actual_trend_precision": 0.6320474777448071,
+        "directional_accuracy": 0.4836795252225519,
+        "mean_signed_displacement_atr": -0.091678154474768,
+        "mean_mfe_atr": 2.963630924309027,
+        "mean_mae_atr": 3.254737346549119,
+        "returned_inside_fraction": 0.744807121661721,
+        "c1_win_rate": 0.47477744807121663,
+        "c0_mean_per_trade": -0.09106504599336956,
+        "c0_mean_per_opportunity": -0.09106504599336956,
+        "c1_mean_per_trade": -0.2716912709012301,
+        "c1_mean_per_opportunity": -0.2716912709012301,
+        "c2_mean_per_trade": -0.45231749580909053,
+        "c2_mean_per_opportunity": -0.45231749580909053
+      }
+    },
+    "LOGISTIC_GATE": {
+      "4": {
+        "eligible_opportunities": 445,
+        "active_trades": 317,
+        "coverage": 0.7123595505617978,
+        "actual_trend_precision": 0.7760252365930599,
+        "directional_accuracy": 0.4637223974763407,
+        "mean_signed_displacement_atr": -0.18086159623926565,
+        "mean_mfe_atr": 1.445453752088824,
+        "mean_mae_atr": 1.6069398925526415,
+        "returned_inside_fraction": 0.47318611987381703,
+        "c1_win_rate": 0.3911671924290221,
+        "c0_mean_per_trade": -0.1816627601162894,
+        "c0_mean_per_opportunity": -0.1294092021502556,
+        "c1_mean_per_trade": -0.3611534114142334,
+        "c1_mean_per_opportunity": -0.25727108183890335,
+        "c2_mean_per_trade": -0.5406440627121772,
+        "c2_mean_per_opportunity": -0.385132961527551
+      },
+      "12": {
+        "eligible_opportunities": 379,
+        "active_trades": 272,
+        "coverage": 0.7176781002638523,
+        "actual_trend_precision": 0.7757352941176471,
+        "directional_accuracy": 0.4742647058823529,
+        "mean_signed_displacement_atr": -0.028284602867475042,
+        "mean_mfe_atr": 2.1816035012066153,
+        "mean_mae_atr": 2.359918486591111,
+        "returned_inside_fraction": 0.5992647058823529,
+        "c1_win_rate": 0.4522058823529412,
+        "c0_mean_per_trade": -0.02858650814562572,
+        "c0_mean_per_opportunity": -0.020515910859129786,
+        "c1_mean_per_trade": -0.21444774945405773,
+        "c1_mean_per_opportunity": -0.15390445343404668,
+        "c2_mean_per_trade": -0.4003089907624897,
+        "c2_mean_per_opportunity": -0.2872929960089636
+      },
+      "24": {
+        "eligible_opportunities": 337,
+        "active_trades": 248,
+        "coverage": 0.7359050445103857,
+        "actual_trend_precision": 0.7741935483870968,
+        "directional_accuracy": 0.4798387096774194,
+        "mean_signed_displacement_atr": -0.0865260854423807,
+        "mean_mfe_atr": 2.9163664382307948,
+        "mean_mae_atr": 3.193607378747195,
+        "returned_inside_fraction": 0.7016129032258065,
+        "c1_win_rate": 0.46774193548387094,
+        "c0_mean_per_trade": -0.08666800917795575,
+        "c0_mean_per_opportunity": -0.06377942515173005,
+        "c1_mean_per_trade": -0.2629716964454956,
+        "c1_mean_per_opportunity": -0.19352219797769418,
+        "c2_mean_per_trade": -0.43927538371303565,
+        "c2_mean_per_opportunity": -0.32326497080365824
+      }
+    },
+    "ORACLE_TREND_SUBSET": {
+      "4": {
+        "eligible_opportunities": 445,
+        "active_trades": 273,
+        "coverage": 0.6134831460674157,
+        "actual_trend_precision": 1.0,
+        "directional_accuracy": 0.5677655677655677,
+        "mean_signed_displacement_atr": 0.4766059305427602,
+        "mean_mfe_atr": 1.8622996235634248,
+        "mean_mae_atr": 1.1861381286181032,
+        "returned_inside_fraction": 0.32967032967032966,
+        "c1_win_rate": 0.4981684981684982,
+        "c0_mean_per_trade": 0.4765496571953972,
+        "c0_mean_per_opportunity": 0.29235518295358076,
+        "c1_mean_per_trade": 0.294635102066797,
+        "c1_mean_per_opportunity": 0.18075366935783277,
+        "c2_mean_per_trade": 0.1127205469381968,
+        "c2_mean_per_opportunity": 0.06915215576208476
+      },
+      "12": {
+        "eligible_opportunities": 379,
+        "active_trades": 234,
+        "coverage": 0.6174142480211082,
+        "actual_trend_precision": 1.0,
+        "directional_accuracy": 0.5427350427350427,
+        "mean_signed_displacement_atr": 0.5547093537485068,
+        "mean_mfe_atr": 2.5881746669513226,
+        "mean_mae_atr": 1.9065864253501335,
+        "returned_inside_fraction": 0.49572649572649574,
+        "c1_win_rate": 0.5256410256410257,
+        "c0_mean_per_trade": 0.5554997553280343,
+        "c0_mean_per_opportunity": 0.3429734637117679,
+        "c1_mean_per_trade": 0.3728770194145673,
+        "c1_mean_per_opportunity": 0.23021958454619723,
+        "c2_mean_per_trade": 0.19025428350110035,
+        "c2_mean_per_opportunity": 0.11746570538062658
+      },
+      "24": {
+        "eligible_opportunities": 337,
+        "active_trades": 213,
+        "coverage": 0.6320474777448071,
+        "actual_trend_precision": 1.0,
+        "directional_accuracy": 0.5774647887323944,
+        "mean_signed_displacement_atr": 0.6356011562787319,
+        "mean_mfe_atr": 3.424389672983078,
+        "mean_mae_atr": 2.6216602566230374,
+        "returned_inside_fraction": 0.6150234741784038,
+        "c1_win_rate": 0.5633802816901409,
+        "c0_mean_per_trade": 0.6366495163977581,
+        "c0_mean_per_opportunity": 0.4023927210466543,
+        "c1_mean_per_trade": 0.45911846196277656,
+        "c1_mean_per_opportunity": 0.29018466586964814,
+        "c2_mean_per_trade": 0.28158740752779504,
+        "c2_mean_per_opportunity": 0.1779766106926419
+      }
+    }
+  },
+  "logistic_h4_avoidance": {
+    "avoided_events": 128,
+    "avoided_range_resumed": 101,
+    "avoided_trend_confirmed": 27,
+    "false_trend_trades": 71
+  },
+  "logistic_h4_by_direction": {
+    "up": {
+      "active": 164,
+      "precision": 0.774390243902439,
+      "c1_mean_per_trade": -0.2767014650895348,
+      "c2_mean_per_trade": -0.4558380749226497
+    },
+    "down": {
+      "active": 153,
+      "precision": 0.7777777777777778,
+      "c1_mean_per_trade": -0.45167706629822396,
+      "c2_mean_per_trade": -0.6315472130225206
+    }
+  },
+  "logistic_h4_by_year": {
+    "2021": {
+      "opportunities": 138,
+      "active": 92,
+      "coverage": 0.6666666666666666,
+      "precision": 0.782608695652174,
+      "c1_mean_per_trade": -0.34159891909096163
+    },
+    "2022": {
+      "opportunities": 138,
+      "active": 104,
+      "coverage": 0.7536231884057971,
+      "precision": 0.7980769230769231,
+      "c1_mean_per_trade": -0.29975146950895193
+    },
+    "2023": {
+      "opportunities": 137,
+      "active": 103,
+      "coverage": 0.7518248175182481,
+      "precision": 0.7961165048543689,
+      "c1_mean_per_trade": -0.3459561963705263
+    },
+    "2024": {
+      "opportunities": 32,
+      "active": 18,
+      "coverage": 0.5625,
+      "precision": 0.5,
+      "c1_mean_per_trade": -0.9028272114915714
+    }
+  },
+  "registered_h4_screen": {
+    "active_trades_ge_150": true,
+    "trend_precision_ge_0_70": true,
+    "c0_positive": false,
+    "c1_positive": false,
+    "c1_better_than_all_transitions": false,
+    "c2_nonnegative": false,
+    "both_sides_ge_50": true,
+    "pass": false
+  },
+  "integrity": {
+    "frozen_input_hashes_unchanged": "PASS",
+    "prediction_event_exact_join": "PASS",
+    "candidate_direction_match": "PASS",
+    "source_manifest_match": "PASS",
+    "decision_uses_no_actual_resolution": "PASS",
+    "threshold_unchanged_0_50": "PASS",
+    "entry_after_onset": "PASS",
+    "market_continuity_le_3h": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "POST_SELECTION_DIAGNOSTIC_NOT_INDEPENDENT_VALIDATION"
+}
