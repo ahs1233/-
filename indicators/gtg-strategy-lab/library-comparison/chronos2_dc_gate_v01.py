@@ -110,10 +110,9 @@ def main():
             rejected_context.append({**tr,"reject_reason":"INSUFFICIENT_CONTEXT"})
             continue
         lo=i-CONTEXT+1
-        gaps=np.diff(t[lo:i+1])
-        if np.any(gaps<=0) or np.any(gaps>MAX_CONTIG_GAP):
-            rejected_context.append({**tr,"reject_reason":"CONTEXT_HARD_GAP"})
-            continue
+        # Protocol: last 256 observed complete H1 trading bars are treated as
+        # an equally-spaced trading-bar sequence. Weekend/session gaps are not
+        # a censor for Chronos context.
         x=close[lo:i+1].astype(np.float32)
         if not np.all(np.isfinite(x)):
             rejected_context.append({**tr,"reject_reason":"NONFINITE_CONTEXT"})
