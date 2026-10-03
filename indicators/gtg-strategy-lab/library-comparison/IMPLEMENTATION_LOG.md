@@ -102,3 +102,8 @@
 - Implementation fix: `greedy_interval_anchors` now requires `t[i+h] < interval_end`, so every target matures strictly inside its registered split.
 - Added explicit boundary-maturity regression test. Multi-scale symbolic safety suite now passes 8/8.
 - Protocol, features, thresholds, operators, iteration count, objective, and registered date splits are unchanged; this is a fail-closed temporal-integrity correction before any accepted run.
+
+## Multi-Scale Symbolic v0.1 — run 002 superseded for environment-record compliance
+- Run `multiscale-symbolic-v01-002` completed clean Discovery/Selection and froze equations before Replication, but its run-local `environment.json` omitted PySR/Julia/SymbolicRegression version fields even though those versions had been verified in the terminal before fitting.
+- To satisfy the preregistered evidence contract literally, run 002 is not promoted as the official run and Replication was not opened from it.
+- No search parameter or data boundary was changed. Runner now records PySR, juliacall/juliapkg, Julia, and SymbolicRegression.jl versions into `environment.json` before loading market data.

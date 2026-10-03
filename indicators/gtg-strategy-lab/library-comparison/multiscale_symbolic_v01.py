@@ -204,9 +204,12 @@ def xy(f, Xall, anchors, h):
     return X, y
 
 
-def env_record(extra=None):
+def env_record(extra=None, include_symbolic=False):
     packages = {}
-    for name in ("numpy", "pandas"):
+    package_names = ["numpy", "pandas"]
+    if include_symbolic:
+        package_names += ["pysr", "juliacall", "juliapkg"]
+    for name in package_names:
         try:
             packages[name] = md.version(name)
         except Exception:
@@ -217,6 +220,20 @@ def env_record(extra=None):
         "protocol_sha256": sha(PROTOCOL),
         "created_utc": datetime.now(timezone.utc).isoformat(),
     }
+    if include_symbolic:
+        import pysr
+        from juliacall import Main as jl
+        julia_version = str(jl.seval("string(VERSION)"))
+        symbolic_version = str(
+            jl.seval("import SymbolicRegression; string(pkgversion(SymbolicRegression))")
+        )
+        if pysr.__version__ != "2.6.0":
+            raise RuntimeError(f"unexpected PySR {pysr.__version__}")
+        d["symbolic_runtime"] = {
+            "pysr": pysr.__version__,
+            "julia": julia_version,
+            "SymbolicRegression.jl": symbolic_version,
+        }
     if extra:
         d.update(extra)
     return d
@@ -233,7 +250,10 @@ def save_anchor_info(path, f, anchors):
 def discover(root: Path, out: Path):
     out.mkdir(parents=True, exist_ok=False)
     (out / "environment.json").write_text(
-        json.dumps(env_record({"stage": "discover_select"}), indent=2),
+        json.dumps(
+            env_record({"stage": "discover_select"}, include_symbolic=True),
+            indent=2,
+        ),
         encoding="utf-8",
     )
     rows = load_source(root, SELECTION_END, out / "input_manifest_discovery.json")
