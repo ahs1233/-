@@ -35,6 +35,9 @@ def trade_result(f,q,h,direction):
     return {**c,"direction_correct":bool(move>0),"decision_time":int(f.t.iloc[q]),
             "exit_time":int(f.t.iloc[q+h])}
 
+def policy_copy(row, policy):
+    return {**row, "policy": policy}
+
 def summarize(rows, opportunities):
     if not rows:
         return {"opportunities":int(opportunities),"active_trades":0,"coverage":0.0}
@@ -124,7 +127,7 @@ def main():
                 "policy":"ALL_ONSET","horizon":h}
             all_rows.append(rr); records.append(rr)
             if float(p["p_logistic"])>=THRESHOLD:
-                rg={**r,"policy":"LOGISTIC_GATE"}
+                rg=policy_copy(rr,"LOGISTIC_GATE")
                 gate_rows.append(rg); records.append(rg)
 
         confirmed_rows=[]

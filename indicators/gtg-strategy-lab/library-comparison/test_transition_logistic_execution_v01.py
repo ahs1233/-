@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pandas as pd
-from transition_logistic_execution_v01 import path_ok, trade_result
+from transition_logistic_execution_v01 import path_ok, trade_result, policy_copy
 from state_transition_engine_v02 import STEP
 
 class TransitionLogisticExecutionTests(unittest.TestCase):
@@ -29,6 +29,13 @@ class TransitionLogisticExecutionTests(unittest.TestCase):
         f=self.frame(); r=trade_result(f,10,4,-1)
         self.assertFalse(r["direction_correct"])
         self.assertLess(r["c0"],0)
+
+    def test_policy_copy_preserves_horizon_metadata(self):
+        base={"horizon":4,"event_id":7,"policy":"ALL_ONSET"}
+        got=policy_copy(base,"LOGISTIC_GATE")
+        self.assertEqual(got["horizon"],4)
+        self.assertEqual(got["event_id"],7)
+        self.assertEqual(got["policy"],"LOGISTIC_GATE")
 
 if __name__=="__main__":
     unittest.main(verbosity=2)
