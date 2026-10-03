@@ -1,0 +1,64 @@
+{
+  "created_utc": "2026-10-03T19:19:43.612568+00:00",
+  "evaluation_opened": false,
+  "split_ms": 1609459200000,
+  "frozen_models_sha256": "4084536a3827a31c1c4c1e8fe577feece2e8874a4db7b06ee2f15a5e4be28c54",
+  "training_hashes": {
+    "RANGE_LONG": "ad083bba02caf190068c0d69f6926f4ab8a781183fc1e47ef832adfe9282e5cd",
+    "RANGE_SHORT": "522c8d9ee31a943e9d609da88513aa84bfed87308cb2cf8b0b44ae1797aa1f14",
+    "TREND_LONG": "10079c93f2d2adf37d90caec4b945fbb1d9663767ee2c427007e0d0d0e4522ca",
+    "TREND_SHORT": "554cceb01d5a5d99bfc27bb4fb22e8ed6a38a5f1aa56712b9bb2aa376e16b02c"
+  },
+  "feature_names": [
+    "position24",
+    "prior24_width_atr",
+    "drift12",
+    "drift24",
+    "drift48",
+    "efficiency24",
+    "efficiency48",
+    "dc0p5_dir",
+    "dc1p0_dir",
+    "dc2p0_dir",
+    "dc4p0_dir",
+    "dc_up_count",
+    "dc_down_count",
+    "spread_atr",
+    "atr_week_ratio",
+    "breakout_up_atr",
+    "breakout_down_atr",
+    "range_votes",
+    "log_state_age",
+    "candle_body_atr",
+    "upper_wick_atr",
+    "lower_wick_atr",
+    "session_Asia",
+    "session_London",
+    "session_NewYork",
+    "session_Late"
+  ],
+  "training_counts": {
+    "RANGE_LONG": 8183,
+    "RANGE_SHORT": 8183,
+    "TREND_LONG": 2974,
+    "TREND_SHORT": 2068
+  },
+  "censor": {
+    "TREND_SHORT:HARD_GAP": 310,
+    "TREND_SHORT:ENTRY_HARD_GAP": 35,
+    "TREND_LONG:HARD_GAP": 453,
+    "TREND_LONG:ENTRY_HARD_GAP": 53,
+    "RANGE_LONG:HARD_GAP": 563,
+    "RANGE_SHORT:HARD_GAP": 563,
+    "RANGE_LONG:ENTRY_HARD_GAP": 170,
+    "RANGE_SHORT:ENTRY_HARD_GAP": 170,
+    "RANGE_LONG:SPLIT_END": 5,
+    "RANGE_SHORT:SPLIT_END": 5
+  },
+  "quality": {
+    "complete_h1": 16067,
+    "incomplete_dropped": 715
+  },
+  "validation_read": false,
+  "holdout_read": false
+}
