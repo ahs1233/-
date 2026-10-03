@@ -1,0 +1,12 @@
+{
+  "protocol_sha256": "1fc845b9bce90baab04181ff3506b3a9eaeaceadb7c1a7090fe79373268fbc6e",
+  "code_sha256": "3f05db9b7cc8e489db6581a07f804a62f2354a2d7944c97f22719e634560bcd5",
+  "frozen_model_sha256": "a6f1f83dcf73ae265b87b1c4dfcb214ed5e82daca137a15233acb519c8b9b053",
+  "training_samples_sha256": "8b8aca379b03d1d680644c88e7cdcfe6321c7250551bbad36848727a1ea4a00f",
+  "fit_manifest_sha256": "a603ef329811eeebdd208d1633c34df4364fdc666825b8daaccba29317db1273",
+  "evaluation_opened": false,
+  "evaluation_opened_at": null,
+  "created_utc": "2026-10-03T18:46:31.380171+00:00",
+  "validation_read": false,
+  "holdout_read": false
+}
