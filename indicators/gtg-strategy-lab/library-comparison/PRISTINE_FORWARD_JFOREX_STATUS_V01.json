@@ -1,0 +1,15 @@
+{
+  "scope": "GTG JForex Pristine Forward Seal v0.1",
+  "status": "PASS",
+  "freeze_day": "2026-09-30",
+  "complete_export_days": 3,
+  "sealed_new_days": [],
+  "verified_existing_days": [
+    "2026-09-30",
+    "2026-10-01",
+    "2026-10-02"
+  ],
+  "historical_holdout_read": false,
+  "pristine_price_oos_decoded": false,
+  "trading_outcomes_read": false
+}

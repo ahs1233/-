@@ -1,7 +1,12 @@
-"""Raw Pristine-OOS forward capture — TRADE_CONTRACT v0.2.1 §2.2, §22.
+"""LEGACY / AUDIT-REFERENCE forward capture from the public Dukascopy datafeed.
 
-Stores the exact official Dukascopy M1 candle files (BID and ASK) for every complete UTC
-day from the T_freeze_v0.2.1 day onward, and records each file's sha256 in the manifest.
+This module belongs to TRADE_CONTRACT v0.2.1. Under the frozen v0.2.3 contract it is
+NOT a canonical Pristine-OOS source and MUST NOT be mixed with the JForex/IHistory
+forward record. Canonical v0.2.3 forward collection is GtgForwardExport.java followed
+by seal_jforex_forward.py.
+
+For v0.2.1-era audit/reference work only, this stores the public Dukascopy M1 candle
+files (BID and ASK) for complete UTC days and records each file's sha256 in the manifest.
 It does NOT decode, build bars or compute GTG: forward data stays sealed until the
 registered stop rule. Idempotent: days already in the manifest are skipped.
 (The T_freeze day itself also holds pre-freeze minutes; the later analysis keeps only
