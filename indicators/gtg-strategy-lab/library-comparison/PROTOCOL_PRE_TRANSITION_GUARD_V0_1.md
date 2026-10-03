@@ -255,3 +255,9 @@ If the guard passes:
 - require a new temporal/forward gate before any Historical Holdout decision.
 
 No Holdout opens automatically.
+
+## Frozen NO_GUARD comparator integrity
+Range Scalper v0.1 summary.json SHA256:
+- 63e972c35a7d7a98e7ba4f0c1750d9f5bb439a93257f39c6b3409c42a8e6f8f5
+
+This comparator was completed and recorded before Pre-Transition Guard fitting. The Guard evaluation must verify this hash before economic comparison.
