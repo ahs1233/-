@@ -240,3 +240,13 @@ If fail:
 If pass:
 - freeze as sequence-policy candidate.
 - still require an independent temporal/forward gate before Historical Holdout.
+
+## Implementation clarification before fit
+For the four fixed Ridge regressors, use:
+- alpha = 1.0
+- fit_intercept = true
+- solver = lsqr
+- tol = 1e-4
+- max_iter = 5000
+
+This is frozen before MiniRocket fitting and is only a computational solver choice; no outcome comparison selected it.
