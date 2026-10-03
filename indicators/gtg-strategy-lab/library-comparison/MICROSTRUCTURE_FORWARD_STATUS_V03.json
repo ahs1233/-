@@ -1,0 +1,487 @@
+{
+  "scope": "GTG Microstructure Forward Quality Audit v0.2",
+  "status": "PASS",
+  "integrity": {
+    "scope": "GTG Microstructure Forward Collection audit v0.1",
+    "manifest_rows": 4,
+    "valid_rows": 4,
+    "first_capture": "2026-10-03T21:37:13.099764+00:00",
+    "last_capture": "2026-10-03T22:04:07.987879+00:00",
+    "issues": [],
+    "status": "PASS",
+    "historical_holdout_read": false,
+    "pristine_price_oos_decoded": false
+  },
+  "capture_count": 4,
+  "grade_counts": {
+    "single_source_grade": 3,
+    "fusion_grade": 1
+  },
+  "source_available_counts": {
+    "bitfinex_xaut": 4,
+    "binance_xau_perp": 2,
+    "kraken_paxg_spot": 1
+  },
+  "first_capture": "2026-10-03T21:37:13.099764+00:00",
+  "last_capture": "2026-10-03T22:04:07.987879+00:00",
+  "captures": [
+    {
+      "capture_received_utc": "2026-10-03T21:37:13.099764+00:00",
+      "observed_at": null,
+      "sha256": "30023f13e7ba34abdd23226c43b79783ea5fdf1e0d8ef2964c47110db8ef822c",
+      "transport": "direct_import",
+      "panwatch_commit": "6086611d47a476a677e0161036bcbf6647fbfe6c",
+      "grade": "single_source_grade",
+      "fusion_status": "degraded",
+      "independent_source_count": 1,
+      "venue_count": 1,
+      "ready_source_count": 1,
+      "stale_source_count": 0,
+      "ready_directional_timeframes": [
+        "15m",
+        "30m",
+        "5m"
+      ],
+      "freshness_state": "fresh",
+      "coverage_state": {
+        "flow": {
+          "15m": "ready",
+          "1d": "unavailable",
+          "1h": "unavailable",
+          "1w": "unavailable",
+          "30m": "ready",
+          "4h": "unavailable",
+          "5m": "ready"
+        },
+        "profiles": {
+          "1d": "unavailable",
+          "1h": "degraded",
+          "1w": "unavailable",
+          "4h": "unavailable"
+        }
+      },
+      "source_health": {
+        "bitfinex_xaut": {
+          "available": true,
+          "error": null,
+          "status": "ready"
+        },
+        "okx_xau_swap": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        },
+        "okx_xaut_spot": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        }
+      },
+      "venues": [
+        {
+          "venue": "bitfinex:XAUTUSD",
+          "source_family": "bitfinex",
+          "status": "ready",
+          "observed_at": "2026-10-03T21:37:13.084136+00:00",
+          "latest_trade_at": "2026-10-03T21:29:13.044000+00:00",
+          "latest_trade_age_seconds": 480.055764,
+          "trade_count_total": 1000,
+          "coverage_seconds": 84159.528,
+          "quality_freshness": 0.9998222222222222,
+          "quality_freshness_state": "fresh",
+          "raw_weight": 0.72,
+          "flow_coverage_complete": {
+            "5m": false,
+            "15m": false,
+            "30m": false,
+            "1h": false,
+            "4h": false,
+            "1d": false,
+            "1w": false
+          },
+          "flow_trade_counts": {
+            "5m": 1,
+            "15m": 2,
+            "30m": 11,
+            "1h": 0,
+            "4h": 0,
+            "1d": 0,
+            "1w": 0
+          }
+        }
+      ]
+    },
+    {
+      "capture_received_utc": "2026-10-03T21:40:30.457797+00:00",
+      "observed_at": "2026-10-03T21:40:30.442240+00:00",
+      "sha256": "9a4b4f795282b9892e86c3bfd4296eca13892b8d21cbb34c0a5b5afea169646f",
+      "transport": "direct_import",
+      "panwatch_commit": "6086611d47a476a677e0161036bcbf6647fbfe6c",
+      "grade": "single_source_grade",
+      "fusion_status": "degraded",
+      "independent_source_count": 1,
+      "venue_count": 1,
+      "ready_source_count": 1,
+      "stale_source_count": 0,
+      "ready_directional_timeframes": [
+        "15m",
+        "30m",
+        "5m"
+      ],
+      "freshness_state": "fresh",
+      "coverage_state": {
+        "flow": {
+          "15m": "ready",
+          "1d": "unavailable",
+          "1h": "unavailable",
+          "1w": "unavailable",
+          "30m": "ready",
+          "4h": "unavailable",
+          "5m": "ready"
+        },
+        "profiles": {
+          "1d": "unavailable",
+          "1h": "degraded",
+          "1w": "unavailable",
+          "4h": "unavailable"
+        }
+      },
+      "source_health": {
+        "bitfinex_xaut": {
+          "available": true,
+          "error": null,
+          "status": "ready"
+        },
+        "okx_xau_swap": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        },
+        "okx_xaut_spot": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        }
+      },
+      "venues": [
+        {
+          "venue": "bitfinex:XAUTUSD",
+          "source_family": "bitfinex",
+          "status": "ready",
+          "observed_at": "2026-10-03T21:40:30.442240+00:00",
+          "latest_trade_at": "2026-10-03T21:29:13.044000+00:00",
+          "latest_trade_age_seconds": 677.413797,
+          "trade_count_total": 1000,
+          "coverage_seconds": 84159.528,
+          "quality_freshness": 0.9998222222222222,
+          "quality_freshness_state": "fresh",
+          "raw_weight": 0.72,
+          "flow_coverage_complete": {
+            "5m": false,
+            "15m": false,
+            "30m": false,
+            "1h": false,
+            "4h": false,
+            "1d": false,
+            "1w": false
+          },
+          "flow_trade_counts": {
+            "5m": 1,
+            "15m": 2,
+            "30m": 11,
+            "1h": 0,
+            "4h": 0,
+            "1d": 0,
+            "1w": 0
+          }
+        }
+      ]
+    },
+    {
+      "capture_received_utc": "2026-10-03T21:59:27.411857+00:00",
+      "observed_at": "2026-10-03T21:59:22.691913+00:00",
+      "sha256": "fa88259928cdf8ef52566a4e56664d2d7581f624d87d043bc129aeebf04a0e25",
+      "transport": "direct_import",
+      "panwatch_commit": "0aafd08d963af640cf7a74fa8908765ff3c5594a",
+      "grade": "single_source_grade",
+      "fusion_status": "degraded",
+      "independent_source_count": 2,
+      "venue_count": 2,
+      "ready_source_count": 1,
+      "stale_source_count": 1,
+      "ready_directional_timeframes": [
+        "15m",
+        "1h",
+        "30m",
+        "5m"
+      ],
+      "freshness_state": "fresh",
+      "coverage_state": {
+        "flow": {
+          "15m": "ready",
+          "1d": "partial",
+          "1h": "ready",
+          "1w": "partial",
+          "30m": "ready",
+          "4h": "partial",
+          "5m": "ready"
+        },
+        "profiles": {
+          "1d": "partial",
+          "1h": "ready",
+          "1w": "partial",
+          "4h": "partial"
+        }
+      },
+      "source_health": {
+        "binance_xau_perp": {
+          "available": true,
+          "error": null,
+          "status": "ready"
+        },
+        "bitfinex_xaut": {
+          "available": true,
+          "error": null,
+          "status": "ready"
+        },
+        "okx_xau_swap": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        },
+        "okx_xaut_spot": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        }
+      },
+      "venues": [
+        {
+          "venue": "binance:XAUUSDT",
+          "source_family": "binance",
+          "status": "ready",
+          "observed_at": "2026-10-03T21:59:22.691913+00:00",
+          "latest_trade_at": "2026-10-03T21:59:19.560000+00:00",
+          "latest_trade_age_seconds": 7.851857,
+          "trade_count_total": 2500,
+          "coverage_seconds": 7525.334,
+          "quality_freshness": 1.0,
+          "quality_freshness_state": "fresh",
+          "raw_weight": 0.9704,
+          "flow_coverage_complete": {
+            "5m": true,
+            "15m": true,
+            "30m": true,
+            "1h": true,
+            "4h": false,
+            "1d": false,
+            "1w": false
+          },
+          "flow_trade_counts": {
+            "5m": 177,
+            "15m": 421,
+            "30m": 962,
+            "1h": 1531,
+            "4h": 2500,
+            "1d": 2500,
+            "1w": 2500
+          }
+        },
+        {
+          "venue": "bitfinex:XAUTUSD",
+          "source_family": "bitfinex",
+          "status": "ready",
+          "observed_at": "2026-10-03T21:59:21.911043+00:00",
+          "latest_trade_at": "2026-10-03T21:29:13.044000+00:00",
+          "latest_trade_age_seconds": 1814.367857,
+          "trade_count_total": 1000,
+          "coverage_seconds": 84159.528,
+          "quality_freshness": 1.0,
+          "quality_freshness_state": "fresh",
+          "raw_weight": 0.72,
+          "flow_coverage_complete": {
+            "5m": false,
+            "15m": false,
+            "30m": false,
+            "1h": false,
+            "4h": false,
+            "1d": false,
+            "1w": false
+          },
+          "flow_trade_counts": {
+            "5m": 1,
+            "15m": 2,
+            "30m": 11,
+            "1h": 0,
+            "4h": 0,
+            "1d": 0,
+            "1w": 0
+          }
+        }
+      ]
+    },
+    {
+      "capture_received_utc": "2026-10-03T22:04:07.987879+00:00",
+      "observed_at": "2026-10-03T22:04:07.848519+00:00",
+      "sha256": "2d2d762448599be7ab4a5f035a0361db3a95252d96618fd25c2e8f29de94c02c",
+      "transport": "direct_import",
+      "panwatch_commit": "48472258d029b2dcc8ee469ce8a95b1bec75dbea",
+      "grade": "fusion_grade",
+      "fusion_status": "degraded",
+      "independent_source_count": 3,
+      "venue_count": 3,
+      "ready_source_count": 2,
+      "stale_source_count": 1,
+      "ready_directional_timeframes": [
+        "15m",
+        "1h",
+        "30m",
+        "4h",
+        "5m"
+      ],
+      "freshness_state": "fresh",
+      "coverage_state": {
+        "flow": {
+          "15m": "ready",
+          "1d": "partial",
+          "1h": "ready",
+          "1w": "partial",
+          "30m": "ready",
+          "4h": "ready",
+          "5m": "ready"
+        },
+        "profiles": {
+          "1d": "partial",
+          "1h": "ready",
+          "1w": "partial",
+          "4h": "degraded"
+        }
+      },
+      "source_health": {
+        "binance_xau_perp": {
+          "available": true,
+          "error": null,
+          "status": "ready"
+        },
+        "bitfinex_xaut": {
+          "available": true,
+          "error": null,
+          "status": "ready"
+        },
+        "kraken_paxg_spot": {
+          "available": true,
+          "error": null,
+          "status": "ready"
+        },
+        "okx_xau_swap": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        },
+        "okx_xaut_spot": {
+          "available": false,
+          "error": "ConnectError",
+          "status": "unavailable"
+        }
+      },
+      "venues": [
+        {
+          "venue": "binance:XAUUSDT",
+          "source_family": "binance",
+          "status": "ready",
+          "observed_at": "2026-10-03T22:04:07.848519+00:00",
+          "latest_trade_at": "2026-10-03T22:04:02.212000+00:00",
+          "latest_trade_age_seconds": 5.775879,
+          "trade_count_total": 2591,
+          "coverage_seconds": 7807.986,
+          "quality_freshness": 1.0,
+          "quality_freshness_state": "fresh",
+          "raw_weight": 0.9694,
+          "flow_coverage_complete": {
+            "5m": true,
+            "15m": true,
+            "30m": true,
+            "1h": true,
+            "4h": false,
+            "1d": false,
+            "1w": false
+          },
+          "flow_trade_counts": {
+            "5m": 97,
+            "15m": 399,
+            "30m": 994,
+            "1h": 1514,
+            "4h": 2591,
+            "1d": 2591,
+            "1w": 2591
+          }
+        },
+        {
+          "venue": "kraken:PAXGUSD",
+          "source_family": "kraken",
+          "status": "ready",
+          "observed_at": "2026-10-03T22:04:06.771380+00:00",
+          "latest_trade_at": "2026-10-03T22:01:44.589000+00:00",
+          "latest_trade_age_seconds": 143.398879,
+          "trade_count_total": 500,
+          "coverage_seconds": 36420.489,
+          "quality_freshness": 0.85,
+          "quality_freshness_state": "aging",
+          "raw_weight": 0.6963,
+          "flow_coverage_complete": {
+            "5m": true,
+            "15m": true,
+            "30m": true,
+            "1h": true,
+            "4h": true,
+            "1d": false,
+            "1w": false
+          },
+          "flow_trade_counts": {
+            "5m": 6,
+            "15m": 12,
+            "30m": 19,
+            "1h": 53,
+            "4h": 268,
+            "1d": 500,
+            "1w": 500
+          }
+        },
+        {
+          "venue": "bitfinex:XAUTUSD",
+          "source_family": "bitfinex",
+          "status": "ready",
+          "observed_at": "2026-10-03T22:04:06.848422+00:00",
+          "latest_trade_at": "2026-10-03T21:29:13.044000+00:00",
+          "latest_trade_age_seconds": 2094.943879,
+          "trade_count_total": 1000,
+          "coverage_seconds": 84159.528,
+          "quality_freshness": 0.9998222222222222,
+          "quality_freshness_state": "fresh",
+          "raw_weight": 0.72,
+          "flow_coverage_complete": {
+            "5m": false,
+            "15m": false,
+            "30m": false,
+            "1h": false,
+            "4h": false,
+            "1d": false,
+            "1w": false
+          },
+          "flow_trade_counts": {
+            "5m": 1,
+            "15m": 2,
+            "30m": 11,
+            "1h": 0,
+            "4h": 0,
+            "1d": 0,
+            "1w": 0
+          }
+        }
+      ]
+    }
+  ],
+  "historical_holdout_read": false,
+  "pristine_price_oos_decoded": false,
+  "trading_outcomes_read": false
+}
