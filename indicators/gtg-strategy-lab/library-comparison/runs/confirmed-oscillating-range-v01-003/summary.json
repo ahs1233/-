@@ -1,0 +1,320 @@
+{
+  "scope": "GTG Confirmed Oscillating Range v0.1 development diagnostic",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "reports": {
+    "library": {
+      "range_episodes": 822,
+      "boxes_frozen": 477,
+      "confirmed_oscillating_episodes": 36,
+      "confirmation_rate_vs_boxes": 0.07547169811320754,
+      "invalidated_before_confirmation": 262,
+      "flat_eligible_signals": 13,
+      "entered_trades": 13,
+      "completed_trades": 13,
+      "censored_counts": {},
+      "overall": {
+        "n": 13,
+        "long_n": 5,
+        "short_n": 8,
+        "directional_accuracy": 0.46153846153846156,
+        "c0_mean_per_trade": -0.11612461847118113,
+        "c1_mean_per_trade": -0.3104344942259646,
+        "c2_mean_per_trade": -0.5047443699807481,
+        "c1_win_rate": 0.46153846153846156,
+        "duration_median_bars": 2.0,
+        "duration_mean_bars": 2.6923076923076925,
+        "elapsed_wall_hours_mean": 2.6923076923076925,
+        "mean_mfe_atr": 0.8323700087178758,
+        "mean_mae_atr": 1.17857054818402,
+        "exit_reason_counts": {
+          "TARGET": 6,
+          "STATE_EXIT": 5,
+          "BOX_INVALIDATION": 2
+        },
+        "target_exit_fraction": 0.46153846153846156,
+        "state_exit_before_target_fraction": 0.38461538461538464
+      },
+      "by_direction": {
+        "long": {
+          "n": 5,
+          "long_n": 5,
+          "short_n": 0,
+          "directional_accuracy": 0.6,
+          "c0_mean_per_trade": 0.1469980842495215,
+          "c1_mean_per_trade": -0.05630561526381976,
+          "c2_mean_per_trade": -0.25960931477716104,
+          "c1_win_rate": 0.6,
+          "duration_median_bars": 3.0,
+          "duration_mean_bars": 4.2,
+          "elapsed_wall_hours_mean": 4.2,
+          "mean_mfe_atr": 0.6943039464222543,
+          "mean_mae_atr": 0.973827165562637,
+          "exit_reason_counts": {
+            "TARGET": 3,
+            "STATE_EXIT": 1,
+            "BOX_INVALIDATION": 1
+          },
+          "target_exit_fraction": 0.6,
+          "state_exit_before_target_fraction": 0.2
+        },
+        "short": {
+          "n": 8,
+          "long_n": 0,
+          "short_n": 8,
+          "directional_accuracy": 0.375,
+          "c0_mean_per_trade": -0.28057630767162023,
+          "c1_mean_per_trade": -0.4692650435773051,
+          "c2_mean_per_trade": -0.6579537794829898,
+          "c1_win_rate": 0.375,
+          "duration_median_bars": 1.5,
+          "duration_mean_bars": 1.75,
+          "elapsed_wall_hours_mean": 1.75,
+          "mean_mfe_atr": 0.9186612976526395,
+          "mean_mae_atr": 1.3065351623223846,
+          "exit_reason_counts": {
+            "TARGET": 3,
+            "STATE_EXIT": 4,
+            "BOX_INVALIDATION": 1
+          },
+          "target_exit_fraction": 0.375,
+          "state_exit_before_target_fraction": 0.5
+        }
+      },
+      "by_year": {
+        "2018": {
+          "n": 2
+        },
+        "2019": {
+          "n": 3
+        },
+        "2020": {
+          "n": 8
+        }
+      },
+      "by_confirmation_traverse": {
+        "LOWER_TO_UPPER": {
+          "n": 4,
+          "long_n": 0,
+          "short_n": 4,
+          "directional_accuracy": 0.5,
+          "c0_mean_per_trade": 0.07591934211663812,
+          "c1_mean_per_trade": -0.12685634837376664,
+          "c2_mean_per_trade": -0.3296320388641713,
+          "c1_win_rate": 0.5,
+          "duration_median_bars": 2.0,
+          "duration_mean_bars": 2.0,
+          "elapsed_wall_hours_mean": 2.0,
+          "mean_mfe_atr": 1.4128132188541234,
+          "mean_mae_atr": 1.1992989452412932,
+          "exit_reason_counts": {
+            "TARGET": 2,
+            "STATE_EXIT": 2
+          },
+          "target_exit_fraction": 0.5,
+          "state_exit_before_target_fraction": 0.5
+        },
+        "UPPER_TO_LOWER": {
+          "n": 9,
+          "long_n": 5,
+          "short_n": 4,
+          "directional_accuracy": 0.4444444444444444,
+          "c0_mean_per_trade": -0.20147748984354527,
+          "c1_mean_per_trade": -0.39202478127138585,
+          "c2_mean_per_trade": -0.5825720726992265,
+          "c1_win_rate": 0.4444444444444444,
+          "duration_median_bars": 2.0,
+          "duration_mean_bars": 3.0,
+          "elapsed_wall_hours_mean": 3.0,
+          "mean_mfe_atr": 0.5743952486573217,
+          "mean_mae_atr": 1.1693579272696766,
+          "exit_reason_counts": {
+            "TARGET": 4,
+            "STATE_EXIT": 3,
+            "BOX_INVALIDATION": 2
+          },
+          "target_exit_fraction": 0.4444444444444444,
+          "state_exit_before_target_fraction": 0.3333333333333333
+        }
+      }
+    },
+    "evaluation": {
+      "range_episodes": 916,
+      "boxes_frozen": 523,
+      "confirmed_oscillating_episodes": 52,
+      "confirmation_rate_vs_boxes": 0.0994263862332696,
+      "invalidated_before_confirmation": 328,
+      "flat_eligible_signals": 18,
+      "entered_trades": 18,
+      "completed_trades": 17,
+      "censored_counts": {
+        "censored_hard_gap": 1
+      },
+      "overall": {
+        "n": 17,
+        "long_n": 8,
+        "short_n": 9,
+        "directional_accuracy": 0.29411764705882354,
+        "c0_mean_per_trade": -0.3656290026953112,
+        "c1_mean_per_trade": -0.5680942742873731,
+        "c2_mean_per_trade": -0.7705595458794352,
+        "c1_win_rate": 0.29411764705882354,
+        "duration_median_bars": 2.0,
+        "duration_mean_bars": 3.4705882352941178,
+        "elapsed_wall_hours_mean": 3.7058823529411766,
+        "mean_mfe_atr": 0.9040683814867261,
+        "mean_mae_atr": 1.0879653862817407,
+        "exit_reason_counts": {
+          "STATE_EXIT": 3,
+          "BOX_INVALIDATION": 9,
+          "TARGET": 5
+        },
+        "target_exit_fraction": 0.29411764705882354,
+        "state_exit_before_target_fraction": 0.17647058823529413
+      },
+      "by_direction": {
+        "long": {
+          "n": 8,
+          "long_n": 8,
+          "short_n": 0,
+          "directional_accuracy": 0.25,
+          "c0_mean_per_trade": -0.5521937907156359,
+          "c1_mean_per_trade": -0.7305414987005439,
+          "c2_mean_per_trade": -0.9088892066854519,
+          "c1_win_rate": 0.25,
+          "duration_median_bars": 2.0,
+          "duration_mean_bars": 3.75,
+          "elapsed_wall_hours_mean": 4.25,
+          "mean_mfe_atr": 0.5696869663470455,
+          "mean_mae_atr": 1.22264995230983,
+          "exit_reason_counts": {
+            "STATE_EXIT": 1,
+            "TARGET": 2,
+            "BOX_INVALIDATION": 5
+          },
+          "target_exit_fraction": 0.25,
+          "state_exit_before_target_fraction": 0.125
+        },
+        "short": {
+          "n": 9,
+          "long_n": 0,
+          "short_n": 9,
+          "directional_accuracy": 0.3333333333333333,
+          "c0_mean_per_trade": -0.19979363556613372,
+          "c1_mean_per_trade": -0.4236967414756659,
+          "c2_mean_per_trade": -0.6475998473851979,
+          "c1_win_rate": 0.3333333333333333,
+          "duration_median_bars": 2.0,
+          "duration_mean_bars": 3.2222222222222223,
+          "elapsed_wall_hours_mean": 3.2222222222222223,
+          "mean_mfe_atr": 1.2012963060553308,
+          "mean_mae_atr": 0.9682457720345501,
+          "exit_reason_counts": {
+            "BOX_INVALIDATION": 4,
+            "STATE_EXIT": 2,
+            "TARGET": 3
+          },
+          "target_exit_fraction": 0.3333333333333333,
+          "state_exit_before_target_fraction": 0.2222222222222222
+        }
+      },
+      "by_year": {
+        "2021": {
+          "n": 6
+        },
+        "2022": {
+          "n": 3
+        },
+        "2023": {
+          "n": 7
+        },
+        "2024": {
+          "n": 1
+        }
+      },
+      "by_confirmation_traverse": {
+        "LOWER_TO_UPPER": {
+          "n": 12,
+          "long_n": 4,
+          "short_n": 8,
+          "directional_accuracy": 0.3333333333333333,
+          "c0_mean_per_trade": -0.10427691586430649,
+          "c1_mean_per_trade": -0.30809074102357925,
+          "c2_mean_per_trade": -0.511904566182852,
+          "c1_win_rate": 0.3333333333333333,
+          "duration_median_bars": 3.0,
+          "duration_mean_bars": 3.75,
+          "elapsed_wall_hours_mean": 3.9166666666666665,
+          "mean_mfe_atr": 0.8967927201580537,
+          "mean_mae_atr": 0.8423000309467854,
+          "exit_reason_counts": {
+            "BOX_INVALIDATION": 6,
+            "TARGET": 4,
+            "STATE_EXIT": 2
+          },
+          "target_exit_fraction": 0.3333333333333333,
+          "state_exit_before_target_fraction": 0.16666666666666666
+        },
+        "UPPER_TO_LOWER": {
+          "n": 5,
+          "long_n": 4,
+          "short_n": 1,
+          "directional_accuracy": 0.2,
+          "c0_mean_per_trade": -0.9928740110897225,
+          "c1_mean_per_trade": -1.1921027541204787,
+          "c2_mean_per_trade": -1.3913314971512347,
+          "c1_win_rate": 0.2,
+          "duration_median_bars": 2.0,
+          "duration_mean_bars": 2.8,
+          "elapsed_wall_hours_mean": 3.2,
+          "mean_mfe_atr": 0.9215299686755396,
+          "mean_mae_atr": 1.6775622390856335,
+          "exit_reason_counts": {
+            "STATE_EXIT": 1,
+            "BOX_INVALIDATION": 3,
+            "TARGET": 1
+          },
+          "target_exit_fraction": 0.2,
+          "state_exit_before_target_fraction": 0.2
+        }
+      }
+    }
+  },
+  "registered_screen": {
+    "library_confirmed_episodes_ge_50": false,
+    "evaluation_confirmed_episodes_ge_50": true,
+    "evaluation_trades_ge_100": false,
+    "evaluation_long_ge_40": false,
+    "evaluation_short_ge_40": false,
+    "library_c1_positive": false,
+    "evaluation_c1_positive": false,
+    "library_c2_nonnegative": false,
+    "evaluation_c2_nonnegative": false,
+    "library_c1_win_gt_0_50": false,
+    "evaluation_c1_win_gt_0_50": false,
+    "evaluation_c1_better_than_v01": false,
+    "two_full_years_positive_c1": false,
+    "no_full_year_over_60pct": true,
+    "pass": false
+  },
+  "integrity": {
+    "state_file_hash_unchanged": "PASS",
+    "state_content_hash_unchanged": "PASS",
+    "source_manifest_unchanged": "PASS",
+    "first_six_range_bars_box": "PASS",
+    "box_never_rolls": "PASS",
+    "full_traverse_before_entry": "PASS",
+    "confirmation_bar_not_tradable": "PASS",
+    "one_active_trade": "PASS",
+    "causal_next_open_execution": "PASS",
+    "no_hard_gap_bridge": "PASS",
+    "split_boundary_not_crossed": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "DEVELOPMENT_DIAGNOSTIC_NOT_INDEPENDENT_VALIDATION"
+}
