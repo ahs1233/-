@@ -1,138 +1,137 @@
 # GTG Transition Memory v0.1 — Findings
 
 Date: 2026-10-03
-Scope: Train-only transition-resolution classification.
-Validation and Historical Holdout remained closed.
+Scope: Train-development research using frozen State + Transition Engine v0.2.
+Validation/Historical Holdout outside the library-comparison raw gate were not read.
 
-## Frozen design
-- State source: State + Transition Engine v0.2.
-- Fit: primary RANGE -> TRANSITION episodes before 2021 only.
-- Evaluation: primary episodes 2021-01-01 through 2024-03-20.
-- Up/down attempts canonicalized into one question:
-  - TREND_CONFIRMED
-  - RANGE_RESUMED
-- K=7 scalar memory.
-- K=7 multivariate DTW memory, Sakoe-Chiba radius=2.
-- Logistic baseline fixed before evaluation.
-- Primary memory hybrid = mean(scalar-memory probability, DTW-memory probability).
-- Decision threshold fixed at 0.50.
+## Design
+Fit and memory library:
+- onset < 2021-01-01
+- 373 resolved primary RANGE -> TRANSITION episodes
+- RANGE_RESUMED: 139
+- TREND_CONFIRMED: 234
+- trend prevalence: 62.73%
+
+Frozen evaluation:
+- 2021-01-01 <= onset < 2024-03-20
+- 454 resolved primary episodes
+- RANGE_RESUMED: 174
+- TREND_CONFIRMED: 280
+- trend prevalence: 61.67%
+
+Fit stopped reading the transition file at the first 2021 event.
+Raw H1 fit also stopped before 2021.
+Memory/scalers/logistic coefficients were frozen and hashed before evaluation opened.
 
 ## Integrity
-- 8/8 implementation tests PASS before fit.
-- Training reader stopped at the first 2021 event.
-- Frozen fit committed before evaluation.
-- Training n=373.
-- Training trend prevalence=62.73%.
-- Evaluation n=454.
-- Evaluation trend prevalence=61.67%.
-- Frozen memory SHA unchanged.
-- Source state SHA unchanged.
-- Full raw manifest matches State Engine v0.2.
-- Validation/Holdout not read.
+PASS:
+- frozen memory SHA unchanged
+- training memory SHA unchanged
+- no training event at/after 2021
+- no evaluation event before 2021
+- source state SHA unchanged
+- source manifest matches State Engine v0.2
+- historical range sequence excludes the transition-onset bar
+- no Validation/Holdout read by this experiment
 
-## Results
+## Models
 
 ### Prior baseline
-Always predicts the majority outcome, TREND_CONFIRMED:
+Always behaves like the library prevalence:
 - accuracy 61.67%
 - balanced accuracy 50.0%
 - Brier 0.2365
 - RANGE recall 0%
 
-### Logistic baseline
-The fixed 15-feature onset representation was strongly informative out of time:
-- accuracy 77.97%
-- balanced accuracy 74.31%
-- Brier 0.1750
-- ROC AUC 0.7763
-- TREND precision 77.78%
-- TREND recall 90.00%
-- RANGE precision 78.46%
-- RANGE recall 58.62%
+### Logistic baseline — strongest frozen model
+- accuracy: 77.97%
+- balanced accuracy: 74.31%
+- Brier: 0.1750
+- ROC AUC: 0.7763
+- TREND precision: 77.78%
+- TREND recall: 90.00%
+- RANGE precision: 78.46%
+- RANGE recall: 58.62%
 
 Confusion matrix:
-- true RANGE rejected correctly: 102
-- RANGE misclassified as trend: 72
-- true TREND missed: 28
-- true TREND retained: 252
+- actual RANGE correctly rejected: 102 / 174
+- actual RANGE wrongly treated as trend: 72 / 174
+- actual TREND missed: 28 / 280
+- actual TREND identified: 252 / 280
 
-Operationally, relative to treating every transition as a real breakout:
-- rejects 102 of 174 RANGE resumptions (58.6%)
-- retains 252 of 280 real trend transitions (90.0%)
+This is the clearest evidence so far that onset-state variables contain useful information about whether a range exit will become a real trend.
 
-Direction stability:
-- candidate UP, n=237: balanced accuracy 72.57%, TREND precision 77.38%, TREND recall 87.84%, RANGE recall 57.30%
-- candidate DOWN, n=217: balanced accuracy 76.21%, TREND precision 78.21%, TREND recall 92.42%, RANGE recall 60.00%
-
-Year stability:
-- 2021: balanced accuracy 75.35%
-- 2022: 72.39%
-- 2023: 76.22%
-- 2024 partial: 65.0% on n=32
-
-### Scalar KNN memory
+### Scalar historical memory K=7
 - accuracy 72.25%
 - balanced accuracy 67.60%
 - Brier 0.2025
-- TREND precision 72.92%
 - RANGE recall 47.70%
+- TREND precision 72.92%
 
-Useful, but weaker than Logistic.
+Useful, but materially weaker than Logistic.
 
-### DTW range-shape memory
+### DTW range-shape memory K=7
 - accuracy 60.35%
 - balanced accuracy 51.65%
 - Brier 0.2643
 - ROC AUC 0.5208
 - RANGE recall 14.37%
 
-The historical RANGE shape alone did not distinguish real from false exits.
+The 6-24 bar raw range-shape sequence, under the registered 3-channel DTW representation, adds little useful discrimination.
 
-### Primary hybrid memory
+### Primary scalar+DTW hybrid
 - accuracy 71.37%
 - balanced accuracy 63.41%
 - Brier 0.2094
 - TREND precision 68.94%
 - TREND recall 97.50%
-- RANGE precision 87.93%
 - RANGE recall 29.31%
 
-The preregistered primary hybrid failed its utility screen only because RANGE recall was below the required 35%:
-- n >=400: PASS
-- balanced accuracy >0.52: PASS
-- Brier better than prior: PASS
-- RANGE recall >=0.35: FAIL
-- TREND precision > prevalence: PASS
-- both directions >=100: PASS
-- overall utility screen: FAIL
+The registered primary hybrid FAILED its utility screen because RANGE recall was below the fixed 0.35 requirement.
+
+## Directional stability of hybrid
+Candidate up:
+- n=237
+- balanced accuracy 66.29%
+- RANGE recall 35.96%
+
+Candidate down:
+- n=217
+- balanced accuracy 60.42%
+- RANGE recall 22.35%
+
+The hybrid is especially poor at rejecting false downside breaks.
+
+## Time stability of hybrid
+- 2021: balanced accuracy 63.46%
+- 2022: 62.00%
+- 2023: 65.44%
+- 2024 partial: 62.50% (n=32)
+
+The hybrid's weakness is persistent rather than caused by one isolated year.
 
 ## Interpretation
-The main result is not that historical shape memory solved the transition.
+The experiment rejects the hypothesis that simple DTW similarity of the preceding range shape is the best Transition Memory.
 
-Instead, the simple causal onset state vector contains substantially more useful information than raw range-shape similarity.
+The stronger signal is in the compact causal onset state:
+- range age/width/position
+- aligned multi-scale DC state
+- aligned drift
+- efficiency
+- spread/ATR
+- volatility ratio
+- trigger type
 
-The 15 scalar features jointly capture:
-- source RANGE age/width,
-- location at attempted exit,
-- multi-scale DC alignment,
-- short/medium momentum,
-- efficiency,
-- spread,
-- volatility ratio,
-- whether the onset was a literal breakout vs trend-core trigger.
+A fixed linear Logistic model on these variables generalized far better than the registered historical-shape memory.
 
-A fixed Logistic model using these features separates many fake breaks from true trend transitions across 2021, 2022 and 2023.
-
-DTW is currently adding noise to the scalar memory rather than helping it, so K/radius must not be tuned on this evaluation.
+Because Logistic was one of the preregistered models, its evaluation result is valid descriptive out-of-time evidence. However, choosing it for the next phase after seeing this comparison is model selection; it requires another gate before any confirmatory edge claim.
 
 ## Decision
-- State Engine v0.2 remains the market-state authority.
-- At TRANSITION onset, the fixed Logistic classifier becomes the strongest current early-resolution expert.
-- Historical KNN/DTW memory remains diagnostic evidence, not the primary gate.
-- Do not tune Logistic coefficients or threshold from this evaluation.
-- Next step: a separately preregistered execution audit of the already-frozen Logistic threshold 0.50:
-  - compare entering every transition,
-  - entering only Logistic TREND predictions at onset,
-  - waiting for deterministic FSM trend confirmation.
-- Only after that should Kronos be tested as an additional Transition expert.
-- Validation/Holdout remain closed.
+- Keep State Engine v0.2 frozen.
+- Keep TRANSITION as SCALPER_STAND_DOWN.
+- Reject DTW/hybrid as the primary Transition expert in v0.1.
+- Preserve Logistic as the candidate Transition expert.
+- Do not tune K/radius/thresholds on this evaluation.
+- Next: fixed-threshold Logistic shadow execution audit at Transition onset, using the already-preregistered p>=0.50 threshold and unchanged C0/C1/C2 cost model.
+- That audit is explicitly post-selection diagnostic, not independent validation.
+- Historical Holdout remains closed.
