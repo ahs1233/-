@@ -1,0 +1,278 @@
+{
+  "scope": "GTG Structural Range Box Scalper v0.1 development diagnostic",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "reports": {
+    "library": {
+      "range_bars": 8921,
+      "range_episodes": 822,
+      "confirmed_low_pivots": 359,
+      "confirmed_high_pivots": 362,
+      "mature_box_bars": 362,
+      "mature_box_coverage": 0.040578410492097296,
+      "flat_candidate_signals": 42,
+      "completed_trades": 37,
+      "censored_counts": {
+        "censored_hard_gap": 5
+      },
+      "overall": {
+        "n": 37,
+        "long_n": 20,
+        "short_n": 17,
+        "directional_accuracy": 0.4594594594594595,
+        "c0_mean_per_trade": 0.12210700441928368,
+        "c1_mean_per_trade": -0.0577946666060987,
+        "c2_mean_per_trade": -0.2376963376314811,
+        "c1_win_rate": 0.4594594594594595,
+        "duration_median_bars": 1.0,
+        "duration_mean_bars": 1.9189189189189189,
+        "elapsed_wall_hours_mean": 2.0,
+        "mean_mfe_atr": 0.7624845122051536,
+        "mean_mae_atr": 0.6375223727196588,
+        "exit_reason_counts": {
+          "BOUNDARY_INVALIDATION": 17,
+          "TARGET": 16,
+          "BOUNDARY_AND_STATE_EXIT": 3,
+          "TARGET_AND_STATE_EXIT": 1
+        },
+        "target_exit_fraction": 0.4594594594594595,
+        "boundary_invalidation_fraction": 0.5405405405405406,
+        "state_exit_only_fraction": 0.0
+      },
+      "by_direction": {
+        "long": {
+          "n": 20,
+          "long_n": 20,
+          "short_n": 0,
+          "directional_accuracy": 0.5,
+          "c0_mean_per_trade": 0.3359863935004821,
+          "c1_mean_per_trade": 0.14901318164993488,
+          "c2_mean_per_trade": -0.03796003020061238,
+          "c1_win_rate": 0.5,
+          "duration_median_bars": 1.0,
+          "duration_mean_bars": 1.7,
+          "elapsed_wall_hours_mean": 1.8,
+          "mean_mfe_atr": 0.827129789302451,
+          "mean_mae_atr": 0.5363997165632773,
+          "exit_reason_counts": {
+            "BOUNDARY_INVALIDATION": 10,
+            "TARGET": 9,
+            "TARGET_AND_STATE_EXIT": 1
+          },
+          "target_exit_fraction": 0.5,
+          "boundary_invalidation_fraction": 0.5,
+          "state_exit_only_fraction": 0.0
+        },
+        "short": {
+          "n": 17,
+          "long_n": 0,
+          "short_n": 17,
+          "directional_accuracy": 0.4117647058823529,
+          "c0_mean_per_trade": -0.12951580626447917,
+          "c1_mean_per_trade": -0.30109801749555,
+          "c2_mean_per_trade": -0.47268022872662074,
+          "c1_win_rate": 0.4117647058823529,
+          "duration_median_bars": 1.0,
+          "duration_mean_bars": 2.176470588235294,
+          "elapsed_wall_hours_mean": 2.235294117647059,
+          "mean_mfe_atr": 0.6864312450318626,
+          "mean_mae_atr": 0.7564902034918726,
+          "exit_reason_counts": {
+            "BOUNDARY_INVALIDATION": 7,
+            "TARGET": 7,
+            "BOUNDARY_AND_STATE_EXIT": 3
+          },
+          "target_exit_fraction": 0.4117647058823529,
+          "boundary_invalidation_fraction": 0.5882352941176471,
+          "state_exit_only_fraction": 0.0
+        }
+      },
+      "by_year": {
+        "2018": {
+          "n": 5
+        },
+        "2019": {
+          "n": 3
+        },
+        "2020": {
+          "n": 29,
+          "long_n": 16,
+          "short_n": 13,
+          "directional_accuracy": 0.4827586206896552,
+          "c0_mean_per_trade": 0.2239722903546434,
+          "c1_mean_per_trade": 0.0684493649183636,
+          "c2_mean_per_trade": -0.08707356051791616,
+          "c1_win_rate": 0.4827586206896552,
+          "duration_median_bars": 1.0,
+          "duration_mean_bars": 1.8620689655172413,
+          "elapsed_wall_hours_mean": 1.9310344827586208,
+          "mean_mfe_atr": 0.7981162841822499,
+          "mean_mae_atr": 0.5143870987104115,
+          "exit_reason_counts": {
+            "TARGET": 13,
+            "BOUNDARY_INVALIDATION": 13,
+            "BOUNDARY_AND_STATE_EXIT": 2,
+            "TARGET_AND_STATE_EXIT": 1
+          },
+          "target_exit_fraction": 0.4827586206896552,
+          "boundary_invalidation_fraction": 0.5172413793103449,
+          "state_exit_only_fraction": 0.0
+        }
+      },
+      "box_diagnostics": {
+        "n": 362,
+        "width_atr_median": 1.9074093725019268,
+        "width_atr_mean": 2.0209284303410735,
+        "low_dispersion_atr_median": 0.45770818637788135,
+        "high_dispersion_atr_median": 0.47837059866972,
+        "oldest_age_bars_median": 16.5,
+        "newest_age_bars_median": 2.0
+      }
+    },
+    "evaluation": {
+      "range_bars": 10337,
+      "range_episodes": 916,
+      "confirmed_low_pivots": 399,
+      "confirmed_high_pivots": 385,
+      "mature_box_bars": 476,
+      "mature_box_coverage": 0.04604817645351649,
+      "flat_candidate_signals": 56,
+      "completed_trades": 53,
+      "censored_counts": {
+        "censored_hard_gap": 2,
+        "censored_entry_hard_gap": 1
+      },
+      "overall": {
+        "n": 53,
+        "long_n": 31,
+        "short_n": 22,
+        "directional_accuracy": 0.39622641509433965,
+        "c0_mean_per_trade": -0.01116258968035319,
+        "c1_mean_per_trade": -0.18610911094616,
+        "c2_mean_per_trade": -0.36105563221196707,
+        "c1_win_rate": 0.39622641509433965,
+        "duration_median_bars": 2.0,
+        "duration_mean_bars": 2.8867924528301887,
+        "elapsed_wall_hours_mean": 3.1132075471698113,
+        "mean_mfe_atr": 0.8322997168769951,
+        "mean_mae_atr": 0.7923542297042948,
+        "exit_reason_counts": {
+          "BOUNDARY_INVALIDATION": 26,
+          "TARGET": 21,
+          "BOUNDARY_AND_STATE_EXIT": 6
+        },
+        "target_exit_fraction": 0.39622641509433965,
+        "boundary_invalidation_fraction": 0.6037735849056604,
+        "state_exit_only_fraction": 0.0
+      },
+      "by_direction": {
+        "long": {
+          "n": 31,
+          "long_n": 31,
+          "short_n": 0,
+          "directional_accuracy": 0.3870967741935484,
+          "c0_mean_per_trade": -0.01112437492659233,
+          "c1_mean_per_trade": -0.18250996517859833,
+          "c2_mean_per_trade": -0.35389555543060436,
+          "c1_win_rate": 0.3870967741935484,
+          "duration_median_bars": 2.0,
+          "duration_mean_bars": 2.935483870967742,
+          "elapsed_wall_hours_mean": 3.225806451612903,
+          "mean_mfe_atr": 0.863972845843858,
+          "mean_mae_atr": 0.7571034064353761,
+          "exit_reason_counts": {
+            "BOUNDARY_INVALIDATION": 15,
+            "TARGET": 12,
+            "BOUNDARY_AND_STATE_EXIT": 4
+          },
+          "target_exit_fraction": 0.3870967741935484,
+          "boundary_invalidation_fraction": 0.6129032258064516,
+          "state_exit_only_fraction": 0.0
+        },
+        "short": {
+          "n": 22,
+          "long_n": 0,
+          "short_n": 22,
+          "directional_accuracy": 0.4090909090909091,
+          "c0_mean_per_trade": -0.01121643774247081,
+          "c1_mean_per_trade": -0.19118063452772435,
+          "c2_mean_per_trade": -0.3711448313129779,
+          "c1_win_rate": 0.4090909090909091,
+          "duration_median_bars": 2.0,
+          "duration_mean_bars": 2.8181818181818183,
+          "elapsed_wall_hours_mean": 2.9545454545454546,
+          "mean_mfe_atr": 0.7876693987873246,
+          "mean_mae_atr": 0.8420258443104991,
+          "exit_reason_counts": {
+            "BOUNDARY_INVALIDATION": 11,
+            "TARGET": 9,
+            "BOUNDARY_AND_STATE_EXIT": 2
+          },
+          "target_exit_fraction": 0.4090909090909091,
+          "boundary_invalidation_fraction": 0.5909090909090909,
+          "state_exit_only_fraction": 0.0
+        }
+      },
+      "by_year": {
+        "2021": {
+          "n": 19
+        },
+        "2022": {
+          "n": 17
+        },
+        "2023": {
+          "n": 17
+        }
+      },
+      "box_diagnostics": {
+        "n": 476,
+        "width_atr_median": 2.372476065951522,
+        "width_atr_mean": 2.4331659561985255,
+        "low_dispersion_atr_median": 0.5320439892811661,
+        "high_dispersion_atr_median": 0.6129194387789217,
+        "oldest_age_bars_median": 20.0,
+        "newest_age_bars_median": 3.0
+      }
+    }
+  },
+  "registered_screen": {
+    "library_trades_ge_100": false,
+    "evaluation_trades_ge_100": false,
+    "evaluation_long_ge_40": false,
+    "evaluation_short_ge_40": false,
+    "library_mature_coverage_ge_0_20": false,
+    "evaluation_mature_coverage_ge_0_20": false,
+    "library_c1_positive": false,
+    "evaluation_c1_positive": false,
+    "library_c2_nonnegative": false,
+    "evaluation_c2_nonnegative": false,
+    "library_c1_win_gt_0_50": false,
+    "evaluation_c1_win_gt_0_50": false,
+    "two_full_years_positive_c1": false,
+    "no_full_year_over_60pct": true,
+    "evaluation_c1_better_than_v01": false,
+    "pass": false
+  },
+  "integrity": {
+    "state_file_hash_unchanged": "PASS",
+    "state_content_hash_unchanged": "PASS",
+    "canonical_manifest_unchanged": "PASS",
+    "dc_threshold_exact_0_0025": "PASS",
+    "pivot_confirmation_current_bar_only": "PASS",
+    "pivot_at_inside_range_episode": "PASS",
+    "two_highs_two_lows_required": "PASS",
+    "box_frozen_per_trade": "PASS",
+    "entry_next_open": "PASS",
+    "one_active_trade": "PASS",
+    "exit_next_open": "PASS",
+    "no_hard_gap_bridge": "PASS",
+    "split_boundary_not_crossed": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "DEVELOPMENT_DIAGNOSTIC_NOT_INDEPENDENT_VALIDATION"
+}
