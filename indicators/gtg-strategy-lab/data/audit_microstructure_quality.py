@@ -77,7 +77,7 @@ def classify(payload: dict[str, Any], capture_time: datetime) -> dict[str, Any]:
         if v.get("latest_trade_age_seconds") is not None and v["latest_trade_age_seconds"] > 900
     ]
 
-    if status == "ready" and independent >= 2 and len(ready_sources) >= 2:
+    if independent >= 2 and len(ready_sources) >= 2:
         grade = "fusion_grade"
     elif ready_sources:
         grade = "single_source_grade"
@@ -105,7 +105,7 @@ def audit_quality(root: Path) -> dict[str, Any]:
     integrity = audit_root(root)
     if integrity["status"] != "PASS":
         return {
-            "scope": "GTG Microstructure Forward Quality Audit v0.1",
+            "scope": "GTG Microstructure Forward Quality Audit v0.2",
             "status": "FAIL_INTEGRITY",
             "integrity": integrity,
             "captures": [],
@@ -136,7 +136,7 @@ def audit_quality(root: Path) -> dict[str, Any]:
         })
 
     return {
-        "scope": "GTG Microstructure Forward Quality Audit v0.1",
+        "scope": "GTG Microstructure Forward Quality Audit v0.2",
         "status": "PASS",
         "integrity": integrity,
         "capture_count": len(captures),
