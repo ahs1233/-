@@ -5,8 +5,8 @@
   "training_samples_sha256": "4aef597ed903c64c2bb95e157b55920fa29788c933f5a825f74de06f496002f0",
   "fit_summary_sha256": "14e7c2b26b5c53de8ca8e8fac9a7265f0ad3828d46671dfe17b3f7cb6e7c160a",
   "fit_manifest_sha256": "a603ef329811eeebdd208d1633c34df4364fdc666825b8daaccba29317db1273",
-  "evaluation_opened": false,
-  "evaluation_opened_at": null,
+  "evaluation_opened": true,
+  "evaluation_opened_at": "2026-10-03T19:28:47.473707+00:00",
   "created_utc": "2026-10-03T19:15:22.067016+00:00",
   "validation_read": false,
   "holdout_read": false
