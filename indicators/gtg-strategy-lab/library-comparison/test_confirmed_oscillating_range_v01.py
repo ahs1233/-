@@ -5,6 +5,7 @@ import pandas as pd
 from confirmed_oscillating_range_v01 import (
     new_episode, update_episode, eligible_signal, zone, INIT_BARS
 )
+from range_scalper_v01 import metrics as trade_metrics
 
 T0 = 1577836800000
 STEP = 3_600_000
@@ -64,6 +65,18 @@ class ConfirmedOscillatingRangeV01Tests(unittest.TestCase):
         r = self.row(8,103.6,103.8,102.8,103.2)
         ep, _ = update_episode(ep,8,r)
         self.assertEqual(eligible_signal(ep,8,r),-1)
+
+    def test_trade_metrics_duration_contract(self):
+        row = {
+            "direction": 1, "directional_correct": True,
+            "c0": 0.1, "c1": 0.05, "c2": 0.0,
+            "duration_bars": 3, "elapsed_wall_hours": 3.0,
+            "mfe_atr": 1.0, "mae_atr": 0.5,
+            "exit_reason": "TARGET",
+        }
+        m = trade_metrics([row])
+        self.assertEqual(m["n"], 1)
+        self.assertEqual(m["duration_median_bars"], 3.0)
 
     def test_close_outside_invalidates_box(self):
         ep = new_episode(0,T0)

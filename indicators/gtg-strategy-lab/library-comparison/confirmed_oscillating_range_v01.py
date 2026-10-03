@@ -241,7 +241,7 @@ def run_split(split: str, f: pd.DataFrame, states: dict[int, str]):
                         **active, "status": "COMPLETED",
                         "exit_time": int(t[exit_i]),
                         "year": int(pd.to_datetime(active["signal_time"], unit="ms", utc=True).year),
-                        "holding_bars": int(i - active["entry_idx"] + 1),
+                        "duration_bars": int(i - active["entry_idx"] + 1),
                         "directional_correct": bool(d*(exit_mid-entry_mid) > 0),
                         "mfe_atr": float(mfe), "mae_atr": float(mae),
                         "c0": float(cc["c0"]), "c1": float(cc["c1"]), "c2": float(cc["c2"]),
