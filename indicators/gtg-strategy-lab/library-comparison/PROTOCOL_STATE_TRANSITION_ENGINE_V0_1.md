@@ -238,3 +238,13 @@ Only if v0.1 produces coherent state episodes:
 - then integrate Kronos only as one input inside TRANSITION, not as the market-state authority.
 
 No Holdout opens automatically.
+
+## Market-closure gap handling
+Because XAUUSD H1 has weekend/closure gaps:
+- if the gap from the previous complete H1 bar is not exactly 1 hour, transient FSM memory is reset before classifying the new bar,
+- RANGE age and confirmation streaks do not bridge the gap,
+- an open TRANSITION is closed as unresolved-at-gap for event bookkeeping,
+- state run-length statistics are split at the gap,
+- future outcome paths must remain strictly contiguous H1 bars as already required.
+
+This rule is structural and was added before the engine was run on historical outcomes.
