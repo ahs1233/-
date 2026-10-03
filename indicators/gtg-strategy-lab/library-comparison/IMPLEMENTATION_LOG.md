@@ -34,3 +34,16 @@
 - A separate event-library implementation was preregistered and safety-tested 8/8 PASS.
 - Its first execution processed 1,882 source days and reached 20 scalp anchors before exiting nonzero without a captured traceback.
 - Because Stability v0.2 and the more direct Wave Memory path were already running and cover the intended research question more cleanly, no parameter change or restart was made from this partial output. Partial files are retained locally as failed-run evidence and are not treated as scored results.
+
+## Stability v0.2 — 2026-10-03
+- Preregistered protocol commit: `4f0a922`; runner commit: `05b7238`.
+- Successful run `stability-v02-001`: 934,372 M1 bars, 240 anchors/track, all six causal/repeatability checks PASS.
+- Scalp: every active candidate was C1-negative in all 11 quarter diagnostics; Kronos direction accuracy 58.82% but C1 -0.599 ATR/opportunity because average cost drag was ~0.728 ATR.
+- Swing: drift C1 +0.080 ATR overall but positive in only 5/11 quarters and C2 -0.099; MASS/DTW did not replicate the small Pilot-002 positive result.
+- Post-hoc only: Kronos+drift direction agreement on Swing had n=118, C1 +0.196 and C2 +0.020 ATR/trade; this is explicitly NOT evidence and must be replicated on fresh disjoint anchors before use.
+
+## Wave-memory-001 — interrupted low-level run
+- Protocol: PROTOCOL_WAVE_MEMORY_V0_1.md registered before scoring; 11/11 safety tests passed before run.
+- Full Train-only source loading completed and scalp cohort was materialized (33,767 confirmed events; 96 registered anchors).
+- Process produced 7/96 scalp anchors (35 model rows) then exited with code 1 without a Python traceback and without a Windows Application Error event. No summary was produced; this partial run is retained only as failure evidence and is not interpreted economically.
+- Resource-only implementation change for rerun: compute the exact same tslearn cdist_dtw distances in deterministic candidate chunks, then concatenate. No threshold, feature, anchor, K, radius, cost rule, model revision, or prediction rule changed.

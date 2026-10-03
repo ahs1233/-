@@ -2,7 +2,8 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from wave_memory_v01 import build_events, signatures, candidate_pool, feature_row, SIG_N
+from tslearn.metrics import cdist_dtw
+from wave_memory_v01 import build_events, signatures, candidate_pool, feature_row, dtw_distances, SIG_N
 
 class WaveMemorySafetyTests(unittest.TestCase):
     def synthetic_frame(self, n=500, step=300000):
@@ -52,6 +53,15 @@ class WaveMemorySafetyTests(unittest.TestCase):
             self.assertEqual(sig.shape, (SIG_N, 6))
             self.assertTrue(np.all(np.isfinite(sig)))
             self.assertLessEqual(events[end]["confirm_i"], len(f)-1)
+
+    def test_chunked_dtw_exact_equivalence(self):
+        rng = np.random.default_rng(7)
+        query = rng.normal(size=(1, SIG_N, 6))
+        bank = rng.normal(size=(17, SIG_N, 6))
+        full = cdist_dtw(query, bank, global_constraint="sakoe_chiba",
+                         sakoe_chiba_radius=2)[0]
+        chunked = dtw_distances(query, bank, chunk_size=4)
+        np.testing.assert_allclose(chunked, full, rtol=0.0, atol=1e-12)
 
     def test_phase_alignment_and_maturity(self):
         n = 1400

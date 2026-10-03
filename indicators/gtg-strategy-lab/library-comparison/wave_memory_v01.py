@@ -126,6 +126,14 @@ def candidate_pool(f, events, sigs, query_end, q, h, step):
         out.append((end, anchor, sig, label))
     return out
 
+def dtw_distances(query, bank, chunk_size=2000):
+    parts = []
+    for start in range(0, len(bank), chunk_size):
+        parts.append(cdist_dtw(query, bank[start:start+chunk_size],
+                               global_constraint="sakoe_chiba",
+                               sakoe_chiba_radius=2)[0])
+    return np.concatenate(parts)
+
 def wave_predict(f, events, sigs, q, h, step):
     qe = last_event_at(events, q)
     if qe < SIG_N - 1 or qe not in sigs:
@@ -135,8 +143,8 @@ def wave_predict(f, events, sigs, q, h, step):
         return 0.0, {"reason": "insufficient_candidates", "neighbors": []}
     query = sigs[qe][None, :, :]
     bank = np.stack([r[2] for r in pool], axis=0)
-    dist = cdist_dtw(query, bank, global_constraint="sakoe_chiba",
-                     sakoe_chiba_radius=2)[0]
+    # Exact same DTW calculation, chunked only to cap native/Numba peak memory.
+    dist = dtw_distances(query, bank)
     order = np.argsort(dist, kind="stable")
     selected = []
     for idx in order:
