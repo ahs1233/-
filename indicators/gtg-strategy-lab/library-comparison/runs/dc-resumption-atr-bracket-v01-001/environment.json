@@ -1,0 +1,12 @@
+{
+  "created_utc": "2026-10-03T20:29:38.893264+00:00",
+  "protocol_sha256": "bae9d6f1cb535a1f93b7c04933ba179302fd2cae2d2bda2d80ffec7dac8e4f65",
+  "code_sha256": "f01bfc2d297ddedf5298069de5c7a5a7d021f6fd4ac1e3cd285c45b8c2783510",
+  "train_signals_sha256": "3c8fc33e85e317ae45e91e01458d6074a2cc8b6764c95e4edf98b80103f8a736",
+  "validation_signals_sha256": "fe9346dacb3a33ecd44a8cc30c7bd438e5890eb487f269ba1207246fadf0ee1b",
+  "extended_state_sha256": "0a5f912d07d2661c81215da6b1403363b959c38ad3ca18ecd003b027120d0e35",
+  "raw_cap_ms": 1742864400000,
+  "holdout_start_ms": 1742879074300,
+  "forward_oos_decoded": false,
+  "historical_holdout_read": false
+}

@@ -1,0 +1,279 @@
+{
+  "scope": "GTG DC Resumption ATR Bracket v0.1 opened-history development",
+  "quality": {
+    "complete_h1": 40750,
+    "incomplete_dropped": 1015
+  },
+  "signals_total": 113,
+  "eligible_trades": 109,
+  "censored_n": 4,
+  "censor_counts": {
+    "H1_GAP": 4
+  },
+  "overall": {
+    "n": 109,
+    "long_n": 69,
+    "short_n": 40,
+    "c0_mean_per_trade": 0.274533766862404,
+    "c1_mean_per_trade": 0.10129141966124279,
+    "c2_mean_per_trade": -0.07195092753991844,
+    "c1_win_rate": 0.5779816513761468,
+    "c1_total": 11.040764743075464,
+    "holding_minutes_median": 88.0,
+    "holding_minutes_mean": 125.20183486238533,
+    "exit_reason_counts": {
+      "SL": 31,
+      "TP": 48,
+      "TIMEOUT": 30
+    }
+  },
+  "by_period": {
+    "LIBRARY_2018_2020": {
+      "n": 36,
+      "long_n": 24,
+      "short_n": 12,
+      "c0_mean_per_trade": 0.1837086959907116,
+      "c1_mean_per_trade": -0.024314553676558652,
+      "c2_mean_per_trade": -0.23233780334382892,
+      "c1_win_rate": 0.4722222222222222,
+      "c1_total": -0.8753239323561115,
+      "holding_minutes_median": 69.5,
+      "holding_minutes_mean": 107.22222222222223,
+      "exit_reason_counts": {
+        "SL": 13,
+        "TP": 16,
+        "TIMEOUT": 7
+      }
+    },
+    "TRAIN_2021_2024": {
+      "n": 53,
+      "long_n": 29,
+      "short_n": 24,
+      "c0_mean_per_trade": 0.2925992252840164,
+      "c1_mean_per_trade": 0.1311695855716786,
+      "c2_mean_per_trade": -0.030260054140659208,
+      "c1_win_rate": 0.6037735849056604,
+      "c1_total": 6.951988035298966,
+      "holding_minutes_median": 100.0,
+      "holding_minutes_mean": 132.33962264150944,
+      "exit_reason_counts": {
+        "TP": 23,
+        "SL": 13,
+        "TIMEOUT": 17
+      }
+    },
+    "VALIDATION_2024_2025": {
+      "n": 20,
+      "long_n": 16,
+      "short_n": 4,
+      "c0_mean_per_trade": 0.3901454296141773,
+      "c1_mean_per_trade": 0.24820503200663038,
+      "c2_mean_per_trade": 0.10626463439908354,
+      "c1_win_rate": 0.7,
+      "c1_total": 4.9641006401326075,
+      "holding_minutes_median": 99.0,
+      "holding_minutes_mean": 138.65,
+      "exit_reason_counts": {
+        "TP": 9,
+        "TIMEOUT": 6,
+        "SL": 5
+      }
+    }
+  },
+  "by_direction": {
+    "long": {
+      "n": 69,
+      "long_n": 69,
+      "short_n": 0,
+      "c0_mean_per_trade": 0.2852377505568387,
+      "c1_mean_per_trade": 0.10460763335730389,
+      "c2_mean_per_trade": -0.07602248384223094,
+      "c1_win_rate": 0.5942028985507246,
+      "c1_total": 7.217926701653968,
+      "holding_minutes_median": 81.0,
+      "holding_minutes_mean": 111.82608695652173,
+      "exit_reason_counts": {
+        "SL": 23,
+        "TP": 32,
+        "TIMEOUT": 14
+      }
+    },
+    "short": {
+      "n": 40,
+      "long_n": 0,
+      "short_n": 40,
+      "c0_mean_per_trade": 0.2560693949895041,
+      "c1_mean_per_trade": 0.09557095103553735,
+      "c2_mean_per_trade": -0.06492749291842938,
+      "c1_win_rate": 0.55,
+      "c1_total": 3.822838041421494,
+      "holding_minutes_median": 122.5,
+      "holding_minutes_mean": 148.275,
+      "exit_reason_counts": {
+        "TP": 16,
+        "TIMEOUT": 16,
+        "SL": 8
+      }
+    }
+  },
+  "by_year": {
+    "2018": {
+      "n": 8,
+      "long_n": 4,
+      "short_n": 4,
+      "c0_mean_per_trade": 0.02384808212992781,
+      "c1_mean_per_trade": -0.19070439498300837,
+      "c2_mean_per_trade": -0.40525687209594446,
+      "c1_win_rate": 0.375,
+      "c1_total": -1.525635159864067,
+      "holding_minutes_median": 72.0,
+      "holding_minutes_mean": 114.375,
+      "exit_reason_counts": {
+        "SL": 3,
+        "TP": 3,
+        "TIMEOUT": 2
+      }
+    },
+    "2019": {
+      "n": 9,
+      "long_n": 6,
+      "short_n": 3,
+      "c0_mean_per_trade": 0.11165813897888469,
+      "c1_mean_per_trade": -0.11466687797337273,
+      "c2_mean_per_trade": -0.34099189492563015,
+      "c1_win_rate": 0.4444444444444444,
+      "c1_total": -1.0320019017603546,
+      "holding_minutes_median": 29.0,
+      "holding_minutes_mean": 65.77777777777777,
+      "exit_reason_counts": {
+        "TP": 4,
+        "SL": 4,
+        "TIMEOUT": 1
+      }
+    },
+    "2020": {
+      "n": 19,
+      "long_n": 14,
+      "short_n": 5,
+      "c0_mean_per_trade": 0.28514763935874915,
+      "c1_mean_per_trade": 0.0885427962772795,
+      "c2_mean_per_trade": -0.10806204680419015,
+      "c1_win_rate": 0.5263157894736842,
+      "c1_total": 1.6823131292683104,
+      "holding_minutes_median": 81.0,
+      "holding_minutes_mean": 123.84210526315789,
+      "exit_reason_counts": {
+        "TP": 9,
+        "SL": 6,
+        "TIMEOUT": 4
+      }
+    },
+    "2021": {
+      "n": 16,
+      "long_n": 8,
+      "short_n": 8,
+      "c0_mean_per_trade": 0.30324719174765186,
+      "c1_mean_per_trade": 0.14580425462199406,
+      "c2_mean_per_trade": -0.011638682503663747,
+      "c1_win_rate": 0.5,
+      "c1_total": 2.332868073951905,
+      "holding_minutes_median": 153.5,
+      "holding_minutes_mean": 145.875,
+      "exit_reason_counts": {
+        "TP": 7,
+        "SL": 3,
+        "TIMEOUT": 6
+      }
+    },
+    "2022": {
+      "n": 24,
+      "long_n": 12,
+      "short_n": 12,
+      "c0_mean_per_trade": 0.45059806829138166,
+      "c1_mean_per_trade": 0.29171778755806893,
+      "c2_mean_per_trade": 0.13283750682475626,
+      "c1_win_rate": 0.7083333333333334,
+      "c1_total": 7.001226901393654,
+      "holding_minutes_median": 81.0,
+      "holding_minutes_mean": 119.45833333333333,
+      "exit_reason_counts": {
+        "TIMEOUT": 6,
+        "TP": 13,
+        "SL": 5
+      }
+    },
+    "2023": {
+      "n": 11,
+      "long_n": 7,
+      "short_n": 4,
+      "c0_mean_per_trade": -0.0657194189377207,
+      "c1_mean_per_trade": -0.23440258506395095,
+      "c2_mean_per_trade": -0.4030857511901813,
+      "c1_win_rate": 0.5454545454545454,
+      "c1_total": -2.5784284357034606,
+      "holding_minutes_median": 115.0,
+      "holding_minutes_mean": 141.0,
+      "exit_reason_counts": {
+        "SL": 5,
+        "TIMEOUT": 4,
+        "TP": 2
+      }
+    },
+    "2024": {
+      "n": 17,
+      "long_n": 14,
+      "short_n": 3,
+      "c0_mean_per_trade": 0.36539260261445483,
+      "c1_mean_per_trade": 0.2336725072823548,
+      "c2_mean_per_trade": 0.10195241195025467,
+      "c1_win_rate": 0.7058823529411765,
+      "c1_total": 3.9724326238000316,
+      "holding_minutes_median": 105.0,
+      "holding_minutes_mean": 149.47058823529412,
+      "exit_reason_counts": {
+        "TIMEOUT": 7,
+        "TP": 7,
+        "SL": 3
+      }
+    },
+    "2025": {
+      "n": 5,
+      "long_n": 4,
+      "short_n": 1,
+      "c0_mean_per_trade": 0.43111963785000407,
+      "c1_mean_per_trade": 0.23759790239788878,
+      "c2_mean_per_trade": 0.04407616694577343,
+      "c1_win_rate": 0.6,
+      "c1_total": 1.187989511989444,
+      "holding_minutes_median": 72.0,
+      "holding_minutes_mean": 98.8,
+      "exit_reason_counts": {
+        "TP": 3,
+        "SL": 2
+      }
+    }
+  },
+  "registered_screen": {
+    "total_ge_80": true,
+    "long_ge_20": true,
+    "short_ge_20": true,
+    "combined_c1_positive": true,
+    "combined_c2_nonnegative": false,
+    "c1_win_gt_0_50": true,
+    "library_c1_nonnegative": false,
+    "train_2021_2024_c1_nonnegative": true,
+    "validation_c1_nonnegative": true,
+    "four_years_nonnegative_c1": true,
+    "no_year_over_35pct": true,
+    "pass": false
+  },
+  "integrity": {
+    "tp_atr": 1.0,
+    "sl_atr": 1.0,
+    "timeout_h1": 4,
+    "ambiguous_same_minute": "SL",
+    "barrier_exit": "NEXT_M1_OPEN",
+    "historical_holdout_read": false,
+    "forward_oos_decoded": false
+  }
+}
