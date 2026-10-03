@@ -699,3 +699,6 @@ def main():
         evaluate(Path(a.root), Path(a.source_run), Path(a.out))
 
 
+
+if __name__ == "__main__":
+    main()
