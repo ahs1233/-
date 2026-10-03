@@ -81,3 +81,10 @@ Protocol committed before run. State hashes and canonical manifest unchanged. DC
 ## Decision
 If pass: freeze Structural Range Box as RANGE execution candidate and require a new temporal/forward validation before Holdout.
 If fail: do not tune DC threshold, pivot count, quartiles or midpoint on this sample. Conclude simple manual mean reversion inside the current RANGE definition is not robust enough; next step becomes joint state+strategy learning rather than more manual Range rules.
+
+## Implementation clarification before outcomes
+A newly confirmed DC pivot is eligible for the current RANGE episode only when both:
+- confirmed_at equals the current H1 bar index, and
+- pivot_at is at or after the current uninterrupted RANGE episode start index.
+
+This prevents a pivot whose extreme occurred in the preceding TREND/TRANSITION episode from being imported into the new RANGE box. This clarification was fixed before the Structural Range Box runner was executed.
