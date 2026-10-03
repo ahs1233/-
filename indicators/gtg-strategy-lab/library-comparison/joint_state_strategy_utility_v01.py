@@ -197,6 +197,8 @@ def permitted_actions(state: str) -> tuple[str, ...]:
         return ("TREND_SHORT",)
     if state == "TRANSITION":
         return ()
+    if state is None or str(state).strip() == "" or str(state).lower() == "nan":
+        return ()
     raise ValueError(f"unknown state {state}")
 
 

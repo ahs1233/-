@@ -44,6 +44,7 @@ class JointUtilityTests(unittest.TestCase):
         self.assertEqual(permitted_actions("TREND_UP"),("TREND_LONG",))
         self.assertEqual(permitted_actions("TREND_DOWN"),("TREND_SHORT",))
         self.assertEqual(permitted_actions("TRANSITION"),())
+        self.assertEqual(permitted_actions(""),())
 
     def test_feature_shape(self):
         f=self.frame(2)
