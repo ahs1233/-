@@ -19,6 +19,9 @@ Use frozen DC Correction -> Resumption Swing v0.1 artifacts:
 - summary.json SHA256:
   bb17fbecfb3a8cb08287c91a4bbc484992287a465a4fa82abda3cffb4082dc60
 
+Confirmed Handoff v0.3 records SHA256 (for the original frozen range boundaries only):
+- 45a3c0204d0d46cd722c85031f99b70ec9e9ac2a3abfc39955407a0206158efd
+
 State Engine canonical H1 manifest SHA256:
 - 30f2c4d8de89b7c09ce7405a9791ee1c29053489d890d0298d0988e3e1ebd66a
 
