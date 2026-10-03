@@ -1,0 +1,15 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "protocol_sha256": "f49dc6fa94346118b7beb1e83b8be4f94d60afa386999a8af062bb11e8fadb0c",
+  "code_sha256": "f6bea8401626f43b0daf7edcbdc4f152319c7eff13225c0e8840b48410bcdb7c",
+  "source_hashes": {
+    "handoff_records": "45a3c0204d0d46cd722c85031f99b70ec9e9ac2a3abfc39955407a0206158efd",
+    "handoff_summary": "bc0902d4c348baf6c01d63c72679d1cca0c94e046f8fe9ea0805eb3b4f42e22e",
+    "state_manifest": "30f2c4d8de89b7c09ce7405a9791ee1c29053489d890d0298d0988e3e1ebd66a",
+    "state_freeze": "8ec1396fa4ebdb78680b7838d8d890138c52ae43cca9e5969a4a401de3057788",
+    "immediate_summary": "bfcf50495ebdde80390ae2a247d1535ce3f3d4e31a69b86d77b2d0bada6c5705"
+  },
+  "created_utc": "2026-10-03T17:49:14.326108+00:00",
+  "validation_read": false,
+  "holdout_read": false
+}
