@@ -1,0 +1,115 @@
+{
+  "source_run": "C:\\Users\\alk\\gtg-lab-library-comparison\\indicators\\gtg-strategy-lab\\library-comparison\\runs\\state-transition-v02-001",
+  "source_state_sequence_sha256": "c0b4a52d14e0c83826638b7669401eb817d392dd2867c241f9a5d0923e2b7c3e",
+  "transition_training_prefix_sha256": "38ed5f393a250b84ffb7f65de2c58e9c6915b100fc8d6dd6cdcaac95d69746af",
+  "first_evaluation_event_time_seen_then_stopped": 1609729200000,
+  "fit_h1_end_exclusive": "2021-01-01",
+  "feature_names": [
+    "log1p_range_age",
+    "prior24_width_atr",
+    "canonical_position24",
+    "aligned_dc0p5_dir",
+    "aligned_dc1p0_dir",
+    "aligned_dc2p0_dir",
+    "aligned_dc4p0_dir",
+    "aligned_drift12",
+    "aligned_drift24",
+    "aligned_drift48",
+    "efficiency24",
+    "efficiency48",
+    "spread_atr",
+    "atr_week_ratio",
+    "trigger_breakout"
+  ],
+  "sequence_feature_names": [
+    "canonical_position",
+    "aligned_return_atr",
+    "bar_range_atr"
+  ],
+  "scalar_scaler_center": [
+    2.70805020110221,
+    4.195820433436502,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    2.4635734635734985,
+    3.0571630204657505,
+    2.8123530333907993,
+    0.24989820846906066,
+    0.1342870555679091,
+    0.10330741863230547,
+    0.9214266634800424,
+    1.0
+  ],
+  "scalar_scaler_scale": [
+    0.7419373447293771,
+    1.626177689924753,
+    1.0,
+    1.0,
+    1.0,
+    2.0,
+    2.0,
+    1.3592374982364555,
+    2.0121319848007353,
+    4.084298530237001,
+    0.17416253750013147,
+    0.13804069995449209,
+    0.05080389051526976,
+    0.27118738366936634,
+    1.0
+  ],
+  "sequence_scaler_center": [
+    0.6085276967930023,
+    0.06435907348009984,
+    0.8089109637640265
+  ],
+  "sequence_scaler_scale": [
+    0.33226057282604204,
+    0.6165360606822289,
+    0.5856495513756396
+  ],
+  "logistic_classes": [
+    0,
+    1
+  ],
+  "logistic_coef": [
+    [
+      -0.28604830360486244,
+      -0.25976468716195655,
+      0.6219084797791647,
+      0.5623313890991777,
+      0.621365431103363,
+      1.19571692517786,
+      0.7675323948989263,
+      0.5673152242475662,
+      0.19904057395125993,
+      0.3389331348368234,
+      0.12481317655372945,
+      -0.007821845055399573,
+      -0.21594721979533366,
+      -0.12558985792385163,
+      2.423892495149707
+    ]
+  ],
+  "logistic_intercept": [
+    1.8055786155815463
+  ],
+  "K": 7,
+  "dtw_radius": 2,
+  "decision_threshold": 0.5,
+  "training_n": 373,
+  "label_counts": {
+    "RANGE_RESUMED": 139,
+    "TREND_CONFIRMED": 234
+  },
+  "trend_prevalence": 0.6273458445040214,
+  "quality": {
+    "complete_h1": 16067,
+    "incomplete_dropped": 715
+  },
+  "validation_read": false,
+  "holdout_read": false,
+  "frozen_utc": "2026-10-03T17:20:50.067759+00:00"
+}
