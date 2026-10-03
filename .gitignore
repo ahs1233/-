@@ -40,3 +40,7 @@ apps/web/public/workbox-*.js
 # GTG Strategy Lab market data (never committed; only manifests are)
 .lab-data/
 __pycache__/
+
+# GTG library-comparison local research environment/vendor checkout
+.research-vendor/
+.venv-research/
