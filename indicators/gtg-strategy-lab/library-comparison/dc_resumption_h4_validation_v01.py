@@ -216,17 +216,36 @@ def prefix_parity(ext: pd.DataFrame, train_csv: Path) -> dict:
     bool_cols = [
         "range_core", "trend_up_core", "trend_down_core", "breakout_up", "breakout_down"
     ]
-    numeric_cols = [
-        c for c in old.columns
-        if c not in ("state", *bool_cols)
+    discrete_cols = [
+        "t", "dc0p5_dir", "dc1p0_dir", "dc2p0_dir", "dc4p0_dir",
+        "dc_up_count", "dc_down_count", "range_votes",
     ]
+    continuous_cols = [
+        c for c in old.columns
+        if c not in ("state", *bool_cols, *discrete_cols)
+    ]
+
+    for c in discrete_cols:
+        a = old[c].to_numpy()
+        b = ext[c].iloc[:n].to_numpy()
+        if not np.array_equal(a, b, equal_nan=True):
+            raise AssertionError(f"discrete prefix mismatch: {c}")
+
+    old_float = old[continuous_cols].to_numpy(dtype=float)
+    new_float = ext[continuous_cols].iloc[:n].to_numpy(dtype=float)
     np.testing.assert_allclose(
-        old[numeric_cols].to_numpy(dtype=float),
-        ext[numeric_cols].iloc[:n].to_numpy(dtype=float),
+        old_float,
+        new_float,
         rtol=0.0,
-        atol=0.0,
+        atol=1e-12,
         equal_nan=True,
     )
+    finite = np.isfinite(old_float) & np.isfinite(new_float)
+    max_abs = (
+        float(np.max(np.abs(old_float[finite] - new_float[finite])))
+        if np.any(finite) else 0.0
+    )
+
     for c in bool_cols:
         if not np.array_equal(
             old[c].to_numpy(dtype=bool),
@@ -239,6 +258,8 @@ def prefix_parity(ext: pd.DataFrame, train_csv: Path) -> dict:
         "rows_compared": int(n),
         "last_overlap_time": int(old.t.iloc[-1]),
         "state_content_sha256": hashlib.sha256(payload.encode()).hexdigest(),
+        "continuous_float_atol": 1e-12,
+        "max_abs_continuous_diff": max_abs,
         "status": "PASS",
     }
 

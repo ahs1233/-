@@ -189,3 +189,24 @@ No p-value claim is made here; this candidate was selected after exploratory Tra
 - no timestamp >= b2 read
 - Historical Holdout read=false
 - Pristine OOS read=false
+
+## Prefix-parity serialization addendum — registered before any Validation outcome
+The first Validation runner attempt stopped at the prefix gate before DC signals or trade outcomes were computed.
+
+Observed reason:
+- frozen Train state_sequence is reloaded from CSV text,
+- extended state features are live float64 calculations,
+- state labels and discrete structure matched,
+- continuous float differences were only IEEE/CSV round-trip noise:
+  max absolute difference = 3.552713678800501e-15,
+  max relative difference = 6.89194446e-13.
+
+Therefore the prefix gate is clarified as:
+- timestamps: exact
+- state labels: exact
+- boolean cores/breakouts: exact
+- DC directions/counts and range_votes: exact
+- continuous float features: NaN-equal and absolute tolerance <= 1e-12, rtol=0
+
+The 1e-12 tolerance is fixed now, before any Validation signal/outcome is computed.
+Any larger continuous mismatch or any discrete/state mismatch remains a hard STOP.
