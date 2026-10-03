@@ -43,8 +43,10 @@ No Forward OOS signal or price may be decoded.
 ATR reference = frozen H1 ATR at resumption signal close.
 
 Exactly:
-- TP distance = +1.0 ATR in trade direction
-- SL distance = -1.0 ATR in trade direction
+- LONG reference price = executable ASK at entry open
+- LONG TP = entry ASK + 1.0 ATR; LONG SL = entry ASK - 1.0 ATR; monitor BID for touches
+- SHORT reference price = executable BID at entry open
+- SHORT TP = entry BID - 1.0 ATR; SHORT SL = entry BID + 1.0 ATR; monitor ASK for touches
 - max timeout = original H4 window: 4 complete trading H1 bars after signal
 
 No parameter search.
