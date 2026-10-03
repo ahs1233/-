@@ -1,0 +1,8 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "torch": "2.5.1+cpu",
+  "created_utc": "2026-10-03T19:36:54.636712+00:00",
+  "model_sha256": "44fc6c53ab0820edb6ac974ffaddd7d77d6e8f24eb2707ebab50ba3d85e32b79",
+  "validation_read": false,
+  "holdout_read": false
+}
