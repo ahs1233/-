@@ -1,0 +1,260 @@
+{
+  "scope": "GTG Confirmed Handoff Execution v0.1 post-selection diagnostic",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "confirmed_evaluation_episodes": 280,
+  "summary": {
+    "4": {
+      "active_trades": 268,
+      "directional_accuracy": 0.48507462686567165,
+      "mean_signed_displacement_atr": 0.10228057591914608,
+      "mean_mfe_atr": 1.3572192378890282,
+      "mean_mae_atr": 1.3145185764937657,
+      "returned_inside_fraction": 0.3246268656716418,
+      "c1_win_rate": 0.43283582089552236,
+      "c0_mean_per_trade": 0.10022718089265385,
+      "c1_mean_per_trade": -0.0759986301672745,
+      "c2_mean_per_trade": -0.2522244412272029
+    },
+    "12": {
+      "active_trades": 231,
+      "directional_accuracy": 0.48484848484848486,
+      "mean_signed_displacement_atr": 0.19252927220755736,
+      "mean_mfe_atr": 2.1257062812044154,
+      "mean_mae_atr": 1.9941770058755932,
+      "returned_inside_fraction": 0.48484848484848486,
+      "c1_win_rate": 0.4458874458874459,
+      "c0_mean_per_trade": 0.19029173464944685,
+      "c1_mean_per_trade": 0.009393727248114554,
+      "c2_mean_per_trade": -0.17150428015321773
+    },
+    "24": {
+      "active_trades": 213,
+      "directional_accuracy": 0.539906103286385,
+      "mean_signed_displacement_atr": 0.22076271886688528,
+      "mean_mfe_atr": 2.963291062180418,
+      "mean_mae_atr": 2.829109302558326,
+      "returned_inside_fraction": 0.596244131455399,
+      "c1_win_rate": 0.5164319248826291,
+      "c0_mean_per_trade": 0.21848910303991328,
+      "c1_mean_per_trade": 0.04513144632923987,
+      "c2_mean_per_trade": -0.1282262103814334
+    }
+  },
+  "by_direction": {
+    "4": {
+      "up": {
+        "n": 142,
+        "directional_accuracy": 0.4859154929577465,
+        "c1_mean_per_trade": -0.0185844511412382,
+        "c2_mean_per_trade": -0.19644923740020762
+      },
+      "down": {
+        "n": 126,
+        "directional_accuracy": 0.48412698412698413,
+        "c1_mean_per_trade": -0.14070349859344242,
+        "c2_mean_per_trade": -0.31508221061953073
+      }
+    },
+    "12": {
+      "up": {
+        "n": 125,
+        "directional_accuracy": 0.48,
+        "c1_mean_per_trade": 0.10301995436640578,
+        "c2_mean_per_trade": -0.0767173519646276
+      },
+      "down": {
+        "n": 106,
+        "directional_accuracy": 0.49056603773584906,
+        "c1_mean_per_trade": -0.10101455944798354,
+        "c2_mean_per_trade": -0.283281318111461
+      }
+    },
+    "24": {
+      "up": {
+        "n": 115,
+        "directional_accuracy": 0.5739130434782609,
+        "c1_mean_per_trade": 0.30291536340512526,
+        "c2_mean_per_trade": 0.1296192421073616
+      },
+      "down": {
+        "n": 98,
+        "directional_accuracy": 0.5,
+        "c1_mean_per_trade": -0.25737008901491126,
+        "c2_mean_per_trade": -0.4307999556488969
+      }
+    }
+  },
+  "by_year": {
+    "4": {
+      "2021": {
+        "n": 80,
+        "directional_accuracy": 0.4875,
+        "c1_mean_per_trade": -0.18988021097890817,
+        "c2_mean_per_trade": -0.37028285890825
+      },
+      "2022": {
+        "n": 90,
+        "directional_accuracy": 0.5222222222222223,
+        "c1_mean_per_trade": 0.05433747544645939,
+        "c2_mean_per_trade": -0.12203477505113319
+      },
+      "2023": {
+        "n": 86,
+        "directional_accuracy": 0.43023255813953487,
+        "c1_mean_per_trade": -0.11297341286345179,
+        "c2_mean_per_trade": -0.2867862232515348
+      },
+      "2024": {
+        "n": 12,
+        "directional_accuracy": 0.5833333333333334,
+        "c1_mean_per_trade": -0.029322940870117747,
+        "c2_mean_per_trade": -0.19389804849969816
+      }
+    },
+    "12": {
+      "2021": {
+        "n": 68,
+        "directional_accuracy": 0.5441176470588235,
+        "c1_mean_per_trade": 0.40987451936212915,
+        "c2_mean_per_trade": 0.22318990534621566
+      },
+      "2022": {
+        "n": 81,
+        "directional_accuracy": 0.5555555555555556,
+        "c1_mean_per_trade": 0.35735523135551517,
+        "c2_mean_per_trade": 0.1723839601011361
+      },
+      "2023": {
+        "n": 72,
+        "directional_accuracy": 0.3888888888888889,
+        "c1_mean_per_trade": -0.5723363739351025,
+        "c2_mean_per_trade": -0.7449872102549204
+      },
+      "2024": {
+        "n": 10,
+        "directional_accuracy": 0.2,
+        "c1_mean_per_trade": -1.3439071138779668,
+        "c2_mean_per_trade": -1.5118423908773737
+      }
+    },
+    "24": {
+      "2021": {
+        "n": 63,
+        "directional_accuracy": 0.5714285714285714,
+        "c1_mean_per_trade": 0.6838519209019751,
+        "c2_mean_per_trade": 0.5072568989269981
+      },
+      "2022": {
+        "n": 72,
+        "directional_accuracy": 0.5555555555555556,
+        "c1_mean_per_trade": 0.12133157234884662,
+        "c2_mean_per_trade": -0.05623669868469283
+      },
+      "2023": {
+        "n": 68,
+        "directional_accuracy": 0.4852941176470588,
+        "c1_mean_per_trade": -0.6524364555621526,
+        "c2_mean_per_trade": -0.8191687083506163
+      },
+      "2024": {
+        "n": 10,
+        "directional_accuracy": 0.6,
+        "c1_mean_per_trade": 0.2160132820413106,
+        "c2_mean_per_trade": 0.048314702949360286
+      }
+    }
+  },
+  "comparison_h4": {
+    "ALL_TRANSITIONS_ONSET": {
+      "eligible_opportunities": 445,
+      "active_trades": 445,
+      "coverage": 1.0,
+      "actual_trend_precision": 0.6134831460674157,
+      "directional_accuracy": 0.46292134831460674,
+      "mean_signed_displacement_atr": -0.15043225819836958,
+      "mean_mfe_atr": 1.4502530076126507,
+      "mean_mae_atr": 1.6488140840030783,
+      "returned_inside_fraction": 0.5685393258426966,
+      "c1_win_rate": 0.39775280898876403,
+      "c0_mean_per_trade": -0.15051289514544142,
+      "c0_mean_per_opportunity": -0.15051289514544142,
+      "c1_mean_per_trade": -0.33701915217698475,
+      "c1_mean_per_opportunity": -0.33701915217698475,
+      "c2_mean_per_trade": -0.5235254092085281,
+      "c2_mean_per_opportunity": -0.5235254092085281
+    },
+    "LOGISTIC_GATE_ONSET": {
+      "eligible_opportunities": 445,
+      "active_trades": 317,
+      "coverage": 0.7123595505617978,
+      "actual_trend_precision": 0.7760252365930599,
+      "directional_accuracy": 0.4637223974763407,
+      "mean_signed_displacement_atr": -0.18086159623926565,
+      "mean_mfe_atr": 1.445453752088824,
+      "mean_mae_atr": 1.6069398925526415,
+      "returned_inside_fraction": 0.47318611987381703,
+      "c1_win_rate": 0.3911671924290221,
+      "c0_mean_per_trade": -0.1816627601162894,
+      "c0_mean_per_opportunity": -0.1294092021502556,
+      "c1_mean_per_trade": -0.3611534114142334,
+      "c1_mean_per_opportunity": -0.25727108183890335,
+      "c2_mean_per_trade": -0.5406440627121772,
+      "c2_mean_per_opportunity": -0.385132961527551
+    },
+    "CONFIRMED_HANDOFF": {
+      "active_trades": 268,
+      "directional_accuracy": 0.48507462686567165,
+      "mean_signed_displacement_atr": 0.10228057591914608,
+      "mean_mfe_atr": 1.3572192378890282,
+      "mean_mae_atr": 1.3145185764937657,
+      "returned_inside_fraction": 0.3246268656716418,
+      "c1_win_rate": 0.43283582089552236,
+      "c0_mean_per_trade": 0.10022718089265385,
+      "c1_mean_per_trade": -0.0759986301672745,
+      "c2_mean_per_trade": -0.2522244412272029
+    },
+    "ORACLE_TREND_SUBSET_ONSET": {
+      "eligible_opportunities": 445,
+      "active_trades": 273,
+      "coverage": 0.6134831460674157,
+      "actual_trend_precision": 1.0,
+      "directional_accuracy": 0.5677655677655677,
+      "mean_signed_displacement_atr": 0.4766059305427602,
+      "mean_mfe_atr": 1.8622996235634248,
+      "mean_mae_atr": 1.1861381286181032,
+      "returned_inside_fraction": 0.32967032967032966,
+      "c1_win_rate": 0.4981684981684982,
+      "c0_mean_per_trade": 0.4765496571953972,
+      "c0_mean_per_opportunity": 0.29235518295358076,
+      "c1_mean_per_trade": 0.294635102066797,
+      "c1_mean_per_opportunity": 0.18075366935783277,
+      "c2_mean_per_trade": 0.1127205469381968,
+      "c2_mean_per_opportunity": 0.06915215576208476
+    }
+  },
+  "registered_h4_screen": {
+    "active_trades_ge_150": true,
+    "c0_positive": true,
+    "c1_positive": false,
+    "c2_nonnegative": false,
+    "c1_win_rate_gt_0_50": false,
+    "both_sides_ge_50": true,
+    "pass": false
+  },
+  "integrity": {
+    "frozen_input_hashes_unchanged": "PASS",
+    "confirmed_cohort_exact_280": "PASS",
+    "resolution_direction_match": "PASS",
+    "source_manifest_match": "PASS",
+    "entry_after_resolution": "PASS",
+    "market_continuity_le_3h": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "POST_SELECTION_DIAGNOSTIC_NOT_INDEPENDENT_VALIDATION"
+}
