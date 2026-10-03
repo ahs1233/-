@@ -80,3 +80,10 @@
 - Swing: 1,668 confirmed DC events; event_wave_dtw direction accuracy 53.7%, C0 -0.022 ATR/opportunity, C1 -0.202, C2 -0.382. It improved direction classification relative to several baselines but did not produce a positive net expectancy.
 - Kronos remained negative after C1 on both tracks in this cohort and remains PRETRAINED_CONTAMINATION_UNKNOWN.
 - Interpretation: event-level wave representation contains some directional information on Swing, but direct nearest-wave sign trading is not established. Do not retune DC thresholds/K/radius from these outcomes. Next registered phase is symbolic rule extraction from causal wave-state features with an internal Train-only discovery/replication split.
+
+
+## Selective Swing v0.3 — disjoint Train replication
+- Official run: selective-v03-002. Protocol/code hashes matched the preregistered files; all six integrity checks PASS.
+- Primary agree2 rule: 59/160 active, 59.32% directional accuracy, but C0 -0.015, C1 -0.193 and C2 -0.370 ATR/trade. Only 1/6 eligible quarters was C1-positive. Registered criterion FAIL.
+- Secondary agree3: 29 active, 62.07% directional accuracy, C1 -0.335 and C2 -0.510 ATR/trade.
+- Conclusion: predictor consensus can raise direction accuracy without creating tradable magnitude. Do not add more voting thresholds. Next phase targets cost-aware expected displacement with symbolic regression on a disjoint Train-only split.

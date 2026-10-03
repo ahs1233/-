@@ -1,0 +1,13 @@
+{
+  "python": "3.12.15 (main, Oct  1 2026, 21:00:48) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "tslearn": "0.9.0",
+    "torch": "2.5.1+cpu",
+    "huggingface-hub": "2.1.1"
+  },
+  "protocol_sha256": "3e08afdbb6dd6e5bed50adcc9ab603bcd61dbce7f81f854c137d974a7b4ba9df",
+  "code_sha256": "a06ef4bd76a1baaecf91594656b187f97d9483f6ad7c5f367f982e0107e078b6",
+  "created_utc": "2026-10-03T15:31:38.746350+00:00"
+}

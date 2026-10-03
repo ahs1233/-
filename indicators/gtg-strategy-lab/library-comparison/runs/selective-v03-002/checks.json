@@ -1,0 +1,8 @@
+{
+  "raw_date_gate": "PASS",
+  "anchor_count": "PASS",
+  "wave_prefix_causality": "PASS",
+  "scaler_pre_eval_only": "PASS",
+  "kronos_repeat": "PASS",
+  "wave_memory_maturity": "PASS"
+}
