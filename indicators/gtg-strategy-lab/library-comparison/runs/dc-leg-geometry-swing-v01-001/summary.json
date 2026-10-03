@@ -1,0 +1,291 @@
+{
+  "scope": "GTG DC Leg Geometry Swing v0.1 development diagnostic",
+  "validation_read": false,
+  "holdout_read": false,
+  "quality": {
+    "complete_h1": 34816,
+    "incomplete_dropped": 964
+  },
+  "reports": {
+    "library": {
+      "source_entries": 38,
+      "geometry_valid": 38,
+      "filtered_entries": 16,
+      "retained_fraction": 0.42105263157894735,
+      "invalid_geometry_counts": {},
+      "source_geometry": {
+        "n": 38,
+        "depth_ratio_median": 0.21603329560459822,
+        "speed_ratio_median": 1.1615537667857363,
+        "impulse_amp_atr_median": 6.406488661420735,
+        "correction_amp_atr_median": 1.381335902179253,
+        "boundary_distance_atr_median": 3.733239384362327
+      },
+      "filtered_geometry": {
+        "n": 16,
+        "depth_ratio_median": 0.20702065648783374,
+        "speed_ratio_median": 0.4700782163851651,
+        "impulse_amp_atr_median": 7.82517123811615,
+        "correction_amp_atr_median": 1.8139543933380224,
+        "boundary_distance_atr_median": 5.037096753969667
+      },
+      "horizons": {
+        "4": {
+          "ALL_DC_RESUMPTIONS": {
+            "n": 36,
+            "directional_accuracy": 0.3611111111111111,
+            "c0_mean_per_trade": -0.25661431005458224,
+            "c1_mean_per_trade": -0.46544244565424947,
+            "c2_mean_per_trade": -0.6742705812539169,
+            "c1_win_rate": 0.3611111111111111,
+            "mean_signed_displacement_atr": -0.2585936672080437,
+            "mean_mfe_atr": 1.4473656229330223,
+            "mean_mae_atr": 1.535223482895514
+          },
+          "LEG_GEOMETRY_FILTER": {
+            "n": 16,
+            "directional_accuracy": 0.1875,
+            "c0_mean_per_trade": -0.5545204354753241,
+            "c1_mean_per_trade": -0.76562960822287,
+            "c2_mean_per_trade": -0.9767387809704158,
+            "c1_win_rate": 0.1875,
+            "mean_signed_displacement_atr": -0.5572922161623348,
+            "mean_mfe_atr": 1.6305100086508006,
+            "mean_mae_atr": 1.7502630128447452
+          }
+        },
+        "12": {
+          "ALL_DC_RESUMPTIONS": {
+            "n": 31,
+            "directional_accuracy": 0.3548387096774194,
+            "c0_mean_per_trade": -0.5914986372377736,
+            "c1_mean_per_trade": -0.7983236102192056,
+            "c2_mean_per_trade": -1.0051485832006368,
+            "c1_win_rate": 0.3548387096774194,
+            "mean_signed_displacement_atr": -0.5928304013933914,
+            "mean_mfe_atr": 2.2422249366346865,
+            "mean_mae_atr": 2.6711217882483065
+          },
+          "LEG_GEOMETRY_FILTER": {
+            "n": 14,
+            "directional_accuracy": 0.21428571428571427,
+            "c0_mean_per_trade": -1.1601970052435238,
+            "c1_mean_per_trade": -1.3678342692465992,
+            "c2_mean_per_trade": -1.5754715332496745,
+            "c1_win_rate": 0.21428571428571427,
+            "mean_signed_displacement_atr": -1.1612238854072168,
+            "mean_mfe_atr": 2.1680114608687293,
+            "mean_mae_atr": 3.13038725762653
+          }
+        },
+        "24": {
+          "ALL_DC_RESUMPTIONS": {
+            "n": 25,
+            "directional_accuracy": 0.4,
+            "c0_mean_per_trade": -1.1930905012276316,
+            "c1_mean_per_trade": -1.386633850520111,
+            "c2_mean_per_trade": -1.5801771998125913,
+            "c1_win_rate": 0.4,
+            "mean_signed_displacement_atr": -1.1944078435537588,
+            "mean_mfe_atr": 3.1289217155326026,
+            "mean_mae_atr": 4.000418243783446
+          },
+          "LEG_GEOMETRY_FILTER": {
+            "n": 11,
+            "directional_accuracy": 0.45454545454545453,
+            "c0_mean_per_trade": 0.2715889830238964,
+            "c1_mean_per_trade": 0.06444603592756998,
+            "c2_mean_per_trade": -0.14269691116875644,
+            "c1_win_rate": 0.45454545454545453,
+            "mean_signed_displacement_atr": 0.271041238331102,
+            "mean_mfe_atr": 3.598407069918107,
+            "mean_mae_atr": 3.391599555880103
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "source_entries": 54,
+      "geometry_valid": 54,
+      "filtered_entries": 29,
+      "retained_fraction": 0.5370370370370371,
+      "invalid_geometry_counts": {},
+      "source_geometry": {
+        "n": 54,
+        "depth_ratio_median": 0.24163877780932425,
+        "speed_ratio_median": 0.880963880275655,
+        "impulse_amp_atr_median": 5.439530324311973,
+        "correction_amp_atr_median": 1.4572992397589326,
+        "boundary_distance_atr_median": 2.7911317198389467
+      },
+      "filtered_geometry": {
+        "n": 29,
+        "depth_ratio_median": 0.22869741904803062,
+        "speed_ratio_median": 0.5462477570981351,
+        "impulse_amp_atr_median": 6.468502082955933,
+        "correction_amp_atr_median": 1.6452022247421474,
+        "boundary_distance_atr_median": 3.0699395633679587
+      },
+      "horizons": {
+        "4": {
+          "ALL_DC_RESUMPTIONS": {
+            "n": 53,
+            "directional_accuracy": 0.6415094339622641,
+            "c0_mean_per_trade": 0.4532445327631039,
+            "c1_mean_per_trade": 0.29413923780931583,
+            "c2_mean_per_trade": 0.13503394285552772,
+            "c1_win_rate": 0.6037735849056604,
+            "mean_signed_displacement_atr": 0.4567913231121884,
+            "mean_mfe_atr": 1.343857531680832,
+            "mean_mae_atr": 0.8692690455748722
+          },
+          "LEG_GEOMETRY_FILTER": {
+            "n": 29,
+            "directional_accuracy": 0.5172413793103449,
+            "c0_mean_per_trade": 0.19589828721397856,
+            "c1_mean_per_trade": 0.027751112020244786,
+            "c2_mean_per_trade": -0.14039606317348893,
+            "c1_win_rate": 0.4827586206896552,
+            "mean_signed_displacement_atr": 0.1967366181650201,
+            "mean_mfe_atr": 1.342444740799409,
+            "mean_mae_atr": 1.1041647742964793
+          }
+        },
+        "12": {
+          "ALL_DC_RESUMPTIONS": {
+            "n": 47,
+            "directional_accuracy": 0.5319148936170213,
+            "c0_mean_per_trade": 0.13883360668117295,
+            "c1_mean_per_trade": -0.03143356514702476,
+            "c2_mean_per_trade": -0.20170073697522245,
+            "c1_win_rate": 0.5106382978723404,
+            "mean_signed_displacement_atr": 0.14218428854658607,
+            "mean_mfe_atr": 2.0895349245714274,
+            "mean_mae_atr": 1.900885890903958
+          },
+          "LEG_GEOMETRY_FILTER": {
+            "n": 26,
+            "directional_accuracy": 0.5,
+            "c0_mean_per_trade": 0.0660465553018026,
+            "c1_mean_per_trade": -0.10716854834693867,
+            "c2_mean_per_trade": -0.2803836519956801,
+            "c1_win_rate": 0.5,
+            "mean_signed_displacement_atr": 0.06684052008723602,
+            "mean_mfe_atr": 2.2443924851812342,
+            "mean_mae_atr": 2.263847681511513
+          }
+        },
+        "24": {
+          "ALL_DC_RESUMPTIONS": {
+            "n": 39,
+            "directional_accuracy": 0.46153846153846156,
+            "c0_mean_per_trade": -0.8348453315531612,
+            "c1_mean_per_trade": -0.9987443673075939,
+            "c2_mean_per_trade": -1.162643403062027,
+            "c1_win_rate": 0.46153846153846156,
+            "mean_signed_displacement_atr": -0.8313304438000162,
+            "mean_mfe_atr": 2.4241953427967307,
+            "mean_mae_atr": 2.864570355505028
+          },
+          "LEG_GEOMETRY_FILTER": {
+            "n": 19,
+            "directional_accuracy": 0.42105263157894735,
+            "c0_mean_per_trade": -0.7863248748603198,
+            "c1_mean_per_trade": -0.9602600968841559,
+            "c2_mean_per_trade": -1.1341953189079916,
+            "c1_win_rate": 0.42105263157894735,
+            "mean_signed_displacement_atr": -0.7867573957102975,
+            "mean_mfe_atr": 2.2958069273750787,
+            "mean_mae_atr": 2.950113996323126
+          }
+        }
+      }
+    }
+  },
+  "evaluation_h4_by_direction": {
+    "up": {
+      "n": 20,
+      "directional_accuracy": 0.55,
+      "c0_mean_per_trade": 0.13687526297597516,
+      "c1_mean_per_trade": -0.041065450491780495,
+      "c2_mean_per_trade": -0.21900616395953626,
+      "c1_win_rate": 0.5,
+      "mean_signed_displacement_atr": 0.13783604927858178,
+      "mean_mfe_atr": 1.1647844348333498,
+      "mean_mae_atr": 1.0845570602211887
+    },
+    "down": {
+      "n": 9,
+      "directional_accuracy": 0.4444444444444444,
+      "c0_mean_per_trade": 0.32706056329843075,
+      "c1_mean_per_trade": 0.18067680649141213,
+      "c2_mean_per_trade": 0.03429304968439384,
+      "c1_win_rate": 0.4444444444444444,
+      "mean_signed_displacement_atr": 0.327626771245994,
+      "mean_mfe_atr": 1.7372454207239847,
+      "mean_mae_atr": 1.1477374722415694
+    }
+  },
+  "evaluation_h4_by_year": {
+    "2021": {
+      "n": 8,
+      "directional_accuracy": 0.5,
+      "c0_mean_per_trade": 0.6340177159724459,
+      "c1_mean_per_trade": 0.46892873817470093,
+      "c2_mean_per_trade": 0.30383976037695565,
+      "c1_win_rate": 0.375,
+      "mean_signed_displacement_atr": 0.6378356179664681,
+      "mean_mfe_atr": 1.7263639490784235,
+      "mean_mae_atr": 1.2414815960764436
+    },
+    "2022": {
+      "n": 13,
+      "directional_accuracy": 0.5384615384615384,
+      "c0_mean_per_trade": 0.2228532960173371,
+      "c1_mean_per_trade": 0.050207920582067356,
+      "c2_mean_per_trade": -0.12243745485320247,
+      "c1_win_rate": 0.5384615384615384,
+      "mean_signed_displacement_atr": 0.22119448753893775,
+      "mean_mfe_atr": 1.415765390631163,
+      "mean_mae_atr": 0.9025947129353878
+    },
+    "2023": {
+      "n": 6,
+      "directional_accuracy": 0.5,
+      "c0_mean_per_trade": -0.715612409510475,
+      "c1_mean_per_trade": -0.8731106970244693,
+      "c2_mean_per_trade": -1.0306089845384638,
+      "c1_win_rate": 0.5,
+      "mean_signed_displacement_atr": -0.7126783810770826,
+      "mean_mfe_atr": 0.4993338991557194,
+      "mean_mae_atr": 1.5992415635625123
+    },
+    "2024": {
+      "n": 2
+    }
+  },
+  "registered_stability_screen": {
+    "library_h4_n_ge_10": true,
+    "evaluation_h4_n_ge_15": true,
+    "evaluation_both_sides_ge_5": true,
+    "library_h4_c1_positive": false,
+    "evaluation_h4_c1_positive": true,
+    "library_h4_c2_nonnegative": false,
+    "evaluation_h4_c2_nonnegative": false,
+    "evaluation_h4_c1_win_gt_0_50": false,
+    "positive_two_evaluation_full_years": true,
+    "evaluation_c1_better_than_all_dc": false,
+    "pass": false
+  },
+  "integrity": {
+    "frozen_source_hashes_unchanged": "PASS",
+    "canonical_manifest_unchanged": "PASS",
+    "source_signal_timing_unchanged": "PASS",
+    "geometry_uses_confirmed_pivots_only": "PASS",
+    "no_delay_bin_selection": "PASS",
+    "no_outcome_field_in_filter": "PASS",
+    "validation_read": false,
+    "holdout_read": false
+  },
+  "evidence_status": "DEVELOPMENT_DIAGNOSTIC_NOT_INDEPENDENT_VALIDATION"
+}
