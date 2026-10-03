@@ -116,3 +116,15 @@
 - Pinned Kronos on the exact same 240 Swing anchors: direction 56.1%, C0 +0.206, C1 +0.044, C2 -0.119. Evidence remains PRETRAINED_CONTAMINATION_UNKNOWN.
 - Cross-period check against already-preregistered Stability v0.2 (2021-09-29 to 2024-03-20) showed Kronos Swing C1 = -0.070 ATR/opportunity and direction 50.4%; therefore the earlier positive C1 did not persist.
 - Validation/Historical Holdout remain closed. No parameter tuning is authorized from these outcomes.
+
+## Kronos Swing Stress v0.1 — completed
+- Preregistered before reading/scoring 2021Q4..2024Q1 stress outcomes.
+- 10 quarter cohorts x 60 deterministic non-overlapping H1 anchors = 600 total.
+- Same pinned Kronos source/model/tokenizer revisions as prior replication.
+- Integrity checks PASS: raw gate, manifests, exact cohort counts, within-quarter target maturity, non-overlap, pinned revisions, quarter-first-anchor DC prefix causality and same-seed Kronos repeat.
+- Validation/Holdout were not read.
+- Primary screen FAILED: Kronos direction accuracy 51.0%, C0 +0.0485 ATR/trade, C1 -0.1288, C2 -0.3061; only 3/10 quarters positive at C1; drift C1 -0.0195 outperformed Kronos.
+- Positive behavior was concentrated: 2022Q3 C1 +0.4588 and contributed ~82.5% of total positive C1 contribution; worst quarter 2023Q4 C1 -0.6803.
+- Pre-registered descriptive regimes: agreement with both drift+DC C1 +0.0868 (n=192), London session +0.1382 (n=155), prediction magnitude 0.25-0.5 ATR +0.0919 (n=152), spread/ATR >0.10 strongly negative (-0.4331, n=198).
+- These regime findings are diagnostic only. No filter is promoted from this same sample.
+- Decision: current Kronos-mini always-trade Swing hypothesis rejected; Holdout remains closed.
