@@ -79,6 +79,14 @@ def build_readiness(root: Path) -> dict[str, Any]:
         }
         for name, n in sorted(source_counts.items())
     }
+    ready_family_counts = quality.get("ready_source_family_counts") or {}
+    ready_family_coverage = {
+        name: {
+            "ready_count": int(n),
+            "coverage_ratio": (int(n) / count if count else 0.0),
+        }
+        for name, n in sorted(ready_family_counts.items())
+    }
 
     intervals = _intervals(rows)
     recent = intervals[-RECENT_INTERVALS:]
@@ -122,6 +130,7 @@ def build_readiness(root: Path) -> dict[str, Any]:
             "fusion_grade_count": fusion_count,
             "fusion_grade_ratio": fusion_ratio,
             "source_coverage": source_coverage,
+            "ready_source_family_coverage": ready_family_coverage,
             "cadence": cadence,
         },
         "research_locks": {

@@ -55,6 +55,34 @@ class MicrostructureQualityTests(unittest.TestCase):
         self.assertEqual(q["grade"], "degraded_or_stale")
         self.assertEqual(q["stale_source_count"], 1)
 
+    def test_missing_executed_trade_evidence_is_not_ready(self):
+        v = self.venue("a", "a", None)
+        p = {
+            "status": "ready",
+            "independent_source_count": 1,
+            "venue_count": 1,
+            "venues": [v],
+        }
+        q = classify(p, self.capture_time())
+        self.assertEqual(q["grade"], "degraded_or_stale")
+        self.assertEqual(q["ready_source_count"], 0)
+
+    def test_fusion_requires_distinct_ready_source_families(self):
+        p = {
+            "status": "degraded",
+            "independent_source_count": 2,
+            "venue_count": 3,
+            "venues": [
+                self.venue("okx-a", "okx", "2026-10-03T23:59:30+00:00"),
+                self.venue("okx-b", "okx", "2026-10-03T23:59:20+00:00"),
+                self.venue("binance", "binance", "2026-10-03T23:00:00+00:00"),
+            ],
+        }
+        q = classify(p, self.capture_time())
+        self.assertEqual(q["grade"], "single_source_grade")
+        self.assertEqual(q["ready_source_family_count"], 1)
+        self.assertEqual(q["ready_source_families"], ["okx"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

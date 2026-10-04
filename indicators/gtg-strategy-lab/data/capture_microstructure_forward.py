@@ -20,7 +20,7 @@ from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
-COLLECTOR_VERSION = "microstructure-forward-v0.3"
+COLLECTOR_VERSION = "microstructure-forward-v0.3.1"
 DEFAULT_ROOT = Path(r"C:\Users\alk\gtg-lab-data-microstructure")
 
 PANWATCH_SOURCE_BLOBS = {
@@ -114,8 +114,8 @@ def source_health_summary(payload: Any) -> dict[str, Any]:
 
 
 @contextmanager
-def exclusive_lock(root: Path):
-    lock_dir = root / ".capture.lock"
+def exclusive_lock(root: Path, name: str = ".capture.lock"):
+    lock_dir = root / name
     root.mkdir(parents=True, exist_ok=True)
     try:
         lock_dir.mkdir()
@@ -363,7 +363,13 @@ def verify_panwatch_source(repo: Path) -> str:
     return head
 
 
-def fetch_direct_panwatch(repo: Path, *, data_root: Path) -> tuple[Any, str]:
+def fetch_direct_panwatch(
+    repo: Path,
+    *,
+    data_root: Path,
+    force: bool = False,
+    timeout: float = 45.0,
+) -> tuple[Any, str]:
     repo = Path(repo)
     head = verify_panwatch_source(repo)
     runtime_dir = Path(data_root) / "panwatch_runtime"
@@ -373,7 +379,13 @@ def fetch_direct_panwatch(repo: Path, *, data_root: Path) -> tuple[Any, str]:
     try:
         from src.modules.xau.gold_market_fusion_runtime import get_gold_market_fusion
 
-        payload = asyncio.run(get_gold_market_fusion(force=True))
+        async def _bounded_fetch():
+            return await asyncio.wait_for(
+                get_gold_market_fusion(force=force),
+                timeout=max(1.0, float(timeout)),
+            )
+
+        payload = asyncio.run(_bounded_fetch())
     finally:
         try:
             sys.path.remove(str(repo))
@@ -401,26 +413,32 @@ def main(argv: list[str] | None = None):
     if bool(args.url) == bool(args.direct_panwatch_repo):
         raise SystemExit("provide exactly one of --url/PANWATCH_GOLD_FUSION_URL or --direct-panwatch-repo")
 
-    if args.direct_panwatch_repo:
-        payload, head = fetch_direct_panwatch(Path(args.direct_panwatch_repo), data_root=root)
-        result = store_snapshot(
-            root,
-            payload,
-            endpoint="panwatch-direct://gold_market_fusion",
-            http_status=200,
-            transport="direct_import",
-            panwatch_commit=head,
-        )
-    else:
-        payload, status, final_url = fetch_json(args.url, timeout=args.timeout, force=args.force)
-        result = store_snapshot(
-            root,
-            payload,
-            endpoint=final_url,
-            http_status=status,
-            transport="http",
-            panwatch_commit=None,
-        )
+    with exclusive_lock(root, ".run.lock"):
+        if args.direct_panwatch_repo:
+            payload, head = fetch_direct_panwatch(
+                Path(args.direct_panwatch_repo),
+                data_root=root,
+                force=args.force,
+                timeout=args.timeout,
+            )
+            result = store_snapshot(
+                root,
+                payload,
+                endpoint="panwatch-direct://gold_market_fusion",
+                http_status=200,
+                transport="direct_import",
+                panwatch_commit=head,
+            )
+        else:
+            payload, status, final_url = fetch_json(args.url, timeout=args.timeout, force=args.force)
+            result = store_snapshot(
+                root,
+                payload,
+                endpoint=final_url,
+                http_status=status,
+                transport="http",
+                panwatch_commit=None,
+            )
     print(json.dumps(result, indent=2, ensure_ascii=False))
 
 

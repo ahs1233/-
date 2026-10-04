@@ -70,14 +70,20 @@ def classify(payload: dict[str, Any], capture_time: datetime) -> dict[str, Any]:
     ready_sources = [
         v for v in venues
         if v.get("status") == "ready"
-        and (v.get("latest_trade_age_seconds") is None or v["latest_trade_age_seconds"] <= 900)
+        and v.get("latest_trade_age_seconds") is not None
+        and v["latest_trade_age_seconds"] <= 900
+        and int(v.get("trade_count_total") or 0) > 0
     ]
+    ready_families = sorted({
+        str(v.get("source_family") or v.get("venue") or "unknown")
+        for v in ready_sources
+    })
     stale_sources = [
         v for v in venues
         if v.get("latest_trade_age_seconds") is not None and v["latest_trade_age_seconds"] > 900
     ]
 
-    if independent >= 2 and len(ready_sources) >= 2:
+    if len(ready_families) >= 2:
         grade = "fusion_grade"
     elif ready_sources:
         grade = "single_source_grade"
@@ -92,6 +98,8 @@ def classify(payload: dict[str, Any], capture_time: datetime) -> dict[str, Any]:
         "independent_source_count": independent,
         "venue_count": int(payload.get("venue_count") or len(venues)),
         "ready_source_count": len(ready_sources),
+        "ready_source_family_count": len(ready_families),
+        "ready_source_families": ready_families,
         "stale_source_count": len(stale_sources),
         "ready_directional_timeframes": payload.get("ready_directional_timeframes") or [],
         "freshness_state": payload.get("freshness_state"),
@@ -113,7 +121,8 @@ def audit_quality(root: Path) -> dict[str, Any]:
 
     captures = []
     grades = Counter()
-    source_ready = Counter()
+    source_available = Counter()
+    ready_source_families = Counter()
     rows = read_manifest(root)
     for row in rows:
         capture_time = parse_time(row.get("capture_received_utc"))
@@ -125,7 +134,9 @@ def audit_quality(root: Path) -> dict[str, Any]:
         grades[q["grade"]] += 1
         for name, health in (q.get("source_health") or {}).items():
             if isinstance(health, dict) and health.get("available"):
-                source_ready[name] += 1
+                source_available[name] += 1
+        for family in q.get("ready_source_families") or []:
+            ready_source_families[str(family)] += 1
         captures.append({
             "capture_received_utc": row.get("capture_received_utc"),
             "observed_at": row.get("observed_at"),
@@ -141,7 +152,8 @@ def audit_quality(root: Path) -> dict[str, Any]:
         "integrity": integrity,
         "capture_count": len(captures),
         "grade_counts": dict(grades),
-        "source_available_counts": dict(source_ready),
+        "source_available_counts": dict(source_available),
+        "ready_source_family_counts": dict(ready_source_families),
         "first_capture": captures[0]["capture_received_utc"] if captures else None,
         "last_capture": captures[-1]["capture_received_utc"] if captures else None,
         "captures": captures,
@@ -167,6 +179,7 @@ def main():
         "capture_count": report.get("capture_count", 0),
         "grade_counts": report.get("grade_counts", {}),
         "source_available_counts": report.get("source_available_counts", {}),
+        "ready_source_family_counts": report.get("ready_source_family_counts", {}),
         "first_capture": report.get("first_capture"),
         "last_capture": report.get("last_capture"),
     }
