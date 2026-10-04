@@ -642,3 +642,21 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Pristine Forward OOS read=false
 - No year feature
 - M15/H1 context uses only bars closed by the M5 signal close
+
+## 2026-10-04T21:53:57.2136827Z — GTGLAB2-0037 — m5_transition_state_machine_v01
+
+**Action:** Tested three preregistered M5 causal transition state machines linked to H1/M15 context.
+
+**Reason:** After M5 improved entry timing, test the actual reversal sequence instead of buying every fresh low or waiting for full confirmation.
+
+**Result:** Scalper selected HIGHER_LOW_BREAK and failed frozen 2025-2026: -17.771R, PF 0.927. Swing selected HIGH_RECLAIM and finished nearly flat overall at -1.371R, PF 0.995, but was unstable: +38.252R in 2025 and -39.624R in 2026. Diagnostic-only HIGHER_LOW_BREAK Swing was +9.973R PF 1.034 on pseudo-test but cannot replace the preregistered winner after seeing results.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_M5_TRANSITION_STATE_MACHINE_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/m5-transition-state-machine-v01/summary.json`
+
+**Verification:**
+- Pristine Forward OOS read=false
+- No year feature
+- Rule selection used 2018-2024 only
+- No post-pseudo-test winner switching

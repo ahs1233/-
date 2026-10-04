@@ -231,3 +231,18 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing filtered pseudo-test: 339 trades, -3.289R, PF 0.986, avg entry R:R 2.390.
 - M5 materially improved remaining R:R versus M15, especially Swing, but 2025/2026 stability failed.
 - Decision: keep H1/M15/M5 architecture; do not promote execution candidate yet. Remaining problem is identifying the true transition micro-low, not simply lowering the timeframe.
+
+
+## 2026-10-05 — M5 Transition State Machine v0.1
+- Preregistered three causal price-transition rules: MID_RECLAIM, HIGH_RECLAIM, HIGHER_LOW_BREAK.
+- Scalper selected HIGHER_LOW_BREAK on 2018-2024; frozen 2025-2026 failed: 663 trades, -17.771R, PF 0.927.
+- Swing selected HIGH_RECLAIM on 2018-2024; frozen 2025-2026 nearly flat overall but unstable: 450 trades, -1.371R, PF 0.995; 2025 +38.252R vs 2026 -39.624R.
+- HIGHER_LOW_BREAK Swing was positive on pseudo-test (+9.973R, PF 1.034) but was not the preregistered winner and is diagnostic only; switching would be cherry-picking.
+- Decision: no promotion. Transition family is promising for Swing, but causal stability problem remains.
+
+## 2026-10-05 — M5 Transition State Machine v0.1
+- Preregistered three causal price-transition rules: MID_RECLAIM, HIGH_RECLAIM, HIGHER_LOW_BREAK.
+- Scalper selected HIGHER_LOW_BREAK on 2018-2024; frozen 2025-2026 failed: 663 trades, -17.771R, PF 0.927.
+- Swing selected HIGH_RECLAIM on 2018-2024; frozen 2025-2026 nearly flat overall but unstable: 450 trades, -1.371R, PF 0.995; 2025 +38.252R vs 2026 -39.624R.
+- HIGHER_LOW_BREAK Swing was positive on pseudo-test (+9.973R, PF 1.034) but was not the preregistered winner and is diagnostic only; switching would be cherry-picking.
+- Decision: no promotion. Transition family is promising for Swing, but causal stability problem remains.
