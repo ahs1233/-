@@ -2,6 +2,7 @@
 
 ## Canonical GTGLab2 guide
 - `indicators/gtg-strategy-lab/gtglab2/`
+- `indicators/gtg-strategy-lab/gtglab2/BLOCKERS.md` — prioritized obstacles and closure conditions.
 
 ## Data collection
 - `data/capture_microstructure_forward.py`

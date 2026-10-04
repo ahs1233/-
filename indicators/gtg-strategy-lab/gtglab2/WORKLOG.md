@@ -49,3 +49,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Git push research/gtglab2 PASS
 
 **Commit:** `896e71a`
+
+## 2026-10-04T00:22:53.749619Z — GTGLAB2-0003 — blocker_review
+
+**Action:** Prioritized the blockers preventing GTGLab2 from proving a defensible trading result.
+
+**Reason:** Convert vague project friction into explicit research and operational blockers with closure conditions.
+
+**Result:** BLOCKERS.md created with critical path from clean collection to validated executable edge.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/BLOCKERS.md`
+
+**Verification:**
+- Blockers derived from recorded experiment failures, current collection state, and research protocol
+
