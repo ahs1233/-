@@ -746,3 +746,19 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - No hyperparameter search
 - 2025-2026 diagnostic only
 - Pristine Forward OOS read=false
+
+
+## 2026-10-05 — GTGLAB2-0041 — state_evolution_walkforward_v02
+
+**Action:** Tested annual adaptive walk-forward State Evolution with a rolling 3-year training window and frozen model/threshold architecture.
+
+**Result:** Scalper remained meaningfully classifiable (+32.605R aggregate, PF 1.117), but Swing failed (-35.838R, PF 0.940). The 2026 Swing model trained only on 2023-2025 still had AUC ~0.503 and lost -27.905R. Quarter diagnostics show the major regime break occurred rapidly in Q2 2026.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_STATE_EVOLUTION_WALKFORWARD_V02_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/state-evolution-walkforward-v02/summary.json`
+
+**Verification:**
+- causal annual training only on prior years
+- same features/model/threshold rule
+- Pristine Forward OOS read=false

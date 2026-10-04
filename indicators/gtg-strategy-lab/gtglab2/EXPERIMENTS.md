@@ -289,3 +289,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing AUC: Train .612, Validation .554, consumed .533. Validation remained positive (+22.396R PF 1.120) but did not beat static baseline; consumed 2025-26 failed at -28.541R PF .832.
 - 2026 Swing still passed many model gates despite a low actual positive-outcome rate, indicating a higher-order regime mapping shift rather than merely weak local signals.
 - Decision: retain evolution architecture; Scalper evolution is promising research, Swing evolution v0.1 fails; no promotion.
+
+
+## 2026-10-05 — Adaptive Walk-Forward State Evolution v0.2
+- Tested causal annual retraining with a rolling 3-year training window.
+- Scalper aggregate 2021-2026: +32.605R, PF 1.117; 2026 nearly flat at -0.906R PF 0.981.
+- Swing aggregate failed: -35.838R PF 0.940; 2026 remained -27.905R PF 0.700 with AUC ~0.503 despite training on 2023-2025.
+- 2026 quarter diagnosis: Swing all-event positive rate was ~38.4% in Q1, collapsed to 17.6% in Q2, then partially recovered to 31.4% in Q3.
+- Conclusion: Swing concept drift occurred faster than annual retraining. Next test = quarterly adaptation using previous 4 completed quarters.

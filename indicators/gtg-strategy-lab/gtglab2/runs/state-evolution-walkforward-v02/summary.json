@@ -1,0 +1,488 @@
+{
+  "scope": "Adaptive Walk-Forward State Evolution v0.2",
+  "pristine_forward_oos_read": false,
+  "train_window_years": 3,
+  "test_years": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "engines": {
+    "scalper": {
+      "annual": {
+        "2021": {
+          "train_years": [
+            2018,
+            2019,
+            2020
+          ],
+          "threshold": 0.6678073220612901,
+          "auc": 0.6774624750370417,
+          "n_events": 533,
+          "selected_fraction": 0.47654784240150094,
+          "event_positive_rate": 0.6772983114446529,
+          "selected_event_positive_rate": 0.8031496062992126,
+          "execution": {
+            "n": 225,
+            "total_r": 21.971292489107395,
+            "mean_r": 0.09765018884047731,
+            "profit_factor": 1.4936655147059847,
+            "max_drawdown_r": -11.379304254532311,
+            "win_rate": 0.8,
+            "avg_entry_rr": 0.39973142105627313,
+            "exit_counts": {
+              "TARGET": 180,
+              "STOP": 44,
+              "144BAR_TIMEOUT": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": -0.0022670353722471378,
+            "ret_72h_atr": 0.12578062258674808,
+            "recovery_anchor_atr": 0.29198301297004536,
+            "eff_24h": 0.18316042786073528,
+            "eff_72h": -0.05429364842293914,
+            "m5_drift_accel_60m": 0.2975722340194571
+          }
+        },
+        "2022": {
+          "train_years": [
+            2019,
+            2020,
+            2021
+          ],
+          "threshold": 0.7136789606204901,
+          "auc": 0.603669263634079,
+          "n_events": 645,
+          "selected_fraction": 0.2589147286821705,
+          "event_positive_rate": 0.5364341085271318,
+          "selected_event_positive_rate": 0.6766467065868264,
+          "execution": {
+            "n": 155,
+            "total_r": -13.536095909421693,
+            "mean_r": -0.08732965102852705,
+            "profit_factor": 0.7232165403442098,
+            "max_drawdown_r": -15.65500383867072,
+            "win_rate": 0.6774193548387096,
+            "avg_entry_rr": 0.3610271463148802,
+            "exit_counts": {
+              "TARGET": 104,
+              "STOP": 48,
+              "144BAR_TIMEOUT": 2,
+              "TARGET_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": 0.02366492710354368,
+            "ret_72h_atr": 0.08615944640895366,
+            "recovery_anchor_atr": 0.4296553346048377,
+            "eff_24h": -0.026726779197212936,
+            "eff_72h": -0.056263163349836456,
+            "m5_drift_accel_60m": 0.3764389973788498
+          }
+        },
+        "2023": {
+          "train_years": [
+            2020,
+            2021,
+            2022
+          ],
+          "threshold": 0.6805310203504374,
+          "auc": 0.6272727272727272,
+          "n_events": 569,
+          "selected_fraction": 0.37082601054481545,
+          "event_positive_rate": 0.6133567662565905,
+          "selected_event_positive_rate": 0.7677725118483413,
+          "execution": {
+            "n": 185,
+            "total_r": 11.85530856685877,
+            "mean_r": 0.0640827490100474,
+            "profit_factor": 1.293217321250788,
+            "max_drawdown_r": -4.871428765556583,
+            "win_rate": 0.772972972972973,
+            "avg_entry_rr": 0.39099231750685737,
+            "exit_counts": {
+              "TARGET": 141,
+              "STOP": 39,
+              "144BAR_TIMEOUT": 2,
+              "TARGET_GAP": 2,
+              "STOP_BOTH": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": -0.009630291385565877,
+            "ret_72h_atr": -0.008667007943342993,
+            "recovery_anchor_atr": 0.50856897565701,
+            "eff_24h": -0.04052945686701292,
+            "eff_72h": -0.07623662930625043,
+            "m5_drift_accel_60m": 0.13941084184018232
+          }
+        },
+        "2024": {
+          "train_years": [
+            2021,
+            2022,
+            2023
+          ],
+          "threshold": 0.6426498679753191,
+          "auc": 0.6152935530315149,
+          "n_events": 519,
+          "selected_fraction": 0.42003853564547206,
+          "event_positive_rate": 0.6339113680154143,
+          "selected_event_positive_rate": 0.7110091743119266,
+          "execution": {
+            "n": 190,
+            "total_r": 0.6915515960512644,
+            "mean_r": 0.0036397452423750755,
+            "profit_factor": 1.0130481433217218,
+            "max_drawdown_r": -5.961329129369295,
+            "win_rate": 0.7210526315789474,
+            "avg_entry_rr": 0.4124930334055835,
+            "exit_counts": {
+              "TARGET": 135,
+              "STOP": 53,
+              "TARGET_GAP": 2
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": 0.09542027007887033,
+            "ret_72h_atr": -0.15362056866833207,
+            "recovery_anchor_atr": 0.5381645669547463,
+            "eff_24h": 0.0037410810721728253,
+            "eff_72h": -0.0709543384049026,
+            "m5_drift_accel_60m": 0.13616620882170402
+          }
+        },
+        "2025": {
+          "train_years": [
+            2022,
+            2023,
+            2024
+          ],
+          "threshold": 0.6162903365494197,
+          "auc": 0.6698267268986872,
+          "n_events": 448,
+          "selected_fraction": 0.47544642857142855,
+          "event_positive_rate": 0.6227678571428571,
+          "selected_event_positive_rate": 0.7699530516431925,
+          "execution": {
+            "n": 181,
+            "total_r": 12.528623651497737,
+            "mean_r": 0.06921891520164496,
+            "profit_factor": 1.2900309326584867,
+            "max_drawdown_r": -8.478109546271746,
+            "win_rate": 0.7569060773480663,
+            "avg_entry_rr": 0.4356750052846035,
+            "exit_counts": {
+              "TARGET": 136,
+              "STOP": 43,
+              "144BAR_TIMEOUT": 1,
+              "TARGET_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": -0.0059974745055691005,
+            "ret_72h_atr": -0.1996735290496135,
+            "recovery_anchor_atr": 0.573950880439136,
+            "eff_24h": 0.11089911120018776,
+            "eff_72h": -0.019689625357534508,
+            "m5_drift_accel_60m": -0.006943351261955364
+          }
+        },
+        "2026": {
+          "train_years": [
+            2023,
+            2024,
+            2025
+          ],
+          "threshold": 0.6507214010219134,
+          "auc": 0.6431638418079098,
+          "n_events": 427,
+          "selected_fraction": 0.4379391100702576,
+          "event_positive_rate": 0.585480093676815,
+          "selected_event_positive_rate": 0.732620320855615,
+          "execution": {
+            "n": 171,
+            "total_r": -0.9055710543461348,
+            "mean_r": -0.0052957371599189175,
+            "profit_factor": 0.9811348754054684,
+            "max_drawdown_r": -16.136941261225672,
+            "win_rate": 0.7192982456140351,
+            "avg_entry_rr": 0.4122735374632689,
+            "exit_counts": {
+              "TARGET": 123,
+              "STOP": 47,
+              "STOP_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": 0.02835610788647851,
+            "ret_72h_atr": -0.22130809754367306,
+            "recovery_anchor_atr": 0.6508322689336774,
+            "eff_24h": 0.1234039969415266,
+            "eff_72h": 0.00480563980896706,
+            "m5_drift_accel_60m": 0.17076096938675117
+          }
+        }
+      },
+      "aggregate": {
+        "n": 1107,
+        "total_r": 32.605109339747344,
+        "mean_r": 0.02945357663933816,
+        "profit_factor": 1.1172663491621442,
+        "max_drawdown_r": -16.873764115997787,
+        "win_rate": 0.7452574525745257,
+        "avg_entry_rr": 0.4028563535366121,
+        "exit_counts": {
+          "TARGET": 819,
+          "STOP": 274,
+          "144BAR_TIMEOUT": 6,
+          "TARGET_GAP": 6,
+          "STOP_BOTH": 1,
+          "STOP_GAP": 1
+        }
+      }
+    },
+    "swing": {
+      "annual": {
+        "2021": {
+          "train_years": [
+            2018,
+            2019,
+            2020
+          ],
+          "threshold": 0.39117331427873075,
+          "auc": 0.5793491228845389,
+          "n_events": 639,
+          "selected_fraction": 0.5054773082942097,
+          "event_positive_rate": 0.3317683881064163,
+          "selected_event_positive_rate": 0.3931888544891641,
+          "execution": {
+            "n": 207,
+            "total_r": -19.417737352526114,
+            "mean_r": -0.09380549445664789,
+            "profit_factor": 0.8458909733926497,
+            "max_drawdown_r": -24.796650516496424,
+            "win_rate": 0.391304347826087,
+            "avg_entry_rr": 1.4808819518053433,
+            "exit_counts": {
+              "STOP": 124,
+              "TARGET": 78,
+              "864BAR_TIMEOUT": 2,
+              "STOP_BOTH": 2,
+              "TARGET_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": -0.1900615200405052,
+            "ret_72h_atr": 0.18819562607748902,
+            "recovery_anchor_atr": 0.08446682345836062,
+            "eff_24h": 0.18839445979535988,
+            "eff_72h": -0.19628212074071186,
+            "m5_drift_accel_60m": 0.2620466552409315
+          }
+        },
+        "2022": {
+          "train_years": [
+            2019,
+            2020,
+            2021
+          ],
+          "threshold": 0.38947561002444153,
+          "auc": 0.5671713754017933,
+          "n_events": 744,
+          "selected_fraction": 0.34408602150537637,
+          "event_positive_rate": 0.30913978494623656,
+          "selected_event_positive_rate": 0.36328125,
+          "execution": {
+            "n": 175,
+            "total_r": -4.667353579704514,
+            "mean_r": -0.026670591884025794,
+            "profit_factor": 0.9559683624556178,
+            "max_drawdown_r": -33.68999882516431,
+            "win_rate": 0.3942857142857143,
+            "avg_entry_rr": 1.6297578662595469,
+            "exit_counts": {
+              "STOP": 106,
+              "TARGET": 68,
+              "TARGET_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": -0.19545393102780012,
+            "ret_72h_atr": 0.12560767505369985,
+            "recovery_anchor_atr": 0.12223103064182306,
+            "eff_24h": 0.23691354424752284,
+            "eff_72h": -0.2084537371960917,
+            "m5_drift_accel_60m": 0.18917515871844
+          }
+        },
+        "2023": {
+          "train_years": [
+            2020,
+            2021,
+            2022
+          ],
+          "threshold": 0.3514366961170063,
+          "auc": 0.5545664013405949,
+          "n_events": 654,
+          "selected_fraction": 0.3532110091743119,
+          "event_positive_rate": 0.3363914373088685,
+          "selected_event_positive_rate": 0.38961038961038963,
+          "execution": {
+            "n": 165,
+            "total_r": -9.563567943012918,
+            "mean_r": -0.057961017836441926,
+            "profit_factor": 0.9028603927350329,
+            "max_drawdown_r": -27.38848183256915,
+            "win_rate": 0.40606060606060607,
+            "avg_entry_rr": 1.4707766753525293,
+            "exit_counts": {
+              "STOP": 97,
+              "TARGET": 65,
+              "864BAR_TIMEOUT": 2,
+              "STOP_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": -0.29863026362836054,
+            "ret_72h_atr": -0.05358543824696389,
+            "recovery_anchor_atr": 0.3002533383784955,
+            "eff_24h": 0.1621632923909552,
+            "eff_72h": -0.09193555844629081,
+            "m5_drift_accel_60m": 0.030437857452215708
+          }
+        },
+        "2024": {
+          "train_years": [
+            2021,
+            2022,
+            2023
+          ],
+          "threshold": 0.3323566227358672,
+          "auc": 0.5458261259529759,
+          "n_events": 578,
+          "selected_fraction": 0.4134948096885813,
+          "event_positive_rate": 0.3719723183391003,
+          "selected_event_positive_rate": 0.39330543933054396,
+          "execution": {
+            "n": 158,
+            "total_r": 13.420384661279066,
+            "mean_r": 0.08493914342581688,
+            "profit_factor": 1.1491153851253229,
+            "max_drawdown_r": -12.568124127059832,
+            "win_rate": 0.43037974683544306,
+            "avg_entry_rr": 1.6460835545610502,
+            "exit_counts": {
+              "STOP": 89,
+              "TARGET": 67,
+              "STOP_BOTH": 1,
+              "864BAR_TIMEOUT": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": 0.014481678515232108,
+            "ret_72h_atr": -0.24453733642246547,
+            "recovery_anchor_atr": 0.2668389344179376,
+            "eff_24h": 0.21000232242006484,
+            "eff_72h": -0.056182729374393156,
+            "m5_drift_accel_60m": -0.06957570273367263
+          }
+        },
+        "2025": {
+          "train_years": [
+            2022,
+            2023,
+            2024
+          ],
+          "threshold": 0.344907632304658,
+          "auc": 0.4842945064964669,
+          "n_events": 526,
+          "selected_fraction": 0.4372623574144487,
+          "event_positive_rate": 0.3897338403041825,
+          "selected_event_positive_rate": 0.39565217391304347,
+          "execution": {
+            "n": 145,
+            "total_r": 12.294880428907653,
+            "mean_r": 0.08479227882005279,
+            "profit_factor": 1.1462506892089954,
+            "max_drawdown_r": -12.920870971257788,
+            "win_rate": 0.4206896551724138,
+            "avg_entry_rr": 1.6656789873851177,
+            "exit_counts": {
+              "STOP": 83,
+              "TARGET": 59,
+              "TARGET_GAP": 1,
+              "864BAR_TIMEOUT": 1,
+              "STOP_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": -0.08539696031234649,
+            "ret_72h_atr": -0.3577364398123528,
+            "recovery_anchor_atr": 0.30579604267481975,
+            "eff_24h": 0.24193143108696727,
+            "eff_72h": -0.010710298407481653,
+            "m5_drift_accel_60m": -0.10041496558741775
+          }
+        },
+        "2026": {
+          "train_years": [
+            2023,
+            2024,
+            2025
+          ],
+          "threshold": 0.371923833082727,
+          "auc": 0.5028933289660443,
+          "n_events": 484,
+          "selected_fraction": 0.45041322314049587,
+          "event_positive_rate": 0.2665289256198347,
+          "selected_event_positive_rate": 0.27522935779816515,
+          "execution": {
+            "n": 136,
+            "total_r": -27.904657785308263,
+            "mean_r": -0.2051813072449137,
+            "profit_factor": 0.7004010455568828,
+            "max_drawdown_r": -34.40106787660402,
+            "win_rate": 0.3161764705882353,
+            "avg_entry_rr": 1.6536060370511378,
+            "exit_counts": {
+              "STOP": 92,
+              "TARGET": 42,
+              "864BAR_TIMEOUT": 1,
+              "STOP_GAP": 1
+            }
+          },
+          "key_coefficients": {
+            "ret_120h_atr": 0.07947144979079895,
+            "ret_72h_atr": -0.29095968718810067,
+            "recovery_anchor_atr": 0.14180043965629746,
+            "eff_24h": 0.159895778335726,
+            "eff_72h": 0.015332325375189401,
+            "m5_drift_accel_60m": -0.20408760585957836
+          }
+        }
+      },
+      "aggregate": {
+        "n": 986,
+        "total_r": -35.83805157036509,
+        "mean_r": -0.03634690828637433,
+        "profit_factor": 0.940035953006343,
+        "max_drawdown_r": -45.75805966190884,
+        "win_rate": 0.3945233265720081,
+        "avg_entry_rr": 1.583086630712715,
+        "exit_counts": {
+          "STOP": 591,
+          "TARGET": 379,
+          "864BAR_TIMEOUT": 7,
+          "TARGET_GAP": 3,
+          "STOP_BOTH": 3,
+          "STOP_GAP": 3
+        }
+      }
+    }
+  }
+}
