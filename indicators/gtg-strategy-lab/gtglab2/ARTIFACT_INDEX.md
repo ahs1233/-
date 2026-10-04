@@ -3,6 +3,10 @@
 ## Canonical GTGLab2 guide
 - `indicators/gtg-strategy-lab/gtglab2/`
 - `indicators/gtg-strategy-lab/gtglab2/BLOCKERS.md` — prioritized obstacles and closure conditions.
+- `indicators/gtg-strategy-lab/gtglab2/ULTRA_PLAN_V01.md` — active gated implementation roadmap.
+- `indicators/gtg-strategy-lab/gtglab2/engine/contracts.py` — bidirectional state/action/timeframe contracts.
+- `indicators/gtg-strategy-lab/gtglab2/engine/context_features.py` — causal session compatibility and raw MA geometry.
+- `indicators/gtg-strategy-lab/gtglab2/engine/test_phase1_foundation.py` — Phase 1 symmetry/no-lookahead tests.
 
 ## Data collection
 - `data/capture_microstructure_forward.py`
