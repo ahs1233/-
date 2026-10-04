@@ -660,3 +660,22 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - No year feature
 - Rule selection used 2018-2024 only
 - No post-pseudo-test winner switching
+
+
+## 2026-10-04T22:02:33.4306459Z — GTGLAB2-0038 — market_state_management_v01
+
+**Action:** Built and tested a causal 6-state H1/M15/M5 Market State Engine, then applied state gating and three preregistered trade-management policies to frozen transition entries.
+
+**Reason:** User identified that markets require state reading, situation understanding, and management rather than fixed rules alone.
+
+**Result:** State conditioning exposed the main instability. Swing State 0 (strong directional H1 sell wave) was only marginally positive in Train/Validation and later negative on consumed 2025-2026 (-12.438R, PF 0.926), while State 4 (range recovery) remained positive (+9.220R, PF 1.220) and State 5 was mildly positive. Overall frozen state gate remained near-flat/negative on consumed history, so no promotion. FIXED management ranked above early protection policies.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_MARKET_STATE_MANAGEMENT_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/market-state-management-v01/summary.json`
+
+**Verification:**
+- Pristine Forward OOS read=false
+- State clustering fit on 2018-2022 only
+- No future/outcome/year feature used in state creation
+- 2025-2026 explicitly treated as consumed diagnostic history

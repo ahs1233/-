@@ -246,3 +246,13 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing selected HIGH_RECLAIM on 2018-2024; frozen 2025-2026 nearly flat overall but unstable: 450 trades, -1.371R, PF 0.995; 2025 +38.252R vs 2026 -39.624R.
 - HIGHER_LOW_BREAK Swing was positive on pseudo-test (+9.973R, PF 1.034) but was not the preregistered winner and is diagnostic only; switching would be cherry-picking.
 - Decision: no promotion. Transition family is promising for Swing, but causal stability problem remains.
+
+
+## 2026-10-05 — Market State Engine + Management v0.1
+- Built a 6-state unsupervised H1/M15/M5 market-state reader from price-only causal features, trained on 2018-2022.
+- Frozen prior entry triggers were retained: Scalper HIGHER_LOW_BREAK; Swing HIGH_RECLAIM.
+- Scalper accepted states 0 and 5 but remained negative on consumed 2025-2026: gated FIXED -11.680R, PF 0.946.
+- Swing accepted states 0, 4 and 5. Gated FIXED was +22.568R PF 1.029 Train, +38.504R PF 1.120 Validation, but -2.760R PF 0.990 on consumed 2025-2026.
+- Critical diagnosis: Swing State 0 (strong H1 downtrend) later failed (-12.438R PF 0.926), while State 4 (range recovery) remained positive (+9.220R PF 1.220) and State 5 remained mildly positive.
+- FIXED management beat preregistered early-protection alternatives. Management cannot rescue a bad market state.
+- Decision: retain State Reader architecture; no execution promotion; do not cherry-pick State 4 after consumed-history inspection.
