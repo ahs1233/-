@@ -32,7 +32,10 @@ This registry defines the role of external platforms before the Ultra Plan is fr
 
 **Status**
 - Approved for GTGLab2 architecture.
-- Integration pending API/MCP connection and source-specific validation.
+- MCP authentication: VERIFIED on 2026-10-04.
+- Free dataset discovery: VERIFIED.
+- Paid dataset access: BLOCKED because the connected Quiver account has no active subscription.
+- No Quiver signal has been used in an outcome-aligned experiment.
 
 ---
 
@@ -66,7 +69,11 @@ This registry defines the role of external platforms before the Ultra Plan is fr
 
 **Status**
 - Approved for GTGLab2 architecture.
-- Data/API accessibility must be investigated before using it as a machine-readable source.
+- Co-Invest MCP connection: VERIFIED on 2026-10-04.
+- GOLD market/positioning read: VERIFIED.
+- Paper Mode: ENABLED for the connected MCP wallet.
+- No GTGLab2 live order has been placed.
+- Strategy execution remains blocked until an economic candidate passes its registered gates.
 
 ---
 
