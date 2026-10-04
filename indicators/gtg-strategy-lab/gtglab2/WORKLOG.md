@@ -252,3 +252,24 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Pristine Forward OOS remained undecoded
 
 **Commit:** `6ff6774`
+
+## 2026-10-04T10:26:44.849880Z — GTGLAB2-0013 — forward_gatekeeper_installed
+
+**Action:** Installed executable fail-closed forward research gatekeeper and candidate registry after reconciling parallel GTGLab2 branches.
+
+**Reason:** Prevent outcome linkage, Holdout access, or production promotion from being unlocked by narrative/manual decisions before registered gates are satisfied.
+
+**Result:** Unified engine 51/51 PASS; gatekeeper 4/4 PASS; data regression 106/106 PASS. Real gate returns BLOCK with 235 valid snapshots, 30d and 10k gates unmet, and JForex 2026-10-03 freshness missing.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/CANDIDATE_REGISTRY.json`
+- `indicators/gtg-strategy-lab/gtglab2/tools/forward_gatekeeper.py`
+- `indicators/gtg-strategy-lab/gtglab2/FORWARD_GATE_STATUS_LATEST.json`
+
+**Verification:**
+- 51/51 unified engine tests PASS
+- 4/4 forward gatekeeper tests PASS
+- 106/106 data regression tests PASS
+- Real gate action=BLOCK
+- Historical Holdout remains disallowed
+

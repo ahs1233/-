@@ -27,6 +27,7 @@ No protected gate was bypassed.
 
 ## Test status
 - Unified GTGLab2 engine after parallel-branch reconciliation: **51/51 PASS**
+- Forward gatekeeper: **4/4 PASS**
 - Core data regression: **106/106 PASS**
 - One Windows-only path assertion was corrected in the test to use `Path.as_posix()`; production data code was unchanged.
 
@@ -50,14 +51,16 @@ Important:
 ## Microstructure gate
 Latest recorded readiness:
 - integrity: PASS
-- valid snapshots: 221
-- snapshot target remaining: 9,779
-- elapsed: ~0.519 days
-- time remaining at check: ~29.481 days
+- valid snapshots: 235
+- snapshot target remaining: 9,765
+- elapsed: ~0.528 days
+- time remaining at check: ~29.472 days
 - registered earliest 30-day unlock: 2026-11-02T21:37:13Z
 - Fusion Grade ratio: ~95.02%
 
 The outcome linkage remains locked.
+
+The executable gatekeeper currently returns `BLOCK` because the 30-day gate, 10,000-snapshot gate, and canonical JForex freshness gate are not all satisfied. It also hard-codes Historical Holdout and production execution as disallowed at this stage.
 
 ## Economic results
 Doctrine Reference v0.1:

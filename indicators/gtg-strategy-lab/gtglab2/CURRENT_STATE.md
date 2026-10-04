@@ -34,6 +34,7 @@ Scalper and Swing remain distinct execution tracks.
 
 ## Test status
 - unified GTGLab2 engine tests: **51/51 PASS**
+- forward gatekeeper tests: **4/4 PASS**
 - data-layer regression: **106/106 PASS**
 
 ## Historical development experiments
@@ -94,10 +95,10 @@ The older `C:\Users\alk\gtg-lab-data-jforex` forward records are legacy public-d
 Latest readiness checkpoint:
 - status: COLLECTING
 - integrity: PASS
-- valid snapshots: 221
-- snapshots remaining: 9,779
-- elapsed: ~0.519 days
-- time remaining: ~29.481 days
+- valid snapshots: 235
+- snapshots remaining: 9,765
+- elapsed: ~0.528 days
+- time remaining: ~29.472 days
 - earliest registered 30-day unlock: 2026-11-02T21:37:13Z
 - Fusion Grade ratio: ~95.02%
 
@@ -109,6 +110,18 @@ Research locks remain:
 Collection task:
 - `GTG Microstructure Forward Capture`
 - enabled/running at latest check.
+
+Executable forward gate:
+- `tools/forward_gatekeeper.py`
+- current action: **BLOCK**
+- microstructure integrity: PASS
+- 30-day gate: NOT MET
+- 10,000-snapshot gate: NOT MET
+- canonical forward audit: PASS
+- canonical forward freshness: NOT MET because 2026-10-03 export is missing
+- candidate registration/forward-test permission: PASS
+- Historical Holdout allowed: **NO**
+- Production execution allowed: **NO**
 
 ## Liquid / Co-Invest
 - connection: VERIFIED

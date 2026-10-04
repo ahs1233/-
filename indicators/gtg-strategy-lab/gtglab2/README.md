@@ -37,6 +37,9 @@ This directory is the permanent guide for the project.
 - `ARTIFACT_INDEX.md` — map to important code/data/protocol artifacts.
 - `EVENTS.jsonl` — append-only machine-readable event ledger.
 - `tools/record_event.py` — helper for recording future work.
+- `CANDIDATE_REGISTRY.json` — explicit promotion permissions for every candidate.
+- `tools/forward_gatekeeper.py` — fail-closed enforcement of the forward research gates.
+- `FORWARD_GATE_STATUS_LATEST.json` — current machine-readable gate result.
 
 ## Documentation rule
 

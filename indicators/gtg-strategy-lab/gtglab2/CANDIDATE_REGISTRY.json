@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "updated_utc": "2026-10-04T10:15:00Z",
+  "candidates": {
+    "doctrine-reference-v01": {
+      "status": "REJECTED_DEVELOPMENT",
+      "historical_holdout_eligible": false,
+      "forward_microstructure_test_eligible": false,
+      "paper_execution_eligible": false,
+      "production_eligible": false,
+      "reason": "Negative executable expectancy under C1 and poor risk-normalized staged performance."
+    },
+    "sweep-acceptance-v01": {
+      "status": "REJECTED_OVERALL",
+      "historical_holdout_eligible": false,
+      "forward_microstructure_test_eligible": false,
+      "paper_execution_eligible": false,
+      "production_eligible": false,
+      "reason": "Overall branch failed; rejection/fade failed and staging did not establish edge."
+    },
+    "acceptance-retest-v01": {
+      "status": "FROZEN_FORWARD_HYPOTHESIS_ONLY",
+      "historical_holdout_eligible": false,
+      "forward_microstructure_test_eligible": true,
+      "paper_execution_eligible": false,
+      "production_eligible": false,
+      "reason": "Promising development lead (+0.0210R at C1 single) but not C2 robust; may only be used as frozen baseline for preregistered forward microstructure test."
+    },
+    "forward-microstructure-acceptance-v01": {
+      "status": "PREREGISTERED_LOCKED",
+      "historical_holdout_eligible": false,
+      "forward_microstructure_test_eligible": true,
+      "paper_execution_eligible": false,
+      "production_eligible": false,
+      "reason": "Treatment frozen before outcome linkage; must wait for 30d AND 10,000 valid snapshots plus fresh canonical forward seal."
+    }
+  }
+}

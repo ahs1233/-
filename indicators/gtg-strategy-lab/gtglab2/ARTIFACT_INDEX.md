@@ -11,6 +11,10 @@
 - `EVENTS.jsonl` — append-only machine-readable event ledger.
 - `TOOLS_REGISTRY.md` — Quiver, Liquid and source roles.
 - `EXECUTION_STATUS_2026-10-04.md` — current phase-gate matrix.
+- `CANDIDATE_REGISTRY.json` — machine-readable candidate promotion permissions/status.
+- `FORWARD_GATE_STATUS_LATEST.json` — latest fail-closed forward outcome-linkage gate result.
+- `tools/forward_gatekeeper.py` — executable metadata-only gatekeeper; never decodes protected market data.
+- `tools/test_forward_gatekeeper.py` — gatekeeper regression tests.
 
 ## Core engine
 - `engine/contracts.py`
