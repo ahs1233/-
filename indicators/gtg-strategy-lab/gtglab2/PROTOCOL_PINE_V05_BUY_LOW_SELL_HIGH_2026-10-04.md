@@ -144,3 +144,39 @@ Correction before final candidate freeze:
 - Any entry gap therefore changes realized R naturally.
 - The robustness grid must be rerun after this correction.
 - Previous grid ranking is discarded and must not be used for v0.5.2 selection.
+
+# v0.5.2 FINAL DEVELOPMENT FREEZE
+
+After causal correction and rerunning all 486 preregistered grid combinations, 374 candidates met the minimum robustness gates.
+
+Selection rule was applied as preregistered: maximize the weaker segment mean R first, then prefer lower worst-segment drawdown.
+
+Selected v0.5.2:
+- position48 <= 0.45
+- EMA50/EMA200 directional gap >= 1.0 ATR
+- no additional ATR-regime minimum
+- stop cushion = 0.75 ATR below signal low
+- target = 60% of frozen prior-48H range
+- minimum planned reward/risk = 1.25
+- planned R/R and sizing use signal close only
+- actual fill = next H1 open
+- LONG only, bull structure only
+- failed-break rejection confirmation
+- 48H timeout
+
+Grid evidence:
+Development 2018-03 through 2023:
+- 96 trades
+- +23.4855R
+- mean +0.2446R
+- PF 1.4348
+- max DD -9.6099R
+
+Internal pseudo-validation 2024 through 2026-09:
+- 43 trades
+- +11.9387R
+- mean +0.2776R
+- PF 1.6444
+- max DD -6.5335R
+
+This is a development freeze, not true OOS evidence.
