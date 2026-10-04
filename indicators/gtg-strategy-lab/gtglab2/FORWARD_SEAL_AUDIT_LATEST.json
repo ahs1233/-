@@ -1,10 +1,10 @@
 {
   "scope": "GTG Pristine Forward Seal Audit v0.2",
   "freeze_day": "2026-09-30",
-  "forward_days": 3,
-  "verification_records": 3,
+  "forward_days": 4,
+  "verification_records": 4,
   "first_forward_day": "2026-09-30",
-  "last_forward_day": "2026-10-02",
+  "last_forward_day": "2026-10-03",
   "checked": [
     {
       "day": "2026-09-30",
@@ -35,6 +35,17 @@
       "ask_exists": true,
       "ask_bytes": 34560,
       "ask_sha256": "8cd5a571e5f6811a8c5369c75d608bbdf25b00176fea8c4a7e71b012c0a2098d",
+      "canonical_m1_exists": false,
+      "jforex_cache_verified": true
+    },
+    {
+      "day": "2026-10-03",
+      "bid_exists": true,
+      "bid_bytes": 34560,
+      "bid_sha256": "1479ec0da01abc4fc317142921e58059aa57058095505e02757d3b2d0a12eb97",
+      "ask_exists": true,
+      "ask_bytes": 34560,
+      "ask_sha256": "8abd2e4291040a322a3b6fbb287231b520d54b566bcb03a6ecbabed8ed0cb75d",
       "canonical_m1_exists": false,
       "jforex_cache_verified": true
     }

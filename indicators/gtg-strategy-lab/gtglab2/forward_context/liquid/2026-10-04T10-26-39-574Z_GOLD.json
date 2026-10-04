@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.0",
+  "source": "Liquid / Co-Invest MCP",
+  "capture_policy": "read-only forward context; no outcome linkage; no order action",
+  "symbol": "GOLD",
+  "canonical_market_symbol": "xyz:GOLD",
+  "source_created_at": "2026-10-04T10:26:39.574Z",
+  "paper_mode_verified": true,
+  "historical_holdout_read": false,
+  "pristine_price_oos_decoded": false,
+  "trading_outcomes_read": false,
+  "raw": {
+    "symbol": "xyz:GOLD",
+    "ticker": {
+      "coin": "xyz:GOLD",
+      "markPx": "4141.2",
+      "funding": "0.0006%",
+      "openInterest": "$278,785,390",
+      "dayNtlVlm": "3124079.8061200008",
+      "prevDayPx": "4140.2",
+      "change24h": "+0.02%",
+      "maxLeverage": 25
+    },
+    "iconSrc": "https://coinvest-chat.liquid.trade/icons/xyz%3AGOLD",
+    "refCode": "KVWAXU44",
+    "sections": {
+      "size": {
+        "coin": "xyz:GOLD",
+        "createdAt": "2026-10-04T10:26:39.574Z",
+        "breakdownBySize": [
+          {
+            "sizeSegmentId": 7,
+            "size": "$250k–$500k",
+            "minSize": 250000,
+            "maxSize": 500000,
+            "positionCount": 44,
+            "pastPositionCount": 44,
+            "totalPositionValue": 15357710.419379998,
+            "pastTotalPositionValue": 15357753.81036,
+            "totalPositionValueLong": 11569913.461889999,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.753
+          },
+          {
+            "sizeSegmentId": 2,
+            "size": "$1k–$10k",
+            "minSize": 1000,
+            "maxSize": 10000,
+            "positionCount": 1281,
+            "pastPositionCount": 1279,
+            "totalPositionValue": 4671583.98217,
+            "pastTotalPositionValue": 4673863.9116,
+            "totalPositionValueLong": 4078055.5108299996,
+            "valueCloseToLiquidation": 101233.42046999998,
+            "bias": 0.873
+          },
+          {
+            "sizeSegmentId": 3,
+            "size": "$10k–$25k",
+            "minSize": 10000,
+            "maxSize": 25000,
+            "positionCount": 280,
+            "pastPositionCount": 278,
+            "totalPositionValue": 4567565.13395,
+            "pastTotalPositionValue": 4540936.15404,
+            "totalPositionValueLong": 3782908.68711,
+            "valueCloseToLiquidation": 47599.54318,
+            "bias": 0.828
+          },
+          {
+            "sizeSegmentId": 5,
+            "size": "$50k–$100k",
+            "minSize": 50000,
+            "maxSize": 100000,
+            "positionCount": 115,
+            "pastPositionCount": 115,
+            "totalPositionValue": 8176507.39402,
+            "pastTotalPositionValue": 8176309.984440001,
+            "totalPositionValueLong": 7013643.70343,
+            "valueCloseToLiquidation": 194581.90590999997,
+            "bias": 0.858
+          },
+          {
+            "sizeSegmentId": 9,
+            "size": "$1m–$2,5m",
+            "minSize": 1000000,
+            "maxSize": 2500000,
+            "positionCount": 26,
+            "pastPositionCount": 26,
+            "totalPositionValue": 44280652.792459995,
+            "pastTotalPositionValue": 44269082.996580005,
+            "totalPositionValueLong": 28929612.48884,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.653
+          },
+          {
+            "sizeSegmentId": 4,
+            "size": "$25k–$50k",
+            "minSize": 25000,
+            "maxSize": 50000,
+            "positionCount": 167,
+            "pastPositionCount": 167,
+            "totalPositionValue": 6108834.465299999,
+            "pastTotalPositionValue": 6109926.61734,
+            "totalPositionValueLong": 5394888.121069999,
+            "valueCloseToLiquidation": 193665.30343999996,
+            "bias": 0.883
+          },
+          {
+            "sizeSegmentId": 6,
+            "size": "$100k–$250k",
+            "minSize": 100000,
+            "maxSize": 250000,
+            "positionCount": 101,
+            "pastPositionCount": 101,
+            "totalPositionValue": 15597685.892529998,
+            "pastTotalPositionValue": 15599934.3825,
+            "totalPositionValueLong": 13749231.719299998,
+            "valueCloseToLiquidation": 344547.67921,
+            "bias": 0.881
+          },
+          {
+            "sizeSegmentId": 1,
+            "size": "<$1k",
+            "minSize": null,
+            "maxSize": 1000,
+            "positionCount": 3611,
+            "pastPositionCount": 3606,
+            "totalPositionValue": 658723.21991,
+            "pastTotalPositionValue": 657751.80276,
+            "totalPositionValueLong": 568504.7683,
+            "valueCloseToLiquidation": 12256.710479999998,
+            "bias": 0.863
+          },
+          {
+            "sizeSegmentId": 8,
+            "size": "$500k–$1m",
+            "minSize": 500000,
+            "maxSize": 1000000,
+            "positionCount": 20,
+            "pastPositionCount": 20,
+            "totalPositionValue": 13410447.90813,
+            "pastTotalPositionValue": 13410081.47232,
+            "totalPositionValueLong": 9323894.87526,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.695
+          },
+          {
+            "sizeSegmentId": 10,
+            "size": ">$2,5m",
+            "minSize": 2500000,
+            "maxSize": null,
+            "positionCount": 18,
+            "pastPositionCount": 18,
+            "totalPositionValue": 165961522.29068998,
+            "pastTotalPositionValue": 165961697.78682,
+            "totalPositionValueLong": 54984963.41323999,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.331
+          }
+        ]
+      },
+      "smartMoney": "smart money 42% long vs losing crowd 67% long — smart money is leaning short and fading a crowded long (contrarian signal)."
+    }
+  }
+}

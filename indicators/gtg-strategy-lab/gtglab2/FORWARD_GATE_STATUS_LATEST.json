@@ -8,15 +8,14 @@
     "micro_snapshots_10k": false,
     "micro_eligible_now": false,
     "canonical_forward_audit": true,
-    "canonical_forward_fresh": false,
+    "canonical_forward_fresh": true,
     "candidate_registered": true,
     "candidate_forward_test_allowed": true
   },
   "reasons": [
     "30-calendar-day corpus gate is not met",
     "10,000-valid-snapshot corpus gate is not met",
-    "microstructure readiness report is not eligible",
-    "canonical forward exporter is not caught up"
+    "microstructure readiness report is not eligible"
   ],
   "historical_holdout_allowed": false,
   "production_execution_allowed": false

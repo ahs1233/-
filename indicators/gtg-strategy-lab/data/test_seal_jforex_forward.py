@@ -97,6 +97,28 @@ class JForexForwardSealTests(unittest.TestCase):
             self.assertEqual(len(second), 2)
             self.assertEqual(rep["verified_existing_days"], ["2026-10-01"])
 
+    def test_existing_verified_seal_survives_later_cache_eviction(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            export = base / "export"
+            cache = base / "cache"
+            root = base / "root"
+            raw = bytes(range(24))
+            self.make_export(export, "2026-10-01", raw, raw)
+            bid = self.make_side(cache, "2026-10-01", "BID", raw)
+            ask = self.make_side(cache, "2026-10-01", "ASK", raw)
+
+            first = sjf.seal(export, cache, root, check_expected=False)
+            self.assertEqual(first["status"], "PASS")
+            bid.unlink()
+            ask.unlink()
+
+            second = sjf.seal(export, cache, root, check_expected=False)
+            self.assertEqual(second["status"], "PASS")
+            self.assertEqual(second["pending_cache_verification_days"], [])
+            self.assertEqual(second["verified_existing_days"], ["2026-10-01"])
+            self.assertEqual(len(read_manifest(root)), 2)
+
     def test_expected_settled_day_missing_blocks(self):
         with tempfile.TemporaryDirectory() as td:
             base = Path(td)

@@ -147,31 +147,30 @@ The same registered candidate remains positive under conservative C1/C2 executio
 
 ---
 
-## Priority 7 — Swing and Scalper action policies are conceptually clear but not fully frozen as executable contracts
+## Priority 7 — Swing and Scalper action policies frozen as executable contracts
 
-**Status:** OPEN — medium/high.
+**Status:** CLOSED — 2026-10-04.
 
-The architecture says:
-- RANGE → scalp,
-- TREND_UP → swing long / flat,
-- TREND_DOWN → swing short / flat,
-- TRANSITION → cautious / usually flat.
+`PROTOCOL_EXECUTION_CONTRACTS_V10.md` and `engine/action_contracts.py` now freeze:
+- bidirectional Long/Short symmetry,
+- Swing v1 = Acceptance → Retest → Continuation,
+- Scalper v1 = Rejection / Range Fade reference contract,
+- next-H1-open fills,
+- five maximum tranches at 0.20R each,
+- no additions after invalidation,
+- Swing timeout = 24 H1 bars,
+- Scalper timeout = 12 H1 bars,
+- inherited MTF conflict rules,
+- deterministic invalidation semantics.
 
-But the final executable contract still requires exact definitions for:
-- allowed entry point,
-- invalidation,
-- stop,
-- take-profit / exit,
-- re-entry,
-- position sizing,
-- maximum holding period,
-- conflict resolution between timeframes.
+These values were inherited from the preregistered Sweep/Acceptance v0.1 protocol rather than selected after observing new outcomes.
 
-**Why this blocks results**
-Without a frozen action contract, good research features can be made to look good or bad by changing execution after the fact.
+Verification:
+- execution-contract tests PASS,
+- contracts are registered in `CANDIDATE_REGISTRY.json`,
+- neither contract is production/paper eligible merely because the action policy is frozen.
 
-**Close when**
-Swing v1 and Scalper v1 are preregistered as deterministic execution contracts before evaluating new signals against future outcomes.
+Scalper v1 remains a reproducibility/reference contract because the current rejection/fade development evidence is negative.
 
 ---
 
@@ -263,12 +262,12 @@ The Quiver MCP connection authenticates and free dataset discovery works, but pa
 **Status:** OPEN by protocol.
 
 Latest recorded checkpoint:
-- 221 valid snapshots,
-- ~0.519 elapsed days,
-- 9,779 snapshots still required,
-- ~29.481 elapsed days still required,
+- 237 valid snapshots,
+- ~0.556 elapsed days,
+- 9,763 snapshots still required,
+- ~29.444 elapsed days still required,
 - integrity PASS,
-- Fusion Grade ratio ~95.02%.
+- Fusion Grade ratio ~95.36%.
 
 No outcome analysis is permitted until both registered gates pass.
 
@@ -280,20 +279,39 @@ The scheduled Pristine Forward pipeline uses repo `.lab-data`, not the legacy hi
 Legacy public-datafeed forward records in `gtg-lab-data-jforex` remain preserved but excluded from forward validation.
 
 ## B-014 — JForex forward freshness gap
-**Status:** OPEN — operational / high.
+**Status:** CLOSED — 2026-10-04.
 
-At the 2026-10-04 post-settle check, the canonical `.lab-data` integrity audit of already sealed days remained PASS, but the sealer correctly reported:
+The user started `GtgForwardExport.jfx` from JForex Strategies.
 
-- `BLOCKED_MISSING_JFOREX_EXPORT`
-- missing expected settled day: `2026-10-03`
+Verified recovery:
+- authenticated JForex/IHistory export for 2026-10-03 exists,
+- BID rows = 1,440,
+- ASK rows = 1,440,
+- BID export/cache SHA256 parity PASS,
+- ASK export/cache SHA256 parity PASS,
+- canonical seal now includes 2026-10-03,
+- `FORWARD_SEAL_STATUS_LATEST.json` = PASS,
+- `FORWARD_SEAL_AUDIT_LATEST.json` = PASS,
+- canonical forward days = 4 (2026-09-30 through 2026-10-03),
+- Forward Gate now reports `canonical_forward_fresh=true`.
 
-JForex Desktop is running, but no 2026-10-03 export or cache file exists and standalone SDK credentials are not configured.
+A lifecycle bug was also fixed: already-sealed days with an append-only parity verification record no longer become invalid merely because JForex later evicts their local cache files. A new day still requires first-time export/cache parity before sealing.
 
-Operational verification on 2026-10-04:
-- the compiled `GtgForwardExport.jfx` exists under the JForex Strategies files directory;
-- Windows UI Automation exposes zero descendant controls for the Java JForex main window, so coordinate/keyboard automation would be blind and is intentionally not used in a trading application;
-- Dukascopy's supported desktop workflow is to start a compiled `.jfx` from the Strategies panel; SDK startup requires an authenticated client path.
+The separate Priority 8 cold-start autonomy blocker remains open; B-014 only covers the concrete 2026-10-03 freshness gap.
 
-**Why this matters:** the protocol must fail closed rather than silently substitute the public datafeed or perform unsafe blind GUI automation.
+## B-015 — Scheduled collector scripts hidden by sparse-checkout
+**Status:** CLOSED — 2026-10-04.
 
-**Close when:** the authenticated JForex/IHistory exporter writes 2026-10-03, export/cache parity is verified, and the canonical sealer/audit returns current-through-settle PASS.
+Symptom:
+- `GTG Microstructure Forward Capture` continued triggering but returned `0xFFFD0000`,
+- readiness remained stuck at 235 snapshots,
+- the task action pointed to `scripts/capture_microstructure_forward.ps1`, which was tracked by Git but absent from the sparse working tree.
+
+Recovery:
+- restored `capture_microstructure_forward.ps1` and `seal_pristine_forward.ps1` from HEAD,
+- added `scripts` to the repository sparse-checkout set,
+- manually reran the microstructure task and received LastResult `0`,
+- snapshot count advanced from 235 to 237,
+- manually reran `GTG Pristine Forward Seal Audit` and received LastResult `0`.
+
+The collector and seal scripts are now materialized persistently in this working tree.

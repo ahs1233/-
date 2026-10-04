@@ -33,9 +33,9 @@ The system is explicitly bidirectional:
 Scalper and Swing remain distinct execution tracks.
 
 ## Test status
-- unified GTGLab2 engine tests: **51/51 PASS**
-- forward gatekeeper tests: **4/4 PASS**
-- data-layer regression: **106/106 PASS**
+- unified GTGLab2 engine tests: **66/66 PASS**
+- GTGLab2 tools tests: **7/7 PASS**
+- data-layer regression: **107/107 PASS**
 
 ## Historical development experiments
 
@@ -70,19 +70,24 @@ Not eligible for Final Holdout or production/paper candidate promotion.
 Operational store:
 `C:\Users\alk\gtg-lab-library-comparison\.lab-data`
 
-Integrity audit of sealed days:
+Integrity / freshness audit:
 - PASS
-- 3 days
-- 2026-09-30 through 2026-10-02
+- 4 days
+- 2026-09-30 through 2026-10-03
 - origin: JForex API/IHistory
-- export/cache SHA256 parity verified
+- export/cache SHA256 parity verified for all sealed days
+- expected settled through: 2026-10-03
+- missing expected export days: none
 - decoded market data: false
 
-Freshness check at 2026-10-04 after the settle lag:
-- **BLOCKED_MISSING_JFOREX_EXPORT**
-- expected missing settled day: **2026-10-03**
-- JForex desktop process is running, but no 2026-10-03 export/cache files are present.
-- standalone SDK credentials are not configured, so the terminal path cannot legitimately generate the missing authenticated export.
+2026-10-03 recovery:
+- `GtgForwardExport.jfx` was started from JForex Strategies,
+- BID rows = 1,440 and ASK rows = 1,440,
+- both export/cache SHA256 checks PASS,
+- `FORWARD_SEAL_STATUS_LATEST.json` = PASS,
+- `FORWARD_SEAL_AUDIT_LATEST.json` = PASS.
+
+The separate cold-start autonomy issue remains open because the exporter still depends on an authenticated JForex session.
 
 Daily task:
 - `GTG Pristine Forward Seal Audit`
@@ -95,12 +100,12 @@ The older `C:\Users\alk\gtg-lab-data-jforex` forward records are legacy public-d
 Latest readiness checkpoint:
 - status: COLLECTING
 - integrity: PASS
-- valid snapshots: 235
-- snapshots remaining: 9,765
-- elapsed: ~0.528 days
-- time remaining: ~29.472 days
+- valid snapshots: 241
+- snapshots remaining: 9,759
+- elapsed: ~0.559 days
+- time remaining: ~29.441 days
 - earliest registered 30-day unlock: 2026-11-02T21:37:13Z
-- Fusion Grade ratio: ~95.02%
+- Fusion Grade ratio: ~95.44%
 
 Research locks remain:
 - outcome linkage: LOCKED
@@ -118,8 +123,9 @@ Executable forward gate:
 - 30-day gate: NOT MET
 - 10,000-snapshot gate: NOT MET
 - canonical forward audit: PASS
-- canonical forward freshness: NOT MET because 2026-10-03 export is missing
+- canonical forward freshness: PASS
 - candidate registration/forward-test permission: PASS
+- remaining block reasons: time gate + snapshot-count gate only
 - Historical Holdout allowed: **NO**
 - Production execution allowed: **NO**
 
@@ -130,7 +136,7 @@ Automated research-gate audit:
 - battery start: allowed
 - execution limit: 15 minutes
 - task-level verification: LastResult `0`
-- latest audit cycle recorded `micro=0 audit=0 seal=3 gate=3`; `seal=3/gate=3` are expected fail-closed blocker states, not crashes.
+- latest verified audit cycle recorded `micro=0 audit=0 seal=0 gate=3`; canonical price freshness is now PASS and gate=3 remains expected because the 30-day/10k microstructure conditions are still unmet.
 
 ## Liquid / Co-Invest
 - connection: VERIFIED
@@ -138,6 +144,9 @@ Automated research-gate audit:
 - Paper trading: **ENABLED**
 - no GTGLab2 live order placed
 - live strategy execution remains prohibited
+- raw forward-context snapshot archived under `forward_context/liquid/`
+- append-only SHA256 provenance manifest active
+- Liquid outcome linkage remains locked and is not part of the first PanWatch microstructure test
 
 Paper mode in the MCP connector does not automatically switch the separate Liquid web app to paper mode.
 
@@ -163,8 +172,11 @@ but current evidence is not robust to conservative execution costs.
 ## Current critical path
 1. Keep JForex and microstructure collection clean.
 2. Do not retune Sweep/Acceptance v0.1 on the same development history.
-3. Reach 30 days + 10,000 valid microstructure snapshots.
-4. The first incremental forward hypothesis is now frozen in `PROTOCOL_FORWARD_MICROSTRUCTURE_ACCEPTANCE_V01.md` before outcome linkage.
-5. When the corpus gate opens, test the frozen sign-majority microstructure treatment against the unchanged Acceptance/Retest baseline; Liquid positioning remains secondary context until a reproducible event-time capture path exists.
-6. Promote only a candidate that survives realistic costs and independent forward/paper evidence.
-7. Open Final Holdout only at its registered final gate.
+3. Swing v1 / Scalper v1 execution contracts are frozen; do not change their execution semantics after future outcomes are opened.
+4. Episode-based / purged evaluation and leave-one-source-out ablation infrastructure is frozen before the forward test.
+5. Reach 30 days + 10,000 valid microstructure snapshots.
+6. The first incremental forward hypothesis is frozen in `PROTOCOL_FORWARD_MICROSTRUCTURE_ACCEPTANCE_V01.md`.
+7. When the corpus gate opens, test the frozen sign-majority PanWatch treatment against the unchanged Acceptance/Retest baseline using the registered episode/time-block protocol.
+8. Liquid positioning is now captured with reproducible event-time/SHA provenance but remains secondary and locked from the primary first test.
+9. Promote only a candidate that survives realistic costs and independent forward/paper evidence.
+10. Open Final Holdout only at its registered final gate.

@@ -12,60 +12,60 @@
     "snapshot_count_gate": false
   },
   "progress": {
-    "valid_snapshots": 235,
-    "snapshots_remaining": 9765,
-    "elapsed_days": 0.5283776625925927,
-    "days_remaining": 29.471622337407407,
+    "valid_snapshots": 241,
+    "snapshots_remaining": 9759,
+    "elapsed_days": 0.5589234765625,
+    "days_remaining": 29.4410765234375,
     "first_capture": "2026-10-03T21:37:13.099764+00:00",
-    "last_capture": "2026-10-04T10:18:04.929812+00:00",
+    "last_capture": "2026-10-04T11:02:04.088139+00:00",
     "time_gate_unlock_utc": "2026-11-02T21:37:13.099764+00:00"
   },
   "quality": {
     "grade_counts": {
       "single_source_grade": 11,
-      "fusion_grade": 224
+      "fusion_grade": 230
     },
-    "fusion_grade_count": 224,
-    "fusion_grade_ratio": 0.9531914893617022,
+    "fusion_grade_count": 230,
+    "fusion_grade_ratio": 0.9543568464730291,
     "source_coverage": {
       "binance_xau_perp": {
-        "available_count": 231,
-        "coverage_ratio": 0.9829787234042553
+        "available_count": 237,
+        "coverage_ratio": 0.983402489626556
       },
       "bitfinex_xaut": {
-        "available_count": 235,
+        "available_count": 241,
         "coverage_ratio": 1.0
       },
       "kraken_paxg_spot": {
-        "available_count": 231,
-        "coverage_ratio": 0.9829787234042553
+        "available_count": 237,
+        "coverage_ratio": 0.983402489626556
       }
     },
     "ready_source_family_coverage": {
       "binance": {
-        "ready_count": 231,
-        "coverage_ratio": 0.9829787234042553
+        "ready_count": 237,
+        "coverage_ratio": 0.983402489626556
       },
       "bitfinex": {
         "ready_count": 132,
-        "coverage_ratio": 0.5617021276595745
+        "coverage_ratio": 0.5477178423236515
       },
       "kraken": {
-        "ready_count": 220,
-        "coverage_ratio": 0.9361702127659575
+        "ready_count": 226,
+        "coverage_ratio": 0.9377593360995851
       }
     },
     "cadence": {
-      "interval_count": 234,
-      "median_interval_seconds": 60.000515500000006,
+      "interval_count": 240,
+      "median_interval_seconds": 59.9969575,
       "max_gap_seconds": 29824.095055,
-      "gaps_over_90s": 8,
-      "gaps_over_300s": 3,
+      "gaps_over_90s": 9,
+      "gaps_over_300s": 4,
       "recent_interval_count": 60,
-      "recent_median_interval_seconds": 59.9790155,
+      "recent_median_interval_seconds": 59.9687745,
       "recent_max_gap_seconds": 29824.095055,
-      "recent_gaps_over_90s": 1,
-      "recent_gaps_over_300s": 1
+      "recent_gaps_over_90s": 2,
+      "recent_gaps_over_300s": 2
     }
   },
   "research_locks": {

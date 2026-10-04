@@ -217,11 +217,6 @@ def seal(
 
     for day in complete_days:
         src = source_metadata(export_root, day)
-        cache = cache_metadata(cache_root, day)
-        if cache is None:
-            pending_cache.append(day)
-            continue
-        verification = build_verification(day, src, cache)
         prior = existing.get(day)
 
         if prior is not None:
@@ -230,6 +225,32 @@ def seal(
                     raise ValueError(
                         f"sealed {day} {side.upper()} hash differs from JForex export"
                     )
+
+            # A prior append-only verification record is durable provenance.
+            # Once export/cache byte parity has been proven for these exact
+            # export hashes, later JForex cache eviction must not invalidate
+            # the already sealed day.
+            prior_verified = any(
+                row.get("kind") == "forward_m1_verify"
+                and row.get("day") == day
+                and row.get("export_cache_match") is True
+                and row.get("bid_export_sha256") == src["bid"]["sha256"]
+                and row.get("ask_export_sha256") == src["ask"]["sha256"]
+                and row.get("bid_cache_sha256") == src["bid"]["sha256"]
+                and row.get("ask_cache_sha256") == src["ask"]["sha256"]
+                for row in verification_rows
+            )
+            if prior_verified:
+                verified_existing.append(day)
+                continue
+
+        cache = cache_metadata(cache_root, day)
+        if cache is None:
+            pending_cache.append(day)
+            continue
+        verification = build_verification(day, src, cache)
+
+        if prior is not None:
             if any(same_verification(row, verification) for row in verification_rows):
                 verified_existing.append(day)
             else:

@@ -307,3 +307,28 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - No protected forward outcome decoded
 - No public-datafeed substitution used
 
+
+## 2026-10-04T11:05:51.248124Z — GTGLAB2-0016 — ultra_plan_execution_checkpoint
+
+**Action:** Frozen deterministic Swing/Scalper execution contracts, preregistered episode/purged evaluation, repaired JForex seal lifecycle and scheduled gate ordering, restored scheduled collector scripts under sparse checkout, and activated append-only Liquid forward-context capture.
+
+**Reason:** Continue GTGLab2 Ultra Plan without opening protected outcomes; close all executable infrastructure gaps before the 30-day/10k forward gate.
+
+**Result:** JForex seal/audit PASS through 2026-10-03; microstructure scheduled task recovered to LastResult=0 and collection resumed; canonical forward freshness PASS; engine 66/66 PASS; tools 7/7 PASS; data regression 107/107 PASS; forward gate remains BLOCK only for 30-day and 10,000-snapshot conditions.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/PROTOCOL_EXECUTION_CONTRACTS_V10.md`
+- `indicators/gtg-strategy-lab/gtglab2/PROTOCOL_EVALUATION_V10.md`
+- `indicators/gtg-strategy-lab/gtglab2/PROTOCOL_LIQUID_FORWARD_CONTEXT_V10.md`
+- `indicators/gtg-strategy-lab/data/seal_jforex_forward.py`
+- `scripts/gtglab2_gate_audit.ps1`
+
+**Verification:**
+- 66/66 engine tests PASS
+- 7/7 GTGLab2 tools tests PASS
+- 107/107 data regression tests PASS
+- FORWARD_SEAL_STATUS=PASS through 2026-10-03
+- FORWARD_SEAL_AUDIT=PASS 4/4 days
+- Microstructure task LastResult=0 after sparse-checkout recovery
+- Historical Holdout read=false; Pristine OOS decoded=false
+

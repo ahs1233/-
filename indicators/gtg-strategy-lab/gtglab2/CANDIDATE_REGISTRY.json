@@ -1,6 +1,28 @@
 {
-  "schema_version": "1.0",
-  "updated_utc": "2026-10-04T10:15:00Z",
+  "schema_version": "1.1",
+  "updated_utc": "2026-10-04T11:00:00Z",
+  "execution_contracts": {
+    "swing-v1": {
+      "status": "FROZEN",
+      "protocol": "PROTOCOL_EXECUTION_CONTRACTS_V10.md",
+      "timeout_h1_bars": 24,
+      "max_tranches": 5,
+      "tranche_r": 0.2,
+      "fill_delay_h1_bars": 1,
+      "promotion_eligible": false,
+      "reason": "Execution semantics are frozen; underlying Acceptance/Retest hypothesis remains forward-research only and is not robust enough for promotion."
+    },
+    "scalper-v1": {
+      "status": "FROZEN_REFERENCE_NOT_ELIGIBLE",
+      "protocol": "PROTOCOL_EXECUTION_CONTRACTS_V10.md",
+      "timeout_h1_bars": 12,
+      "max_tranches": 5,
+      "tranche_r": 0.2,
+      "fill_delay_h1_bars": 1,
+      "promotion_eligible": false,
+      "reason": "Deterministic Range/Rejection execution contract is frozen for reproducibility, but current development evidence for rejection/fade is negative."
+    }
+  },
   "candidates": {
     "doctrine-reference-v01": {
       "status": "REJECTED_DEVELOPMENT",
