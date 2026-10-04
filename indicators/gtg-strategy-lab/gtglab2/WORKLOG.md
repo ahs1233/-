@@ -679,3 +679,19 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - State clustering fit on 2018-2022 only
 - No future/outcome/year feature used in state creation
 - 2025-2026 explicitly treated as consumed diagnostic history
+
+
+## 2026-10-05 — GTGLAB2-0039 — market_state_yearly_audit_v01
+
+**Action:** Audited the frozen Market State Engine + FIXED management separately for every calendar year in the full historical period.
+
+**Result:** Scalper produced +37.364R overall but only 4 positive years out of 9. Swing produced +58.312R overall with 6 positive years, but 2021 (-25.677R), 2022 (-11.376R), and 2026 (-41.927R) failed. The most important diagnostic is that all accepted Swing states were positive in 2025 and all were negative in 2026, indicating a higher-order regime change not captured by the current static state representation.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_MARKET_STATE_YEARLY_AUDIT_V01_2026-10-05.md`
+
+**Verification:**
+- Frozen parameters unchanged
+- Pristine Forward OOS read=false
+- 2018 partial from March 1
+- 2026 partial through September 30

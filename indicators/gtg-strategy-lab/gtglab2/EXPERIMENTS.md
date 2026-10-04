@@ -256,3 +256,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Critical diagnosis: Swing State 0 (strong H1 downtrend) later failed (-12.438R PF 0.926), while State 4 (range recovery) remained positive (+9.220R PF 1.220) and State 5 remained mildly positive.
 - FIXED management beat preregistered early-protection alternatives. Management cannot rescue a bad market state.
 - Decision: retain State Reader architecture; no execution promotion; do not cherry-pick State 4 after consumed-history inspection.
+
+
+## 2026-10-05 — Market State Engine yearly audit v0.1
+- Audited the frozen Market State Engine year by year from 2018-03-01 through 2026-09-30 without changing parameters.
+- Scalper: +37.364R full period, PF 1.035, but only 4/9 positive years. 2020/2021 carry much of the edge.
+- Swing: +58.312R full period, PF 1.042, 6/9 positive years, but severe negative years in 2021, 2022 and 2026.
+- Critical finding: in 2025 all accepted Swing states (0/4/5) were positive; in 2026 all three were negative. The failure is therefore broader than State 0 alone.
+- Decision: static state-at-entry is insufficient; next research must model state transition/evolution and post-entry behavior.
