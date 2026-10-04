@@ -399,3 +399,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Historical Holdout read=false
 - Pristine OOS decoded=false
 
+
+## 2026-10-04T14:20:41.694807Z — GTGLAB2-0021 — pine_v02_exact_logic_validation
+
+**Action:** Emulated exact user-supplied Pine v0.2 logic across full clean Validation window on JForex BID OHLC.
+
+**Reason:** Clarified request: test this exact Pine code, not the broader Python strategy.
+
+**Result:** 40 trades: 31 long, 9 short; 16 wins, 24 losses; win rate 40%; total +33.246R; mean +0.831R; PF 2.3425. Holdout not read.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V02_EXACT_LOGIC_VALIDATION_2026-10-04.md`
+
+**Verification:**
+- Historical Holdout read=false
+

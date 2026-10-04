@@ -1,0 +1,23 @@
+{
+  "scope": "Exact logic emulation of supplied Pine v0.2 on clean JForex BID OHLC",
+  "validation_start_ms": 1710962424500,
+  "validation_end_ms": 1742864674300,
+  "historical_holdout_read": false,
+  "quality": {
+    "complete_h1": 40750,
+    "incomplete_dropped": 1015
+  },
+  "summary": {
+    "n": 40,
+    "longs": 31,
+    "shorts": 9,
+    "wins": 16,
+    "losses": 24,
+    "win_rate": 0.4,
+    "total_r": 33.2459773445121,
+    "mean_r": 0.8311494336128025,
+    "median_r": -0.5455199010503822,
+    "profit_factor": 2.342499466137787,
+    "net_cash": 3324.5977344512094
+  }
+}

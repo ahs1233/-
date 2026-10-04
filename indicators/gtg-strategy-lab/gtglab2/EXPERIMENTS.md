@@ -106,3 +106,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Rejection SINGLE: -0.13709R/trade; STAGED: -0.06494R/trade.
 - Conclusion: Acceptance path survives as research direction but is not stable across years; Rejection remains rejected.
 
+
+## 2026-10-04 — Pine v0.2 exact-logic Validation emulation
+- Tested the exact supplied Pine v0.2 logic on clean JForex BID OHLC across the full Validation window.
+- 40 trades: 31 LONG / 9 SHORT; 16 wins / 24 losses.
+- Win rate 40%; total +33.246R; mean +0.831R; PF 2.3425.
+- This is Pine-logic emulation, not the separate Python strategy implementation.
+- Historical Holdout remained sealed.
+
