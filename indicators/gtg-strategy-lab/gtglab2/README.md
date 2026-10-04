@@ -33,6 +33,7 @@ This directory is the permanent guide for the project.
 - `EXPERIMENTS.md` — experiments, results, failures, and verdicts.
 - `PROTOCOL.md` — rules that protect research validity.
 - `BLOCKERS.md` — prioritized blockers, why they matter, and the condition to close each one.
+- `ULTRA_PLAN_V01.md` — active gated implementation roadmap.
 - `ARTIFACT_INDEX.md` — map to important code/data/protocol artifacts.
 - `EVENTS.jsonl` — append-only machine-readable event ledger.
 - `tools/record_event.py` — helper for recording future work.
@@ -58,3 +59,7 @@ Until explicitly unlocked by registered protocol:
 - Historical Holdout remains locked.
 - Pristine Price OOS remains undecoded.
 - Microstructure must not be tuned against known future trading outcomes.
+
+## Active implementation
+
+Phase 1 foundation lives under `engine/` and starts the bidirectional Long/Short architecture, timeframe roles, inherited session compatibility, and causal moving-average geometry.
