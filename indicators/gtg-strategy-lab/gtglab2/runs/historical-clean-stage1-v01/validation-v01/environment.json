@@ -1,0 +1,14 @@
+{
+  "created_utc": "2026-10-04T12:33:29.141195+00:00",
+  "protocol_sha256": "07de585deffb6b07b6e33ec2683228edca658206b53be0c4aeaca49f5ac14230",
+  "first_valid_ms": 1631120400000,
+  "train_end_ms": 1710948024500,
+  "validation_start_ms": 1710962424500,
+  "validation_end_ms": 1742864674300,
+  "holdout_start_ms": 1742879074300,
+  "raw_cap_ms": 1742864400000,
+  "validation_read": true,
+  "historical_holdout_read": false,
+  "pristine_oos_read": false,
+  "microstructure_outcomes_read": false
+}

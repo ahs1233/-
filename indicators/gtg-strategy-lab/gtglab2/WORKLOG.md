@@ -365,3 +365,21 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Historical Holdout remains sealed
 - Live strategy execution remains blocked until Stage 1 completion
 
+
+## 2026-10-04T12:38:00.738052Z — GTGLAB2-0019 — historical_clean_validation_complete
+
+**Action:** Created immutable JForex historical clean snapshot, reproduced Train exactly, and completed one preregistered Validation run while keeping Historical Holdout sealed.
+
+**Reason:** Separate clean historical evaluation from the continuing development path as requested.
+
+**Result:** 2672 files/hash PASS; Train strategy rows 6252 exactly equal to prior run; Validation prefix parity PASS; BASE C1 single -0.1473R; Acceptance+Context C1 single +0.7283R and C2 single +0.6906R (n=40); Rejection remains negative; Holdout read=false.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_HISTORICAL_CLEAN_STAGE1_V01.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/historical-clean-stage1-v01/validation-v01/summary.json`
+
+**Verification:**
+- Historical Holdout read=false
+- Pristine OOS decoded=false
+- Train prefix parity PASS
+

@@ -1,0 +1,1613 @@
+{
+  "scope": "GTGLab2 Historical Clean Validation v0.1",
+  "protocol_sha256": "07de585deffb6b07b6e33ec2683228edca658206b53be0c4aeaca49f5ac14230",
+  "train_state_content_parity": {
+    "rows_compared": 34816,
+    "last_overlap_time": 1710889200000,
+    "state_content_sha256": "c0b4a52d14e0c83826638b7669401eb817d392dd2867c241f9a5d0923e2b7c3e",
+    "continuous_float_atol": 1e-12,
+    "max_abs_continuous_diff": 3.552713678800501e-15,
+    "status": "PASS"
+  },
+  "historical_holdout_read": false,
+  "pristine_forward_oos_decoded": false,
+  "microstructure_outcomes_read": false,
+  "quality": {
+    "complete_h1": 40750,
+    "incomplete_dropped": 1015
+  },
+  "fsm_diagnostics": {
+    "gap_resets": 548,
+    "max_transition_age_seen": 4
+  },
+  "discovery_all_pre_holdout": {
+    "boundary_breaks": 1328,
+    "acceptance": 907,
+    "acceptance_without_retest": 526,
+    "rejection": 421,
+    "transition_without_boundary_cross": 408,
+    "acceptance_with_retest": 381,
+    "ambiguous_two_sided": 6
+  },
+  "validation_episode_counts": {
+    "BASE": 109,
+    "CONTEXT": 75
+  },
+  "censored": {
+    "BASE": {
+      "overlap": 10
+    },
+    "CONTEXT": {
+      "context_blocked": 34,
+      "overlap": 10
+    }
+  },
+  "pairing": {
+    "BASE_C0": {
+      "paired_n": 109,
+      "staged_minus_single_mean_r": 0.1372368674374612,
+      "staged_minus_single_median_r": 0.1828081877251126,
+      "staged_beats_single_rate": 0.5871559633027523
+    },
+    "BASE_C1": {
+      "paired_n": 109,
+      "staged_minus_single_mean_r": 0.15286872820366082,
+      "staged_minus_single_median_r": 0.18391632341543962,
+      "staged_beats_single_rate": 0.5871559633027523
+    },
+    "BASE_C2": {
+      "paired_n": 109,
+      "staged_minus_single_mean_r": 0.16850058896986425,
+      "staged_minus_single_median_r": 0.19815842012452167,
+      "staged_beats_single_rate": 0.5871559633027523
+    },
+    "CONTEXT_C0": {
+      "paired_n": 75,
+      "staged_minus_single_mean_r": -0.0421804559643975,
+      "staged_minus_single_median_r": 0.008433131436835162,
+      "staged_beats_single_rate": 0.5066666666666667
+    },
+    "CONTEXT_C1": {
+      "paired_n": 75,
+      "staged_minus_single_mean_r": -0.030025904860128023,
+      "staged_minus_single_median_r": 0.02194113152779964,
+      "staged_beats_single_rate": 0.5066666666666667
+    },
+    "CONTEXT_C2": {
+      "paired_n": 75,
+      "staged_minus_single_mean_r": -0.017871353755849168,
+      "staged_minus_single_median_r": 0.035449131618840224,
+      "staged_beats_single_rate": 0.5066666666666667
+    }
+  },
+  "results": {
+    "BASE": {
+      "C0": {
+        "SINGLE": {
+          "overall": {
+            "n": 109,
+            "pnl_r_mean": -0.10698179417395468,
+            "pnl_r_median": -0.7020756202569912,
+            "pnl_r_total": -11.66101556496106,
+            "win_rate": 0.3302752293577982,
+            "max_drawdown_r": -25.41929122337156,
+            "avg_tranches": 1.0,
+            "avg_risk_weight_used": 1.0,
+            "mean_pnl_per_used_r": -0.10698179417395468,
+            "median_pnl_per_used_r": -0.7020756202569912,
+            "exit_kind_counts": {
+              "INVALIDATION": 69,
+              "TARGET": 15,
+              "TIMEOUT": 25
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 54,
+              "pnl_r_mean": 0.2259373120195537,
+              "pnl_r_median": -0.7179941292414433,
+              "pnl_r_total": 12.2006148490559,
+              "win_rate": 0.2962962962962963,
+              "max_drawdown_r": -12.702667196932815,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.2259373120195537,
+              "median_pnl_per_used_r": -0.7179941292414433,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 55,
+              "pnl_r_mean": -0.4338478257093992,
+              "pnl_r_median": -0.5145320053585023,
+              "pnl_r_total": -23.861630414016958,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -24.544949426941585,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.4338478257093992,
+              "median_pnl_per_used_r": -0.5145320053585023,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 15,
+                "TIMEOUT": 8
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 63,
+              "pnl_r_mean": 0.08509303820169033,
+              "pnl_r_median": -0.6920225181930474,
+              "pnl_r_total": 5.360861406706491,
+              "win_rate": 0.38095238095238093,
+              "max_drawdown_r": -17.24892026288263,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.08509303820169033,
+              "median_pnl_per_used_r": -0.6920225181930474,
+              "exit_kind_counts": {
+                "INVALIDATION": 38,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 46,
+              "pnl_r_mean": -0.370040803731903,
+              "pnl_r_median": -0.9410775037628147,
+              "pnl_r_total": -17.021876971667538,
+              "win_rate": 0.2608695652173913,
+              "max_drawdown_r": -18.716483658606542,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.370040803731903,
+              "median_pnl_per_used_r": -0.9410775037628147,
+              "exit_kind_counts": {
+                "INVALIDATION": 31,
+                "TIMEOUT": 8,
+                "TARGET": 7
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 55,
+              "pnl_r_mean": 0.07750265513278999,
+              "pnl_r_median": -0.6482387612331535,
+              "pnl_r_total": 4.26264603230345,
+              "win_rate": 0.38181818181818183,
+              "max_drawdown_r": -11.727645086131634,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.07750265513278999,
+              "median_pnl_per_used_r": -0.6482387612331535,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 7,
+                "TIMEOUT": 16
+              }
+            },
+            "VAL_LATE": {
+              "n": 54,
+              "pnl_r_mean": -0.29488262217156486,
+              "pnl_r_median": -0.763313833130412,
+              "pnl_r_total": -15.923661597264502,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -23.810490209754704,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.29488262217156486,
+              "median_pnl_per_used_r": -0.763313833130412,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TARGET": 8,
+                "TIMEOUT": 9
+              }
+            }
+          }
+        },
+        "STAGED": {
+          "overall": {
+            "n": 109,
+            "pnl_r_mean": 0.030255073263506578,
+            "pnl_r_median": -0.26704921067312015,
+            "pnl_r_total": 3.297802985722217,
+            "win_rate": 0.3211009174311927,
+            "max_drawdown_r": -11.10056324530218,
+            "avg_tranches": 3.2110091743119265,
+            "avg_risk_weight_used": 0.6422018348623855,
+            "mean_pnl_per_used_r": -0.3441117743604176,
+            "median_pnl_per_used_r": -0.8002369317340682,
+            "exit_kind_counts": {
+              "INVALIDATION": 69,
+              "TARGET": 15,
+              "TIMEOUT": 25
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 54,
+              "pnl_r_mean": 0.10765861704235566,
+              "pnl_r_median": -0.4070280294587172,
+              "pnl_r_total": 5.813565320287205,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -13.434414849856203,
+              "avg_tranches": 3.6666666666666665,
+              "avg_risk_weight_used": 0.7333333333333334,
+              "mean_pnl_per_used_r": -0.20847847951044915,
+              "median_pnl_per_used_r": -0.873486461894075,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 55,
+              "pnl_r_mean": -0.04574113335572718,
+              "pnl_r_median": -0.2514086431480746,
+              "pnl_r_total": -2.515762334564995,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -5.469916076180393,
+              "avg_tranches": 2.7636363636363637,
+              "avg_risk_weight_used": 0.5527272727272727,
+              "mean_pnl_per_used_r": -0.47727900930402284,
+              "median_pnl_per_used_r": -0.7464892106753964,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 15,
+                "TIMEOUT": 8
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 63,
+              "pnl_r_mean": 0.1654490103939209,
+              "pnl_r_median": -0.2564764871229939,
+              "pnl_r_total": 10.423287654817017,
+              "win_rate": 0.36507936507936506,
+              "max_drawdown_r": -7.259842268678437,
+              "avg_tranches": 3.4761904761904763,
+              "avg_risk_weight_used": 0.6952380952380953,
+              "mean_pnl_per_used_r": -0.20106189311124656,
+              "median_pnl_per_used_r": -0.6920225181930474,
+              "exit_kind_counts": {
+                "INVALIDATION": 38,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 46,
+              "pnl_r_mean": -0.15490184063249576,
+              "pnl_r_median": -0.32862454562377763,
+              "pnl_r_total": -7.125484669094805,
+              "win_rate": 0.2608695652173913,
+              "max_drawdown_r": -9.947023755741705,
+              "avg_tranches": 2.847826086956522,
+              "avg_risk_weight_used": 0.5695652173913043,
+              "mean_pnl_per_used_r": -0.5400279160712388,
+              "median_pnl_per_used_r": -1.0038335993548377,
+              "exit_kind_counts": {
+                "INVALIDATION": 31,
+                "TIMEOUT": 8,
+                "TARGET": 7
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 55,
+              "pnl_r_mean": 0.1217352486926644,
+              "pnl_r_median": -0.25421555384643796,
+              "pnl_r_total": 6.695438678096542,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -5.119150268129164,
+              "avg_tranches": 3.3636363636363638,
+              "avg_risk_weight_used": 0.6727272727272727,
+              "mean_pnl_per_used_r": -0.20189415553260168,
+              "median_pnl_per_used_r": -0.7997157198063035,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 7,
+                "TIMEOUT": 16
+              }
+            },
+            "VAL_LATE": {
+              "n": 54,
+              "pnl_r_mean": -0.06291917948841343,
+              "pnl_r_median": -0.28282244747163937,
+              "pnl_r_total": -3.3976356923743247,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -11.10056324530218,
+              "avg_tranches": 3.0555555555555554,
+              "avg_risk_weight_used": 0.6111111111111109,
+              "mean_pnl_per_used_r": -0.488963052796156,
+              "median_pnl_per_used_r": -0.8201456493576522,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TARGET": 8,
+                "TIMEOUT": 9
+              }
+            }
+          }
+        }
+      },
+      "C1": {
+        "SINGLE": {
+          "overall": {
+            "n": 109,
+            "pnl_r_mean": -0.1472844197923643,
+            "pnl_r_median": -0.7333700928082302,
+            "pnl_r_total": -16.05400175736771,
+            "win_rate": 0.3211009174311927,
+            "max_drawdown_r": -27.81367997731592,
+            "avg_tranches": 1.0,
+            "avg_risk_weight_used": 1.0,
+            "mean_pnl_per_used_r": -0.1472844197923643,
+            "median_pnl_per_used_r": -0.7333700928082302,
+            "exit_kind_counts": {
+              "INVALIDATION": 69,
+              "TARGET": 15,
+              "TIMEOUT": 25
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 54,
+              "pnl_r_mean": 0.1884646489284681,
+              "pnl_r_median": -0.7541474834065889,
+              "pnl_r_total": 10.177091042137278,
+              "win_rate": 0.2962962962962963,
+              "max_drawdown_r": -13.320951564257346,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.1884646489284681,
+              "median_pnl_per_used_r": -0.7541474834065889,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 55,
+              "pnl_r_mean": -0.47692895999099977,
+              "pnl_r_median": -0.5541562972022893,
+              "pnl_r_total": -26.23109279950499,
+              "win_rate": 0.34545454545454546,
+              "max_drawdown_r": -26.835349361959217,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.47692895999099977,
+              "median_pnl_per_used_r": -0.5541562972022893,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 15,
+                "TIMEOUT": 8
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 63,
+              "pnl_r_mean": 0.04482361514979887,
+              "pnl_r_median": -0.7286204174104048,
+              "pnl_r_total": 2.823887754437329,
+              "win_rate": 0.38095238095238093,
+              "max_drawdown_r": -17.950606323644134,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.04482361514979887,
+              "median_pnl_per_used_r": -0.7286204174104048,
+              "exit_kind_counts": {
+                "INVALIDATION": 38,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 46,
+              "pnl_r_mean": -0.4103889024305444,
+              "pnl_r_median": -0.97427697974047,
+              "pnl_r_total": -18.87788951180504,
+              "win_rate": 0.2391304347826087,
+              "max_drawdown_r": -20.466578465228682,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.4103889024305444,
+              "median_pnl_per_used_r": -0.97427697974047,
+              "exit_kind_counts": {
+                "INVALIDATION": 31,
+                "TIMEOUT": 8,
+                "TARGET": 7
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 55,
+              "pnl_r_mean": 0.038459741489841784,
+              "pnl_r_median": -0.6843289734932653,
+              "pnl_r_total": 2.115285781941298,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -12.602378550735555,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.038459741489841784,
+              "median_pnl_per_used_r": -0.6843289734932653,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 7,
+                "TIMEOUT": 16
+              }
+            },
+            "VAL_LATE": {
+              "n": 54,
+              "pnl_r_mean": -0.3364682877649817,
+              "pnl_r_median": -0.7967269078092245,
+              "pnl_r_total": -18.169287539309014,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -25.038424073506274,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.3364682877649817,
+              "median_pnl_per_used_r": -0.7967269078092245,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TARGET": 8,
+                "TIMEOUT": 9
+              }
+            }
+          }
+        },
+        "STAGED": {
+          "overall": {
+            "n": 109,
+            "pnl_r_mean": 0.005584308411296495,
+            "pnl_r_median": -0.2797640997889218,
+            "pnl_r_total": 0.608689616831318,
+            "win_rate": 0.3211009174311927,
+            "max_drawdown_r": -11.74855504276802,
+            "avg_tranches": 3.2110091743119265,
+            "avg_risk_weight_used": 0.6422018348623855,
+            "mean_pnl_per_used_r": -0.3839838955609615,
+            "median_pnl_per_used_r": -0.84881618539912,
+            "exit_kind_counts": {
+              "INVALIDATION": 69,
+              "TARGET": 15,
+              "TIMEOUT": 25
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 54,
+              "pnl_r_mean": 0.08114950401416332,
+              "pnl_r_median": -0.4254820155331238,
+              "pnl_r_total": 4.3820732167648195,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -14.24912136224394,
+              "avg_tranches": 3.6666666666666665,
+              "avg_risk_weight_used": 0.7333333333333334,
+              "mean_pnl_per_used_r": -0.24471803760167515,
+              "median_pnl_per_used_r": -0.9068731180522565,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 55,
+              "pnl_r_mean": -0.06860697454424551,
+              "pnl_r_median": -0.2611472119926609,
+              "pnl_r_total": -3.7733835999335033,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -5.816585300058467,
+              "avg_tranches": 2.7636363636363637,
+              "avg_risk_weight_used": 0.5527272727272727,
+              "mean_pnl_per_used_r": -0.5207176470118973,
+              "median_pnl_per_used_r": -0.7846490330301298,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 15,
+                "TIMEOUT": 8
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 63,
+              "pnl_r_mean": 0.13806381868510884,
+              "pnl_r_median": -0.27238106002697143,
+              "pnl_r_total": 8.698020577161858,
+              "win_rate": 0.36507936507936506,
+              "max_drawdown_r": -7.655094523880097,
+              "avg_tranches": 3.4761904761904763,
+              "avg_risk_weight_used": 0.6952380952380953,
+              "mean_pnl_per_used_r": -0.2405812435894215,
+              "median_pnl_per_used_r": -0.7286204174104047,
+              "exit_kind_counts": {
+                "INVALIDATION": 38,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 46,
+              "pnl_r_mean": -0.1758550208767509,
+              "pnl_r_median": -0.34076939640936654,
+              "pnl_r_total": -8.08933096033054,
+              "win_rate": 0.2608695652173913,
+              "max_drawdown_r": -10.56649222056494,
+              "avg_tranches": 2.847826086956522,
+              "avg_risk_weight_used": 0.5695652173913043,
+              "mean_pnl_per_used_r": -0.5803831797828533,
+              "median_pnl_per_used_r": -1.0527488101714937,
+              "exit_kind_counts": {
+                "INVALIDATION": 31,
+                "TIMEOUT": 8,
+                "TARGET": 7
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 55,
+              "pnl_r_mean": 0.09666595301175757,
+              "pnl_r_median": -0.27238106002697143,
+              "pnl_r_total": 5.316627415646666,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -5.242344737793309,
+              "avg_tranches": 3.3636363636363638,
+              "avg_risk_weight_used": 0.6727272727272727,
+              "mean_pnl_per_used_r": -0.24026799420750916,
+              "median_pnl_per_used_r": -0.830153173721834,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 7,
+                "TIMEOUT": 16
+              }
+            },
+            "VAL_LATE": {
+              "n": 54,
+              "pnl_r_mean": -0.08718403331139533,
+              "pnl_r_median": -0.29681185650048686,
+              "pnl_r_total": -4.707937798815348,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -11.748555042768018,
+              "avg_tranches": 3.0555555555555554,
+              "avg_risk_weight_used": 0.6111111111111109,
+              "mean_pnl_per_used_r": -0.5303612024950333,
+              "median_pnl_per_used_r": -0.8606845790778451,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TARGET": 8,
+                "TIMEOUT": 9
+              }
+            }
+          }
+        }
+      },
+      "C2": {
+        "SINGLE": {
+          "overall": {
+            "n": 109,
+            "pnl_r_mean": -0.1875870454107824,
+            "pnl_r_median": -0.7652183166277623,
+            "pnl_r_total": -20.44698794977528,
+            "win_rate": 0.3211009174311927,
+            "max_drawdown_r": -30.28802743979641,
+            "avg_tranches": 1.0,
+            "avg_risk_weight_used": 1.0,
+            "mean_pnl_per_used_r": -0.1875870454107824,
+            "median_pnl_per_used_r": -0.7652183166277623,
+            "exit_kind_counts": {
+              "INVALIDATION": 69,
+              "TARGET": 15,
+              "TIMEOUT": 25
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 54,
+              "pnl_r_mean": 0.15099198583737045,
+              "pnl_r_median": -0.7903008375717344,
+              "pnl_r_total": 8.153567235218004,
+              "win_rate": 0.2962962962962963,
+              "max_drawdown_r": -14.410683419352736,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.15099198583737045,
+              "median_pnl_per_used_r": -0.7903008375717344,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 55,
+              "pnl_r_mean": -0.5200100942726052,
+              "pnl_r_median": -0.5937805890461381,
+              "pnl_r_total": -28.600555184993286,
+              "win_rate": 0.34545454545454546,
+              "max_drawdown_r": -29.125749296976945,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.5200100942726052,
+              "median_pnl_per_used_r": -0.5937805890461381,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 15,
+                "TIMEOUT": 8
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 63,
+              "pnl_r_mean": 0.004554192097892796,
+              "pnl_r_median": -0.7646645653594158,
+              "pnl_r_total": 0.2869141021672461,
+              "win_rate": 0.38095238095238093,
+              "max_drawdown_r": -18.652292384405698,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.004554192097892796,
+              "median_pnl_per_used_r": -0.7646645653594158,
+              "exit_kind_counts": {
+                "INVALIDATION": 38,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 46,
+              "pnl_r_mean": -0.45073700112918524,
+              "pnl_r_median": -1.0074764557181006,
+              "pnl_r_total": -20.733902051942522,
+              "win_rate": 0.2391304347826087,
+              "max_drawdown_r": -22.2166732718508,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.45073700112918524,
+              "median_pnl_per_used_r": -1.0074764557181006,
+              "exit_kind_counts": {
+                "INVALIDATION": 31,
+                "TIMEOUT": 8,
+                "TARGET": 7
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 55,
+              "pnl_r_mean": -0.0005831721531216936,
+              "pnl_r_median": -0.7247776145019995,
+              "pnl_r_total": -0.03207446842169315,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -13.47711201533991,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.0005831721531216936,
+              "median_pnl_per_used_r": -0.7247776145019995,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 7,
+                "TIMEOUT": 16
+              }
+            },
+            "VAL_LATE": {
+              "n": 54,
+              "pnl_r_mean": -0.3780539533583997,
+              "pnl_r_median": -0.83041685812221,
+              "pnl_r_total": -20.414913481353583,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -26.34631664579402,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.3780539533583997,
+              "median_pnl_per_used_r": -0.83041685812221,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TARGET": 8,
+                "TIMEOUT": 9
+              }
+            }
+          }
+        },
+        "STAGED": {
+          "overall": {
+            "n": 109,
+            "pnl_r_mean": -0.01908645644091809,
+            "pnl_r_median": -0.2923160072379273,
+            "pnl_r_total": -2.0804237520600717,
+            "win_rate": 0.3211009174311927,
+            "max_drawdown_r": -12.396546840233622,
+            "avg_tranches": 3.2110091743119265,
+            "avg_risk_weight_used": 0.6422018348623855,
+            "mean_pnl_per_used_r": -0.42385601676150797,
+            "median_pnl_per_used_r": -0.8936654594594952,
+            "exit_kind_counts": {
+              "INVALIDATION": 69,
+              "TARGET": 15,
+              "TIMEOUT": 25
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 54,
+              "pnl_r_mean": 0.05464039098596974,
+              "pnl_r_median": -0.4429458240030391,
+              "pnl_r_total": 2.950581113242366,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -15.063827874631572,
+              "avg_tranches": 3.6666666666666665,
+              "avg_risk_weight_used": 0.7333333333333334,
+              "mean_pnl_per_used_r": -0.28095759569290274,
+              "median_pnl_per_used_r": -0.942124764012739,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 55,
+              "pnl_r_mean": -0.09147281573277162,
+              "pnl_r_median": -0.2708857808372472,
+              "pnl_r_total": -5.031004865302439,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -6.163254523936589,
+              "avg_tranches": 2.7636363636363637,
+              "avg_risk_weight_used": 0.5527272727272727,
+              "mean_pnl_per_used_r": -0.5641562847197749,
+              "median_pnl_per_used_r": -0.8228088553848336,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 15,
+                "TIMEOUT": 8
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 63,
+              "pnl_r_mean": 0.11067862697628808,
+              "pnl_r_median": -0.28903948957472425,
+              "pnl_r_total": 6.972753499506149,
+              "win_rate": 0.36507936507936506,
+              "max_drawdown_r": -8.050346779081812,
+              "avg_tranches": 3.4761904761904763,
+              "avg_risk_weight_used": 0.6952380952380953,
+              "mean_pnl_per_used_r": -0.2801005940676057,
+              "median_pnl_per_used_r": -0.7652183166277622,
+              "exit_kind_counts": {
+                "INVALIDATION": 38,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 46,
+              "pnl_r_mean": -0.19680820112100483,
+              "pnl_r_median": -0.35291424719494047,
+              "pnl_r_total": -9.053177251566222,
+              "win_rate": 0.2608695652173913,
+              "max_drawdown_r": -11.443347140211957,
+              "avg_tranches": 2.847826086956522,
+              "avg_risk_weight_used": 0.5695652173913043,
+              "mean_pnl_per_used_r": -0.6207384434944612,
+              "median_pnl_per_used_r": -1.0940552201253833,
+              "exit_kind_counts": {
+                "INVALIDATION": 31,
+                "TIMEOUT": 8,
+                "TARGET": 7
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 55,
+              "pnl_r_mean": 0.07159665733084235,
+              "pnl_r_median": -0.29054656620755387,
+              "pnl_r_total": 3.937816153196329,
+              "win_rate": 0.36363636363636365,
+              "max_drawdown_r": -5.365539207457616,
+              "avg_tranches": 3.3636363636363638,
+              "avg_risk_weight_used": 0.6727272727272727,
+              "mean_pnl_per_used_r": -0.27864183288242284,
+              "median_pnl_per_used_r": -0.8605906276373078,
+              "exit_kind_counts": {
+                "INVALIDATION": 32,
+                "TARGET": 7,
+                "TIMEOUT": 16
+              }
+            },
+            "VAL_LATE": {
+              "n": 54,
+              "pnl_r_mean": -0.1114488871343778,
+              "pnl_r_median": -0.3108012655293336,
+              "pnl_r_total": -6.018239905256401,
+              "win_rate": 0.2777777777777778,
+              "max_drawdown_r": -12.396546840233624,
+              "avg_tranches": 3.0555555555555554,
+              "avg_risk_weight_used": 0.6111111111111109,
+              "mean_pnl_per_used_r": -0.5717593521939095,
+              "median_pnl_per_used_r": -0.9012235087980078,
+              "exit_kind_counts": {
+                "INVALIDATION": 37,
+                "TARGET": 8,
+                "TIMEOUT": 9
+              }
+            }
+          }
+        }
+      }
+    },
+    "CONTEXT": {
+      "C0": {
+        "SINGLE": {
+          "overall": {
+            "n": 75,
+            "pnl_r_mean": 0.2486132139514143,
+            "pnl_r_median": -0.5484151774284237,
+            "pnl_r_total": 18.645991046356073,
+            "win_rate": 0.41333333333333333,
+            "max_drawdown_r": -12.541345299631843,
+            "avg_tranches": 1.0,
+            "avg_risk_weight_used": 1.0,
+            "mean_pnl_per_used_r": 0.2486132139514143,
+            "median_pnl_per_used_r": -0.5484151774284237,
+            "exit_kind_counts": {
+              "INVALIDATION": 42,
+              "TARGET": 11,
+              "TIMEOUT": 22
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 40,
+              "pnl_r_mean": 0.7659228710197301,
+              "pnl_r_median": -0.5934425543654092,
+              "pnl_r_total": 30.636914840789206,
+              "win_rate": 0.4,
+              "max_drawdown_r": -5.230605908949631,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.7659228710197301,
+              "median_pnl_per_used_r": -0.5934425543654092,
+              "exit_kind_counts": {
+                "INVALIDATION": 23,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 35,
+              "pnl_r_mean": -0.3425978226980893,
+              "pnl_r_median": -0.46306454636595173,
+              "pnl_r_total": -11.990923794433126,
+              "win_rate": 0.42857142857142855,
+              "max_drawdown_r": -13.634683266206803,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.3425978226980893,
+              "median_pnl_per_used_r": -0.46306454636595173,
+              "exit_kind_counts": {
+                "INVALIDATION": 19,
+                "TARGET": 11,
+                "TIMEOUT": 5
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 60,
+              "pnl_r_mean": 0.18319680244916234,
+              "pnl_r_median": -0.5244390674826455,
+              "pnl_r_total": 10.99180814694974,
+              "win_rate": 0.4,
+              "max_drawdown_r": -12.733689174536089,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.18319680244916234,
+              "median_pnl_per_used_r": -0.5244390674826455,
+              "exit_kind_counts": {
+                "INVALIDATION": 35,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 15,
+              "pnl_r_mean": 0.5102788599604223,
+              "pnl_r_median": -0.579498671978763,
+              "pnl_r_total": 7.654182899406336,
+              "win_rate": 0.4666666666666667,
+              "max_drawdown_r": -3.598682121610926,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.5102788599604223,
+              "median_pnl_per_used_r": -0.579498671978763,
+              "exit_kind_counts": {
+                "INVALIDATION": 7,
+                "TIMEOUT": 5,
+                "TARGET": 3
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 43,
+              "pnl_r_mean": 0.3873781196907284,
+              "pnl_r_median": -0.579498671978763,
+              "pnl_r_total": 16.65725914670132,
+              "win_rate": 0.4418604651162791,
+              "max_drawdown_r": -10.927873065984988,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.3873781196907284,
+              "median_pnl_per_used_r": -0.579498671978763,
+              "exit_kind_counts": {
+                "INVALIDATION": 22,
+                "TARGET": 6,
+                "TIMEOUT": 15
+              }
+            },
+            "VAL_LATE": {
+              "n": 32,
+              "pnl_r_mean": 0.06214787186421117,
+              "pnl_r_median": -0.5057398618971878,
+              "pnl_r_total": 1.9887318996547574,
+              "win_rate": 0.375,
+              "max_drawdown_r": -12.541345299631843,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.06214787186421117,
+              "median_pnl_per_used_r": -0.5057398618971878,
+              "exit_kind_counts": {
+                "INVALIDATION": 20,
+                "TARGET": 5,
+                "TIMEOUT": 7
+              }
+            }
+          }
+        },
+        "STAGED": {
+          "overall": {
+            "n": 75,
+            "pnl_r_mean": 0.20643275798701685,
+            "pnl_r_median": -0.25421555384643796,
+            "pnl_r_total": 15.482456849026264,
+            "win_rate": 0.38666666666666666,
+            "max_drawdown_r": -5.119150268129164,
+            "avg_tranches": 3.56,
+            "avg_risk_weight_used": 0.7120000000000001,
+            "mean_pnl_per_used_r": -0.08841134281558934,
+            "median_pnl_per_used_r": -0.6611990019484271,
+            "exit_kind_counts": {
+              "INVALIDATION": 42,
+              "TARGET": 11,
+              "TIMEOUT": 22
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 40,
+              "pnl_r_mean": 0.4290476160248685,
+              "pnl_r_median": -0.26186525435191255,
+              "pnl_r_total": 17.16190464099474,
+              "win_rate": 0.375,
+              "max_drawdown_r": -5.75657469834149,
+              "avg_tranches": 4.0,
+              "avg_risk_weight_used": 0.8,
+              "mean_pnl_per_used_r": 0.21973526602872573,
+              "median_pnl_per_used_r": -0.6546631358797814,
+              "exit_kind_counts": {
+                "INVALIDATION": 23,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 35,
+              "pnl_r_mean": -0.04798422262767086,
+              "pnl_r_median": -0.23630848423569042,
+              "pnl_r_total": -1.67944779196848,
+              "win_rate": 0.4,
+              "max_drawdown_r": -5.631718568030735,
+              "avg_tranches": 3.057142857142857,
+              "avg_risk_weight_used": 0.6114285714285715,
+              "mean_pnl_per_used_r": -0.44057889578052095,
+              "median_pnl_per_used_r": -0.6661156572584253,
+              "exit_kind_counts": {
+                "INVALIDATION": 19,
+                "TARGET": 11,
+                "TIMEOUT": 5
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 60,
+              "pnl_r_mean": 0.21609608166788513,
+              "pnl_r_median": -0.25534602048471594,
+              "pnl_r_total": 12.965764900073108,
+              "win_rate": 0.38333333333333336,
+              "max_drawdown_r": -5.396569803139929,
+              "avg_tranches": 3.55,
+              "avg_risk_weight_used": 0.7100000000000002,
+              "mean_pnl_per_used_r": -0.12044598698165455,
+              "median_pnl_per_used_r": -0.6775211416938727,
+              "exit_kind_counts": {
+                "INVALIDATION": 35,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 15,
+              "pnl_r_mean": 0.16777946326354348,
+              "pnl_r_median": -0.12147728735041105,
+              "pnl_r_total": 2.5166919489531523,
+              "win_rate": 0.4,
+              "max_drawdown_r": -2.6671128729659594,
+              "avg_tranches": 3.6,
+              "avg_risk_weight_used": 0.72,
+              "mean_pnl_per_used_r": 0.0397272338486715,
+              "median_pnl_per_used_r": -0.4319220955900168,
+              "exit_kind_counts": {
+                "INVALIDATION": 7,
+                "TIMEOUT": 5,
+                "TARGET": 3
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 43,
+              "pnl_r_mean": 0.24796602155048414,
+              "pnl_r_median": -0.16004738634681365,
+              "pnl_r_total": 10.662538926670818,
+              "win_rate": 0.4186046511627907,
+              "max_drawdown_r": -5.119150268129164,
+              "avg_tranches": 3.7674418604651163,
+              "avg_risk_weight_used": 0.7534883720930234,
+              "mean_pnl_per_used_r": 0.041250277883856545,
+              "median_pnl_per_used_r": -0.477667454159272,
+              "exit_kind_counts": {
+                "INVALIDATION": 22,
+                "TARGET": 6,
+                "TIMEOUT": 15
+              }
+            },
+            "VAL_LATE": {
+              "n": 32,
+              "pnl_r_mean": 0.1506224350736077,
+              "pnl_r_median": -0.26186525435191255,
+              "pnl_r_total": 4.8199179223554465,
+              "win_rate": 0.34375,
+              "max_drawdown_r": -4.265004037029863,
+              "avg_tranches": 3.28125,
+              "avg_risk_weight_used": 0.65625,
+              "mean_pnl_per_used_r": -0.2626441456304698,
+              "median_pnl_per_used_r": -0.6668693419706129,
+              "exit_kind_counts": {
+                "INVALIDATION": 20,
+                "TARGET": 5,
+                "TIMEOUT": 7
+              }
+            }
+          }
+        }
+      },
+      "C1": {
+        "SINGLE": {
+          "overall": {
+            "n": 75,
+            "pnl_r_mean": 0.2097837229452797,
+            "pnl_r_median": -0.5967175610630819,
+            "pnl_r_total": 15.733779220895977,
+            "win_rate": 0.4,
+            "max_drawdown_r": -13.25346793821603,
+            "avg_tranches": 1.0,
+            "avg_risk_weight_used": 1.0,
+            "mean_pnl_per_used_r": 0.2097837229452797,
+            "median_pnl_per_used_r": -0.5967175610630819,
+            "exit_kind_counts": {
+              "INVALIDATION": 42,
+              "TARGET": 11,
+              "TIMEOUT": 22
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 40,
+              "pnl_r_mean": 0.7282723657058214,
+              "pnl_r_median": -0.6196634407433272,
+              "pnl_r_total": 29.13089462823286,
+              "win_rate": 0.4,
+              "max_drawdown_r": -5.281660132015585,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.7282723657058214,
+              "median_pnl_per_used_r": -0.6196634407433272,
+              "exit_kind_counts": {
+                "INVALIDATION": 23,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 35,
+              "pnl_r_mean": -0.382774725923911,
+              "pnl_r_median": -0.49366705355904156,
+              "pnl_r_total": -13.397115407336884,
+              "win_rate": 0.4,
+              "max_drawdown_r": -14.001371969791109,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.382774725923911,
+              "median_pnl_per_used_r": -0.49366705355904156,
+              "exit_kind_counts": {
+                "INVALIDATION": 19,
+                "TARGET": 11,
+                "TIMEOUT": 5
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 60,
+              "pnl_r_mean": 0.14300744767356416,
+              "pnl_r_median": -0.5692731626883496,
+              "pnl_r_total": 8.580446860413849,
+              "win_rate": 0.4,
+              "max_drawdown_r": -13.349444326615428,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.14300744767356416,
+              "median_pnl_per_used_r": -0.5692731626883496,
+              "exit_kind_counts": {
+                "INVALIDATION": 35,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 15,
+              "pnl_r_mean": 0.476888824032142,
+              "pnl_r_median": -0.6062692388778557,
+              "pnl_r_total": 7.15333236048213,
+              "win_rate": 0.4,
+              "max_drawdown_r": -3.6762516240558254,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.476888824032142,
+              "median_pnl_per_used_r": -0.6062692388778557,
+              "exit_kind_counts": {
+                "INVALIDATION": 7,
+                "TIMEOUT": 5,
+                "TARGET": 3
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 43,
+              "pnl_r_mean": 0.3490779971507172,
+              "pnl_r_median": -0.6062692388778557,
+              "pnl_r_total": 15.01035387748084,
+              "win_rate": 0.4186046511627907,
+              "max_drawdown_r": -11.328760224783588,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.3490779971507172,
+              "median_pnl_per_used_r": -0.6062692388778557,
+              "exit_kind_counts": {
+                "INVALIDATION": 22,
+                "TARGET": 6,
+                "TIMEOUT": 15
+              }
+            },
+            "VAL_LATE": {
+              "n": 32,
+              "pnl_r_mean": 0.02260704198172303,
+              "pnl_r_median": -0.547413456514168,
+              "pnl_r_total": 0.723425343415137,
+              "win_rate": 0.375,
+              "max_drawdown_r": -13.253467938216037,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.02260704198172303,
+              "median_pnl_per_used_r": -0.547413456514168,
+              "exit_kind_counts": {
+                "INVALIDATION": 20,
+                "TARGET": 5,
+                "TIMEOUT": 7
+              }
+            }
+          }
+        },
+        "STAGED": {
+          "overall": {
+            "n": 75,
+            "pnl_r_mean": 0.17975781808515168,
+            "pnl_r_median": -0.26485513940590216,
+            "pnl_r_total": 13.481836356386376,
+            "win_rate": 0.38666666666666666,
+            "max_drawdown_r": -5.242344737793309,
+            "avg_tranches": 3.56,
+            "avg_risk_weight_used": 0.7120000000000001,
+            "mean_pnl_per_used_r": -0.12656216153113106,
+            "median_pnl_per_used_r": -0.6917949960136005,
+            "exit_kind_counts": {
+              "INVALIDATION": 42,
+              "TARGET": 11,
+              "TIMEOUT": 22
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 40,
+              "pnl_r_mean": 0.40021549603192563,
+              "pnl_r_median": -0.2762715013791107,
+              "pnl_r_total": 16.008619841277024,
+              "win_rate": 0.375,
+              "max_drawdown_r": -6.041733609572049,
+              "avg_tranches": 4.0,
+              "avg_risk_weight_used": 0.8,
+              "mean_pnl_per_used_r": 0.18375452309875082,
+              "median_pnl_per_used_r": -0.6906787534477767,
+              "exit_kind_counts": {
+                "INVALIDATION": 23,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 35,
+              "pnl_r_mean": -0.07219381385401853,
+              "pnl_r_median": -0.2448900762937868,
+              "pnl_r_total": -2.5267834848906485,
+              "win_rate": 0.4,
+              "max_drawdown_r": -5.788466197949002,
+              "avg_tranches": 3.057142857142857,
+              "avg_risk_weight_used": 0.6114285714285715,
+              "mean_pnl_per_used_r": -0.4812098011081389,
+              "median_pnl_per_used_r": -0.6917949960136005,
+              "exit_kind_counts": {
+                "INVALIDATION": 19,
+                "TARGET": 11,
+                "TIMEOUT": 5
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 60,
+              "pnl_r_mean": 0.18819813527032445,
+              "pnl_r_median": -0.2686180997164368,
+              "pnl_r_total": 11.291888116219466,
+              "win_rate": 0.38333333333333336,
+              "max_drawdown_r": -5.474549056974316,
+              "avg_tranches": 3.55,
+              "avg_risk_weight_used": 0.7100000000000002,
+              "mean_pnl_per_used_r": -0.15987905085703785,
+              "median_pnl_per_used_r": -0.7124679743736069,
+              "exit_kind_counts": {
+                "INVALIDATION": 35,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 15,
+              "pnl_r_mean": 0.14599654934446066,
+              "pnl_r_median": -0.13918287291500248,
+              "pnl_r_total": 2.1899482401669097,
+              "win_rate": 0.4,
+              "max_drawdown_r": -2.7442807516190415,
+              "avg_tranches": 3.6,
+              "avg_risk_weight_used": 0.72,
+              "mean_pnl_per_used_r": 0.006705395772495936,
+              "median_pnl_per_used_r": -0.4491413191933591,
+              "exit_kind_counts": {
+                "INVALIDATION": 7,
+                "TIMEOUT": 5,
+                "TARGET": 3
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 43,
+              "pnl_r_mean": 0.21978427928913874,
+              "pnl_r_median": -0.169763237079824,
+              "pnl_r_total": 9.450724009432966,
+              "win_rate": 0.4186046511627907,
+              "max_drawdown_r": -5.242344737793309,
+              "avg_tranches": 3.7674418604651163,
+              "avg_risk_weight_used": 0.7534883720930234,
+              "mean_pnl_per_used_r": 0.0037867593060611584,
+              "median_pnl_per_used_r": -0.5059682704115859,
+              "exit_kind_counts": {
+                "INVALIDATION": 22,
+                "TARGET": 6,
+                "TIMEOUT": 15
+              }
+            },
+            "VAL_LATE": {
+              "n": 32,
+              "pnl_r_mean": 0.12597226084229415,
+              "pnl_r_median": -0.2762715013791107,
+              "pnl_r_total": 4.031112346953413,
+              "win_rate": 0.34375,
+              "max_drawdown_r": -4.629597334202746,
+              "avg_tranches": 3.28125,
+              "avg_risk_weight_used": 0.65625,
+              "mean_pnl_per_used_r": -0.3017185239061081,
+              "median_pnl_per_used_r": -0.6956545562074492,
+              "exit_kind_counts": {
+                "INVALIDATION": 20,
+                "TARGET": 5,
+                "TIMEOUT": 7
+              }
+            }
+          }
+        }
+      },
+      "C2": {
+        "SINGLE": {
+          "overall": {
+            "n": 75,
+            "pnl_r_mean": 0.17095423193912943,
+            "pnl_r_median": -0.6330398057768954,
+            "pnl_r_total": 12.821567395434707,
+            "win_rate": 0.4,
+            "max_drawdown_r": -13.965590576800412,
+            "avg_tranches": 1.0,
+            "avg_risk_weight_used": 1.0,
+            "mean_pnl_per_used_r": 0.17095423193912943,
+            "median_pnl_per_used_r": -0.6330398057768954,
+            "exit_kind_counts": {
+              "INVALIDATION": 42,
+              "TARGET": 11,
+              "TIMEOUT": 22
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 40,
+              "pnl_r_mean": 0.6906218603918921,
+              "pnl_r_median": -0.6404186588190952,
+              "pnl_r_total": 27.624874415675684,
+              "win_rate": 0.4,
+              "max_drawdown_r": -5.501384790813187,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.6906218603918921,
+              "median_pnl_per_used_r": -0.6404186588190952,
+              "exit_kind_counts": {
+                "INVALIDATION": 23,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 35,
+              "pnl_r_mean": -0.42295162914974227,
+              "pnl_r_median": -0.5242695607521832,
+              "pnl_r_total": -14.803307020240979,
+              "win_rate": 0.4,
+              "max_drawdown_r": -15.32850113222464,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.42295162914974227,
+              "median_pnl_per_used_r": -0.5242695607521832,
+              "exit_kind_counts": {
+                "INVALIDATION": 19,
+                "TARGET": 11,
+                "TIMEOUT": 5
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 60,
+              "pnl_r_mean": 0.10281809289794928,
+              "pnl_r_median": -0.6141072578940097,
+              "pnl_r_total": 6.169085573876957,
+              "win_rate": 0.4,
+              "max_drawdown_r": -13.965199478694908,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.10281809289794928,
+              "median_pnl_per_used_r": -0.6141072578940097,
+              "exit_kind_counts": {
+                "INVALIDATION": 35,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 15,
+              "pnl_r_mean": 0.4434987881038497,
+              "pnl_r_median": -0.6330398057768954,
+              "pnl_r_total": 6.652481821557745,
+              "win_rate": 0.4,
+              "max_drawdown_r": -3.753821126500791,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.4434987881038497,
+              "median_pnl_per_used_r": -0.6330398057768954,
+              "exit_kind_counts": {
+                "INVALIDATION": 7,
+                "TIMEOUT": 5,
+                "TARGET": 3
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 43,
+              "pnl_r_mean": 0.3107778746106875,
+              "pnl_r_median": -0.6330398057768954,
+              "pnl_r_total": 13.363448608259562,
+              "win_rate": 0.4186046511627907,
+              "max_drawdown_r": -11.92754500579693,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": 0.3107778746106875,
+              "median_pnl_per_used_r": -0.6330398057768954,
+              "exit_kind_counts": {
+                "INVALIDATION": 22,
+                "TARGET": 6,
+                "TIMEOUT": 15
+              }
+            },
+            "VAL_LATE": {
+              "n": 32,
+              "pnl_r_mean": -0.01693378790077671,
+              "pnl_r_median": -0.5908275841093269,
+              "pnl_r_total": -0.5418812128248547,
+              "win_rate": 0.375,
+              "max_drawdown_r": -13.965590576800407,
+              "avg_tranches": 1.0,
+              "avg_risk_weight_used": 1.0,
+              "mean_pnl_per_used_r": -0.01693378790077671,
+              "median_pnl_per_used_r": -0.5908275841093269,
+              "exit_kind_counts": {
+                "INVALIDATION": 20,
+                "TARGET": 5,
+                "TIMEOUT": 7
+              }
+            }
+          }
+        },
+        "STAGED": {
+          "overall": {
+            "n": 75,
+            "pnl_r_mean": 0.15308287818328023,
+            "pnl_r_median": -0.27323379168882417,
+            "pnl_r_total": 11.481215863746018,
+            "win_rate": 0.38666666666666666,
+            "max_drawdown_r": -5.4897581718476935,
+            "avg_tranches": 3.56,
+            "avg_risk_weight_used": 0.7120000000000001,
+            "mean_pnl_per_used_r": -0.1647129802466809,
+            "median_pnl_per_used_r": -0.7225987239368106,
+            "exit_kind_counts": {
+              "INVALIDATION": 42,
+              "TARGET": 11,
+              "TIMEOUT": 22
+            }
+          },
+          "by_resolution": {
+            "ACCEPTANCE": {
+              "n": 40,
+              "pnl_r_mean": 0.37138337603897764,
+              "pnl_r_median": -0.29067774840632576,
+              "pnl_r_total": 14.855335041559105,
+              "win_rate": 0.375,
+              "max_drawdown_r": -6.326892520802632,
+              "avg_tranches": 4.0,
+              "avg_risk_weight_used": 0.8,
+              "mean_pnl_per_used_r": 0.14777378016876766,
+              "median_pnl_per_used_r": -0.7266943710158144,
+              "exit_kind_counts": {
+                "INVALIDATION": 23,
+                "TIMEOUT": 17
+              }
+            },
+            "REJECTION": {
+              "n": 35,
+              "pnl_r_mean": -0.096403405080374,
+              "pnl_r_median": -0.2534716683518832,
+              "pnl_r_total": -3.37411917781309,
+              "win_rate": 0.4,
+              "max_drawdown_r": -5.945213827867391,
+              "avg_tranches": 3.057142857142857,
+              "avg_risk_weight_used": 0.6114285714285715,
+              "mean_pnl_per_used_r": -0.5218407064357651,
+              "median_pnl_per_used_r": -0.7174743347687608,
+              "exit_kind_counts": {
+                "INVALIDATION": 19,
+                "TARGET": 11,
+                "TIMEOUT": 5
+              }
+            }
+          },
+          "by_direction": {
+            "LONG": {
+              "n": 60,
+              "pnl_r_mean": 0.16030018887275305,
+              "pnl_r_median": -0.28113664063177424,
+              "pnl_r_total": 9.618011332365183,
+              "win_rate": 0.38333333333333336,
+              "max_drawdown_r": -5.6441046594225615,
+              "avg_tranches": 3.55,
+              "avg_risk_weight_used": 0.7100000000000002,
+              "mean_pnl_per_used_r": -0.19931211473243246,
+              "median_pnl_per_used_r": -0.7474148070533612,
+              "exit_kind_counts": {
+                "INVALIDATION": 35,
+                "TARGET": 8,
+                "TIMEOUT": 17
+              }
+            },
+            "SHORT": {
+              "n": 15,
+              "pnl_r_mean": 0.12421363542538885,
+              "pnl_r_median": -0.17074721277029406,
+              "pnl_r_total": 1.8632045313808328,
+              "win_rate": 0.4,
+              "max_drawdown_r": -2.985402557935071,
+              "avg_tranches": 3.6,
+              "avg_risk_weight_used": 0.72,
+              "mean_pnl_per_used_r": -0.026316442303674612,
+              "median_pnl_per_used_r": -0.46636054279675926,
+              "exit_kind_counts": {
+                "INVALIDATION": 7,
+                "TIMEOUT": 5,
+                "TARGET": 3
+              }
+            }
+          },
+          "by_block": {
+            "VAL_EARLY": {
+              "n": 43,
+              "pnl_r_mean": 0.19160253702778338,
+              "pnl_r_median": -0.17947908781283434,
+              "pnl_r_total": 8.238909092194685,
+              "win_rate": 0.4186046511627907,
+              "max_drawdown_r": -5.4897581718476935,
+              "avg_tranches": 3.7674418604651163,
+              "avg_risk_weight_used": 0.7534883720930234,
+              "mean_pnl_per_used_r": -0.03367675927174549,
+              "median_pnl_per_used_r": -0.534269086663857,
+              "exit_kind_counts": {
+                "INVALIDATION": 22,
+                "TARGET": 6,
+                "TIMEOUT": 15
+              }
+            },
+            "VAL_LATE": {
+              "n": 32,
+              "pnl_r_mean": 0.1013220866109791,
+              "pnl_r_median": -0.29067774840632576,
+              "pnl_r_total": 3.2423067715513314,
+              "win_rate": 0.34375,
+              "max_drawdown_r": -4.994190631375486,
+              "avg_tranches": 3.28125,
+              "avg_risk_weight_used": 0.65625,
+              "mean_pnl_per_used_r": -0.34079290218175035,
+              "median_pnl_per_used_r": -0.7309937451783263,
+              "exit_kind_counts": {
+                "INVALIDATION": 20,
+                "TARGET": 5,
+                "TIMEOUT": 7
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

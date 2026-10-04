@@ -91,3 +91,8 @@
 - Forward collectors continue operating during Stage 1 only to preserve blind future data; no outcome-linked live evaluation or trading is permitted before Stage 1 closes.
 - Historical Final Holdout remains sealed until its registered final gate; Stage 1 uses only permitted historical development/validation partitions.
 
+
+## D-020 — Stage 1 dual-track architecture
+**Decision:** Stage 1 has two parallel tracks: (A) immutable Clean Historical Track for reproducible Train/Validation/Holdout evaluation, and (B) Development Track on the existing working data/code path. Validation outcomes may inform development, but a modified candidate cannot reuse the same Validation as fresh confirmation. Historical Holdout remains sealed until the final candidate gate.
+**Status:** Active.
+
