@@ -33,6 +33,7 @@ This directory is the permanent guide for the project.
 - `EXPERIMENTS.md` — experiments, results, failures, and verdicts.
 - `PROTOCOL.md` — rules that protect research validity.
 - `BLOCKERS.md` — prioritized blockers, why they matter, and the condition to close each one.
+- `TOOLS_REGISTRY.md` — approved external tools and their exact role/boundaries.
 - `ARTIFACT_INDEX.md` — map to important code/data/protocol artifacts.
 - `EVENTS.jsonl` — append-only machine-readable event ledger.
 - `tools/record_event.py` — helper for recording future work.

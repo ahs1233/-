@@ -64,3 +64,21 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Blockers derived from recorded experiment failures, current collection state, and research protocol
 
+
+## 2026-10-04T09:33:08.687593Z — GTGLAB2-0004 — ultra_plan_frozen
+
+**Action:** Frozen GTGLab2 Ultra Plan and Phase 1 architecture; Liquid connector switched to paper mode; foundation tests pass 9/9.
+
+**Reason:** User requested full execution of the GTGLab2 Ultra Plan with evidence preservation.
+
+**Result:** ULTRA_PLAN_V01 registered; typed bidirectional contracts and causal MA/session foundation present; 9/9 foundation tests PASS; Liquid paper mode enabled.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/ULTRA_PLAN_V01.md`
+- `indicators/gtg-strategy-lab/gtglab2/engine/contracts.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/context_features.py`
+
+**Verification:**
+- 9/9 Phase 1 foundation tests PASS
+- Liquid paper trading enabled in connected Co-Invest connector
+

@@ -3,6 +3,7 @@
 ## Canonical GTGLab2 guide
 - `indicators/gtg-strategy-lab/gtglab2/`
 - `indicators/gtg-strategy-lab/gtglab2/BLOCKERS.md` — prioritized obstacles and closure conditions.
+- `indicators/gtg-strategy-lab/gtglab2/TOOLS_REGISTRY.md` — Quiver Quant, Liquid, and future external-source roles.
 
 ## Data collection
 - `data/capture_microstructure_forward.py`
