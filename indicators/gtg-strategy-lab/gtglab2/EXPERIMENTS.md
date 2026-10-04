@@ -188,3 +188,9 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Dominant causal signals: lower-wick rejection, close recovery, downside deceleration; EMA context secondary.
 - Promote detector only for Swing/Scalper research, not direct trading.
 
+
+## 2026-10-04 — Swing / Scalper Detectors v0.1
+- Swing target +4ATR before -1ATR within 72H: pseudo-test AUC 0.594; high-confidence precision 60% vs 33.2% baseline, low coverage.
+- Scalper target +1.5ATR before -0.75ATR within 12H: pseudo-test AUC 0.714; top-quarter precision 84.8% vs 59.8% baseline.
+- Keep Swing and Scalper as separate engines. Next step is next-open executable harness with frozen thresholds.
+

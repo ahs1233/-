@@ -549,3 +549,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T19:43:25.026958Z — GTGLAB2-0031 — swing_scalper_detectors_v01
+
+**Action:** Completed separate causal Swing and Scalper bottom detectors.
+
+**Reason:** Continue GTGLab2 by separating large-swing bottoms from fast-bounce bottoms.
+
+**Result:** Swing pseudo-test AUC 0.594; highest-confidence pseudo-test precision 60% vs 33.2% baseline but sparse. Scalper pseudo-test AUC 0.714; top-quarter precision 84.8% vs 59.8% baseline.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_SWING_SCALPER_DETECTORS_V01_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+
