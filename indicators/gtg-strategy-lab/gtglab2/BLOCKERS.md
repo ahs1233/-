@@ -289,6 +289,11 @@ At the 2026-10-04 post-settle check, the canonical `.lab-data` integrity audit o
 
 JForex Desktop is running, but no 2026-10-03 export or cache file exists and standalone SDK credentials are not configured.
 
-**Why this matters:** the protocol must fail closed rather than silently substitute the public datafeed.
+Operational verification on 2026-10-04:
+- the compiled `GtgForwardExport.jfx` exists under the JForex Strategies files directory;
+- Windows UI Automation exposes zero descendant controls for the Java JForex main window, so coordinate/keyboard automation would be blind and is intentionally not used in a trading application;
+- Dukascopy's supported desktop workflow is to start a compiled `.jfx` from the Strategies panel; SDK startup requires an authenticated client path.
+
+**Why this matters:** the protocol must fail closed rather than silently substitute the public datafeed or perform unsafe blind GUI automation.
 
 **Close when:** the authenticated JForex/IHistory exporter writes 2026-10-03, export/cache parity is verified, and the canonical sealer/audit returns current-through-settle PASS.

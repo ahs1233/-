@@ -290,3 +290,20 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Scheduled task execution LastResult=0
 - Gate remains fail-closed while registered conditions are unmet
 
+
+## 2026-10-04T10:33:03.764902Z — GTGLAB2-0015 — jforex_ui_automation_boundary
+
+**Action:** Confirmed JForex desktop exporter cannot be safely auto-started through Windows UI Automation from this session.
+
+**Reason:** Attempt to close the 2026-10-03 canonical forward freshness blocker without blind interaction or public-datafeed substitution.
+
+**Result:** GtgForwardExport.jfx exists; JForex desktop is authenticated/running; Windows UI Automation exposed zero descendant controls; blind coordinate/keyboard automation was rejected; blocker remains open pending supported Strategies-panel start or authenticated SDK path.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/BLOCKERS.md`
+
+**Verification:**
+- No live order placed
+- No protected forward outcome decoded
+- No public-datafeed substitution used
+
