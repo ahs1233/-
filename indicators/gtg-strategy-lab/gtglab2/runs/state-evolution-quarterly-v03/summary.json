@@ -1,0 +1,1875 @@
+{
+  "scope": "Quarterly Adaptive State Evolution v0.3",
+  "pristine_forward_oos_read": false,
+  "training_quarters": 4,
+  "engines": {
+    "scalper": {
+      "quarter_diagnostics": {
+        "2021Q1": {
+          "train_quarters": [
+            "2020Q1",
+            "2020Q2",
+            "2020Q3",
+            "2020Q4"
+          ],
+          "threshold": 0.7604086950428824,
+          "auc": 0.6284090909090909,
+          "n_events": 144,
+          "selected_fraction": 0.3888888888888889,
+          "event_positive_rate": 0.6944444444444444,
+          "selected_positive_rate": 0.8571428571428571,
+          "key_coefficients": {
+            "ret_120h_atr": -0.15156955811577547,
+            "ret_72h_atr": 0.15136227330260268,
+            "recovery_anchor_atr": 0.3033927658471633,
+            "eff_24h": 0.15861005329958286,
+            "eff_72h": -0.1357336012768435,
+            "m5_drift_accel_60m": 0.05642126429354793
+          }
+        },
+        "2021Q2": {
+          "train_quarters": [
+            "2020Q2",
+            "2020Q3",
+            "2020Q4",
+            "2021Q1"
+          ],
+          "threshold": 0.7868059258287312,
+          "auc": 0.6622093023255814,
+          "n_events": 123,
+          "selected_fraction": 0.4959349593495935,
+          "event_positive_rate": 0.6504065040650406,
+          "selected_positive_rate": 0.7704918032786885,
+          "key_coefficients": {
+            "ret_120h_atr": 0.19619327024153713,
+            "ret_72h_atr": 0.17046547197371395,
+            "recovery_anchor_atr": 0.42035413206222044,
+            "eff_24h": -0.042852383888242425,
+            "eff_72h": -0.13116248838785183,
+            "m5_drift_accel_60m": 0.13281312714446522
+          }
+        },
+        "2021Q3": {
+          "train_quarters": [
+            "2020Q3",
+            "2020Q4",
+            "2021Q1",
+            "2021Q2"
+          ],
+          "threshold": 0.7693329506708148,
+          "auc": 0.7063132945485886,
+          "n_events": 142,
+          "selected_fraction": 0.352112676056338,
+          "event_positive_rate": 0.6408450704225352,
+          "selected_positive_rate": 0.76,
+          "key_coefficients": {
+            "ret_120h_atr": 0.0391006444737858,
+            "ret_72h_atr": 0.33740370926926766,
+            "recovery_anchor_atr": 0.46723276724552154,
+            "eff_24h": -0.2922475178170194,
+            "eff_72h": 0.048914857893987,
+            "m5_drift_accel_60m": 0.48347629551181676
+          }
+        },
+        "2021Q4": {
+          "train_quarters": [
+            "2020Q4",
+            "2021Q1",
+            "2021Q2",
+            "2021Q3"
+          ],
+          "threshold": 0.7766332636727916,
+          "auc": 0.634313725490196,
+          "n_events": 124,
+          "selected_fraction": 0.3870967741935484,
+          "event_positive_rate": 0.7258064516129032,
+          "selected_positive_rate": 0.8125,
+          "key_coefficients": {
+            "ret_120h_atr": 0.49408386865654125,
+            "ret_72h_atr": 0.04720162193895179,
+            "recovery_anchor_atr": 0.6940108556416397,
+            "eff_24h": -0.47210713792612763,
+            "eff_72h": 0.218128431450808,
+            "m5_drift_accel_60m": 0.5690383853151785
+          }
+        },
+        "2022Q1": {
+          "train_quarters": [
+            "2021Q1",
+            "2021Q2",
+            "2021Q3",
+            "2021Q4"
+          ],
+          "threshold": 0.7558545570575987,
+          "auc": 0.6394907908992417,
+          "n_events": 123,
+          "selected_fraction": 0.25203252032520324,
+          "event_positive_rate": 0.5772357723577236,
+          "selected_positive_rate": 0.7419354838709677,
+          "key_coefficients": {
+            "ret_120h_atr": 0.2666023707536452,
+            "ret_72h_atr": -0.011629308196954347,
+            "recovery_anchor_atr": 0.5921255012061636,
+            "eff_24h": -0.37400271415608205,
+            "eff_72h": -0.08686580440024726,
+            "m5_drift_accel_60m": 0.5006632288325931
+          }
+        },
+        "2022Q2": {
+          "train_quarters": [
+            "2021Q2",
+            "2021Q3",
+            "2021Q4",
+            "2022Q1"
+          ],
+          "threshold": 0.7176329499682432,
+          "auc": 0.6030612244897959,
+          "n_events": 188,
+          "selected_fraction": 0.34574468085106386,
+          "event_positive_rate": 0.5212765957446809,
+          "selected_positive_rate": 0.676923076923077,
+          "key_coefficients": {
+            "ret_120h_atr": 0.06513101034687702,
+            "ret_72h_atr": 0.13256336443300146,
+            "recovery_anchor_atr": 0.513769485902408,
+            "eff_24h": -0.40232832959465864,
+            "eff_72h": -0.2306814999515298,
+            "m5_drift_accel_60m": 0.5073851320320997
+          }
+        },
+        "2022Q3": {
+          "train_quarters": [
+            "2021Q3",
+            "2021Q4",
+            "2022Q1",
+            "2022Q2"
+          ],
+          "threshold": 0.6604249282800679,
+          "auc": 0.6550051599587203,
+          "n_events": 197,
+          "selected_fraction": 0.2182741116751269,
+          "event_positive_rate": 0.5177664974619289,
+          "selected_positive_rate": 0.6744186046511628,
+          "key_coefficients": {
+            "ret_120h_atr": 0.18691316794497748,
+            "ret_72h_atr": -0.1460329893515678,
+            "recovery_anchor_atr": 0.5627621553192754,
+            "eff_24h": -0.08121214489176455,
+            "eff_72h": -0.19975751276780826,
+            "m5_drift_accel_60m": 0.1810888637813634
+          }
+        },
+        "2022Q4": {
+          "train_quarters": [
+            "2021Q4",
+            "2022Q1",
+            "2022Q2",
+            "2022Q3"
+          ],
+          "threshold": 0.6264776225687271,
+          "auc": 0.47634408602150535,
+          "n_events": 137,
+          "selected_fraction": 0.35036496350364965,
+          "event_positive_rate": 0.5474452554744526,
+          "selected_positive_rate": 0.5,
+          "key_coefficients": {
+            "ret_120h_atr": -0.05130234793352816,
+            "ret_72h_atr": -0.10685764426525704,
+            "recovery_anchor_atr": 0.46967632669228787,
+            "eff_24h": 0.016688735205570984,
+            "eff_72h": -0.17144580034742543,
+            "m5_drift_accel_60m": -0.03541591973456103
+          }
+        },
+        "2023Q1": {
+          "train_quarters": [
+            "2022Q1",
+            "2022Q2",
+            "2022Q3",
+            "2022Q4"
+          ],
+          "threshold": 0.5782401845094981,
+          "auc": 0.5288544358311801,
+          "n_events": 140,
+          "selected_fraction": 0.5071428571428571,
+          "event_positive_rate": 0.6142857142857143,
+          "selected_positive_rate": 0.647887323943662,
+          "key_coefficients": {
+            "ret_120h_atr": -0.08939717527832006,
+            "ret_72h_atr": -0.02761402399525721,
+            "recovery_anchor_atr": 0.48087859841019615,
+            "eff_24h": 0.08618672314257139,
+            "eff_72h": -0.02429201229315534,
+            "m5_drift_accel_60m": -0.20150921004535594
+          }
+        },
+        "2023Q2": {
+          "train_quarters": [
+            "2022Q2",
+            "2022Q3",
+            "2022Q4",
+            "2023Q1"
+          ],
+          "threshold": 0.5832499614128352,
+          "auc": 0.5769980506822612,
+          "n_events": 149,
+          "selected_fraction": 0.5167785234899329,
+          "event_positive_rate": 0.6375838926174496,
+          "selected_positive_rate": 0.6883116883116883,
+          "key_coefficients": {
+            "ret_120h_atr": -0.05414770384222204,
+            "ret_72h_atr": -0.28617504314819553,
+            "recovery_anchor_atr": 0.4389007722840138,
+            "eff_24h": 0.19272860238504996,
+            "eff_72h": -0.043754120682047176,
+            "m5_drift_accel_60m": -0.02415791329727326
+          }
+        },
+        "2023Q3": {
+          "train_quarters": [
+            "2022Q3",
+            "2022Q4",
+            "2023Q1",
+            "2023Q2"
+          ],
+          "threshold": 0.6016223131877539,
+          "auc": 0.6221611721611722,
+          "n_events": 149,
+          "selected_fraction": 0.46308724832214765,
+          "event_positive_rate": 0.5637583892617449,
+          "selected_positive_rate": 0.6811594202898551,
+          "key_coefficients": {
+            "ret_120h_atr": -0.058966538598945135,
+            "ret_72h_atr": -0.2439443144954077,
+            "recovery_anchor_atr": 0.37974719614034713,
+            "eff_24h": 0.15250255581589486,
+            "eff_72h": -0.011813136445805708,
+            "m5_drift_accel_60m": 0.15089479334409772
+          }
+        },
+        "2023Q4": {
+          "train_quarters": [
+            "2022Q4",
+            "2023Q1",
+            "2023Q2",
+            "2023Q3"
+          ],
+          "threshold": 0.6333670351158396,
+          "auc": 0.5790273556231003,
+          "n_events": 131,
+          "selected_fraction": 0.3435114503816794,
+          "event_positive_rate": 0.6412213740458015,
+          "selected_positive_rate": 0.7111111111111111,
+          "key_coefficients": {
+            "ret_120h_atr": 0.1441740463307747,
+            "ret_72h_atr": -0.05835493503682223,
+            "recovery_anchor_atr": 0.5212541743802945,
+            "eff_24h": 0.18627294818346907,
+            "eff_72h": -0.019089658491568483,
+            "m5_drift_accel_60m": -0.025466149481245988
+          }
+        },
+        "2024Q1": {
+          "train_quarters": [
+            "2023Q1",
+            "2023Q2",
+            "2023Q3",
+            "2023Q4"
+          ],
+          "threshold": 0.6501191252611891,
+          "auc": 0.5623543123543123,
+          "n_events": 127,
+          "selected_fraction": 0.41732283464566927,
+          "event_positive_rate": 0.6929133858267716,
+          "selected_positive_rate": 0.8113207547169812,
+          "key_coefficients": {
+            "ret_120h_atr": 0.37592635937430496,
+            "ret_72h_atr": -0.3076809952655354,
+            "recovery_anchor_atr": 0.48644725061977817,
+            "eff_24h": 0.07800092477614187,
+            "eff_72h": -0.005378755001815463,
+            "m5_drift_accel_60m": 0.12134154768909595
+          }
+        },
+        "2024Q2": {
+          "train_quarters": [
+            "2023Q2",
+            "2023Q3",
+            "2023Q4",
+            "2024Q1"
+          ],
+          "threshold": 0.6748111459614304,
+          "auc": 0.5639846743295021,
+          "n_events": 147,
+          "selected_fraction": 0.41496598639455784,
+          "event_positive_rate": 0.5918367346938775,
+          "selected_positive_rate": 0.6885245901639344,
+          "key_coefficients": {
+            "ret_120h_atr": 0.2900408477502239,
+            "ret_72h_atr": -0.23268838778235804,
+            "recovery_anchor_atr": 0.527451463462942,
+            "eff_24h": -0.02880756577605452,
+            "eff_72h": 0.06620797446402314,
+            "m5_drift_accel_60m": -0.031745398266738785
+          }
+        },
+        "2024Q3": {
+          "train_quarters": [
+            "2023Q3",
+            "2023Q4",
+            "2024Q1",
+            "2024Q2"
+          ],
+          "threshold": 0.6605604941257778,
+          "auc": 0.646341463414634,
+          "n_events": 116,
+          "selected_fraction": 0.5086206896551724,
+          "event_positive_rate": 0.7068965517241379,
+          "selected_positive_rate": 0.8135593220338984,
+          "key_coefficients": {
+            "ret_120h_atr": 0.06694714493156849,
+            "ret_72h_atr": -0.3095209594071667,
+            "recovery_anchor_atr": 0.618210537789026,
+            "eff_24h": 0.023091680740876783,
+            "eff_72h": -0.05561220957992422,
+            "m5_drift_accel_60m": 0.006578467231573222
+          }
+        },
+        "2024Q4": {
+          "train_quarters": [
+            "2023Q4",
+            "2024Q1",
+            "2024Q2",
+            "2024Q3"
+          ],
+          "threshold": 0.697539798028317,
+          "auc": 0.6888401559454191,
+          "n_events": 129,
+          "selected_fraction": 0.40310077519379844,
+          "event_positive_rate": 0.5581395348837209,
+          "selected_positive_rate": 0.7307692307692307,
+          "key_coefficients": {
+            "ret_120h_atr": -0.06545839954436213,
+            "ret_72h_atr": -0.5020070203722886,
+            "recovery_anchor_atr": 0.6709663711519593,
+            "eff_24h": 0.157769275549668,
+            "eff_72h": 5.27692921292497e-05,
+            "m5_drift_accel_60m": 0.2668701319125006
+          }
+        },
+        "2025Q1": {
+          "train_quarters": [
+            "2024Q1",
+            "2024Q2",
+            "2024Q3",
+            "2024Q4"
+          ],
+          "threshold": 0.6782627104962292,
+          "auc": 0.6093366093366093,
+          "n_events": 103,
+          "selected_fraction": 0.44660194174757284,
+          "event_positive_rate": 0.6407766990291263,
+          "selected_positive_rate": 0.7608695652173914,
+          "key_coefficients": {
+            "ret_120h_atr": -0.21425203176233049,
+            "ret_72h_atr": -0.15140373939397522,
+            "recovery_anchor_atr": 0.8188511477501282,
+            "eff_24h": 0.09440489251911482,
+            "eff_72h": 0.02135623266508456,
+            "m5_drift_accel_60m": 0.08436469020062341
+          }
+        },
+        "2025Q2": {
+          "train_quarters": [
+            "2024Q2",
+            "2024Q3",
+            "2024Q4",
+            "2025Q1"
+          ],
+          "threshold": 0.6739703788451342,
+          "auc": 0.7164634146341463,
+          "n_events": 134,
+          "selected_fraction": 0.31343283582089554,
+          "event_positive_rate": 0.6119402985074627,
+          "selected_positive_rate": 0.8095238095238095,
+          "key_coefficients": {
+            "ret_120h_atr": -0.10995245081711859,
+            "ret_72h_atr": -0.16483017028859967,
+            "recovery_anchor_atr": 1.0179651433852555,
+            "eff_24h": 0.2349449057364367,
+            "eff_72h": -0.09618329128912019,
+            "m5_drift_accel_60m": 0.09841544954198035
+          }
+        },
+        "2025Q3": {
+          "train_quarters": [
+            "2024Q3",
+            "2024Q4",
+            "2025Q1",
+            "2025Q2"
+          ],
+          "threshold": 0.6791283442213664,
+          "auc": 0.6146634615384615,
+          "n_events": 129,
+          "selected_fraction": 0.4186046511627907,
+          "event_positive_rate": 0.5038759689922481,
+          "selected_positive_rate": 0.6296296296296297,
+          "key_coefficients": {
+            "ret_120h_atr": 0.123783001113224,
+            "ret_72h_atr": -0.05524460557870771,
+            "recovery_anchor_atr": 1.0537398648986884,
+            "eff_24h": 0.18278215257562425,
+            "eff_72h": -0.021968708004759703,
+            "m5_drift_accel_60m": -0.016135103799299066
+          }
+        },
+        "2025Q4": {
+          "train_quarters": [
+            "2024Q4",
+            "2025Q1",
+            "2025Q2",
+            "2025Q3"
+          ],
+          "threshold": 0.6198966022708033,
+          "auc": 0.5909090909090908,
+          "n_events": 82,
+          "selected_fraction": 0.524390243902439,
+          "event_positive_rate": 0.8048780487804879,
+          "selected_positive_rate": 0.813953488372093,
+          "key_coefficients": {
+            "ret_120h_atr": -0.117804149156663,
+            "ret_72h_atr": -0.022169279953061723,
+            "recovery_anchor_atr": 0.8492297853184612,
+            "eff_24h": 0.07862056314505092,
+            "eff_72h": 0.0031786384468618536,
+            "m5_drift_accel_60m": 0.11325870998216787
+          }
+        },
+        "2026Q1": {
+          "train_quarters": [
+            "2025Q1",
+            "2025Q2",
+            "2025Q3",
+            "2025Q4"
+          ],
+          "threshold": 0.6714620338730788,
+          "auc": 0.5623880597014925,
+          "n_events": 92,
+          "selected_fraction": 0.6956521739130435,
+          "event_positive_rate": 0.7282608695652174,
+          "selected_positive_rate": 0.71875,
+          "key_coefficients": {
+            "ret_120h_atr": -0.08195860687509654,
+            "ret_72h_atr": -0.13686388787124193,
+            "recovery_anchor_atr": 0.8115489297381172,
+            "eff_24h": 0.1756908942761686,
+            "eff_72h": 0.10639448499621865,
+            "m5_drift_accel_60m": 0.4273307195558719
+          }
+        },
+        "2026Q2": {
+          "train_quarters": [
+            "2025Q2",
+            "2025Q3",
+            "2025Q4",
+            "2026Q1"
+          ],
+          "threshold": 0.7039207609382788,
+          "auc": 0.6177572427572428,
+          "n_events": 179,
+          "selected_fraction": 0.26256983240223464,
+          "event_positive_rate": 0.5083798882681564,
+          "selected_positive_rate": 0.6595744680851063,
+          "key_coefficients": {
+            "ret_120h_atr": 0.06541102670421302,
+            "ret_72h_atr": -0.02703937500096257,
+            "recovery_anchor_atr": 0.6562399386623761,
+            "eff_24h": 0.022500238777450665,
+            "eff_72h": 0.04668185900241781,
+            "m5_drift_accel_60m": 0.3786293718469615
+          }
+        },
+        "2026Q3": {
+          "train_quarters": [
+            "2025Q3",
+            "2025Q4",
+            "2026Q1",
+            "2026Q2"
+          ],
+          "threshold": 0.6488759999408983,
+          "auc": 0.6109035326086957,
+          "n_events": 156,
+          "selected_fraction": 0.27564102564102566,
+          "event_positive_rate": 0.5897435897435898,
+          "selected_positive_rate": 0.7674418604651163,
+          "key_coefficients": {
+            "ret_120h_atr": -0.026322389950702168,
+            "ret_72h_atr": 0.38752988732652377,
+            "recovery_anchor_atr": 0.6416966659368358,
+            "eff_24h": 0.1185397201495291,
+            "eff_72h": 0.11002397796188358,
+            "m5_drift_accel_60m": 0.1196369079739116
+          }
+        }
+      },
+      "quarter_execution": {
+        "2021Q1": {
+          "n": 50,
+          "total_r": 11.929713746724568,
+          "mean_r": 0.23859427493449137,
+          "profit_factor": 2.9882856244540936,
+          "max_drawdown_r": -1.0,
+          "win_rate": 0.88,
+          "avg_entry_rr": 0.4489982959700011,
+          "exit_counts": {
+            "TARGET": 44,
+            "STOP": 6
+          }
+        },
+        "2021Q2": {
+          "n": 54,
+          "total_r": 0.6168650606814372,
+          "mean_r": 0.011423427049656244,
+          "profit_factor": 1.0474511585139568,
+          "max_drawdown_r": -4.568653242066855,
+          "win_rate": 0.7592592592592593,
+          "avg_entry_rr": 0.3717343052442969,
+          "exit_counts": {
+            "TARGET": 41,
+            "STOP": 13
+          }
+        },
+        "2021Q3": {
+          "n": 46,
+          "total_r": 1.363345134096377,
+          "mean_r": 0.029637937697747325,
+          "profit_factor": 1.1226934611194903,
+          "max_drawdown_r": -3.0132544171561233,
+          "win_rate": 0.7391304347826086,
+          "avg_entry_rr": 0.3857403618895757,
+          "exit_counts": {
+            "TARGET": 33,
+            "STOP": 11,
+            "144BAR_TIMEOUT": 2
+          }
+        },
+        "2021Q4": {
+          "n": 48,
+          "total_r": 3.359650860984574,
+          "mean_r": 0.06999272627051197,
+          "profit_factor": 1.3732945401093972,
+          "max_drawdown_r": -2.303460556014466,
+          "win_rate": 0.8125,
+          "avg_entry_rr": 0.33884387961809576,
+          "exit_counts": {
+            "TARGET": 39,
+            "STOP": 9
+          }
+        },
+        "2022Q1": {
+          "n": 29,
+          "total_r": 2.0686648515368002,
+          "mean_r": 0.07133327074264828,
+          "profit_factor": 1.2955235502195428,
+          "max_drawdown_r": -2.007164839545532,
+          "win_rate": 0.7586206896551724,
+          "avg_entry_rr": 0.32676537815396683,
+          "exit_counts": {
+            "TARGET": 21,
+            "STOP": 7,
+            "TARGET_GAP": 1
+          }
+        },
+        "2022Q2": {
+          "n": 58,
+          "total_r": -4.7699078980639555,
+          "mean_r": -0.08223979134593026,
+          "profit_factor": 0.7489522158913708,
+          "max_drawdown_r": -9.303459997915775,
+          "win_rate": 0.6724137931034483,
+          "avg_entry_rr": 0.4362134182136107,
+          "exit_counts": {
+            "TARGET": 39,
+            "STOP": 19
+          }
+        },
+        "2022Q3": {
+          "n": 42,
+          "total_r": -3.505264869992085,
+          "mean_r": -0.08345868738076392,
+          "profit_factor": 0.728165607328826,
+          "max_drawdown_r": -5.155693716396874,
+          "win_rate": 0.6666666666666666,
+          "avg_entry_rr": 0.3824208906166423,
+          "exit_counts": {
+            "TARGET": 28,
+            "STOP": 12,
+            "144BAR_TIMEOUT": 2
+          }
+        },
+        "2022Q4": {
+          "n": 39,
+          "total_r": -8.461469485578586,
+          "mean_r": -0.21696075604047657,
+          "profit_factor": 0.530881411691258,
+          "max_drawdown_r": -9.63130162563775,
+          "win_rate": 0.5128205128205128,
+          "avg_entry_rr": 0.5400936994308518,
+          "exit_counts": {
+            "TARGET": 20,
+            "STOP": 18,
+            "144BAR_TIMEOUT": 1
+          }
+        },
+        "2023Q1": {
+          "n": 53,
+          "total_r": -0.8213498480964977,
+          "mean_r": -0.015497166945216937,
+          "profit_factor": 0.9544447255854237,
+          "max_drawdown_r": -4.9519054557162665,
+          "win_rate": 0.6415094339622641,
+          "avg_entry_rr": 0.5651274697914911,
+          "exit_counts": {
+            "TARGET": 33,
+            "STOP": 18,
+            "144BAR_TIMEOUT": 2
+          }
+        },
+        "2023Q2": {
+          "n": 67,
+          "total_r": 0.733670094155189,
+          "mean_r": 0.010950299912764016,
+          "profit_factor": 1.0384075559234174,
+          "max_drawdown_r": -5.134522699507687,
+          "win_rate": 0.7014925373134329,
+          "avg_entry_rr": 0.46441379380096787,
+          "exit_counts": {
+            "TARGET": 46,
+            "STOP": 18,
+            "STOP_BOTH": 1,
+            "TARGET_GAP": 1,
+            "144BAR_TIMEOUT": 1
+          }
+        },
+        "2023Q3": {
+          "n": 57,
+          "total_r": -0.8746749706661593,
+          "mean_r": -0.015345174923967708,
+          "profit_factor": 0.9468380568876585,
+          "max_drawdown_r": -5.151416173303664,
+          "win_rate": 0.6842105263157895,
+          "avg_entry_rr": 0.463484983951655,
+          "exit_counts": {
+            "TARGET": 37,
+            "STOP": 16,
+            "144BAR_TIMEOUT": 3,
+            "TARGET_GAP": 1
+          }
+        },
+        "2023Q4": {
+          "n": 42,
+          "total_r": 1.8414327420790118,
+          "mean_r": 0.043843636716166944,
+          "profit_factor": 1.180107704440949,
+          "max_drawdown_r": -4.600606949206895,
+          "win_rate": 0.7380952380952381,
+          "avg_entry_rr": 0.45278803313349203,
+          "exit_counts": {
+            "TARGET": 31,
+            "STOP": 10,
+            "144BAR_TIMEOUT": 1
+          }
+        },
+        "2024Q1": {
+          "n": 43,
+          "total_r": 4.574818948196727,
+          "mean_r": 0.10639113833015644,
+          "profit_factor": 1.4574818948196726,
+          "max_drawdown_r": -3.00416378604881,
+          "win_rate": 0.7674418604651163,
+          "avg_entry_rr": 0.4281494075719408,
+          "exit_counts": {
+            "TARGET": 31,
+            "STOP": 10,
+            "TARGET_GAP": 2
+          }
+        },
+        "2024Q2": {
+          "n": 56,
+          "total_r": 0.33350566438068663,
+          "mean_r": 0.005955458292512261,
+          "profit_factor": 1.0196179802576875,
+          "max_drawdown_r": -5.507656422113611,
+          "win_rate": 0.6964285714285714,
+          "avg_entry_rr": 0.4839658480821069,
+          "exit_counts": {
+            "TARGET": 39,
+            "STOP": 17
+          }
+        },
+        "2024Q3": {
+          "n": 52,
+          "total_r": 11.031504517465502,
+          "mean_r": 0.21214431764356734,
+          "profit_factor": 2.225722724162833,
+          "max_drawdown_r": -5.0,
+          "win_rate": 0.8269230769230769,
+          "avg_entry_rr": 0.4567559187905759,
+          "exit_counts": {
+            "TARGET": 43,
+            "STOP": 9
+          }
+        },
+        "2024Q4": {
+          "n": 45,
+          "total_r": -0.8526203534797452,
+          "mean_r": -0.01894711896621656,
+          "profit_factor": 0.9390985461800182,
+          "max_drawdown_r": -7.664659483923523,
+          "win_rate": 0.6888888888888889,
+          "avg_entry_rr": 0.4730169153500131,
+          "exit_counts": {
+            "TARGET": 30,
+            "STOP": 14,
+            "144BAR_TIMEOUT": 1
+          }
+        },
+        "2025Q1": {
+          "n": 41,
+          "total_r": 0.7840478550039214,
+          "mean_r": 0.01912311841472979,
+          "profit_factor": 1.087116428333769,
+          "max_drawdown_r": -2.9248630162740756,
+          "win_rate": 0.7804878048780488,
+          "avg_entry_rr": 0.3976870182068961,
+          "exit_counts": {
+            "TARGET": 32,
+            "STOP": 9
+          }
+        },
+        "2025Q2": {
+          "n": 36,
+          "total_r": 5.004437208753759,
+          "mean_r": 0.13901214468760442,
+          "profit_factor": 1.7149196012505372,
+          "max_drawdown_r": -2.0,
+          "win_rate": 0.8055555555555556,
+          "avg_entry_rr": 0.43541513598833453,
+          "exit_counts": {
+            "TARGET": 29,
+            "STOP": 7
+          }
+        },
+        "2025Q3": {
+          "n": 48,
+          "total_r": -4.231703981187114,
+          "mean_r": -0.08816049960806488,
+          "profit_factor": 0.7387440791960885,
+          "max_drawdown_r": -8.171196279882107,
+          "win_rate": 0.6458333333333334,
+          "avg_entry_rr": 0.4184227885161549,
+          "exit_counts": {
+            "TARGET": 31,
+            "STOP": 16,
+            "144BAR_TIMEOUT": 1
+          }
+        },
+        "2025Q4": {
+          "n": 37,
+          "total_r": 3.5686120053719126,
+          "mean_r": 0.0964489731181598,
+          "profit_factor": 1.4460765006714889,
+          "max_drawdown_r": -4.142804900252449,
+          "win_rate": 0.7837837837837838,
+          "avg_entry_rr": 0.4161314528313936,
+          "exit_counts": {
+            "TARGET": 28,
+            "STOP": 8,
+            "TARGET_GAP": 1
+          }
+        },
+        "2026Q1": {
+          "n": 59,
+          "total_r": 0.15479942295928484,
+          "mean_r": 0.0026237190332082175,
+          "profit_factor": 1.010319961530619,
+          "max_drawdown_r": -7.095033477297581,
+          "win_rate": 0.7457627118644068,
+          "avg_entry_rr": 0.3611883321355232,
+          "exit_counts": {
+            "TARGET": 44,
+            "STOP": 15
+          }
+        },
+        "2026Q2": {
+          "n": 44,
+          "total_r": -5.95050849859331,
+          "mean_r": -0.13523882951348432,
+          "profit_factor": 0.603362611586537,
+          "max_drawdown_r": -7.437261566970217,
+          "win_rate": 0.6590909090909091,
+          "avg_entry_rr": 0.37438961719879926,
+          "exit_counts": {
+            "TARGET": 29,
+            "STOP": 14,
+            "STOP_GAP": 1
+          }
+        },
+        "2026Q3": {
+          "n": 39,
+          "total_r": 2.867820251003252,
+          "mean_r": 0.07353385258982698,
+          "profit_factor": 1.3107640043724105,
+          "max_drawdown_r": -2.754579287126777,
+          "win_rate": 0.7435897435897436,
+          "avg_entry_rr": 0.4713435429452839,
+          "exit_counts": {
+            "TARGET": 29,
+            "STOP": 9,
+            "144BAR_TIMEOUT": 1
+          }
+        }
+      },
+      "yearly_execution": {
+        "2021": {
+          "n": 198,
+          "total_r": 17.269574802486957,
+          "mean_r": 0.08722007476003514,
+          "profit_factor": 1.4415438574603996,
+          "max_drawdown_r": -5.22970085020269,
+          "win_rate": 0.797979797979798,
+          "avg_entry_rr": 0.3865259098499049,
+          "exit_counts": {
+            "TARGET": 157,
+            "STOP": 39,
+            "144BAR_TIMEOUT": 2
+          }
+        },
+        "2022": {
+          "n": 168,
+          "total_r": -14.667977402097826,
+          "mean_r": -0.08730938929820134,
+          "profit_factor": 0.7423588261561943,
+          "max_drawdown_r": -20.232027615577998,
+          "win_rate": 0.6488095238095238,
+          "avg_entry_rr": 0.42798753515807536,
+          "exit_counts": {
+            "TARGET": 108,
+            "STOP": 56,
+            "144BAR_TIMEOUT": 3,
+            "TARGET_GAP": 1
+          }
+        },
+        "2023": {
+          "n": 219,
+          "total_r": 0.8790780174715431,
+          "mean_r": 0.0040140548742992836,
+          "profit_factor": 1.013776694154119,
+          "max_drawdown_r": -6.321823154835407,
+          "win_rate": 0.6894977168949772,
+          "avg_entry_rr": 0.4863160801847711,
+          "exit_counts": {
+            "TARGET": 147,
+            "STOP": 62,
+            "144BAR_TIMEOUT": 7,
+            "TARGET_GAP": 2,
+            "STOP_BOTH": 1
+          }
+        },
+        "2024": {
+          "n": 196,
+          "total_r": 15.087208776563168,
+          "mean_r": 0.07697555498246514,
+          "profit_factor": 1.301744175531263,
+          "max_drawdown_r": -7.664659483923522,
+          "win_rate": 0.7448979591836735,
+          "avg_entry_rr": 0.461987658092102,
+          "exit_counts": {
+            "TARGET": 143,
+            "STOP": 50,
+            "TARGET_GAP": 2,
+            "144BAR_TIMEOUT": 1
+          }
+        },
+        "2025": {
+          "n": 162,
+          "total_r": 5.125393087942477,
+          "mean_r": 0.03163822893791653,
+          "profit_factor": 1.1275051338984285,
+          "max_drawdown_r": -10.53519080013209,
+          "win_rate": 0.7469135802469136,
+          "avg_entry_rr": 0.41642759410864066,
+          "exit_counts": {
+            "TARGET": 120,
+            "STOP": 40,
+            "144BAR_TIMEOUT": 1,
+            "TARGET_GAP": 1
+          }
+        },
+        "2026": {
+          "n": 142,
+          "total_r": -2.927888824630772,
+          "mean_r": -0.020618935384723747,
+          "profit_factor": 0.9253673679861271,
+          "max_drawdown_r": -13.431773843216991,
+          "win_rate": 0.7183098591549296,
+          "avg_entry_rr": 0.3955327670958388,
+          "exit_counts": {
+            "TARGET": 102,
+            "STOP": 38,
+            "STOP_GAP": 1,
+            "144BAR_TIMEOUT": 1
+          }
+        }
+      },
+      "aggregate": {
+        "n": 1085,
+        "total_r": 20.76538845773554,
+        "mean_r": 0.019138606873488978,
+        "profit_factor": 1.071782785377532,
+        "max_drawdown_r": -24.13853424315552,
+        "win_rate": 0.7253456221198157,
+        "avg_entry_rr": 0.4323629140797821,
+        "exit_counts": {
+          "TARGET": 777,
+          "STOP": 285,
+          "144BAR_TIMEOUT": 15,
+          "TARGET_GAP": 6,
+          "STOP_BOTH": 1,
+          "STOP_GAP": 1
+        }
+      }
+    },
+    "swing": {
+      "quarter_diagnostics": {
+        "2021Q1": {
+          "train_quarters": [
+            "2020Q1",
+            "2020Q2",
+            "2020Q3",
+            "2020Q4"
+          ],
+          "threshold": 0.4447077158755243,
+          "auc": 0.6155737704918033,
+          "n_events": 162,
+          "selected_fraction": 0.5123456790123457,
+          "event_positive_rate": 0.24691358024691357,
+          "selected_positive_rate": 0.2891566265060241,
+          "key_coefficients": {
+            "ret_120h_atr": -0.4951776792924273,
+            "ret_72h_atr": 0.03384573116617585,
+            "recovery_anchor_atr": 0.2556310881981683,
+            "eff_24h": 0.4505516017294405,
+            "eff_72h": -0.2660736940157857,
+            "m5_drift_accel_60m": 0.2139630134742226
+          }
+        },
+        "2021Q2": {
+          "train_quarters": [
+            "2020Q2",
+            "2020Q3",
+            "2020Q4",
+            "2021Q1"
+          ],
+          "threshold": 0.38626920077953725,
+          "auc": 0.5041666666666667,
+          "n_events": 143,
+          "selected_fraction": 0.3776223776223776,
+          "event_positive_rate": 0.3356643356643357,
+          "selected_positive_rate": 0.3148148148148148,
+          "key_coefficients": {
+            "ret_120h_atr": -0.213529624305031,
+            "ret_72h_atr": -0.04838999901323776,
+            "recovery_anchor_atr": 0.14001825383325378,
+            "eff_24h": 0.5358335854341367,
+            "eff_72h": -0.304766823515508,
+            "m5_drift_accel_60m": 0.20725088168774566
+          }
+        },
+        "2021Q3": {
+          "train_quarters": [
+            "2020Q3",
+            "2020Q4",
+            "2021Q1",
+            "2021Q2"
+          ],
+          "threshold": 0.3494039891929843,
+          "auc": 0.5550490399226413,
+          "n_events": 184,
+          "selected_fraction": 0.5,
+          "event_positive_rate": 0.30978260869565216,
+          "selected_positive_rate": 0.33695652173913043,
+          "key_coefficients": {
+            "ret_120h_atr": -0.2258230022861621,
+            "ret_72h_atr": 0.05337519473036915,
+            "recovery_anchor_atr": 0.05735057729253376,
+            "eff_24h": 0.23555713201323042,
+            "eff_72h": -0.16813251898714232,
+            "m5_drift_accel_60m": 0.26127146536400364
+          }
+        },
+        "2021Q4": {
+          "train_quarters": [
+            "2020Q4",
+            "2021Q1",
+            "2021Q2",
+            "2021Q3"
+          ],
+          "threshold": 0.3262462938021571,
+          "auc": 0.4761733501168855,
+          "n_events": 150,
+          "selected_fraction": 0.34,
+          "event_positive_rate": 0.44666666666666666,
+          "selected_positive_rate": 0.43137254901960786,
+          "key_coefficients": {
+            "ret_120h_atr": 0.06368516560463726,
+            "ret_72h_atr": -0.062455418605089776,
+            "recovery_anchor_atr": 0.2499225970203365,
+            "eff_24h": 0.378392519599795,
+            "eff_72h": -0.045652861619982214,
+            "m5_drift_accel_60m": 0.13438200556633695
+          }
+        },
+        "2022Q1": {
+          "train_quarters": [
+            "2021Q1",
+            "2021Q2",
+            "2021Q3",
+            "2021Q4"
+          ],
+          "threshold": 0.33537182922879066,
+          "auc": 0.5851063829787234,
+          "n_events": 144,
+          "selected_fraction": 0.3611111111111111,
+          "event_positive_rate": 0.3472222222222222,
+          "selected_positive_rate": 0.4423076923076923,
+          "key_coefficients": {
+            "ret_120h_atr": -0.10092913088523732,
+            "ret_72h_atr": 0.00824027566107599,
+            "recovery_anchor_atr": 0.168163161624718,
+            "eff_24h": 0.026001537171641068,
+            "eff_72h": -0.07577114876391482,
+            "m5_drift_accel_60m": 0.032939018971160874
+          }
+        },
+        "2022Q2": {
+          "train_quarters": [
+            "2021Q2",
+            "2021Q3",
+            "2021Q4",
+            "2022Q1"
+          ],
+          "threshold": 0.3727738886825795,
+          "auc": 0.5790692007797271,
+          "n_events": 201,
+          "selected_fraction": 0.263681592039801,
+          "event_positive_rate": 0.2835820895522388,
+          "selected_positive_rate": 0.33962264150943394,
+          "key_coefficients": {
+            "ret_120h_atr": -0.13254352813278425,
+            "ret_72h_atr": 0.004696566498324318,
+            "recovery_anchor_atr": 0.20154883203304685,
+            "eff_24h": -0.002361092873558957,
+            "eff_72h": -0.22215208083903698,
+            "m5_drift_accel_60m": -0.1003440294876626
+          }
+        },
+        "2022Q3": {
+          "train_quarters": [
+            "2021Q3",
+            "2021Q4",
+            "2022Q1",
+            "2022Q2"
+          ],
+          "threshold": 0.3472598694783632,
+          "auc": 0.5745265151515151,
+          "n_events": 229,
+          "selected_fraction": 0.2183406113537118,
+          "event_positive_rate": 0.2794759825327511,
+          "selected_positive_rate": 0.38,
+          "key_coefficients": {
+            "ret_120h_atr": -0.17403932982043846,
+            "ret_72h_atr": -0.19052631774615822,
+            "recovery_anchor_atr": 0.3345042176772742,
+            "eff_24h": 0.0056331977918574775,
+            "eff_72h": -0.1320623742483014,
+            "m5_drift_accel_60m": -0.2698762739473542
+          }
+        },
+        "2022Q4": {
+          "train_quarters": [
+            "2021Q4",
+            "2022Q1",
+            "2022Q2",
+            "2022Q3"
+          ],
+          "threshold": 0.3547999288700564,
+          "auc": 0.4825164147198046,
+          "n_events": 170,
+          "selected_fraction": 0.4411764705882353,
+          "event_positive_rate": 0.34705882352941175,
+          "selected_positive_rate": 0.32,
+          "key_coefficients": {
+            "ret_120h_atr": -0.23239246041030687,
+            "ret_72h_atr": -0.20922578485362947,
+            "recovery_anchor_atr": 0.40130258593018153,
+            "eff_24h": -0.04586577436719343,
+            "eff_72h": -0.14222037179429411,
+            "m5_drift_accel_60m": -0.12099241622848464
+          }
+        },
+        "2023Q1": {
+          "train_quarters": [
+            "2022Q1",
+            "2022Q2",
+            "2022Q3",
+            "2022Q4"
+          ],
+          "threshold": 0.32539583877926137,
+          "auc": 0.5119563472957792,
+          "n_events": 160,
+          "selected_fraction": 0.4625,
+          "event_positive_rate": 0.41875,
+          "selected_positive_rate": 0.43243243243243246,
+          "key_coefficients": {
+            "ret_120h_atr": -0.43683562347969696,
+            "ret_72h_atr": -0.061873208129298814,
+            "recovery_anchor_atr": 0.4919285737082233,
+            "eff_24h": 0.15617628513370152,
+            "eff_72h": -0.018761439974038265,
+            "m5_drift_accel_60m": -0.06278863790503482
+          }
+        },
+        "2023Q2": {
+          "train_quarters": [
+            "2022Q2",
+            "2022Q3",
+            "2022Q4",
+            "2023Q1"
+          ],
+          "threshold": 0.33770411148867635,
+          "auc": 0.5122354497354498,
+          "n_events": 164,
+          "selected_fraction": 0.4451219512195122,
+          "event_positive_rate": 0.34146341463414637,
+          "selected_positive_rate": 0.3287671232876712,
+          "key_coefficients": {
+            "ret_120h_atr": -0.33360137883959645,
+            "ret_72h_atr": -0.39783839362822204,
+            "recovery_anchor_atr": 0.4274676402468335,
+            "eff_24h": 0.4104228743318256,
+            "eff_72h": -0.016358012020770935,
+            "m5_drift_accel_60m": 0.07369889937983408
+          }
+        },
+        "2023Q3": {
+          "train_quarters": [
+            "2022Q3",
+            "2022Q4",
+            "2023Q1",
+            "2023Q2"
+          ],
+          "threshold": 0.3509369078020326,
+          "auc": 0.5185410334346504,
+          "n_events": 187,
+          "selected_fraction": 0.5294117647058824,
+          "event_positive_rate": 0.25133689839572193,
+          "selected_positive_rate": 0.26262626262626265,
+          "key_coefficients": {
+            "ret_120h_atr": 0.09137171127143767,
+            "ret_72h_atr": -0.4595106312986577,
+            "recovery_anchor_atr": 0.2660530962146125,
+            "eff_24h": 0.3964213358594542,
+            "eff_72h": 0.03087491761225402,
+            "m5_drift_accel_60m": 0.12464507270881492
+          }
+        },
+        "2023Q4": {
+          "train_quarters": [
+            "2022Q4",
+            "2023Q1",
+            "2023Q2",
+            "2023Q3"
+          ],
+          "threshold": 0.3545096591620075,
+          "auc": 0.5795698924731183,
+          "n_events": 143,
+          "selected_fraction": 0.34265734265734266,
+          "event_positive_rate": 0.34965034965034963,
+          "selected_positive_rate": 0.4897959183673469,
+          "key_coefficients": {
+            "ret_120h_atr": 0.3460417496279052,
+            "ret_72h_atr": -0.31171149331091297,
+            "recovery_anchor_atr": 0.38426908767942464,
+            "eff_24h": 0.4467540324390912,
+            "eff_72h": -0.06664376957833647,
+            "m5_drift_accel_60m": -0.31430247085745255
+          }
+        },
+        "2024Q1": {
+          "train_quarters": [
+            "2023Q1",
+            "2023Q2",
+            "2023Q3",
+            "2023Q4"
+          ],
+          "threshold": 0.3594342032477938,
+          "auc": 0.49707932918786507,
+          "n_events": 148,
+          "selected_fraction": 0.41216216216216217,
+          "event_positive_rate": 0.41216216216216217,
+          "selected_positive_rate": 0.4098360655737705,
+          "key_coefficients": {
+            "ret_120h_atr": 0.7498620245308556,
+            "ret_72h_atr": -0.6575172039577585,
+            "recovery_anchor_atr": 0.12263803660892539,
+            "eff_24h": 0.42481412460380624,
+            "eff_72h": 0.015493679428788378,
+            "m5_drift_accel_60m": -0.20643706317911784
+          }
+        },
+        "2024Q2": {
+          "train_quarters": [
+            "2023Q2",
+            "2023Q3",
+            "2023Q4",
+            "2024Q1"
+          ],
+          "threshold": 0.3477006761390506,
+          "auc": 0.5688657407407407,
+          "n_events": 150,
+          "selected_fraction": 0.44666666666666666,
+          "event_positive_rate": 0.36,
+          "selected_positive_rate": 0.44776119402985076,
+          "key_coefficients": {
+            "ret_120h_atr": 0.47865613100036597,
+            "ret_72h_atr": -0.40777445275406865,
+            "recovery_anchor_atr": 0.24387748228029377,
+            "eff_24h": 0.1736047275845193,
+            "eff_72h": 0.1378914623903672,
+            "m5_drift_accel_60m": -0.23510207048526358
+          }
+        },
+        "2024Q3": {
+          "train_quarters": [
+            "2023Q3",
+            "2023Q4",
+            "2024Q1",
+            "2024Q2"
+          ],
+          "threshold": 0.3444970164628285,
+          "auc": 0.5724941724941724,
+          "n_events": 133,
+          "selected_fraction": 0.5263157894736842,
+          "event_positive_rate": 0.41353383458646614,
+          "selected_positive_rate": 0.45714285714285713,
+          "key_coefficients": {
+            "ret_120h_atr": 0.10116344613199049,
+            "ret_72h_atr": -0.31688217824765086,
+            "recovery_anchor_atr": 0.5263084533614657,
+            "eff_24h": 0.0861876649448183,
+            "eff_72h": 0.13758653769411466,
+            "m5_drift_accel_60m": -0.1543134945272495
+          }
+        },
+        "2024Q4": {
+          "train_quarters": [
+            "2023Q4",
+            "2024Q1",
+            "2024Q2",
+            "2024Q3"
+          ],
+          "threshold": 0.40685182374810913,
+          "auc": 0.516557734204793,
+          "n_events": 147,
+          "selected_fraction": 0.46938775510204084,
+          "event_positive_rate": 0.30612244897959184,
+          "selected_positive_rate": 0.3188405797101449,
+          "key_coefficients": {
+            "ret_120h_atr": -0.23862354205471276,
+            "ret_72h_atr": -0.629671433332515,
+            "recovery_anchor_atr": 0.2929279263506256,
+            "eff_24h": 0.30326211147359294,
+            "eff_72h": 0.011993948225496572,
+            "m5_drift_accel_60m": -0.14333790314542297
+          }
+        },
+        "2025Q1": {
+          "train_quarters": [
+            "2024Q1",
+            "2024Q2",
+            "2024Q3",
+            "2024Q4"
+          ],
+          "threshold": 0.3861914217211795,
+          "auc": 0.5230769230769231,
+          "n_events": 111,
+          "selected_fraction": 0.43243243243243246,
+          "event_positive_rate": 0.4144144144144144,
+          "selected_positive_rate": 0.5,
+          "key_coefficients": {
+            "ret_120h_atr": -0.5339577846299366,
+            "ret_72h_atr": -0.30791992902057364,
+            "recovery_anchor_atr": 0.3122293163572597,
+            "eff_24h": 0.19384846073617365,
+            "eff_72h": 0.05132450339156442,
+            "m5_drift_accel_60m": -0.17883909944704673
+          }
+        },
+        "2025Q2": {
+          "train_quarters": [
+            "2024Q2",
+            "2024Q3",
+            "2024Q4",
+            "2025Q1"
+          ],
+          "threshold": 0.39064660368419357,
+          "auc": 0.45120226308345124,
+          "n_events": 157,
+          "selected_fraction": 0.34394904458598724,
+          "event_positive_rate": 0.35668789808917195,
+          "selected_positive_rate": 0.3333333333333333,
+          "key_coefficients": {
+            "ret_120h_atr": -0.3906381809460314,
+            "ret_72h_atr": -0.44748799453692073,
+            "recovery_anchor_atr": 0.02817414612242213,
+            "eff_24h": 0.1963789119956647,
+            "eff_72h": -0.049932483768291167,
+            "m5_drift_accel_60m": -0.22979674615686088
+          }
+        },
+        "2025Q3": {
+          "train_quarters": [
+            "2024Q3",
+            "2024Q4",
+            "2025Q1",
+            "2025Q2"
+          ],
+          "threshold": 0.39521075117877674,
+          "auc": 0.5295566502463055,
+          "n_events": 163,
+          "selected_fraction": 0.38650306748466257,
+          "event_positive_rate": 0.3558282208588957,
+          "selected_positive_rate": 0.36507936507936506,
+          "key_coefficients": {
+            "ret_120h_atr": -0.25272700087212147,
+            "ret_72h_atr": -0.11621636514929058,
+            "recovery_anchor_atr": -0.0942118554375669,
+            "eff_24h": 0.03593043044370198,
+            "eff_72h": -0.12178276711401444,
+            "m5_drift_accel_60m": -0.25085261547154664
+          }
+        },
+        "2025Q4": {
+          "train_quarters": [
+            "2024Q4",
+            "2025Q1",
+            "2025Q2",
+            "2025Q3"
+          ],
+          "threshold": 0.37425698836556576,
+          "auc": 0.5422222222222222,
+          "n_events": 95,
+          "selected_fraction": 0.4,
+          "event_positive_rate": 0.47368421052631576,
+          "selected_positive_rate": 0.5526315789473685,
+          "key_coefficients": {
+            "ret_120h_atr": -0.19100411168940706,
+            "ret_72h_atr": 0.2502973122737669,
+            "recovery_anchor_atr": 0.021175234435564124,
+            "eff_24h": -0.143134719693083,
+            "eff_72h": -0.06757223188603391,
+            "m5_drift_accel_60m": -0.123830469934333
+          }
+        },
+        "2026Q1": {
+          "train_quarters": [
+            "2025Q1",
+            "2025Q2",
+            "2025Q3",
+            "2025Q4"
+          ],
+          "threshold": 0.41321645384316147,
+          "auc": 0.42881794650560834,
+          "n_events": 99,
+          "selected_fraction": 0.41414141414141414,
+          "event_positive_rate": 0.3838383838383838,
+          "selected_positive_rate": 0.3170731707317073,
+          "key_coefficients": {
+            "ret_120h_atr": 0.03206817316716818,
+            "ret_72h_atr": 0.14546259255697688,
+            "recovery_anchor_atr": 0.10867912242317092,
+            "eff_24h": 0.0012746094877008117,
+            "eff_72h": -0.029464450612214452,
+            "m5_drift_accel_60m": -0.32176196182347394
+          }
+        },
+        "2026Q2": {
+          "train_quarters": [
+            "2025Q2",
+            "2025Q3",
+            "2025Q4",
+            "2026Q1"
+          ],
+          "threshold": 0.4145707194660375,
+          "auc": 0.5606150206978119,
+          "n_events": 216,
+          "selected_fraction": 0.33796296296296297,
+          "event_positive_rate": 0.17592592592592593,
+          "selected_positive_rate": 0.2191780821917808,
+          "key_coefficients": {
+            "ret_120h_atr": 0.015156519689688393,
+            "ret_72h_atr": 0.30169215680141814,
+            "recovery_anchor_atr": 0.33929092661220095,
+            "eff_24h": -0.4070416106622261,
+            "eff_72h": 0.1261983814599491,
+            "m5_drift_accel_60m": -0.1587866962237537
+          }
+        },
+        "2026Q3": {
+          "train_quarters": [
+            "2025Q3",
+            "2025Q4",
+            "2026Q1",
+            "2026Q2"
+          ],
+          "threshold": 0.32082632662343624,
+          "auc": 0.4594990240728692,
+          "n_events": 169,
+          "selected_fraction": 0.35502958579881655,
+          "event_positive_rate": 0.3136094674556213,
+          "selected_positive_rate": 0.26666666666666666,
+          "key_coefficients": {
+            "ret_120h_atr": -0.025208039895447818,
+            "ret_72h_atr": 0.24771261151759325,
+            "recovery_anchor_atr": 0.4495124244614435,
+            "eff_24h": -0.011734791136515143,
+            "eff_72h": 0.03876404323829355,
+            "m5_drift_accel_60m": 0.16724390634778283
+          }
+        }
+      },
+      "quarter_execution": {
+        "2021Q1": {
+          "n": 48,
+          "total_r": -11.761111385715052,
+          "mean_r": -0.2450231538690636,
+          "profit_factor": 0.6436026852813621,
+          "max_drawdown_r": -14.25623231126553,
+          "win_rate": 0.3125,
+          "avg_entry_rr": 1.599301088566433,
+          "exit_counts": {
+            "STOP": 33,
+            "TARGET": 14,
+            "TARGET_GAP": 1
+          }
+        },
+        "2021Q2": {
+          "n": 38,
+          "total_r": -5.453118605434144,
+          "mean_r": -0.14350312119563535,
+          "profit_factor": 0.7818752557826342,
+          "max_drawdown_r": -8.536630181173642,
+          "win_rate": 0.34210526315789475,
+          "avg_entry_rr": 1.5812957425545688,
+          "exit_counts": {
+            "STOP": 25,
+            "TARGET": 13
+          }
+        },
+        "2021Q3": {
+          "n": 62,
+          "total_r": -14.890284129266172,
+          "mean_r": -0.2401658730526802,
+          "profit_factor": 0.6368223383105811,
+          "max_drawdown_r": -20.207660677437644,
+          "win_rate": 0.3387096774193548,
+          "avg_entry_rr": 1.4953801356755858,
+          "exit_counts": {
+            "STOP": 39,
+            "TARGET": 21,
+            "STOP_BOTH": 2
+          }
+        },
+        "2021Q4": {
+          "n": 34,
+          "total_r": -3.639739775296465,
+          "mean_r": -0.10705116986166073,
+          "profit_factor": 0.8084347486686071,
+          "max_drawdown_r": -12.644555365284631,
+          "win_rate": 0.4411764705882353,
+          "avg_entry_rr": 1.2389513153528995,
+          "exit_counts": {
+            "STOP": 19,
+            "TARGET": 15
+          }
+        },
+        "2022Q1": {
+          "n": 38,
+          "total_r": 0.3115425416791472,
+          "mean_r": 0.008198487938924926,
+          "profit_factor": 1.0148353591275785,
+          "max_drawdown_r": -6.323678569398102,
+          "win_rate": 0.4473684210526316,
+          "avg_entry_rr": 1.3584802595734506,
+          "exit_counts": {
+            "STOP": 21,
+            "TARGET": 17
+          }
+        },
+        "2022Q2": {
+          "n": 36,
+          "total_r": -14.32483518668467,
+          "mean_r": -0.3979120885190186,
+          "profit_factor": 0.46945054864130853,
+          "max_drawdown_r": -14.40600621091903,
+          "win_rate": 0.25,
+          "avg_entry_rr": 1.6074643489518958,
+          "exit_counts": {
+            "STOP": 27,
+            "TARGET": 8,
+            "TARGET_GAP": 1
+          }
+        },
+        "2022Q3": {
+          "n": 37,
+          "total_r": -1.468138127574264,
+          "mean_r": -0.03967940885335849,
+          "profit_factor": 0.9361679074967711,
+          "max_drawdown_r": -6.25728960576609,
+          "win_rate": 0.3783783783783784,
+          "avg_entry_rr": 1.623636171129997,
+          "exit_counts": {
+            "STOP": 23,
+            "TARGET": 14
+          }
+        },
+        "2022Q4": {
+          "n": 39,
+          "total_r": 11.012832458366388,
+          "mean_r": 0.282380319445292,
+          "profit_factor": 1.5244205932555424,
+          "max_drawdown_r": -9.91898244708387,
+          "win_rate": 0.46153846153846156,
+          "avg_entry_rr": 1.9338650217694529,
+          "exit_counts": {
+            "STOP": 21,
+            "TARGET": 18
+          }
+        },
+        "2023Q1": {
+          "n": 45,
+          "total_r": -2.1658080576448007,
+          "mean_r": -0.04812906794766224,
+          "profit_factor": 0.9253169635294896,
+          "max_drawdown_r": -11.444609249029508,
+          "win_rate": 0.35555555555555557,
+          "avg_entry_rr": 1.8180975939754271,
+          "exit_counts": {
+            "STOP": 29,
+            "TARGET": 15,
+            "864BAR_TIMEOUT": 1
+          }
+        },
+        "2023Q2": {
+          "n": 48,
+          "total_r": -1.37534370089244,
+          "mean_r": -0.0286529937685925,
+          "profit_factor": 0.954155209970252,
+          "max_drawdown_r": -6.692631036453466,
+          "win_rate": 0.375,
+          "avg_entry_rr": 1.6668302561764838,
+          "exit_counts": {
+            "STOP": 30,
+            "TARGET": 18
+          }
+        },
+        "2023Q3": {
+          "n": 55,
+          "total_r": -10.931987741737402,
+          "mean_r": -0.19876341348613458,
+          "profit_factor": 0.7123161120595419,
+          "max_drawdown_r": -13.665974805643595,
+          "win_rate": 0.3090909090909091,
+          "avg_entry_rr": 1.6888404823271057,
+          "exit_counts": {
+            "STOP": 38,
+            "TARGET": 17
+          }
+        },
+        "2023Q4": {
+          "n": 37,
+          "total_r": 3.3647735455802064,
+          "mean_r": 0.09093982555622179,
+          "profit_factor": 1.1682386772790103,
+          "max_drawdown_r": -5.646216989793159,
+          "win_rate": 0.4594594594594595,
+          "avg_entry_rr": 1.5944054866225976,
+          "exit_counts": {
+            "STOP": 20,
+            "TARGET": 16,
+            "864BAR_TIMEOUT": 1
+          }
+        },
+        "2024Q1": {
+          "n": 35,
+          "total_r": 4.015853757094289,
+          "mean_r": 0.11473867877412255,
+          "profit_factor": 1.1912311312902042,
+          "max_drawdown_r": -5.484776556024606,
+          "win_rate": 0.4,
+          "avg_entry_rr": 1.7461072844661716,
+          "exit_counts": {
+            "STOP": 21,
+            "TARGET": 14
+          }
+        },
+        "2024Q2": {
+          "n": 44,
+          "total_r": 19.463735363909944,
+          "mean_r": 0.4423576219070442,
+          "profit_factor": 1.8847152438140882,
+          "max_drawdown_r": -4.0,
+          "win_rate": 0.5,
+          "avg_entry_rr": 1.911587359051074,
+          "exit_counts": {
+            "STOP": 22,
+            "TARGET": 21,
+            "864BAR_TIMEOUT": 1
+          }
+        },
+        "2024Q3": {
+          "n": 40,
+          "total_r": 11.750695863525364,
+          "mean_r": 0.2937673965881341,
+          "profit_factor": 1.587534793176268,
+          "max_drawdown_r": -3.352955373593862,
+          "win_rate": 0.5,
+          "avg_entry_rr": 1.682218432960963,
+          "exit_counts": {
+            "TARGET": 20,
+            "STOP": 19,
+            "STOP_BOTH": 1
+          }
+        },
+        "2024Q4": {
+          "n": 44,
+          "total_r": 1.6647850746898083,
+          "mean_r": 0.03783602442476837,
+          "profit_factor": 1.0594566098103504,
+          "max_drawdown_r": -9.172526678287305,
+          "win_rate": 0.36363636363636365,
+          "avg_entry_rr": 1.8957662962066555,
+          "exit_counts": {
+            "STOP": 28,
+            "TARGET": 16
+          }
+        },
+        "2025Q1": {
+          "n": 30,
+          "total_r": 8.069968775630482,
+          "mean_r": 0.26899895918768274,
+          "profit_factor": 1.4747040456253226,
+          "max_drawdown_r": -6.0,
+          "win_rate": 0.43333333333333335,
+          "avg_entry_rr": 1.765434609071593,
+          "exit_counts": {
+            "STOP": 17,
+            "TARGET": 13
+          }
+        },
+        "2025Q2": {
+          "n": 38,
+          "total_r": 1.0968792082516363,
+          "mean_r": 0.028865242322411482,
+          "profit_factor": 1.0457033003438183,
+          "max_drawdown_r": -6.030224735432026,
+          "win_rate": 0.3684210526315789,
+          "avg_entry_rr": 1.9327642626761785,
+          "exit_counts": {
+            "STOP": 24,
+            "TARGET": 13,
+            "TARGET_GAP": 1
+          }
+        },
+        "2025Q3": {
+          "n": 36,
+          "total_r": 5.443174381536141,
+          "mean_r": 0.15119928837600394,
+          "profit_factor": 1.2591987800731494,
+          "max_drawdown_r": -4.584048936124399,
+          "win_rate": 0.4166666666666667,
+          "avg_entry_rr": 1.8358177472001094,
+          "exit_counts": {
+            "STOP": 21,
+            "TARGET": 15
+          }
+        },
+        "2025Q4": {
+          "n": 20,
+          "total_r": 6.069029222000242,
+          "mean_r": 0.3034514611000121,
+          "profit_factor": 1.5483816941873727,
+          "max_drawdown_r": -4.415706595225808,
+          "win_rate": 0.45,
+          "avg_entry_rr": 1.7942840786512693,
+          "exit_counts": {
+            "STOP": 10,
+            "TARGET": 9,
+            "STOP_GAP": 1
+          }
+        },
+        "2026Q1": {
+          "n": 26,
+          "total_r": -6.869375644166328,
+          "mean_r": -0.2642067555448588,
+          "profit_factor": 0.6183680197685373,
+          "max_drawdown_r": -9.763081789512635,
+          "win_rate": 0.3076923076923077,
+          "avg_entry_rr": 1.5858605817915665,
+          "exit_counts": {
+            "STOP": 18,
+            "TARGET": 6,
+            "TARGET_GAP": 1,
+            "864BAR_TIMEOUT": 1
+          }
+        },
+        "2026Q2": {
+          "n": 46,
+          "total_r": -10.499604358743268,
+          "mean_r": -0.2282522686683319,
+          "profit_factor": 0.6718873637892729,
+          "max_drawdown_r": -12.03897157641845,
+          "win_rate": 0.30434782608695654,
+          "avg_entry_rr": 1.7768094256071973,
+          "exit_counts": {
+            "STOP": 32,
+            "TARGET": 14
+          }
+        },
+        "2026Q3": {
+          "n": 38,
+          "total_r": -11.190445050795583,
+          "mean_r": -0.294485396073568,
+          "profit_factor": 0.5876776094250171,
+          "max_drawdown_r": -11.651081931115367,
+          "win_rate": 0.2894736842105263,
+          "avg_entry_rr": 1.7367108731324468,
+          "exit_counts": {
+            "STOP": 26,
+            "TARGET": 11,
+            "STOP_GAP": 1
+          }
+        }
+      },
+      "yearly_execution": {
+        "2021": {
+          "n": 182,
+          "total_r": -35.744253895711836,
+          "mean_r": -0.1963969994269881,
+          "profit_factor": 0.697082594104137,
+          "max_drawdown_r": -39.539551930908864,
+          "win_rate": 0.3516483516483517,
+          "avg_entry_rr": 1.4928219978139967,
+          "exit_counts": {
+            "STOP": 116,
+            "TARGET": 63,
+            "STOP_BOTH": 2,
+            "TARGET_GAP": 1
+          }
+        },
+        "2022": {
+          "n": 150,
+          "total_r": -4.468598314213397,
+          "mean_r": -0.02979065542808931,
+          "profit_factor": 0.9514282791933328,
+          "max_drawdown_r": -26.795181557087954,
+          "win_rate": 0.38666666666666666,
+          "avg_entry_rr": 1.633241604045853,
+          "exit_counts": {
+            "STOP": 92,
+            "TARGET": 57,
+            "TARGET_GAP": 1
+          }
+        },
+        "2023": {
+          "n": 185,
+          "total_r": -11.108365954694435,
+          "mean_r": -0.060045221376726673,
+          "profit_factor": 0.9050567012419279,
+          "max_drawdown_r": -22.54272582302621,
+          "win_rate": 0.3675675675675676,
+          "avg_entry_rr": 1.6956836408561748,
+          "exit_counts": {
+            "STOP": 117,
+            "TARGET": 66,
+            "864BAR_TIMEOUT": 2
+          }
+        },
+        "2024": {
+          "n": 163,
+          "total_r": 36.89507005921941,
+          "mean_r": 0.22635012306269575,
+          "profit_factor": 1.4054403303210925,
+          "max_drawdown_r": -9.172526678287305,
+          "win_rate": 0.44171779141104295,
+          "avg_entry_rr": 1.8154972583195985,
+          "exit_counts": {
+            "STOP": 90,
+            "TARGET": 71,
+            "864BAR_TIMEOUT": 1,
+            "STOP_BOTH": 1
+          }
+        },
+        "2025": {
+          "n": 124,
+          "total_r": 20.679051587418506,
+          "mean_r": 0.16676654505982666,
+          "profit_factor": 1.2830142971381893,
+          "max_drawdown_r": -6.030224735432025,
+          "win_rate": 0.4112903225806452,
+          "avg_entry_rr": 1.8418000058554185,
+          "exit_counts": {
+            "STOP": 72,
+            "TARGET": 50,
+            "TARGET_GAP": 1,
+            "STOP_GAP": 1
+          }
+        },
+        "2026": {
+          "n": 110,
+          "total_r": -28.559425053705176,
+          "mean_r": -0.25963113685186523,
+          "profit_factor": 0.6297716975330339,
+          "max_drawdown_r": -30.500729878358126,
+          "win_rate": 0.3,
+          "avg_entry_rr": 1.7178238353049529,
+          "exit_counts": {
+            "STOP": 76,
+            "TARGET": 31,
+            "TARGET_GAP": 1,
+            "864BAR_TIMEOUT": 1,
+            "STOP_GAP": 1
+          }
+        }
+      },
+      "aggregate": {
+        "n": 914,
+        "total_r": -22.306521571686943,
+        "mean_r": -0.02440538465173626,
+        "profit_factor": 0.9607422757270082,
+        "max_drawdown_r": -57.34424662035387,
+        "win_rate": 0.3785557986870897,
+        "avg_entry_rr": 1.6888962729574715,
+        "exit_counts": {
+          "STOP": 563,
+          "TARGET": 338,
+          "TARGET_GAP": 4,
+          "864BAR_TIMEOUT": 4,
+          "STOP_BOTH": 3,
+          "STOP_GAP": 2
+        }
+      }
+    }
+  }
+}

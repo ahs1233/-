@@ -297,3 +297,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing aggregate failed: -35.838R PF 0.940; 2026 remained -27.905R PF 0.700 with AUC ~0.503 despite training on 2023-2025.
 - 2026 quarter diagnosis: Swing all-event positive rate was ~38.4% in Q1, collapsed to 17.6% in Q2, then partially recovered to 31.4% in Q3.
 - Conclusion: Swing concept drift occurred faster than annual retraining. Next test = quarterly adaptation using previous 4 completed quarters.
+
+
+## 2026-10-05 — Quarterly Adaptive State Evolution v0.3
+- Retrained State Evolution every quarter using the previous 4 completed quarters only.
+- Scalper remained positive overall (+20.765R PF 1.072) and recovered in Q3 2026 after a bad Q2.
+- Swing still failed overall (-22.307R PF 0.961). 2026 Q1/Q2/Q3 were all negative.
+- Most important: Q3 2026 trained on a window that already included the Q2 collapse, yet Q3 still lost -11.190R with AUC 0.459.
+- Decision: faster prediction retraining alone is insufficient for Swing. Next layer must be explicit regime-health / risk-off management.

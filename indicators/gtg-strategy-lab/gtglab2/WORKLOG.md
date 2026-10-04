@@ -762,3 +762,20 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - causal annual training only on prior years
 - same features/model/threshold rule
 - Pristine Forward OOS read=false
+
+
+## 2026-10-05 — GTGLAB2-0042 — state_evolution_quarterly_v03
+
+**Action:** Tested quarterly adaptive State Evolution using only the previous four completed quarters.
+
+**Result:** Scalper adapted reasonably but still suffered Q2 2026 before recovering in Q3. Swing failed all three 2026 quarters. Q3 remained strongly negative even after training on Q2 2026, demonstrating that faster retraining alone is insufficient.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_STATE_EVOLUTION_QUARTERLY_V03_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/state-evolution-quarterly-v03/summary.json`
+
+**Verification:**
+- previous 4 completed quarters only
+- no same-quarter fitting
+- same frozen features/model/threshold rule
+- Pristine Forward OOS read=false
