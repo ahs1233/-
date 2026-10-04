@@ -321,3 +321,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing Wave Regime AUC: Train .589, Validation .509, consumed .516. Validation +5.696R PF 1.035 and consumed 2025-26 approximately flat, but per-event discrimination is effectively near random out of sample.
 - Key diagnosis: higher-order regime should not predict each individual Swing trade. It should operate as a persistent permission/risk layer over larger time blocks, while H1/M15/M5 handle individual entries.
 - Decision: retain both concepts, change their roles; no production promotion and no 2025-2026 retuning.
+
+## 2026-10-05 — Integrated Decision Architecture v0.1
+- Combined the evidence-backed hierarchy: persistent Swing Wave Permission, frozen static state eligibility, M5 transition/control transfer, original execution geometry, and causal trailing-20 Regime Health risk-off.
+- Combined live result 2018-03 through 2026-09: 1,991 trades, +108.114R, PF 1.136, max DD -24.690R, win 59.52%.
+- Broad segments were all positive with similar PF: 2018-22 +63.333R PF 1.139; 2023-24 +27.112R PF 1.133; 2025-26 +17.668R PF 1.130.
+- Compared with prior static architecture: total R +13.0%, PF improved 1.039 -> 1.136, drawdown magnitude reduced 63.8%, trade count reduced 61.9%, and 2026 loss improved from -51.993R to -16.505R.
+- 2022 flipped from -30.284R to +5.064R. 2026 remains materially negative and unresolved.
+- Decision: retain as strongest architecture so far; no final production promotion until untouched OOS is authorized.

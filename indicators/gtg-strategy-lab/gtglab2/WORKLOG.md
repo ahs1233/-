@@ -813,3 +813,21 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Validation 2023-2024
 - 2025-2026 diagnostic only
 - Pristine Forward OOS read=false
+
+## 2026-10-05 — GTGLAB2-0045 — integrated_decision_architecture_v01
+
+**Action:** Integrated the selected GTGLab2 layers into one causal decision architecture and applied it over the full historical period.
+
+**Architecture:** Swing persistent Wave Permission with Train-only hysteresis; frozen static-state eligibility; M5 HIGH_RECLAIM/HIGHER_LOW_BREAK execution; Scalper Control Transfer gate; trailing-20 closed-shadow Regime Health brake.
+
+**Result:** Combined live 1,991 trades, +108.114R, PF 1.136, max DD -24.690R. All three broad chronological segments remained positive around PF 1.13. Versus the prior static architecture, R increased 13%, drawdown magnitude fell 63.8%, and trade count fell 61.9%. 2026 loss was reduced 68.3% but remained -16.505R.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_INTEGRATED_DECISION_ARCHITECTURE_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/integrated-decision-architecture-v01/summary.json`
+
+**Verification:**
+- Wave hysteresis thresholds frozen from 2018-2022 Train scores only
+- Health uses only trades closed before next entry
+- No 2025-2026 retuning
+- Pristine Forward OOS read=false
