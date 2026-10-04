@@ -230,3 +230,25 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Sweep/Acceptance discovery, episodes, pairing and result objects exactly equal after merge
 - No force push used
 - Historical Holdout remained sealed
+
+## 2026-10-04T10:22:56.892127Z — GTGLAB2-0012 — unified_branch_verified
+
+**Action:** Unified GTGLab2 branch synchronized locally and remotely after parallel-track reconciliation.
+
+**Reason:** Close the execution checkpoint with a reproducible branch head and final device-local regression results.
+
+**Result:** Merge commit 6ff6774 contains both histories; GitHub push succeeded fast-forward; main worktree fast-forwarded to the same head; 51/51 engine and 106/106 data tests PASS.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/EVENTS.jsonl`
+- `indicators/gtg-strategy-lab/gtglab2/WORKLOG.md`
+
+**Verification:**
+- GitHub research/gtglab2 included 6ff6774
+- main device worktree HEAD=6ff6774 before this checkpoint commit
+- 51/51 engine tests PASS on main worktree
+- 106/106 data tests PASS on main worktree
+- Historical Holdout remained sealed
+- Pristine Forward OOS remained undecoded
+
+**Commit:** `6ff6774`
