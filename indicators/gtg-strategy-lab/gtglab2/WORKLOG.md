@@ -474,3 +474,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T15:33:14.873985Z — GTGLAB2-0026 — pine_v04_regime_study
+
+**Action:** Built and tested causal v0.4 regime filter from 2023-vs-2024 structural differences.
+
+**Reason:** User asked to identify why 2023 failed and build a real market-state filter.
+
+**Result:** v0.4 requires strict MTF, directional EMA50/200 gap >=1.5 ATR, and ATR14 >= 120H ATR median. 2023-2025: 28 trades, +33.3225R, PF 3.0585, max DD -5.805R. 2023 improved from -17.79R to +6.17R. Earlier 2018-2019 remain weak.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V04_REGIME_STUDY_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+

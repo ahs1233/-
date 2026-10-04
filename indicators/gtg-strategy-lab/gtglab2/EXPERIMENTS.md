@@ -146,3 +146,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - 2025: +11.7236R, PF 2.8584.
 - 2023 failed in both LONG and SHORT; next research target is causal regime discrimination, not side filtering alone.
 
+
+## 2026-10-04 — Pine v0.4 causal regime filter
+- Frozen rule: MTF +3/-3, directional EMA50/200 gap >=1.5 ATR, ATR14 >= rolling median ATR14(120H).
+- Exact 2023-2025: 28 trades, +33.3225R, PF 3.0585, max DD -5.805R.
+- 2023 improved from -17.7928R to +6.1663R.
+- Secondary 2026: +9.6390R on 4 trades.
+- Earlier 2018-2022: +5.4883R overall, but 2018/2019 still fail; regime engine is improved, not complete.
+
