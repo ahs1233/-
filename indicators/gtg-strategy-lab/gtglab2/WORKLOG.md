@@ -126,3 +126,20 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - 17/17 cumulative GTGLab2 engine tests PASS
 
+
+## 2026-10-04T09:58:41.327947Z — GTGLAB2-0007 — experiment_complete
+
+**Action:** Sweep/Acceptance v0.1 development screen completed.
+
+**Reason:** Test whether post-break rejection and acceptance create distinct executable paths and whether staged entry improves single entry.
+
+**Result:** 1134 boundary breaks; 774 acceptance, 360 rejection. BASE C1 single overall -0.0516R; acceptance-only +0.0210R; rejection -0.1249R. Current staged acceptance -0.0291R. No Holdout/OOS/microstructure outcomes read.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/runs/sweep-acceptance-v01-001/summary.json`
+
+**Verification:**
+- Historical Holdout read=false
+- Pristine Forward OOS decoded=false
+- Microstructure outcomes read=false
+

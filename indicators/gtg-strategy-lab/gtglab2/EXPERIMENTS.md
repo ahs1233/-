@@ -51,3 +51,13 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Status: **COLLECTING ONLY**.
 - Outcome linkage: **NOT YET PERMITTED**.
 - First edge-analysis experiment: pending readiness gate.
+
+## Sweep / Acceptance v0.1 — 2026-10-04
+- Development only; locks preserved.
+- Boundary breaks: 1,134; acceptance: 774; rejection: 360.
+- BASE C1 single overall: -0.0516 R/trade.
+- BASE C1 acceptance single: +0.0210 R/trade.
+- BASE C1 rejection single: -0.1249 R/trade.
+- BASE C1 acceptance staged: -0.0291 R/trade.
+- Verdict: overall FAIL; rejection-fade branch rejected; acceptance continuation retained as a new-version research lead; current staging rule rejected.
+
