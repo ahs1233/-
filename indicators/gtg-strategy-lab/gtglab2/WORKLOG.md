@@ -504,3 +504,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T16:07:14.816445Z — GTGLAB2-0028 — pine_v052_buy_low_sell_high_final
+
+**Action:** Finalized and tested GTGLab2 Buy Low / Sell High v0.5.2 exact Pine-logic candidate.
+
+**Reason:** User requested a strategy that buys rejected low prices and sells higher rather than chasing breakouts.
+
+**Result:** 131 trades from 2018-03-01 through 2026-09-30; +34.9694R; PF 1.5141; max DD -7.6570R; win rate 41.98%. Development split positive on both 2018-2023 and 2024-2026.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V052_BUY_LOW_SELL_HIGH_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+

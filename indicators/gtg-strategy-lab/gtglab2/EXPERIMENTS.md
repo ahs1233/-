@@ -163,3 +163,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Final: 139 trades, +35.4243R, PF 1.4883, max DD -9.6099R.
 - Pristine Forward OOS remains untouched.
 
+
+## 2026-10-04 — GTGLab2 v0.5.2 Buy Low / Sell High
+- Robustness grid: 486 combinations, 354 passed split-stability gates.
+- Frozen candidate: position48 <=0.40, EMA50/200 gap >=1 ATR, stop cushion 0.75 ATR, target at 60% of frozen 48H range, minimum planned R:R 1.25.
+- Exact Pine-logic emulation 2018-2026: 131 trades, +34.9694R, PF 1.5141, max DD -7.6570R, win rate 41.98%.
+- 2018-2023: +22.7937R, PF 1.4468. 2024-2026: +12.1757R, PF 1.7163.
+- v0.5.2 is a distinct pullback/rejection engine, not a replacement for v0.4 momentum-regime engine.
+
