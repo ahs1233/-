@@ -305,3 +305,19 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing still failed overall (-22.307R PF 0.961). 2026 Q1/Q2/Q3 were all negative.
 - Most important: Q3 2026 trained on a window that already included the Q2 collapse, yet Q3 still lost -11.190R with AUC 0.459.
 - Decision: faster prediction retraining alone is insufficient for Swing. Next layer must be explicit regime-health / risk-off management.
+
+
+## 2026-10-05 — Regime Health Risk-Off v0.4
+- Added an explicit management layer using the trailing 20 CLOSED shadow trades.
+- Frozen rule: risk-off if trailing total <= -5R OR PF <= 0.80; shadow continues during risk-off.
+- Scalper aggregate expectancy was largely unchanged; health layer is protective rather than additive.
+- Swing 2026 improved dramatically: shadow -28.559R -> live -6.822R. First risk-off occurred 2026-03-17, Q2 exposure dropped to 4 trades, and Q3 live exposure dropped to zero.
+- Across the whole Swing walk-forward stream, skipped trades were net -12.570R, confirming useful damage avoidance, but aggregate live result remained negative (-9.736R PF 0.973).
+- Decision: retain regime-health management as a safety layer, but do not treat it as a substitute for stronger Swing state understanding.
+
+## 2026-10-05 — Wave Regime + Control Transfer v0.1
+- Split research into specialized readers: local M5/M15 Control Transfer for Scalper and 1-10 day Higher-Order Wave/Regime for Swing.
+- Scalper Control Transfer AUC: Train .640, Validation .629, consumed .653. Validation +3.495R PF 1.038: better than State Evolution v0.1 but worse than the simpler static-state baseline. 2025 +11.858R, 2026 -11.220R.
+- Swing Wave Regime AUC: Train .589, Validation .509, consumed .516. Validation +5.696R PF 1.035 and consumed 2025-26 approximately flat, but per-event discrimination is effectively near random out of sample.
+- Key diagnosis: higher-order regime should not predict each individual Swing trade. It should operate as a persistent permission/risk layer over larger time blocks, while H1/M15/M5 handle individual entries.
+- Decision: retain both concepts, change their roles; no production promotion and no 2025-2026 retuning.

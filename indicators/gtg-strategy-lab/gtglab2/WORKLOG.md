@@ -779,3 +779,37 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - no same-quarter fitting
 - same frozen features/model/threshold rule
 - Pristine Forward OOS read=false
+
+
+## 2026-10-05 — GTGLAB2-0043 — regime_health_riskoff_v04
+
+**Action:** Added a causal live risk-off layer driven by the most recent 20 closed shadow trades, while keeping the underlying quarterly adaptive engine running continuously in shadow mode.
+
+**Result:** The layer materially protected Swing in 2026: -28.559R shadow became -6.822R live, with first risk-off on 2026-03-17 and zero live Swing trades in Q3. Across the full Swing period it avoided a net -12.570R of shadow losses, but the live aggregate remained negative, proving that management protects capital but cannot repair a weak prediction engine.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_REGIME_HEALTH_RISKOFF_V04_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/regime-health-riskoff-v04/summary.json`
+
+**Verification:**
+- trailing window uses only closed shadow trades
+- no future outcomes at decision time
+- fixed 20-trade / -5R / PF0.80 rule
+- Pristine Forward OOS read=false
+
+## 2026-10-05 — GTGLAB2-0041 — wave_regime_control_transfer_v01
+
+**Action:** Split GTGLab2 state understanding into two specialized readers: a local Control Transfer model for Scalper and a Higher-Order Wave/Regime model for Swing.
+
+**Result:** Scalper Control Transfer produced Validation AUC .629 and +3.495R PF 1.038, improving over State Evolution v0.1 but not over the simpler static-state baseline. Swing Wave/Regime produced Validation AUC .509, showing that a slow higher-order regime should not be used as another per-event trade predictor. Its consumed-history filtering reduced 2026 damage but cannot be used for tuning or promotion.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_WAVE_REGIME_CONTROL_TRANSFER_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/wave-regime-control-transfer-v01/summary.json`
+
+**Verification:**
+- Frozen entry triggers/states/management unchanged
+- Train 2018-2022
+- Validation 2023-2024
+- 2025-2026 diagnostic only
+- Pristine Forward OOS read=false
