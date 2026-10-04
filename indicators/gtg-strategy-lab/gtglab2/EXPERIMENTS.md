@@ -137,3 +137,12 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - 2025: +11.7236R, PF 2.8584. 2026 through Sep 30: +8.0461R, PF 1.7747.
 - Two dynamic-risk overlays were tested and rejected as inferior.
 
+
+## 2026-10-04 — Pine v0.3 Strict MTF on 2023-2025
+- Unchanged v0.3 Strict MTF applied from 2023-01-01 through 2025-12-31.
+- Overall: 64 trades, +25.7705R, PF 1.4741, max DD -25.2919R.
+- 2023: -17.7928R, PF 0.3304, max DD -22.6162R.
+- 2024: +31.8398R, PF 2.4825.
+- 2025: +11.7236R, PF 2.8584.
+- 2023 failed in both LONG and SHORT; next research target is causal regime discrimination, not side filtering alone.
+

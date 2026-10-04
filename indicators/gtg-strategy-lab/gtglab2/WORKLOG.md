@@ -459,3 +459,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T15:17:37.418304Z — GTGLAB2-0025 — pine_v03_2023_2025_test
+
+**Action:** Applied Pine v0.3 Strict MTF unchanged across full calendar years 2023-2025.
+
+**Reason:** User requested v3 on 2023 to 2025 data.
+
+**Result:** 64 trades, +25.7705R overall, PF 1.4741, max DD -25.2919R. 2023 failed badly (-17.7928R, PF 0.3304); 2024 +31.8398R PF 2.4825; 2025 +11.7236R PF 2.8584.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V03_2023_2025_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+
