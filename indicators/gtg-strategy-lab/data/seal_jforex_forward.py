@@ -20,7 +20,7 @@ import hashlib
 import json
 import os
 import shutil
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +33,20 @@ RECORD_BYTES = 24
 FREEZE_DAY = T_FREEZE.strftime("%Y-%m-%d")
 CANONICAL_ORIGIN = "jforex-ihistory-export"
 CANONICAL_SOURCE = "JForex API/IHistory"
+SETTLE_LAG_HOURS = 3
+
+
+def expected_settled_days(now: datetime | None = None) -> list[str]:
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    today = now.date()
+    last = today - timedelta(days=2 if now.hour < SETTLE_LAG_HOURS else 1)
+    first = datetime.fromisoformat(FREEZE_DAY).date()
+    out: list[str] = []
+    day = first
+    while day <= last:
+        out.append(day.isoformat())
+        day += timedelta(days=1)
+    return out
 
 
 def sha256_file(path: Path) -> str:
@@ -176,7 +190,14 @@ def same_verification(row: dict[str, Any], rec: dict[str, Any]) -> bool:
     )
 
 
-def seal(export_root: Path, cache_root: Path, root: Path) -> dict[str, Any]:
+def seal(
+    export_root: Path,
+    cache_root: Path,
+    root: Path,
+    *,
+    check_expected: bool = False,
+    now: datetime | None = None,
+) -> dict[str, Any]:
     manifest = read_manifest(root)
     existing = {
         str(e["day"]): e
@@ -190,7 +211,11 @@ def seal(export_root: Path, cache_root: Path, root: Path) -> dict[str, Any]:
     verified_existing: list[str] = []
     pending_cache: list[str] = []
 
-    for day in discover_complete_days(export_root):
+    complete_days = discover_complete_days(export_root)
+    expected_days = expected_settled_days(now) if check_expected else complete_days
+    missing_export = sorted(set(expected_days) - set(complete_days))
+
+    for day in complete_days:
         src = source_metadata(export_root, day)
         cache = cache_metadata(cache_root, day)
         if cache is None:
@@ -245,11 +270,20 @@ def seal(export_root: Path, cache_root: Path, root: Path) -> dict[str, Any]:
         sealed.append(day)
         verified_added.append(day)
 
+    status = (
+        "BLOCKED_MISSING_JFOREX_EXPORT"
+        if missing_export
+        else "WAITING_CACHE_VERIFICATION"
+        if pending_cache
+        else "PASS"
+    )
     return {
         "scope": "GTG JForex Pristine Forward Seal v0.2",
-        "status": "PASS" if not pending_cache else "WAITING_CACHE_VERIFICATION",
+        "status": status,
         "freeze_day": FREEZE_DAY,
-        "complete_export_days": len(discover_complete_days(export_root)),
+        "expected_settled_through": expected_days[-1] if expected_days else None,
+        "complete_export_days": len(complete_days),
+        "missing_expected_export_days": missing_export,
         "sealed_new_days": sealed,
         "verification_added_days": verified_added,
         "verified_existing_days": verified_existing,
@@ -268,14 +302,19 @@ def main() -> None:
     ap.add_argument("--out")
     args = ap.parse_args()
 
-    report = seal(Path(args.export_root), Path(args.cache_root), root_dir(args.root))
+    report = seal(
+        Path(args.export_root),
+        Path(args.cache_root),
+        root_dir(args.root),
+        check_expected=True,
+    )
     if args.out:
         Path(args.out).write_text(
             json.dumps(report, indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
     print(json.dumps(report, indent=2, ensure_ascii=False))
-    raise SystemExit(0 if report["status"] in {"PASS", "WAITING_CACHE_VERIFICATION"} else 2)
+    raise SystemExit(0 if report["status"] == "PASS" else 3)
 
 
 if __name__ == "__main__":

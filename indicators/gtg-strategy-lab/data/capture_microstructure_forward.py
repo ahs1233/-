@@ -114,13 +114,36 @@ def source_health_summary(payload: Any) -> dict[str, Any]:
 
 
 @contextmanager
-def exclusive_lock(root: Path, name: str = ".capture.lock"):
+def exclusive_lock(
+    root: Path,
+    name: str = ".capture.lock",
+    *,
+    stale_after_seconds: float = 120.0,
+):
     lock_dir = root / name
     root.mkdir(parents=True, exist_ok=True)
-    try:
+
+    def _create() -> None:
         lock_dir.mkdir()
-    except FileExistsError as exc:
-        raise RuntimeError(f"collector lock already exists: {lock_dir}") from exc
+        (lock_dir / "owner.json").write_text(
+            json.dumps({"pid": os.getpid(), "created_utc": utc_now().isoformat()}),
+            encoding="utf-8",
+        )
+
+    try:
+        _create()
+    except FileExistsError:
+        try:
+            age = max(0.0, utc_now().timestamp() - lock_dir.stat().st_mtime)
+        except FileNotFoundError:
+            age = 0.0
+        if age <= max(1.0, float(stale_after_seconds)):
+            raise RuntimeError(f"collector lock already exists: {lock_dir}")
+        shutil.rmtree(lock_dir, ignore_errors=True)
+        try:
+            _create()
+        except FileExistsError as exc:
+            raise RuntimeError(f"collector lock race: {lock_dir}") from exc
     try:
         yield
     finally:

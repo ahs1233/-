@@ -228,6 +228,18 @@ class QuietRun(unittest.TestCase):
 
 
 class Forward(unittest.TestCase):
+    def test_legacy_public_cli_is_fail_closed(self):
+        with self.assertRaisesRegex(SystemExit, "disabled under TRADE_CONTRACT v0.2.3"):
+            capture_forward.main([])
+
+    def test_legacy_public_cli_refuses_canonical_root(self):
+        canonical = capture_forward.root_dir(None)
+        with self.assertRaisesRegex(SystemExit, "refusing to write legacy public-datafeed audit"):
+            capture_forward.main([
+                "--allow-legacy-public-audit",
+                "--root", str(canonical),
+            ])
+
     def test_capture_complete_days_from_freeze_day_idempotent_and_raw(self):
         calls = []
 

@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -8,6 +9,7 @@ from capture_microstructure_forward import (
     _observed_at,
     audit_root,
     canonical_bytes,
+    exclusive_lock,
     source_health_summary,
     store_snapshot,
     with_force,
@@ -109,6 +111,25 @@ class MicrostructureForwardTests(unittest.TestCase):
         got = source_health_summary(self.payload())
         self.assertEqual(got["okx_xau_swap"]["status"], "ready")
         self.assertFalse(got["bitfinex_xaut"]["available"])
+
+    def test_fresh_lock_rejects_overlap(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            with exclusive_lock(root, ".test.lock", stale_after_seconds=60):
+                with self.assertRaises(RuntimeError):
+                    with exclusive_lock(root, ".test.lock", stale_after_seconds=60):
+                        pass
+            self.assertFalse((root / ".test.lock").exists())
+
+    def test_stale_lock_is_recovered(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            lock = root / ".test.lock"
+            lock.mkdir()
+            os.utime(lock, (1, 1))
+            with exclusive_lock(root, ".test.lock", stale_after_seconds=1):
+                self.assertTrue((lock / "owner.json").exists())
+            self.assertFalse(lock.exists())
 
 
 if __name__ == "__main__":

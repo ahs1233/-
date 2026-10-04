@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 import seal_jforex_forward as sjf
@@ -39,7 +40,7 @@ class JForexForwardSealTests(unittest.TestCase):
             self.make_side(cache, "2026-10-01", "BID", raw)
             self.make_side(cache, "2026-10-01", "ASK", raw)
 
-            rep = sjf.seal(export, cache, root)
+            rep = sjf.seal(export, cache, root, check_expected=False)
             self.assertEqual(rep["status"], "PASS")
             self.assertEqual(rep["sealed_new_days"], ["2026-10-01"])
             rows = read_manifest(root)
@@ -60,7 +61,7 @@ class JForexForwardSealTests(unittest.TestCase):
             self.make_side(cache, "2026-10-01", "ASK", a)
 
             with self.assertRaises(ValueError):
-                sjf.seal(export, cache, root)
+                sjf.seal(export, cache, root, check_expected=False)
             self.assertEqual(read_manifest(root), [])
 
     def test_missing_cache_waits_without_sealing(self):
@@ -72,7 +73,7 @@ class JForexForwardSealTests(unittest.TestCase):
             raw = bytes(range(24))
             self.make_export(export, "2026-10-01", raw, raw)
 
-            rep = sjf.seal(export, cache, root)
+            rep = sjf.seal(export, cache, root, check_expected=False)
             self.assertEqual(rep["status"], "WAITING_CACHE_VERIFICATION")
             self.assertEqual(rep["pending_cache_verification_days"], ["2026-10-01"])
             self.assertEqual(read_manifest(root), [])
@@ -88,13 +89,27 @@ class JForexForwardSealTests(unittest.TestCase):
             self.make_side(cache, "2026-10-01", "BID", raw)
             self.make_side(cache, "2026-10-01", "ASK", raw)
 
-            sjf.seal(export, cache, root)
+            sjf.seal(export, cache, root, check_expected=False)
             first = read_manifest(root)
             self.assertEqual(len(first), 2)
-            rep = sjf.seal(export, cache, root)
+            rep = sjf.seal(export, cache, root, check_expected=False)
             second = read_manifest(root)
             self.assertEqual(len(second), 2)
             self.assertEqual(rep["verified_existing_days"], ["2026-10-01"])
+
+    def test_expected_settled_day_missing_blocks(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            rep = sjf.seal(
+                base / "export",
+                base / "cache",
+                base / "root",
+                check_expected=True,
+                now=datetime(2026, 10, 1, 4, 0, tzinfo=timezone.utc),
+            )
+            self.assertEqual(rep["status"], "BLOCKED_MISSING_JFOREX_EXPORT")
+            self.assertEqual(rep["missing_expected_export_days"], ["2026-09-30"])
+            self.assertEqual(read_manifest(base / "root"), [])
 
 
 if __name__ == "__main__":

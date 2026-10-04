@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import dukascopy as dk
 from lab_config import T_FREEZE
@@ -60,10 +61,29 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--root")
     ap.add_argument("--until", help="UTC ISO time used as 'now' (default: current time)")
+    ap.add_argument(
+        "--allow-legacy-public-audit",
+        action="store_true",
+        help="explicit opt-in for non-canonical public-datafeed audit capture",
+    )
     a = ap.parse_args(argv)
+
+    if not a.allow_legacy_public_audit:
+        raise SystemExit(
+            "disabled under TRADE_CONTRACT v0.2.3: canonical forward source is JForex/IHistory; "
+            "use --allow-legacy-public-audit only with a separate audit root"
+        )
+    if not a.root:
+        raise SystemExit("legacy public audit requires an explicit --root separate from canonical .lab-data")
+
+    target = Path(a.root).resolve()
+    canonical = root_dir(None).resolve()
+    if target == canonical:
+        raise SystemExit("refusing to write legacy public-datafeed audit into canonical forward root")
+
     now = datetime.fromisoformat(a.until).replace(tzinfo=timezone.utc) if a.until else datetime.now(timezone.utc)
-    rows = capture(root_dir(a.root), now)
-    print(f"captured {len(rows)} day(s): {[r['day'] for r in rows]}")
+    rows = capture(root_dir(target), now)
+    print(f"captured {len(rows)} audit-reference day(s): {[r['day'] for r in rows]}")
 
 
 if __name__ == "__main__":

@@ -1,92 +1,68 @@
-# GTG Microstructure Forward Collection v0.3.1 - Operational Integrity Patch
+# GTG Microstructure Forward Collection v0.3.1 — operational hardening amendment
 
-Registered 2026-10-04 **before the first v0.3.1 capture**.
+Registered 2026-10-04 after the initial v0.3 collection began, but before any microstructure-to-trading-outcome alignment and while Historical Holdout and Pristine Price OOS remained sealed.
 
 ## Scope
 
-This is an operational collection/quality patch only.
+This amendment changes collection reliability and quality grading only.
 
-It does **not**:
-- add or remove a market source,
-- change any microstructure feature formula,
-- change State Engine logic,
-- read or align trading outcomes,
-- open Historical Holdout,
+It does NOT:
+- change any market feature formula,
+- change State Engine or Transition logic,
+- read trading outcomes,
 - decode Pristine Price OOS,
-- change the research eligibility thresholds.
+- read Historical Holdout,
+- authorize edge analysis.
 
-PanWatch market-source blobs remain the same as v0.3.
+All existing raw v0.3 snapshots remain append-only evidence. Quality grades may be recomputed from their already-recorded metadata and raw payloads.
 
-## Fixes registered before use
+## Operational corrections
 
-### 1. Direct capture no longer forces refresh unconditionally
+1. Direct PanWatch collection no longer forces `force=True` on every minute.
+2. Direct PanWatch collection has a hard bounded timeout.
+3. The scheduled runner records elapsed runtime.
+4. A run-level lock prevents overlapping collectors.
+5. A stale lock older than the bounded failure window may be recovered automatically.
+6. Existing raw snapshot storage remains atomic JSON + SHA256 + byte count.
 
-The direct collector previously called PanWatch with `force=True` regardless of the CLI flag.
+## Quality-grade correction
 
-v0.3.1:
-- respects the explicit `--force` flag,
-- scheduled collection does not use `--force`,
-- normal one-shot REST acquisition still fetches fresh data because every scheduled run is a new process.
+A venue is ready evidence only when:
+- venue status is `ready`,
+- an executed-trade timestamp exists,
+- latest executed trade age is <= 900 seconds at capture time,
+- executed-trade count is > 0.
 
-### 2. Bounded direct-capture runtime
+`fusion_grade` requires at least TWO DISTINCT ready source families.
 
-The direct PanWatch call is wrapped in a hard async timeout.
+Multiple venues belonging to one family do not create independent fusion evidence.
 
-Scheduled setting:
-- direct timeout: 45 seconds,
-- schedule cadence: 1 minute,
-- task-level execution limit remains an external safety bound.
-
-A hung source must not silently consume multiple minute slots.
-
-### 3. Whole-run concurrency lock
-
-A `.run.lock` covers the complete fetch + append operation.
-
-Purpose:
-- prevent a manual capture and Scheduled Task capture from using the same PanWatch tape SQLite concurrently,
-- preserve the existing append-only storage lock separately.
-
-### 4. Fusion Grade definition corrected
-
-Fusion Grade now requires:
-- at least two **distinct ready source families**,
-- each ready source must have actual executed-trade evidence,
-- latest executed trade age <= 900 seconds.
-
-A source marked available but lacking a valid latest executed trade cannot qualify as ready evidence.
-
-Two ready venues from the same source family cannot create Fusion Grade merely because another stale family exists.
-
-### 5. Availability and readiness are separated
-
-Quality audit reports both:
-- source API/feed availability,
+The audit reports separately:
+- source health / availability,
 - ready executed-trade source-family coverage.
 
-Availability is not treated as equivalent to usable microstructure evidence.
+This prevents a source that is reachable but lacks fresh executed-trade evidence from being overstated as independent fusion evidence.
 
-## Research locks
+## Research lock
 
-Unchanged:
-- Historical Holdout: locked.
-- Pristine Price OOS: sealed/undecoded.
-- Trading outcomes: unread.
-- No microstructure threshold is promoted into a trading rule.
+Eligibility remains a collection gate, not a statistical sample-size claim:
+- >=30 elapsed calendar days,
+- >=10,000 valid append-only snapshots with source-health metadata.
 
-## Eligibility
+Minute snapshots are temporally dependent. The later edge-analysis protocol must use time blocks / episodes rather than treating rows as IID observations.
 
-Unchanged from v0.3:
-- >= 30 elapsed calendar days from the first valid capture, and
-- >= 10,000 valid append-only snapshots with source-health metadata.
+Historical Holdout: LOCKED.
+Pristine Price OOS decoding: LOCKED.
+Trading outcomes read by this pipeline: FALSE.
 
-Both are required.
+## Lock crash recovery
 
-## Version boundary
+The collector uses a whole-run `.run.lock` and the append path retains its separate storage lock.
 
-Snapshots before this patch retain their original collector version.
+A lock now records owner PID/time metadata. A fresh lock rejects overlap. A lock older than the bounded recovery window may be removed as stale so a killed Windows task cannot permanently stop future collection.
 
-Snapshots after this patch are recorded as:
-`microstructure-forward-v0.3.1`
+This is safe relative to the operational bounds because normal direct capture is bounded to 45 seconds and the scheduler retains an external execution limit.
 
-The audit may analyze both versions for collection quality because market-source semantics are unchanged; version must remain visible per capture.
+Regression tests pin both behaviors:
+- fresh overlapping lock is rejected,
+- stale abandoned lock is recovered.
