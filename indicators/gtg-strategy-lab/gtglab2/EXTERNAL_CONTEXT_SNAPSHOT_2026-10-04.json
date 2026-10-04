@@ -1,0 +1,164 @@
+{
+  "scope": "GTGLab2 external forward context snapshot",
+  "capture_policy": "context-only; no outcome linkage; no order action",
+  "liquid_gold": {
+    "symbol": "xyz:GOLD",
+    "ticker": {
+      "coin": "xyz:GOLD",
+      "markPx": "4141.9",
+      "funding": "0.0006%",
+      "openInterest": "$278,837,561",
+      "dayNtlVlm": "3498996.9886800004",
+      "prevDayPx": "4139.0",
+      "change24h": "+0.07%",
+      "maxLeverage": 25
+    },
+    "iconSrc": "https://coinvest-chat.liquid.trade/icons/xyz%3AGOLD",
+    "refCode": "KVWAXU44",
+    "sections": {
+      "size": {
+        "coin": "xyz:GOLD",
+        "createdAt": "2026-10-04T09:21:34.777Z",
+        "breakdownBySize": [
+          {
+            "sizeSegmentId": 7,
+            "size": "$250k–$500k",
+            "minSize": 250000,
+            "maxSize": 500000,
+            "positionCount": 44,
+            "pastPositionCount": 45,
+            "totalPositionValue": 15357753.81036,
+            "pastTotalPositionValue": 15842707.21836,
+            "totalPositionValueLong": 11570048.303580001,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.753
+          },
+          {
+            "sizeSegmentId": 2,
+            "size": "$1k–$10k",
+            "minSize": 1000,
+            "maxSize": 10000,
+            "positionCount": 1279,
+            "pastPositionCount": 1280,
+            "totalPositionValue": 4673863.9116,
+            "pastTotalPositionValue": 4656571.27902,
+            "totalPositionValueLong": 4078541.8744200002,
+            "valueCloseToLiquidation": 101230.97634000001,
+            "bias": 0.873
+          },
+          {
+            "sizeSegmentId": 3,
+            "size": "$10k–$25k",
+            "minSize": 10000,
+            "maxSize": 25000,
+            "positionCount": 278,
+            "pastPositionCount": 281,
+            "totalPositionValue": 4540936.15404,
+            "pastTotalPositionValue": 4589944.23492,
+            "totalPositionValueLong": 3761552.11068,
+            "valueCloseToLiquidation": 47598.39396,
+            "bias": 0.828
+          },
+          {
+            "sizeSegmentId": 5,
+            "size": "$50k–$100k",
+            "minSize": 50000,
+            "maxSize": 100000,
+            "positionCount": 115,
+            "pastPositionCount": 115,
+            "totalPositionValue": 8176309.984440001,
+            "pastTotalPositionValue": 8173943.97066,
+            "totalPositionValueLong": 7013474.369460001,
+            "valueCloseToLiquidation": 194577.20802,
+            "bias": 0.858
+          },
+          {
+            "sizeSegmentId": 9,
+            "size": "$1m–$2,5m",
+            "minSize": 1000000,
+            "maxSize": 2500000,
+            "positionCount": 26,
+            "pastPositionCount": 26,
+            "totalPositionValue": 44269082.996580005,
+            "pastTotalPositionValue": 44276525.124749996,
+            "totalPositionValueLong": 28928914.02648,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.653
+          },
+          {
+            "sizeSegmentId": 4,
+            "size": "$25k–$50k",
+            "minSize": 25000,
+            "maxSize": 50000,
+            "positionCount": 167,
+            "pastPositionCount": 166,
+            "totalPositionValue": 6109926.61734,
+            "pastTotalPositionValue": 6085879.0046999995,
+            "totalPositionValueLong": 5395997.51028,
+            "valueCloseToLiquidation": 193660.62768,
+            "bias": 0.883
+          },
+          {
+            "sizeSegmentId": 6,
+            "size": "$100k–$250k",
+            "minSize": 100000,
+            "maxSize": 250000,
+            "positionCount": 101,
+            "pastPositionCount": 101,
+            "totalPositionValue": 15599934.3825,
+            "pastTotalPositionValue": 15605826.38955,
+            "totalPositionValueLong": 13751524.83744,
+            "valueCloseToLiquidation": 344539.36062,
+            "bias": 0.882
+          },
+          {
+            "sizeSegmentId": 1,
+            "size": "<$1k",
+            "minSize": null,
+            "maxSize": 1000,
+            "positionCount": 3606,
+            "pastPositionCount": 3603,
+            "totalPositionValue": 657751.80276,
+            "pastTotalPositionValue": 656249.66397,
+            "totalPositionValueLong": 567171.05094,
+            "valueCloseToLiquidation": 12256.414560000001,
+            "bias": 0.862
+          },
+          {
+            "sizeSegmentId": 8,
+            "size": "$500k–$1m",
+            "minSize": 500000,
+            "maxSize": 1000000,
+            "positionCount": 20,
+            "pastPositionCount": 19,
+            "totalPositionValue": 13410081.47232,
+            "pastTotalPositionValue": 12896332.39593,
+            "totalPositionValueLong": 9323627.10318,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.695
+          },
+          {
+            "sizeSegmentId": 10,
+            "size": ">$2,5m",
+            "minSize": 2500000,
+            "maxSize": null,
+            "positionCount": 18,
+            "pastPositionCount": 18,
+            "totalPositionValue": 165961697.78682,
+            "pastTotalPositionValue": 165997772.75105998,
+            "totalPositionValueLong": 54987818.27292,
+            "valueCloseToLiquidation": 0,
+            "bias": 0.331
+          }
+        ]
+      },
+      "smartMoney": "smart money 42% long vs losing crowd 67% long — smart money is leaning short and fading a crowded long (contrarian signal)."
+    }
+  },
+  "quiver_connection": {
+    "dataset_catalog": {
+      "text": "{\n  \"name\": \"get_congress_trades\",\n  \"description\": \"Get stock transactions by members of the U.S. Congress. Filter by ticker symbol, politician name, chamber (Senate or House), party, date range, and more. Returns trade details including transaction type, amount range, and filing date.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_congress_politician\",\n  \"description\": \"Get detailed information about a U.S. Congress member including their profile, net worth, stock portfolio, top donors, and recent trading activity. Use bioguide_id or politician name to look up a specific member.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_congress_legislation\",\n  \"description\": \"Get bills, legislation, and AI-generated bill summaries from Congress. Includes sponsorship information and current status.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_insider_trading\",\n  \"description\": \"Get SEC Form 4 insider trading transactions. Shows when company executives, directors, and major shareholders buy or sell stock. Filter by ticker or date.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_institutional_holdings\",\n  \"description\": \"Get SEC 13F institutional holdings data. Shows what stocks hedge funds and institutional investors hold, and how their positions changed. Filter by ticker, fund owner, date, or reporting period.\",\n  \"tier\": 2,\n  \"tier_label\": \"Trader+\"\n}\n{\n  \"name\": \"get_gov_contracts\",\n  \"description\": \"Get government contracts and awards by ticker symbol. Shows which companies receive federal contracts and for how much.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_lobbying\",\n  \"description\": \"Get corporate lobbying spending data. Shows how much companies spend on lobbying Congress, and which issues they lobby on.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_ticker_ownership\",\n  \"description\": \"Get ownership data for a stock: insider holdings, institutional holders (13F), ownership breakdown, and executive compensation.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_dark_pool\",\n  \"description\": \"Get off-exchange (dark pool) trading data for a stock. Shows the volume of trades happening outside public exchanges.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_patents\",\n  \"description\": \"Get patent filing data for a company including patent count, filing trends (drift), and momentum metrics.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_political_exposure\",\n  \"description\": \"Get a comprehensive political exposure report for a stock ticker. Combines Congress trading activity, lobbying spending, government contracts, and political beta into a single analysis.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_ticker_full_picture\",\n  \"description\": \"Get a combined picture of a stock: ownership breakdown (insider sentiment, 13F summary, top owners) and recent insider trading in one response.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"compare_tickers\",\n  \"description\": \"Compare 2-3 stock tickers side by side across any available dataset (congress trades, insider trading, ownership, social sentiment, etc.).\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"search_datasets\",\n  \"description\": \"Discover what data is available in QuiverQuant. Returns a list of all available tools with their descriptions, required parameters, and which subscription tier is needed. Use this first if you're unsure which tool to call.\",\n  \"tier\": 0,\n  \"tier_label\": \"Free\"\n}\n{\n  \"name\": \"query_quiver_api\",\n  \"description\": \"Direct access to any QuiverQuant API endpoint by name. Pass the endpoint name (e.g. 'live_congress_trading') and parameters as key-value pairs. Use search_datasets first to discover available endpoints.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_corporate_donors\",\n  \"description\": \"Get corporate PAC donation history from FEC filings. Filter by ticker (the donating company), politician (candidate name), bioguide_id, party, cycle, and date range. All results restricted to PAC transactions.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_executive_compensation\",\n  \"description\": \"Get SEC executive compensation disclosures from proxy filings. Filter by ticker, executive name, role, year range, and minimum total compensation. Year-over-year change fields are not computed by this tool.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_quiver_newsfeed\",\n  \"description\": \"Get curated news from the Quiver newsfeed. Filter by ticker, category, source, text query (headline ilike), date range, or breaking-only. Subreddit cross-posts and earnings-call-summary boilerplate are excluded from results.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}\n{\n  \"name\": \"get_trump_trades\",\n  \"description\": \"Get stock transactions by U.S. President Donald Trump (STOCK Act disclosures). Filter by ticker, company name, transaction type (Purchase/Sale/Exchange), and date range. Date filter applies to either the disclosure date (filed) or transaction date (traded) via the date_field parameter.\",\n  \"tier\": 1,\n  \"tier_label\": \"Hobbyist+\"\n}"
+    },
+    "subscription_note": "Authenticated connection verified; paid dataset calls are blocked because the connected Quiver account has no active subscription."
+  }
+}

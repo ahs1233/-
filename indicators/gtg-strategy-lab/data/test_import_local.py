@@ -25,7 +25,7 @@ class Cache(unittest.TestCase):
             p = il.cache_path(cache, url)
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_bytes(lzma.decompress(raw))                       # the cache keeps plain records
-        self.assertTrue(str(il.cache_path(cache, dk.candle_url(DAY, "BID"))).endswith("XAUUSD/2026/06/15/BID_candles_min_1.bi5".replace("/", "/")))
+        self.assertTrue(il.cache_path(cache, dk.candle_url(DAY, "BID")).as_posix().endswith("XAUUSD/2026/06/15/BID_candles_min_1.bi5"))
         a, ref = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
         il.import_cache(cache, a, DAY, datetime(2026, 7, 16, tzinfo=UTC), log=lambda *_: None)
         build_day(DAY, fetch=lambda u: files.get(u), root=ref)            # the datafeed path

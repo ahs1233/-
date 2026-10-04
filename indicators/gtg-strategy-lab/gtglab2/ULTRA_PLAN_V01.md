@@ -6,165 +6,254 @@ Branch: `research/gtglab2`
 
 ## Mission
 
-Build a bidirectional XAU trading research system that reads the market before it trades it.
+Build a bidirectional XAU trading research system that does not search for a magical single entry.
+
+The system must:
+1. understand the higher-timeframe context,
+2. understand what each trading session inherited and changed,
+3. map liquidity and observable crowd expectations,
+4. read moving-average geometry as context rather than a standalone signal,
+5. identify RANGE / TRANSITION / TREND_UP / TREND_DOWN,
+6. construct LONG or SHORT inventory in controlled tranches,
+7. detect invalidation quickly,
+8. exit or flip when the market proves the working hypothesis wrong,
+9. prove positive execution expectancy after realistic costs,
+10. survive forward and holdout validation before promotion.
 
 Core flow:
 
-`HTF Context → Session Narrative → Market State → Liquidity Map → MA Geometry → Setup → Entry Construction → Validation/Invalidation → Continue / Exit / Flip`
+`HTF Context → Session Narrative → State → Liquidity → MA Geometry → Setup → Entry Construction → Validation/Invalidation → Continue/Exit/Flip`
 
-Executable modes:
+The architecture is symmetric:
 - Range Long
 - Range Short
 - Trend Long
 - Trend Short
 
-There is no permanent bullish or bearish bias.
+No permanent directional bias is allowed.
 
-## Research laws
+---
 
-1. Historical Holdout stays locked until the final registered gate.
-2. Pristine Forward OOS stays undecoded until its registered gate.
-3. Microstructure is collected forward and cannot be tuned to known future outcomes before unlock.
-4. Failed hypotheses remain documented.
-5. Scaling uses one fixed total risk budget; no martingale escalation.
-6. No tranche can be added after the working hypothesis is invalidated.
-7. Thresholds are frozen before outcome-linked evaluation.
-8. Results are reported by direction, regime, session, and chronological block.
-9. Win rate is not the objective; net expectancy and drawdown are.
-10. No new model is added unless it solves a named blocker and beats a simpler baseline.
+# Non-negotiable research rules
 
-# Phase 0 — Governance
+1. Historical Holdout remains locked until the final registered gate.
+2. Pristine Forward OOS remains undecoded until the registered corpus gate.
+3. Microstructure is collected forward and cannot be tuned against future outcomes before unlock.
+4. Failed hypotheses remain in the record.
+5. Entry scaling uses a fixed total risk budget; no martingale escalation.
+6. A position may be added only while the working state hypothesis remains valid.
+7. Parameters are frozen before outcome-linked evaluation.
+8. Every result must be reported both overall and by direction, session, regime, and time block.
+9. Win rate is not the target metric. Expectancy after costs and drawdown matter.
+10. No new model is added unless it answers a specific blocker and beats a registered baseline.
+
+---
+
+# PHASE 0 — Governance and evidence trail
 
 Status: COMPLETE / CONTINUOUS.
 
-Canonical branch, worklog, decisions, experiments, blockers and append-only event ledger are active.
+Deliverables:
+- GTGLab2 canonical branch.
+- permanent worklog.
+- decisions register.
+- experiment register.
+- blocker register.
+- append-only event ledger.
 
-# Phase 1 — Architecture contracts
+Gate:
+- every meaningful action is reconstructable from Git + GTGLab2 logs.
+
+---
+
+# PHASE 1 — Freeze the system architecture, not the trading thresholds
 
 Status: IN EXECUTION.
 
-Timeframe roles:
-- D1: macro context
-- H4: structural context
-- H1: operational state
-- M15: setup
-- M5: setup
-- M1: trigger only
+Goal:
+Create deterministic contracts for information flow without deciding profitability thresholds.
 
-Rule: a lower timeframe cannot silently redefine higher-timeframe context.
+Modules:
+1. State Contract
+2. Timeframe Contract
+3. Session Context Contract
+4. Liquidity Context Contract
+5. MA Geometry Contract
+6. Entry/Inventory Contract
+7. Validation/Invalidation Contract
+8. Execution/Cost Contract
 
-Required states/actions:
-- RANGE / TRANSITION / TREND_UP / TREND_DOWN
-- LONG / SHORT / FLAT
-- PROBE / ADD / HOLD / REDUCE / EXIT / FLIP_WAIT
+Required architecture:
+
+### Higher timeframe context
+- D1: macro structural location
+- H4: structural trend/range context
+- H1: operational market state
+
+### Setup timeframes
+- M15 / M5: setup, sweep, rejection, retest, correction/resumption
+
+### Trigger timeframe
+- M1: execution timing only; never allowed to override the higher-timeframe context by itself.
 
 Gate:
-- typed contracts,
-- LONG/SHORT symmetry tests,
-- causal inputs only,
-- no future labels.
+- all modules have explicit inputs/outputs,
+- LONG/SHORT symmetry tests pass,
+- no future data dependency,
+- no outcome labels are required.
 
-# Phase 2 — Causal context layer
+---
 
-## Session Narrative
-Measure what each session inherited and changed:
-- open/high/low/close
-- session range
-- prior session high/low
-- sweep/reclaim/failure
-- displacement
-- inherited state
-- London reaction to Asia
-- New York reaction to London
-- continuation / reversal / balance
+# PHASE 2 — Causal context feature layer
 
-## Multi-timeframe context
+Status: NEXT.
+
+Goal:
+Convert trader reading into raw measurable evidence before any prediction model.
+
+## 2A — Session Narrative Engine
+
+For every operational session record:
+- open/high/low/close,
+- session range,
+- previous session high/low,
+- whether previous high/low was swept,
+- reclaim/failure state,
+- close location within session range,
+- displacement from previous session,
+- inherited direction/state,
+- London reaction to Asia,
+- New York reaction to London,
+- continuation / reversal / balance descriptors.
+
+Important:
+"Market-maker linkage" is represented by observable session-to-session state transfer, not assumed hidden coordination.
+
+## 2B — Multi-Timeframe Context Engine
+
 For each decision timestamp:
-- D1 context
-- H4 context
-- H1 state
-- M15 structure
-- M5 structure
-- M1 trigger
+- D1 context,
+- H4 context,
+- H1 state,
+- M15 setup structure,
+- M5 setup structure,
+- M1 trigger structure.
 
-Outputs:
-- aligned
-- corrective
-- conflicting
-- transitional
+Output must distinguish:
+- alignment,
+- correction against higher timeframe,
+- conflict,
+- transition.
 
-## Moving-average geometry
-Initial EMA family:
-- 9
-- 21
-- 50
-- 200
-- 1000
+No lower timeframe may silently redefine the higher-timeframe trend.
 
-Measure:
-- price-to-EMA distance
-- slope
-- ordering
-- pairwise spread
-- compression/expansion
-- reclaim/loss
-- persistence above/below
+## 2C — Moving Average Geometry Engine
 
-No default rule such as "cross = buy".
+Initial raw MA family:
+- EMA 9
+- EMA 21
+- EMA 50
+- EMA 200
+- EMA 1000
 
-## Liquidity map
-Causal levels:
-- previous session high/low
-- current session high/low to decision time
-- previous day high/low
-- range boundaries
-- structural swing highs/lows
-- breakout/retest boundaries
+Measure raw geometry, not "cross = buy":
+- price-to-EMA distances,
+- EMA slopes,
+- ordering,
+- pairwise spreads,
+- compression/expansion,
+- slope acceleration,
+- reclaim/loss events,
+- persistence above/below.
 
-# Phase 3 — Bidirectional Entry / Inventory Engine
+Thresholds remain unfitted until preregistered experiments.
 
-Entry is a managed sequence, not one magical point.
+## 2D — Liquidity Map
 
-Range Long:
-- probe near lower range/liquidity area
-- add only while RANGE hypothesis remains valid
-- false downside break may improve average entry
-- true downside acceptance invalidates LONG
+Causal candidate levels:
+- previous session high/low,
+- current session high/low to decision time,
+- previous day high/low,
+- range boundaries,
+- recent structural swing highs/lows,
+- breakout/retest boundaries,
+- psychological round levels only if defined deterministically.
 
-Range Short:
-- exact mirror
+Output:
+- nearest upside liquidity,
+- nearest downside liquidity,
+- distance in ATR,
+- level age,
+- number/type of level coincidences.
 
-Trend Long / Trend Short:
-- prefer correction/retest/resumption locations compatible with HTF context
+Gate:
+- feature computation is causal,
+- synthetic no-lookahead tests pass,
+- feature values can be reproduced from the same input bytes.
 
-Inventory discipline:
-- total planned risk fixed before tranche 1
-- tranche count and sizing preregistered
-- no adding after invalidation
-- average price and total exposure explicit
-- single-entry vs scaled-entry comparison uses equal total risk
+---
 
-# Phase 4 — Invalidation / Flip Engine
+# PHASE 3 — Bidirectional Entry and Inventory Engine
 
-Central question:
+Status: DESIGN AFTER PHASE 2.
 
-`Is the excursion outside a known boundary a liquidity sweep, or genuine acceptance into a new state?`
+Goal:
+Replace the "single perfect entry" assumption with controlled inventory construction.
 
-Sweep/rejection evidence:
-- temporary break
-- failure to continue
-- reclaim
-- rejection structure
-- loss of directional persistence
-- later microstructure confirmation after unlock
+States/actions:
 
-Acceptance/true-break evidence:
-- persistence outside
-- failed reclaim
-- follow-through
-- failed retest
-- directional structure continuation
-- later persistent microstructure agreement
+### Range Long
+- probe near lower range/liquidity area,
+- optional additional tranches if hypothesis remains valid,
+- false downside break may improve entry,
+- true downside acceptance invalidates LONG.
+
+### Range Short
+Mirror of Range Long at upper boundary.
+
+### Trend Long
+- do not chase arbitrary price,
+- prefer correction/retest/resumption locations compatible with HTF context.
+
+### Trend Short
+Mirror of Trend Long.
+
+Inventory model:
+- total planned risk fixed before first tranche,
+- N tranches configurable and preregistered,
+- tranche schedule deterministic,
+- no tranche after invalidation,
+- average entry and total exposure tracked explicitly.
+
+Gate:
+- identical total risk is used when comparing single-entry vs scaled-entry policies,
+- LONG and SHORT paths have mirrored tests,
+- no martingale behavior possible by construction.
+
+---
+
+# PHASE 4 — Invalidation and Flip Engine
+
+Status: DESIGN AFTER ENTRY CONTRACT.
+
+This is a core research problem.
+
+The engine must distinguish:
+
+### Sweep / Rejection
+- temporary trade beyond a known liquidity boundary,
+- failure to sustain outside,
+- reclaim,
+- rejection / loss of momentum,
+- optional microstructure confirmation after unlock.
+
+### Acceptance / True Break
+- persistence outside,
+- failed reclaim,
+- structural follow-through,
+- retest failure,
+- aligned lower highs/lower lows or higher highs/higher lows,
+- optional microstructure persistence after unlock.
 
 Actions:
 - CONTINUE
@@ -174,178 +263,241 @@ Actions:
 - EXIT
 - FLIP_WAIT
 
-FLIP_WAIT means:
+Important:
+A flip is not "close long and immediately market short".
+It means:
 1. kill the invalidated hypothesis,
-2. wait for a better entry in the new direction,
-3. rebuild under the same risk discipline.
+2. wait for a high-quality entry in the new direction,
+3. construct the new position under the same risk discipline.
 
-# Phase 5 — Microstructure integration
+Gate:
+- maximum invalidation delay is measurable,
+- no adding after invalidation,
+- flip logic is deterministic before outcome evaluation.
 
-Status: COLLECTION RUNNING / OUTCOME ANALYSIS LOCKED.
+---
 
-First role:
-confirm/reject/time an already-defined setup.
+# PHASE 5 — Microstructure integration
+
+Status: COLLECTION RUNNING / ANALYSIS LOCKED.
+
+Forward evidence:
+- Binance XAU perpetual proxy
+- Kraken PAXG/USD
+- Bitfinex XAUT/USD
+- other valid families when available
+
+Features planned before unlock:
+- executed-flow direction/delta,
+- footprint imbalance,
+- book imbalance,
+- liquidity concentration,
+- source agreement/dispersion,
+- evidence freshness,
+- source-family availability.
+
+Research question:
+
+`Does microstructure improve entry/invalidation timing over the same price/session/MTF baseline?`
+
+It is initially a confirmer/rejector/timer.
+It may not invent direction by itself in the first registered test.
 
 Unlock gate:
-- >=30 elapsed calendar days
-- >=10,000 valid snapshots
-- integrity/quality PASS
+- >=30 elapsed calendar days,
+- >=10,000 valid snapshots,
+- integrity/quality PASS.
 
-# Phase 6 — Execution simulator
+Both mandatory.
+
+---
+
+# PHASE 6 — Execution simulator
+
+Status: BUILD BEFORE FIRST EDGE TEST.
 
 Must model:
-- BID/ASK
-- spread
-- slippage
-- latency
-- tranche fills
-- invalidation exits
-- partial/full exits
-- LONG/SHORT costs
-- max exposure
-- turnover
+- BID/ASK,
+- spread,
+- slippage scenarios,
+- latency / one-bar or timestamp delay,
+- tranche fills,
+- stop/invalidation exits,
+- partial/full exits,
+- long and short costs,
+- maximum exposure,
+- turnover.
 
-Metrics:
-- net expectancy
-- profit factor
-- drawdown
-- MAE/MFE
-- average-entry improvement
-- invalidation loss
-- time to invalidation
-- post-flip performance
-- exposure time
+Primary metrics:
+- net expectancy per trade/episode,
+- profit factor,
+- drawdown,
+- MAE/MFE,
+- average entry improvement vs single entry,
+- invalidation loss,
+- time-to-invalidation,
+- post-flip performance,
+- trade frequency,
+- exposure time.
 
-# Phase 7 — Preregister integrated hypotheses
+Gate:
+- simulator parity tests pass on synthetic known cases.
 
-H1: fixed-risk scaled entry improves execution quality versus same-risk single entry.
-H2: session context improves sweep-vs-acceptance discrimination over State Engine alone.
-H3: MTF alignment improves selection over H1-only context.
-H4: MA geometry adds incremental timing value beyond structural state/liquidity.
-H5: after corpus unlock, microstructure adds incremental value beyond full price/session/MTF baseline.
+---
 
-# Phase 8 — Episode / time-block evaluation
+# PHASE 7 — Preregister first integrated hypotheses
 
-Do not treat one-minute rows as IID.
+Status: LOCKED UNTIL COMPONENTS EXIST.
+
+Candidates must be few and explicit.
+
+H1:
+Scaled fixed-risk entry improves expectancy or adverse excursion versus single-entry baseline under the same state and total risk.
+
+H2:
+Session-to-session context improves acceptance/rejection classification over State Engine alone.
+
+H3:
+MTF alignment improves trade selection over H1-only context.
+
+H4:
+MA geometry adds incremental timing value beyond structural state/liquidity.
+
+H5 after corpus unlock:
+Microstructure adds incremental entry/invalidation value beyond the full price/session/MTF baseline.
+
+No threshold changes after seeing evaluation results.
+
+---
+
+# PHASE 8 — Time-block / episode evaluation
+
+Status: LOCKED UNTIL PREREGISTRATION.
+
+Evaluation unit is not every minute.
 
 Use:
-- transition episodes
-- range-edge episodes
-- session episodes
-- purged chronological blocks
-- walk-forward blocks
-- block/bootstrap uncertainty
+- transition episodes,
+- range-edge episodes,
+- session episodes,
+- purged chronological blocks,
+- walk-forward blocks,
+- clustered/block-bootstrap uncertainty.
 
-Mandatory breakdowns:
-- LONG vs SHORT
-- RANGE vs TREND
-- session context
-- chronological block
-- volatility bucket
-- source availability
+Reports:
+- LONG vs SHORT,
+- RANGE vs TREND,
+- Asia/London/New York context,
+- year/time block,
+- volatility bucket,
+- source-family availability.
 
-# Phase 9 — Forward shadow execution
+Reject a candidate if profitability depends on one short period or one direction only.
 
-Frozen candidate only. No optimization.
+---
 
-# Phase 10 — Final Holdout
+# PHASE 9 — Forward shadow / paper execution
 
-One-shot overfit detector. No repair using Holdout results.
+Status: FUTURE GATE.
 
-# Phase 11 — Promotion
+No optimization here.
+
+The frozen candidate receives live data and records:
+- proposed state,
+- setup,
+- action,
+- tranche,
+- invalidation,
+- hypothetical fill,
+- realized forward outcome.
+
+Gate:
+- stable live behavior,
+- no protocol drift,
+- acceptable operational failure rate,
+- positive/acceptable economics under frozen rules.
+
+---
+
+# PHASE 10 — Final Holdout gate
+
+Status: SEALED.
+
+Historical Holdout is opened only after:
+- architecture frozen,
+- candidate frozen,
+- thresholds frozen,
+- cost model frozen,
+- acceptance metrics frozen.
+
+One-shot purpose:
+detect hidden overfitting.
+
+No repair using Holdout results.
+
+---
+
+# PHASE 11 — Promotion
 
 Only after all gates.
 
+Possible outputs:
+- research engine,
+- live decision dashboard,
+- TradingView-facing context/alerts,
+- paper/live execution adapter only if separately approved and risk-controlled.
+
+A failed final candidate returns to research with a new version and new evidence; the original Holdout result remains recorded.
+
+---
+
 # Immediate execution order
 
-## Sprint A — active now
-A1. Typed bidirectional contracts.
-A2. Synthetic LONG/SHORT symmetry tests.
-A3. Session bucket parity with inherited State Engine.
-A4. Raw EMA geometry extractor.
-A5. No-future prefix invariance test.
+## Sprint A — now
+A1. Create typed bidirectional contracts.
+A2. Add synthetic symmetry tests.
+A3. Add inherited session bucket parity with existing State Engine.
+A4. Add raw EMA geometry extractor without trading thresholds.
+A5. Register architecture files and tests.
 
 ## Sprint B
-B1. Causal Session Narrative features.
-B2. Multi-timeframe context adapter.
-B3. Causal liquidity map.
-B4. No-lookahead tests.
+B1. Build causal session feature extraction.
+B2. Build MTF resampling/context adapter using existing data foundation.
+B3. Build causal liquidity map.
+B4. Add no-lookahead tests.
 
 ## Sprint C
-C1. Inventory/tranche state machine.
-C2. Range Long/Short symmetry.
-C3. Trend Long/Short symmetry.
-C4. EXIT and FLIP_WAIT.
-C5. Fixed-risk invariant tests.
+C1. Define inventory/tranche state machine.
+C2. Implement Range Long/Short symmetry.
+C3. Implement Trend Long/Short symmetry.
+C4. Implement EXIT and FLIP_WAIT.
+C5. Test fixed-risk invariant.
 
 ## Sprint D
-D1. BID/ASK execution simulator.
-D2. Cost/slippage scenarios.
-D3. Episode metrics.
-D4. Single-entry vs scaled-entry interface.
+D1. Build execution simulator.
+D2. Add BID/ASK and cost scenarios.
+D3. Add episode metrics.
+D4. Baseline single-entry vs scaled-entry interface.
 
 ## Sprint E
 E1. Freeze first integrated protocol.
 E2. Continue forward collection.
-E3. Run only unlocked tests.
+E3. Run only unlocked non-forward tests.
 E4. Wait for registered microstructure gate before outcome linkage.
+
+---
 
 # Definition of success
 
-GTGLab2 succeeds only when a frozen bidirectional policy:
-1. reads context causally,
-2. enters under controlled risk,
+GTGLab2 is not successful when it produces a visually convincing signal.
+
+It is successful when a frozen bidirectional policy:
+
+1. identifies context causally,
+2. enters with controlled risk,
 3. detects invalidation quickly,
-4. changes side without attachment,
+4. can change side without emotional attachment,
 5. remains positive after realistic costs,
 6. is stable across time/regimes,
 7. adds value over simpler baselines,
 8. survives forward shadow and final Holdout.
-
-
-## Implementation checkpoint — 2026-10-04
-
-Sprint A:
-- A1 Typed bidirectional contracts: IMPLEMENTED.
-- A2 Synthetic LONG/SHORT symmetry tests: IMPLEMENTED; independent PASS.
-- A3 Session bucket parity foundation: IMPLEMENTED.
-- A4 Raw EMA geometry extractor: IMPLEMENTED.
-- A5 Prefix invariance / no-future-leakage test: IMPLEMENTED; independent PASS.
-
-Independent foundation test result: 9/9 PASS.
-
-Device-local parity rerun: PENDING due Remote Desktop command timeout.
-
-Next executable sprint: B — causal Session Narrative, multi-timeframe adapter, liquidity map, and no-lookahead tests.
-
-
-## Implementation checkpoint — Sprint B/C/D
-
-Sprint B — causal context:
-- Session Narrative: IMPLEMENTED.
-- MTF completed-bar adapter: IMPLEMENTED.
-- Causal rolling liquidity map: IMPLEMENTED.
-- Causality/no-lookahead tests: 7/7 independent PASS.
-
-Sprint C — inventory and bidirectional policy:
-- Fixed-risk tranche state machine: IMPLEMENTED.
-- Range Long/Short mapping: IMPLEMENTED.
-- Trend Long/Short mapping: IMPLEMENTED.
-- EXIT then FLIP_WAIT invariant: IMPLEMENTED.
-- Inventory tests: 7/7 independent PASS.
-
-Sprint D — execution:
-- Explicit BID/ASK entry/exit: IMPLEMENTED.
-- Symmetric slippage model: IMPLEMENTED.
-- Same-total-size scaled vs single interface: IMPLEMENTED.
-- Episode metrics: IMPLEMENTED.
-- Execution tests: 9/9 independent PASS.
-
-Combined regression for Phase 1–4:
-- 32/32 tests PASS in independent Python execution.
-- Historical Holdout remained locked.
-- Pristine OOS remained undecoded.
-- Microstructure outcome linkage remained locked.
-
-Remaining operational verification:
-- rerun the same suite on the authorized desktop environment after Remote Desktop command responsiveness returns.

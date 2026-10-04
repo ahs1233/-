@@ -1,0 +1,46 @@
+{
+  "scope": "GTG Pristine Forward Seal Audit v0.2",
+  "freeze_day": "2026-09-30",
+  "forward_days": 3,
+  "verification_records": 3,
+  "first_forward_day": "2026-09-30",
+  "last_forward_day": "2026-10-02",
+  "checked": [
+    {
+      "day": "2026-09-30",
+      "bid_exists": true,
+      "bid_bytes": 34560,
+      "bid_sha256": "968314020e25ecff371bff84745465cc710eac9a54aa04f552e284082153288a",
+      "ask_exists": true,
+      "ask_bytes": 34560,
+      "ask_sha256": "d29346da02712929d330113e1219333948d0aee1acb7a022badb03321d2bbbdf",
+      "jforex_cache_verified": true
+    },
+    {
+      "day": "2026-10-01",
+      "bid_exists": true,
+      "bid_bytes": 34560,
+      "bid_sha256": "c7108c1bc43d96bb0bc430b7dc9e864f3bbc517cf184e3fc252fa3ab93d5bc6d",
+      "ask_exists": true,
+      "ask_bytes": 34560,
+      "ask_sha256": "304c704dcfd43935af972d0a1857aa9112b9cccd7ac1a451c203e67f85b4c4b4",
+      "canonical_m1_exists": false,
+      "jforex_cache_verified": true
+    },
+    {
+      "day": "2026-10-02",
+      "bid_exists": true,
+      "bid_bytes": 34560,
+      "bid_sha256": "86898fc9b0fbc11303e35e17493d29114724ae276ca20e71e01cda288ecc8cba",
+      "ask_exists": true,
+      "ask_bytes": 34560,
+      "ask_sha256": "8cd5a571e5f6811a8c5369c75d608bbdf25b00176fea8c4a7e71b012c0a2098d",
+      "canonical_m1_exists": false,
+      "jforex_cache_verified": true
+    }
+  ],
+  "issues": [],
+  "status": "PASS",
+  "decoded_market_data": false,
+  "derived_bars_built": false
+}

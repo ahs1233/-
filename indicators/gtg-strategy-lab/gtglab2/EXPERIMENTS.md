@@ -51,3 +51,49 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Status: **COLLECTING ONLY**.
 - Outcome linkage: **NOT YET PERMITTED**.
 - First edge-analysis experiment: pending readiness gate.
+
+## Sweep / Acceptance v0.1 � 2026-10-04
+- Development only; locks preserved.
+- Boundary breaks: 1,134; acceptance: 774; rejection: 360.
+- BASE C1 single overall: -0.0516 R/trade.
+- BASE C1 acceptance single: +0.0210 R/trade.
+- BASE C1 rejection single: -0.1249 R/trade.
+- BASE C1 acceptance staged: -0.0291 R/trade.
+- Verdict: overall FAIL; rejection-fade branch rejected; acceptance continuation retained as a new-version research lead; current staging rule rejected.
+
+
+## E-009 — Doctrine Reference v0.1
+- Scope: development-only JForex + State Engine v0.2.
+- Compared single full entry with fixed-risk five-tranche construction.
+- BASE C1 Single: **-0.1891R**.
+- BASE C1 Staged: **-0.1491R** nominal.
+- Staged average risk used: **0.647R**.
+- Staged mean per used risk: **-0.4707R**.
+- Both Long/Short and Early/Late were negative.
+- Frozen context filter did not improve economics.
+- Verdict: **FAIL**.
+- Lesson: staged exposure control is useful risk machinery, but it is not an entry edge by itself.
+
+## E-010 — Sweep / Acceptance v0.1
+- Observable boundary breaks: 1,134.
+- Acceptance: 774; Rejection: 360.
+- Acceptance with executable retest: 323.
+- BASE executable non-overlapping episodes: 611.
+- Overall BASE C1 Single: **-0.0516R**.
+- Overall BASE C1 Staged: **-0.0515R**.
+- Rejection Single C1: **-0.1249R** → FAIL.
+- Acceptance+Retest Single C1: **+0.0210R**.
+- Acceptance branch was positive in Early/Late and Long/Short at C1.
+- Acceptance Single C2: **-0.0254R**; median C1 strongly negative.
+- Verdict: **OVERALL FAIL**.
+- Sub-verdict: **Acceptance+Retest is PROMISING BUT NOT ROBUST**.
+- Promotion: not eligible for Final Holdout or production/paper candidate status.
+
+## E-011 — Forward Microstructure Acceptance Gate v0.1
+- Status: **PREREGISTERED / LOCKED**.
+- Baseline: frozen Acceptance -> Retest -> Continuation branch.
+- Question: does contemporaneous forward microstructure add incremental timing value?
+- Minimum evidence: >=2 ready source families; direction votes reduced to -1/0/+1 with no fitted magnitude threshold.
+- Treatment: ALIGNED -> TAKE; OPPOSED -> SKIP; MIXED/INSUFFICIENT -> baseline unchanged.
+- Outcome linkage: **FORBIDDEN** until both 30 days and 10,000 valid snapshots are reached.
+- Historical Holdout: remains sealed.

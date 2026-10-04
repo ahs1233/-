@@ -101,3 +101,94 @@ class InventoryState:
             "average_price": self.average_price,
             "desired_flip_side": self.desired_flip_side.value,
         }
+
+
+# --- Fixed-R risk-allocation compatibility layer ---
+# This is separate from the unit-budget InventoryState above.  It is used to
+# prove the risk-envelope invariant independently of contract/lot sizing.
+
+@dataclass(frozen=True)
+class RiskPlan:
+    total_risk_r: float = 1.0
+    tranche_weights: tuple[float, ...] = (0.2, 0.2, 0.2, 0.2, 0.2)
+
+    def __post_init__(self) -> None:
+        if self.total_risk_r <= 0:
+            raise ValueError("total_risk_r must be > 0")
+        if not self.tranche_weights or any(w <= 0 for w in self.tranche_weights):
+            raise ValueError("tranche weights must be positive")
+        if abs(sum(self.tranche_weights) - 1.0) > 1e-12:
+            raise ValueError("tranche weights must sum to 1")
+
+    def risk_for(self, tranche_index: int) -> float:
+        return self.total_risk_r * self.tranche_weights[tranche_index]
+
+
+@dataclass(frozen=True)
+class RiskInventoryState:
+    side: Side = Side.FLAT
+    tranches_filled: int = 0
+    risk_committed_r: float = 0.0
+    weighted_price_sum: float = 0.0
+    weight_sum: float = 0.0
+    invalidated: bool = False
+    flip_wait: bool = False
+
+    @property
+    def average_price(self) -> float | None:
+        return None if self.weight_sum <= 0 else self.weighted_price_sum / self.weight_sum
+
+
+class InventoryEngine:
+    """Immutable fixed-R tranche engine; never allows additions after invalidation."""
+
+    def __init__(self, plan: RiskPlan):
+        self.plan = plan
+
+    def add(
+        self,
+        state: RiskInventoryState,
+        side: Side,
+        price: float,
+        *,
+        hypothesis_valid: bool,
+    ) -> tuple[RiskInventoryState, Action]:
+        if side is Side.FLAT:
+            raise ValueError("cannot add FLAT")
+        if state.invalidated or state.flip_wait or not hypothesis_valid:
+            return state, Action.HOLD
+        if state.side not in (Side.FLAT, side):
+            raise ValueError("cannot add opposite side before exit")
+        if state.tranches_filled >= len(self.plan.tranche_weights):
+            return state, Action.HOLD
+        i = state.tranches_filled
+        risk = self.plan.risk_for(i)
+        nxt = RiskInventoryState(
+            side=side,
+            tranches_filled=i + 1,
+            risk_committed_r=state.risk_committed_r + risk,
+            weighted_price_sum=state.weighted_price_sum + price * risk,
+            weight_sum=state.weight_sum + risk,
+            invalidated=False,
+            flip_wait=False,
+        )
+        if nxt.risk_committed_r > self.plan.total_risk_r + 1e-12:
+            raise AssertionError("risk budget exceeded")
+        return nxt, Action.PROBE if i == 0 else Action.ADD
+
+    def invalidate(self, state: RiskInventoryState) -> tuple[RiskInventoryState, Action]:
+        return RiskInventoryState(
+            side=state.side,
+            tranches_filled=state.tranches_filled,
+            risk_committed_r=state.risk_committed_r,
+            weighted_price_sum=state.weighted_price_sum,
+            weight_sum=state.weight_sum,
+            invalidated=True,
+            flip_wait=state.flip_wait,
+        ), Action.EXIT
+
+    def exit_to_flip_wait(self, state: RiskInventoryState) -> tuple[RiskInventoryState, Action]:
+        return RiskInventoryState(flip_wait=True), Action.FLIP_WAIT
+
+    def clear_flip_wait(self, state: RiskInventoryState) -> RiskInventoryState:
+        return RiskInventoryState() if state.flip_wait else state

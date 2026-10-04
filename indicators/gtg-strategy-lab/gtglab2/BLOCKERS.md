@@ -238,3 +238,57 @@ The project is not primarily blocked by coding capability or lack of indicators.
 The main blocker is **proving a stable timing/execution edge without overfitting**.
 
 Infrastructure is now good enough to support that proof; the next gains must come from research discipline and higher-quality forward evidence, not from adding more models at random.
+
+# 2026-10-04 execution update
+
+## B-010 — Current price-only candidates failed promotion
+**Status:** OPEN — critical.
+
+Two frozen development screens were completed:
+- Doctrine Reference v0.1: FAIL.
+- Sweep / Acceptance v0.1: overall FAIL.
+
+Acceptance+Retest showed the best remaining signal (+0.0210R at C1, positive across both directions and early/late blocks) but failed C2 and has a strongly negative median.
+
+**Implication:** no price-only candidate is currently eligible for Final Holdout, forward strategy execution, or production.
+
+## B-011 — Quiver paid data unavailable
+**Status:** OPEN — external dependency.
+
+The Quiver MCP connection authenticates and free dataset discovery works, but paid dataset calls report that the account has no active subscription.
+
+**Close when:** the connected account has the subscription required for the preregistered Quiver layer, or the Quiver layer is formally removed from the candidate contract before testing.
+
+## B-012 — Microstructure gate updated
+**Status:** OPEN by protocol.
+
+Latest recorded checkpoint:
+- 221 valid snapshots,
+- ~0.519 elapsed days,
+- 9,779 snapshots still required,
+- ~29.481 elapsed days still required,
+- integrity PASS,
+- Fusion Grade ratio ~95.02%.
+
+No outcome analysis is permitted until both registered gates pass.
+
+## B-013 — Canonical forward-store ambiguity resolved
+**Status:** CLOSED.
+
+The scheduled Pristine Forward pipeline uses repo `.lab-data`, not the legacy historical store.
+`.lab-data` is JForex/IHistory, export/cache verified, and currently audits PASS.
+Legacy public-datafeed forward records in `gtg-lab-data-jforex` remain preserved but excluded from forward validation.
+
+## B-014 — JForex forward freshness gap
+**Status:** OPEN — operational / high.
+
+At the 2026-10-04 post-settle check, the canonical `.lab-data` integrity audit of already sealed days remained PASS, but the sealer correctly reported:
+
+- `BLOCKED_MISSING_JFOREX_EXPORT`
+- missing expected settled day: `2026-10-03`
+
+JForex Desktop is running, but no 2026-10-03 export or cache file exists and standalone SDK credentials are not configured.
+
+**Why this matters:** the protocol must fail closed rather than silently substitute the public datafeed.
+
+**Close when:** the authenticated JForex/IHistory exporter writes 2026-10-03, export/cache parity is verified, and the canonical sealer/audit returns current-through-settle PASS.
