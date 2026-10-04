@@ -87,3 +87,30 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 
 **Result**
 Sprint A foundation is implemented on `research/gtglab2`. Device-local parity verification remains pending.
+
+
+## 2026-10-04 — GTGLAB2-0005 — Ultra Plan Sprints B–D implemented
+
+**Implemented**
+- causal Session Narrative,
+- completed-bar-only multi-timeframe alignment,
+- prior-only liquidity map,
+- fixed-risk bidirectional inventory state machine,
+- Range Long / Range Short / Trend Long / Trend Short policy mapping,
+- EXIT → FLIP_WAIT invariant,
+- BID/ASK and slippage execution,
+- episode metrics and scaled-vs-single comparison.
+
+**Verification**
+- Sprint B: 7/7 PASS.
+- Sprint C: 7/7 PASS.
+- Sprint D: 9/9 PASS.
+- Combined Phase 1–4 regression: **32/32 PASS**.
+
+**Important**
+This proves code invariants and causality on synthetic/independent verification cases. It does not prove trading profitability.
+
+**Locks**
+- Historical Holdout LOCKED.
+- Pristine OOS LOCKED.
+- Microstructure outcome linkage LOCKED.
