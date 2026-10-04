@@ -106,3 +106,23 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Historical Holdout not read
 - Pristine Forward OOS not decoded
 
+
+## 2026-10-04T09:50:36.203124Z — GTGLAB2-0006 — phase2_core_complete
+
+**Action:** Implemented causal session, MTF, liquidity, inventory, invalidation, and BID/ASK execution primitives.
+
+**Reason:** Execute GTGLab2 Ultra Plan phases 2-4 before outcome-linked testing.
+
+**Result:** Phase 1 tests 9/9 PASS; Phase 2 core tests 8/8 PASS; fixed-risk/no-add-after-invalidation invariants verified.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/engine/session_context.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/mtf_context.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/liquidity.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/inventory.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/invalidation.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/execution.py`
+
+**Verification:**
+- 17/17 cumulative GTGLab2 engine tests PASS
+
