@@ -194,3 +194,10 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Scalper target +1.5ATR before -0.75ATR within 12H: pseudo-test AUC 0.714; top-quarter precision 84.8% vs 59.8% baseline.
 - Keep Swing and Scalper as separate engines. Next step is next-open executable harness with frozen thresholds.
 
+
+## 2026-10-04 — Detector Execution Bridge v0.1
+- Next-open market entry rejected for both engines.
+- Swing primary pseudo-test: -19.79R, PF 0.839; classification win rate improved but actual entry R:R collapsed to 1.28.
+- Scalper primary pseudo-test: -8.90R, PF 0.800 despite 77.5% wins; average entry R:R only 0.27.
+- Root cause: confirmation candle already captures much of bounce. Next step: time-limited low-zone limit entry; do not chase.
+

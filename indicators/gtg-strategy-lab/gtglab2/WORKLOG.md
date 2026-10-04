@@ -564,3 +564,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T19:48:32.168758Z — GTGLAB2-0032 — detector_execution_bridge_v01
+
+**Action:** Tested causal next-open execution of frozen Swing/Scalper detector thresholds.
+
+**Reason:** Check whether classification edge survives actual next-open trade mechanics.
+
+**Result:** Next-open execution failed expectancy. Swing primary pseudo-test -19.79R PF 0.839 despite higher win rate; Scalper primary -8.90R PF 0.800 despite 77.5% wins. Root cause: rejection confirmation consumes much of reward before entry.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_DETECTOR_EXECUTION_BRIDGE_V01_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+
