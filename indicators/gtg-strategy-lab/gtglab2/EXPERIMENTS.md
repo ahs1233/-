@@ -121,3 +121,12 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Previously sealed Holdout subset: 51 trades, +2.9682R, PF 1.0751.
 - Historical Holdout is now opened/consumed. Pristine Forward OOS remains blind.
 
+
+## 2026-10-04 — Pine v0.2 all-trade path analysis
+- Analyzed all 57 extended-test trades with MFE/MAE and structural breakdowns.
+- LONG +13.30R / PF 1.71; SHORT -5.12R / PF 0.77.
+- Strong MTF |3| +19.77R / PF 2.18; weak MTF |1| -11.59R / PF 0.52.
+- 16/16 winners were 24H timeout exits; 41/41 losers were 2-closes-inside exits.
+- 11 losing trades had first reached +1R or more; 5 had reached +2R or more.
+- Maximum losing streak = 13 trades; top-two-winner concentration makes overall edge fragile.
+

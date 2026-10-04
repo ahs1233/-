@@ -429,3 +429,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T14:46:23.596065Z — GTGLAB2-0023 — pine_v02_all_trades_analysis
+
+**Action:** Analyzed all 57 Pine v0.2 extended-test trades, including path MFE/MAE, side, MTF strength, exit type, time clustering, streaks, and outlier concentration.
+
+**Reason:** User requested analysis of all trades.
+
+**Result:** Key findings: LONG +13.30R vs SHORT -5.12R; abs(MTF)=3 +19.77R vs abs(MTF)=1 -11.59R; all 16 winners exited at timeout and all 41 losses at 2-closes-inside; 11 losers first reached +1R or more; max loss streak 13; top 2 winners are necessary to keep overall net positive.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V02_ALL_TRADES_ANALYSIS_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+
