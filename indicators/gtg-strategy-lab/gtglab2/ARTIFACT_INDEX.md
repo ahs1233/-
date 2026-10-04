@@ -11,6 +11,9 @@
 - `EVENTS.jsonl` — append-only machine-readable event ledger.
 - `TOOLS_REGISTRY.md` — Quiver, Liquid and source roles.
 - `EXECUTION_STATUS_2026-10-04.md` — current phase-gate matrix.
+- `PROTOCOL_EXECUTION_CONTRACTS_V10.md` — frozen deterministic Swing v1 / Scalper v1 action semantics.
+- `PROTOCOL_EVALUATION_V10.md` — episode/purged time-block and source-ablation evaluation rules.
+- `PROTOCOL_LIQUID_FORWARD_CONTEXT_V10.md` — read-only Liquid forward-context capture/provenance rules.
 - `CANDIDATE_REGISTRY.json` — machine-readable candidate promotion permissions/status.
 - `FORWARD_GATE_STATUS_LATEST.json` — latest fail-closed forward outcome-linkage gate result.
 - `tools/forward_gatekeeper.py` — executable metadata-only gatekeeper; never decodes protected market data.
@@ -31,6 +34,9 @@
 - `engine/execution.py`
 - `engine/risk_controls.py`
 - `engine/shadow_ledger.py`
+- `engine/action_contracts.py` — frozen bidirectional Swing/Scalper contracts.
+- `engine/evaluation_protocol.py` — episode clustering, contract-derived purge, time-block split, source ablation.
+- `engine/forward_microstructure_gate.py` — sign-vote treatment plus source-family ablation support.
 
 ## Engine tests
 - `engine/test_phase1_foundation.py`
@@ -41,6 +47,9 @@
 - `engine/test_phase4_execution.py`
 - `engine/test_phase4_risk_shadow.py`
 - `engine/test_phase5_forward_microstructure.py`
+- `engine/test_phase6_action_contracts.py`
+- `engine/test_phase7_evaluation_protocol.py`
+- `engine/test_phase8_metrics_ablation.py`
 
 ## Development experiments
 ### Doctrine Reference v0.1
@@ -83,6 +92,10 @@
 
 ## External context
 - `EXTERNAL_CONTEXT_SNAPSHOT_2026-10-04.json`
+- `forward_context/liquid/` — raw Liquid GOLD forward snapshots.
+- `forward_context/manifest.jsonl` — append-only SHA256 provenance registry.
+- `tools/register_external_snapshot.py` — immutable external snapshot registration helper.
+- `tools/test_register_external_snapshot.py` — provenance registry tests.
 - Liquid / Co-Invest: connected, market reads verified, Paper Mode enabled.
 - Quiver: authenticated and dataset discovery verified; paid data blocked by inactive subscription.
 
