@@ -282,3 +282,10 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing AUC: Train .612, Validation .554, consumed .533. Validation remained positive (+22.396R PF 1.120) but did not beat static baseline; consumed 2025-26 failed at -28.541R PF .832.
 - 2026 Swing passed many model gates despite a low actual positive-outcome rate, indicating a higher-order regime mapping shift rather than merely weak local signals.
 - Decision: retain evolution architecture; Scalper evolution is promising research, Swing evolution v0.1 fails; no promotion.
+
+## 2026-10-05 — State Evolution Engine v0.1
+- Added causal evolution features across H1/M15/M5 plus 24H/72H/120H regime descriptors and anchor-to-signal recovery features.
+- Scalper AUC: Train .651, Validation .619, consumed 2025-26 .666. Evolution-gated consumed result improved to +9.789R PF 1.136, with 2026 at -0.717R PF .983; however Validation fell to +0.594R PF 1.006 versus static +12.872R PF 1.051, so the preregistered improvement criterion failed.
+- Swing AUC: Train .612, Validation .554, consumed .533. Validation remained positive (+22.396R PF 1.120) but did not beat static baseline; consumed 2025-26 failed at -28.541R PF .832.
+- 2026 Swing still passed many model gates despite a low actual positive-outcome rate, indicating a higher-order regime mapping shift rather than merely weak local signals.
+- Decision: retain evolution architecture; Scalper evolution is promising research, Swing evolution v0.1 fails; no promotion.

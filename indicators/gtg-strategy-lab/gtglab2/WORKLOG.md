@@ -730,3 +730,19 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - No hyperparameter search
 - 2025-2026 diagnostic only
 - Pristine Forward OOS read=false
+
+## 2026-10-05 — GTGLAB2-0040 — state_evolution_v01
+
+**Action:** Tested causal state evolution using H1/M15/M5 acceleration, efficiency changes, higher-order 24H/72H/120H regime structure, state-transition frequency, and anchor-to-signal recovery behavior.
+
+**Result:** Scalper showed meaningful discrimination (Validation AUC .619) and nearly neutralized the consumed 2026 loss, but Validation execution was only +0.594R PF 1.006 and worse than the prior static baseline. Swing Validation AUC was .554 and consumed 2025-2026 deteriorated to -28.541R PF .832. The Swing failure indicates local state evolution is not enough to model the higher-order regime shift.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_STATE_EVOLUTION_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/state-evolution-v01/summary.json`
+
+**Verification:**
+- Threshold frozen from Train distribution only
+- No hyperparameter search
+- 2025-2026 diagnostic only
+- Pristine Forward OOS read=false
