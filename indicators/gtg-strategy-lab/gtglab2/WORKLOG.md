@@ -797,7 +797,7 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - fixed 20-trade / -5R / PF0.80 rule
 - Pristine Forward OOS read=false
 
-## 2026-10-05 — GTGLAB2-0041 — wave_regime_control_transfer_v01
+## 2026-10-05 — GTGLAB2-0044 — wave_regime_control_transfer_v01
 
 **Action:** Split GTGLab2 state understanding into two specialized readers: a local Control Transfer model for Scalper and a Higher-Order Wave/Regime model for Swing.
 

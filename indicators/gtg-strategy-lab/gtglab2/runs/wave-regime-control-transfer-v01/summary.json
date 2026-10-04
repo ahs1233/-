@@ -1,0 +1,636 @@
+{
+  "scope": "Wave Regime + Control Transfer v0.1",
+  "pristine_forward_oos_read": false,
+  "engines": {
+    "scalper": {
+      "frozen_rule": "HIGHER_LOW_BREAK",
+      "frozen_states": [
+        0,
+        5
+      ],
+      "n_events": 4559,
+      "threshold": 0.6476279441988548,
+      "auc": {
+        "train": 0.6397755496855109,
+        "validation": 0.6293690193539103,
+        "consumed_2025_2026": 0.65255635564977
+      },
+      "execution": {
+        "train": {
+          "n": 937,
+          "total_r": 21.19454580366004,
+          "mean_r": 0.02261957929953046,
+          "profit_factor": 1.0909103735638987,
+          "max_drawdown_r": -19.64149469476157,
+          "win_rate": 0.7395944503735326,
+          "avg_entry_rr": 0.3826018085306734,
+          "exit_counts": {
+            "TARGET": 689,
+            "STOP": 228,
+            "144BAR_TIMEOUT": 18,
+            "TARGET_GAP": 2
+          }
+        },
+        "validation": {
+          "n": 364,
+          "total_r": 3.49521440473204,
+          "mean_r": 0.009602237375637472,
+          "profit_factor": 1.0381060048337756,
+          "max_drawdown_r": -8.047084664145743,
+          "win_rate": 0.7445054945054945,
+          "avg_entry_rr": 0.374299100587896,
+          "exit_counts": {
+            "TARGET": 266,
+            "STOP": 91,
+            "TARGET_GAP": 5,
+            "144BAR_TIMEOUT": 2
+          }
+        },
+        "consumed_2025_2026": {
+          "n": 352,
+          "total_r": 0.6382699578453774,
+          "mean_r": 0.001813266925697095,
+          "profit_factor": 1.00663482752608,
+          "max_drawdown_r": -23.111782040993702,
+          "win_rate": 0.7244318181818182,
+          "avg_entry_rr": 0.4174205754912074,
+          "exit_counts": {
+            "TARGET": 254,
+            "STOP": 95,
+            "144BAR_TIMEOUT": 1,
+            "TARGET_GAP": 1,
+            "STOP_GAP": 1
+          }
+        },
+        "all": {
+          "n": 1653,
+          "total_r": 25.328030166237458,
+          "mean_r": 0.015322462290524778,
+          "profit_factor": 1.060153004505417,
+          "max_drawdown_r": -23.58712105269256,
+          "win_rate": 0.7374470659407139,
+          "avg_entry_rr": 0.38818802769518457,
+          "exit_counts": {
+            "TARGET": 1209,
+            "STOP": 414,
+            "144BAR_TIMEOUT": 21,
+            "TARGET_GAP": 8,
+            "STOP_GAP": 1
+          }
+        }
+      },
+      "yearly_execution": {
+        "2018": {
+          "n": 141,
+          "total_r": -3.3376301832782085,
+          "mean_r": -0.0236711360516185,
+          "profit_factor": 0.9216408038819497,
+          "max_drawdown_r": -10.592406937408231,
+          "win_rate": 0.6950354609929078,
+          "avg_entry_rr": 0.41351038169156684,
+          "exit_counts": {
+            "TARGET": 97,
+            "STOP": 42,
+            "144BAR_TIMEOUT": 2
+          }
+        },
+        "2019": {
+          "n": 182,
+          "total_r": 5.1815716089577695,
+          "mean_r": 0.02847017367559214,
+          "profit_factor": 1.1117420106450409,
+          "max_drawdown_r": -7.06949285340407,
+          "win_rate": 0.7307692307692307,
+          "avg_entry_rr": 0.39088002145547535,
+          "exit_counts": {
+            "TARGET": 131,
+            "STOP": 45,
+            "144BAR_TIMEOUT": 5,
+            "TARGET_GAP": 1
+          }
+        },
+        "2020": {
+          "n": 196,
+          "total_r": 10.349370406699357,
+          "mean_r": 0.05280291023826203,
+          "profit_factor": 1.2383277192516666,
+          "max_drawdown_r": -6.010535217783135,
+          "win_rate": 0.7653061224489796,
+          "avg_entry_rr": 0.3779019769395935,
+          "exit_counts": {
+            "TARGET": 150,
+            "STOP": 42,
+            "144BAR_TIMEOUT": 4
+          }
+        },
+        "2021": {
+          "n": 228,
+          "total_r": 25.252065201266362,
+          "mean_r": 0.11075467193537877,
+          "profit_factor": 1.6517765161075038,
+          "max_drawdown_r": -5.292714371242042,
+          "win_rate": 0.8157894736842105,
+          "avg_entry_rr": 0.35667089562704435,
+          "exit_counts": {
+            "TARGET": 186,
+            "STOP": 38,
+            "144BAR_TIMEOUT": 4
+          }
+        },
+        "2022": {
+          "n": 190,
+          "total_r": -16.250831229985238,
+          "mean_r": -0.08553069068413283,
+          "profit_factor": 0.7379045730576196,
+          "max_drawdown_r": -19.64149469476157,
+          "win_rate": 0.6631578947368421,
+          "avg_entry_rr": 0.38770007993003736,
+          "exit_counts": {
+            "TARGET": 125,
+            "STOP": 61,
+            "144BAR_TIMEOUT": 3,
+            "TARGET_GAP": 1
+          }
+        },
+        "2023": {
+          "n": 183,
+          "total_r": 3.588560771672267,
+          "mean_r": 0.019609621703127144,
+          "profit_factor": 1.082074044782068,
+          "max_drawdown_r": -8.047084664145743,
+          "win_rate": 0.7540983606557377,
+          "avg_entry_rr": 0.369707017681054,
+          "exit_counts": {
+            "TARGET": 135,
+            "STOP": 43,
+            "TARGET_GAP": 3,
+            "144BAR_TIMEOUT": 2
+          }
+        },
+        "2024": {
+          "n": 181,
+          "total_r": -0.09334636694022791,
+          "mean_r": -0.0005157257842001542,
+          "profit_factor": 0.9980552840220787,
+          "max_drawdown_r": -6.6769674903251115,
+          "win_rate": 0.7348066298342542,
+          "avg_entry_rr": 0.3789419247423274,
+          "exit_counts": {
+            "TARGET": 131,
+            "STOP": 48,
+            "TARGET_GAP": 2
+          }
+        },
+        "2025": {
+          "n": 174,
+          "total_r": 11.85842321245085,
+          "mean_r": 0.06815185754282098,
+          "profit_factor": 1.302529759256474,
+          "max_drawdown_r": -6.649076434060019,
+          "win_rate": 0.7701149425287356,
+          "avg_entry_rr": 0.4087565718913307,
+          "exit_counts": {
+            "TARGET": 133,
+            "STOP": 39,
+            "144BAR_TIMEOUT": 1,
+            "TARGET_GAP": 1
+          }
+        },
+        "2026": {
+          "n": 178,
+          "total_r": -11.220153254605473,
+          "mean_r": -0.06303456884609816,
+          "profit_factor": 0.8031634568480083,
+          "max_drawdown_r": -23.11178204099371,
+          "win_rate": 0.6797752808988764,
+          "avg_entry_rr": 0.42588988238097464,
+          "exit_counts": {
+            "TARGET": 121,
+            "STOP": 56,
+            "STOP_GAP": 1
+          }
+        }
+      },
+      "coefficients": [
+        {
+          "feature": "recovery_anchor_atr",
+          "coefficient": 0.4929335837573734
+        },
+        {
+          "feature": "bars_from_anchor",
+          "coefficient": 0.2727143042524564
+        },
+        {
+          "feature": "ret_last3_atr",
+          "coefficient": 0.1833647982285785
+        },
+        {
+          "feature": "positive_return_share",
+          "coefficient": 0.17704022330621713
+        },
+        {
+          "feature": "m5_drift12_h1atr",
+          "coefficient": 0.16811837551816228
+        },
+        {
+          "feature": "ret_last6_atr",
+          "coefficient": -0.14647584412680972
+        },
+        {
+          "feature": "close_above_prev_high_frac",
+          "coefficient": 0.10211914563691021
+        },
+        {
+          "feature": "half_return_improvement",
+          "coefficient": -0.09370639414967019
+        },
+        {
+          "feature": "half_downside_improvement",
+          "coefficient": 0.08494221958132242
+        },
+        {
+          "feature": "m15_drift4_h1atr",
+          "coefficient": -0.0848197015662853
+        },
+        {
+          "feature": "m15_drift_change_1h",
+          "coefficient": -0.08036417754132336
+        },
+        {
+          "feature": "bull_close_frac",
+          "coefficient": -0.06252438709467865
+        },
+        {
+          "feature": "anchor_mid_reclaim",
+          "coefficient": -0.05912536873949527
+        },
+        {
+          "feature": "signal_pos_episode",
+          "coefficient": -0.03861558986350605
+        },
+        {
+          "feature": "m5_drift_change_1h",
+          "coefficient": 0.03229007008973361
+        },
+        {
+          "feature": "bull_body_share",
+          "coefficient": 0.03140021156858212
+        },
+        {
+          "feature": "higher_low_frac",
+          "coefficient": -0.024837826589365657
+        },
+        {
+          "feature": "higher_high_frac",
+          "coefficient": 0.01653031125070675
+        },
+        {
+          "feature": "range_contraction_ratio",
+          "coefficient": -0.01054475764127988
+        },
+        {
+          "feature": "max_adverse_anchor_atr",
+          "coefficient": 0.0
+        }
+      ]
+    },
+    "swing": {
+      "frozen_rule": "HIGH_RECLAIM",
+      "frozen_states": [
+        0,
+        4,
+        5
+      ],
+      "n_events": 5100,
+      "threshold": 0.3638891877385444,
+      "auc": {
+        "train": 0.5892787944025835,
+        "validation": 0.509395866683973,
+        "consumed_2025_2026": 0.5158381461928214
+      },
+      "execution": {
+        "train": {
+          "n": 645,
+          "total_r": 66.40593106718758,
+          "mean_r": 0.10295493188711252,
+          "profit_factor": 1.1764276246638792,
+          "max_drawdown_r": -26.077779721157768,
+          "win_rate": 0.413953488372093,
+          "avg_entry_rr": 1.8394429422757415,
+          "exit_counts": {
+            "STOP": 374,
+            "TARGET": 258,
+            "864BAR_TIMEOUT": 8,
+            "TARGET_GAP": 3,
+            "STOP_GAP": 1,
+            "STOP_BOTH": 1
+          }
+        },
+        "validation": {
+          "n": 262,
+          "total_r": 5.696438355216269,
+          "mean_r": 0.021742131126779654,
+          "profit_factor": 1.0345238688194924,
+          "max_drawdown_r": -23.4825591211606,
+          "win_rate": 0.3702290076335878,
+          "avg_entry_rr": 1.931402158581029,
+          "exit_counts": {
+            "STOP": 164,
+            "TARGET": 95,
+            "864BAR_TIMEOUT": 2,
+            "STOP_BOTH": 1
+          }
+        },
+        "consumed_2025_2026": {
+          "n": 210,
+          "total_r": -0.12293424379398843,
+          "mean_r": -0.0005854011609237544,
+          "profit_factor": 0.9990876522959745,
+          "max_drawdown_r": -16.913726398894426,
+          "win_rate": 0.3619047619047619,
+          "avg_entry_rr": 1.9370581301053875,
+          "exit_counts": {
+            "STOP": 133,
+            "TARGET": 75,
+            "864BAR_TIMEOUT": 1,
+            "STOP_GAP": 1
+          }
+        },
+        "all": {
+          "n": 1117,
+          "total_r": 71.97943517860986,
+          "mean_r": 0.06443995987341974,
+          "profit_factor": 1.1064569015521162,
+          "max_drawdown_r": -26.077779721157768,
+          "win_rate": 0.39391226499552373,
+          "avg_entry_rr": 1.8793646111353755,
+          "exit_counts": {
+            "STOP": 671,
+            "TARGET": 428,
+            "864BAR_TIMEOUT": 11,
+            "TARGET_GAP": 3,
+            "STOP_GAP": 2,
+            "STOP_BOTH": 2
+          }
+        }
+      },
+      "yearly_execution": {
+        "2018": {
+          "n": 106,
+          "total_r": -2.6102474538749716,
+          "mean_r": -0.024624975979952564,
+          "profit_factor": 0.9616140080312503,
+          "max_drawdown_r": -17.835462050945743,
+          "win_rate": 0.3584905660377358,
+          "avg_entry_rr": 1.9387145422569718,
+          "exit_counts": {
+            "STOP": 68,
+            "TARGET": 38
+          }
+        },
+        "2019": {
+          "n": 121,
+          "total_r": 32.94224251381281,
+          "mean_r": 0.2722499381306844,
+          "profit_factor": 1.5304889607716499,
+          "max_drawdown_r": -8.724391840435093,
+          "win_rate": 0.48760330578512395,
+          "avg_entry_rr": 1.8251238295578183,
+          "exit_counts": {
+            "STOP": 61,
+            "TARGET": 57,
+            "864BAR_TIMEOUT": 2,
+            "STOP_GAP": 1
+          }
+        },
+        "2020": {
+          "n": 103,
+          "total_r": 18.2952583309226,
+          "mean_r": 0.1776238672905107,
+          "profit_factor": 1.3318956973013467,
+          "max_drawdown_r": -11.099624122212322,
+          "win_rate": 0.4563106796116505,
+          "avg_entry_rr": 1.7472197794152475,
+          "exit_counts": {
+            "STOP": 55,
+            "TARGET": 45,
+            "864BAR_TIMEOUT": 3
+          }
+        },
+        "2021": {
+          "n": 156,
+          "total_r": -1.9834054408326978,
+          "mean_r": -0.012714137441235241,
+          "profit_factor": 0.9787120898520959,
+          "max_drawdown_r": -21.63819508735904,
+          "win_rate": 0.3974358974358974,
+          "avg_entry_rr": 1.6930896421066053,
+          "exit_counts": {
+            "STOP": 92,
+            "TARGET": 59,
+            "864BAR_TIMEOUT": 3,
+            "TARGET_GAP": 1,
+            "STOP_BOTH": 1
+          }
+        },
+        "2022": {
+          "n": 159,
+          "total_r": 19.762083117159857,
+          "mean_r": 0.1242898309255337,
+          "profit_factor": 1.2016539093587741,
+          "max_drawdown_r": -26.077779721157782,
+          "win_rate": 0.3836477987421384,
+          "avg_entry_rr": 1.9874927765013655,
+          "exit_counts": {
+            "STOP": 98,
+            "TARGET": 59,
+            "TARGET_GAP": 2
+          }
+        },
+        "2023": {
+          "n": 146,
+          "total_r": -15.520915646248744,
+          "mean_r": -0.10630764141266263,
+          "profit_factor": 0.8383237953515756,
+          "max_drawdown_r": -23.11427968439016,
+          "win_rate": 0.3424657534246575,
+          "avg_entry_rr": 1.8469936376261609,
+          "exit_counts": {
+            "STOP": 96,
+            "TARGET": 49,
+            "864BAR_TIMEOUT": 1
+          }
+        },
+        "2024": {
+          "n": 116,
+          "total_r": 21.21735400146501,
+          "mean_r": 0.18290822415056043,
+          "profit_factor": 1.3074978840792029,
+          "max_drawdown_r": -9.974157225948783,
+          "win_rate": 0.4051724137931034,
+          "avg_entry_rr": 2.037640469438019,
+          "exit_counts": {
+            "STOP": 68,
+            "TARGET": 46,
+            "STOP_BOTH": 1,
+            "864BAR_TIMEOUT": 1
+          }
+        },
+        "2025": {
+          "n": 102,
+          "total_r": 11.363806729904216,
+          "mean_r": 0.11140986990102172,
+          "profit_factor": 1.1893967788317366,
+          "max_drawdown_r": -9.926250982043008,
+          "win_rate": 0.4117647058823529,
+          "avg_entry_rr": 1.932431317492064,
+          "exit_counts": {
+            "STOP": 60,
+            "TARGET": 42
+          }
+        },
+        "2026": {
+          "n": 108,
+          "total_r": -11.486740973698202,
+          "mean_r": -0.1063587127194278,
+          "profit_factor": 0.8463208376602561,
+          "max_drawdown_r": -16.913726398894426,
+          "win_rate": 0.3148148148148148,
+          "avg_entry_rr": 1.9414278975735266,
+          "exit_counts": {
+            "STOP": 73,
+            "TARGET": 33,
+            "864BAR_TIMEOUT": 1,
+            "STOP_GAP": 1
+          }
+        }
+      },
+      "coefficients": [
+        {
+          "feature": "above_low72_atr",
+          "coefficient": 0.551535639134769
+        },
+        {
+          "feature": "recovery_from_72low_atr",
+          "coefficient": -0.5040369802520991
+        },
+        {
+          "feature": "ret120_atr",
+          "coefficient": -0.28199629216330513
+        },
+        {
+          "feature": "pos240",
+          "coefficient": 0.27620430417099784
+        },
+        {
+          "feature": "higher_high_frac72",
+          "coefficient": -0.2347195146670232
+        },
+        {
+          "feature": "lower_low_frac24",
+          "coefficient": 0.2024401524270874
+        },
+        {
+          "feature": "lower_low_frac72",
+          "coefficient": -0.19378435069400438
+        },
+        {
+          "feature": "higher_high_frac24",
+          "coefficient": 0.1916411066912164
+        },
+        {
+          "feature": "neg_h1_frac72",
+          "coefficient": -0.17267363961547924
+        },
+        {
+          "feature": "dd240_atr",
+          "coefficient": 0.15905131400699707
+        },
+        {
+          "feature": "above_low120_atr",
+          "coefficient": 0.15576392891825483
+        },
+        {
+          "feature": "neg_h1_frac24",
+          "coefficient": 0.14984161963256978
+        },
+        {
+          "feature": "pos120",
+          "coefficient": 0.13718833101624733
+        },
+        {
+          "feature": "above_low240_atr",
+          "coefficient": -0.1354588728182989
+        },
+        {
+          "feature": "dd120_atr",
+          "coefficient": -0.11028825256270919
+        },
+        {
+          "feature": "eff24",
+          "coefficient": 0.08761042932854532
+        },
+        {
+          "feature": "eff72",
+          "coefficient": -0.08344649813802274
+        },
+        {
+          "feature": "vol_ratio_24_prev24",
+          "coefficient": 0.08300045673953647
+        },
+        {
+          "feature": "dd72_atr",
+          "coefficient": 0.07293682016248317
+        },
+        {
+          "feature": "ret72_atr",
+          "coefficient": -0.06567972163688215
+        },
+        {
+          "feature": "new24h_low_count_72h",
+          "coefficient": 0.04644519684362002
+        },
+        {
+          "feature": "ret6_vs_prev6",
+          "coefficient": 0.042657248970214244
+        },
+        {
+          "feature": "eff120",
+          "coefficient": -0.04132183899072568
+        },
+        {
+          "feature": "recovery_vs_prior24_decline",
+          "coefficient": -0.03871918858294508
+        },
+        {
+          "feature": "range_ratio_24_prev24",
+          "coefficient": -0.024012557461395943
+        },
+        {
+          "feature": "ret12_vs_prev12",
+          "coefficient": 0.021460784081158084
+        },
+        {
+          "feature": "ret240_atr",
+          "coefficient": -0.016144221022491433
+        },
+        {
+          "feature": "bars_since_72low",
+          "coefficient": 0.01059372550873977
+        },
+        {
+          "feature": "ret24_atr",
+          "coefficient": -0.009813032643186682
+        },
+        {
+          "feature": "pos72",
+          "coefficient": 0.0007780064192852012
+        },
+        {
+          "feature": "new24h_low_count_24h",
+          "coefficient": -0.0003496897530063692
+        }
+      ]
+    }
+  }
+}
