@@ -519,3 +519,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T16:25:37.902342Z — GTGLAB2-0029 — bottom_atlas_v01
+
+**Action:** Built the GTGLab2 historical Bottom Atlas and separated real swing bottoms, scalper bottoms, and false lows.
+
+**Reason:** Returned project to core objective: understand repeated gold bottom-to-rise behavior before defining strategy rules.
+
+**Result:** 6,426 bottom candidates; 2,588 GOOD 48H vs 3,714 FALSE. Strongest pre-bottom differences were lower-wick rejection, stronger close recovery, and short-term downside deceleration. 1,361 major 2-ATR swing bottoms and 566 scalper-bottom population identified.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_BOTTOM_ATLAS_V01_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+

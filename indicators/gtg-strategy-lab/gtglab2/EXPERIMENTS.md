@@ -171,3 +171,13 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - 2018-2023: +22.7937R, PF 1.4468. 2024-2026: +12.1757R, PF 1.7163.
 - v0.5.2 is a distinct pullback/rejection engine, not a replacement for v0.4 momentum-regime engine.
 
+
+## 2026-10-04 — Bottom Atlas v0.1
+- Mapped 1/2/4 ATR directional price swings across clean historical H1.
+- 6,426 fresh-low bottom candidates; GOOD48 2,588 vs FALSE48 3,714.
+- Baseline resolved GOOD rate 41.07%.
+- Lower wick >=0.5 ATR: 50.46% GOOD; close in upper half: 50.93%; both + 5H drift >= -1.5 ATR: 58.67%.
+- Major 2-ATR swing bottoms: 1,361; median prior decline 3.07 ATR; median next rise 5.14 ATR; median rise duration 7H; median confirmation delay 1H.
+- Absolute cheapness alone was not useful: false lows were often closer to the absolute recent low than true bottoms.
+- No trading rule promoted. Next target is a causal Bottom Detector with separated Swing and Scalper research.
+
