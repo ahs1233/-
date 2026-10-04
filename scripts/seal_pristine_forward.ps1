@@ -7,18 +7,17 @@ $Sealer = Join-Path $DataDir "seal_jforex_forward.py"
 $Audit = Join-Path $DataDir "audit_forward_seal.py"
 $Root = Join-Path $Repo ".lab-data"
 $ExportRoot = "C:\Users\alk\gtg-lab-work\captures\jforex_forward"
-$Log = Join-Path $Root "forward_collector.log"
+$CacheRoot = "C:\Users\alk\AppData\Local\Programs\JForex4\.cache"
+$Log = Join-Path $Root "forward_seal.log"
 
 New-Item -ItemType Directory -Force -Path $Root | Out-Null
-New-Item -ItemType Directory -Force -Path $ExportRoot | Out-Null
-
 $stamp = (Get-Date).ToUniversalTime().ToString("o")
-Add-Content -Path $Log -Value "[$stamp] START source=JForex-IHistory"
+Add-Content -Path $Log -Value "[$stamp] START source=JForex-IHistory cache-parity=required"
 
 try {
     Push-Location $DataDir
 
-    $sealOutput = & $Python -u $Sealer --export-root $ExportRoot --root $Root 2>&1 | Out-String
+    $sealOutput = & $Python -u $Sealer --export-root $ExportRoot --cache-root $CacheRoot --root $Root 2>&1 | Out-String
     $sealExit = $LASTEXITCODE
     Add-Content -Path $Log -Value $sealOutput.TrimEnd()
     if ($sealExit -ne 0) {
