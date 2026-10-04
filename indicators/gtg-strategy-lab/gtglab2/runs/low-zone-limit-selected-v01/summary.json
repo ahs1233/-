@@ -1,0 +1,69 @@
+{
+  "scope": "Frozen low-zone limit entry temporal diagnostic 2025-2026",
+  "pristine_forward_oos_read": false,
+  "quality": {
+    "complete_h1": 49632,
+    "incomplete_dropped": 1059,
+    "days_loaded": 2668
+  },
+  "swing": {
+    "params": {
+      "limit_offset_atr": 1.0,
+      "expiry_h": 3,
+      "score_threshold": 0.5669356193705579,
+      "stop_atr": 1.0,
+      "target_atr": 4.0,
+      "timeout_h": 72
+    },
+    "stats": {
+      "attempts": 217,
+      "fills": 167,
+      "cancel_gap_stop": 0,
+      "cancel_missed": 11,
+      "cancel_ambiguous": 1,
+      "expired": 38,
+      "busy_skips": 80,
+      "invalid": 0,
+      "fill_rate": 0.7695852534562212
+    },
+    "metrics": {
+      "n": 167,
+      "total_r": -23.6261877705303,
+      "mean_r": -0.14147417826664851,
+      "profit_factor": 0.7894821533498826,
+      "max_drawdown_r": -30.76276774893303,
+      "win_rate": 0.33532934131736525,
+      "avg_entry_rr": 1.6082962738559239
+    }
+  },
+  "scalper": {
+    "params": {
+      "limit_offset_atr": 0.1,
+      "expiry_h": 3,
+      "score_threshold": 0.6786512019247182,
+      "stop_atr": 0.75,
+      "target_atr": 1.5,
+      "timeout_h": 12
+    },
+    "stats": {
+      "attempts": 264,
+      "fills": 53,
+      "cancel_gap_stop": 0,
+      "cancel_missed": 187,
+      "cancel_ambiguous": 11,
+      "expired": 13,
+      "busy_skips": 33,
+      "invalid": 0,
+      "fill_rate": 0.20075757575757575
+    },
+    "metrics": {
+      "n": 53,
+      "total_r": -11.40900670975183,
+      "mean_r": -0.21526427754248736,
+      "profit_factor": 0.6916484673040046,
+      "max_drawdown_r": -15.997242003869523,
+      "win_rate": 0.3018867924528302,
+      "avg_entry_rr": 1.7201797897603903
+    }
+  }
+}

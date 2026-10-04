@@ -215,3 +215,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing-entry detector pseudo-test AUC 0.621; filtered next-M15-open -9.50R PF 0.979; avg R:R 0.875.
 - Conclusion: M15 is the correct entry-resolution timeframe, but market-chasing after confirmation remains wrong. Next execution must be M15 low-zone retest/limit.
 
+
+## 2026-10-05 — Low-Zone Limit Entry v0.1
+- Grid selected on 2018-2024, then frozen on 2025-2026.
+- Swing selected limit +1.0 ATR / 3H: 2025-2026 167 trades, -23.626R, PF 0.789, DD -30.763R.
+- Scalper selected limit +0.10 ATR / 3H: 53 trades, -11.409R, PF 0.692, DD -15.997R.
+- Deep retest improved theoretical R:R but selected failing bottoms. Most strong Scalper signals moved away without retest.
+- Decision: stop H1 entry-offset tuning; move execution research to M5/M15 while H1 defines context/candidate bottom.
+

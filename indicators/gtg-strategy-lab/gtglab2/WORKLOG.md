@@ -609,3 +609,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T21:28:39.082911Z — GTGLAB2-0035 — low_zone_limit_entry_v01
+
+**Action:** Completed frozen low-zone limit-entry diagnostic on 2025-2026 after grid selection on 2018-2024.
+
+**Reason:** Test whether waiting for a low-zone retest solves the late next-open entry problem.
+
+**Result:** Both frozen limit entries failed on 2025-2026. Swing: 167 trades, -23.626R, PF 0.789. Scalper: 53 trades, -11.409R, PF 0.692. Deep retests are adverse selection; temporal resolution is now the bottleneck.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_LOW_ZONE_LIMIT_ENTRY_V01_2026-10-05.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+
