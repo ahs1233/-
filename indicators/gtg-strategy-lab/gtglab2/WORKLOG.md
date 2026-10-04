@@ -64,3 +64,26 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Blockers derived from recorded experiment failures, current collection state, and research protocol
 
+
+
+## 2026-10-04 — GTGLAB2-0004 — Ultra Plan execution started
+
+**Action**
+- Registered `ULTRA_PLAN_V01.md`.
+- Implemented Phase 1 typed bidirectional contracts.
+- Implemented timeframe roles for D1/H4/H1/M15/M5/M1.
+- Implemented inherited coarse session bucket compatibility.
+- Implemented causal raw EMA geometry for 9/21/50/200/1000.
+- Added synthetic LONG/SHORT symmetry and no-future prefix-invariance tests.
+
+**Verification**
+- Independent Python run: 9/9 tests PASS.
+- Device-local test rerun is pending because the remote desktop device is online but command execution is timing out.
+
+**Research safety**
+- Historical Holdout not opened.
+- Pristine OOS not decoded.
+- Microstructure not aligned to future outcomes.
+
+**Result**
+Sprint A foundation is implemented on `research/gtglab2`. Device-local parity verification remains pending.
