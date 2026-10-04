@@ -43,9 +43,11 @@ def audit(root: Path) -> dict:
     rows = read_manifest(root)
     forward = [e for e in rows if e.get("kind") == "forward_m1"]
     forward.sort(key=lambda e: e["day"])
+    verifications = [e for e in rows if e.get("kind") == "forward_m1_verify"]
 
     issues: list[dict] = []
     checked: list[dict] = []
+    expected_raw: set[Path] = set()
 
     days_seen = set()
     for e in forward:
@@ -58,9 +60,17 @@ def audit(root: Path) -> dict:
         if day < FREEZE_DAY:
             issues.append({"type": "PRE_FREEZE_FORWARD_DAY", "day": day})
 
+        if e.get("origin") != "jforex-ihistory-export":
+            issues.append({
+                "type": "NON_CANONICAL_FORWARD_ORIGIN",
+                "day": day,
+                "origin": e.get("origin"),
+            })
+
         item = {"day": day}
         for side in ("BID", "ASK"):
             p = raw_path(root, day, side)
+            expected_raw.add(p.resolve())
             prefix = side.lower()
             exp_bytes = int(e.get(f"{prefix}_bytes") or 0)
             exp_sha = e.get(f"{prefix}_sha256")
@@ -98,13 +108,46 @@ def audit(root: Path) -> dict:
             if m1.exists():
                 issues.append({"type": "DERIVED_CANONICAL_M1_EXISTS", "day": day, "path": str(m1)})
 
+        valid_verification = any(
+            v.get("day") == day
+            and v.get("origin") == "jforex-ihistory-export"
+            and v.get("source") == "JForex API/IHistory"
+            and v.get("export_cache_match") is True
+            and v.get("bid_export_sha256") == e.get("bid_sha256")
+            and v.get("bid_cache_sha256") == e.get("bid_sha256")
+            and v.get("ask_export_sha256") == e.get("ask_sha256")
+            and v.get("ask_cache_sha256") == e.get("ask_sha256")
+            for v in verifications
+        )
+        item["jforex_cache_verified"] = valid_verification
+        if not valid_verification:
+            issues.append({"type": "MISSING_JFOREX_CACHE_VERIFICATION", "day": day})
+
         checked.append(item)
 
-    # Strictly post-freeze days may only have forward_m1 manifest records.
+    forward_root = root / "raw" / "forward"
+    if forward_root.exists():
+        for p in forward_root.rglob("*"):
+            if not p.is_file():
+                continue
+            rp = p.resolve()
+            if p.name.endswith(".part"):
+                issues.append({"type": "ORPHAN_PARTIAL_FORWARD", "path": str(p)})
+            elif p.suffix == ".bi5" and rp not in expected_raw:
+                issues.append({"type": "ORPHAN_RAW_FORWARD", "path": str(p)})
+
+    forward_days = {str(e.get("day")) for e in forward}
+    for v in verifications:
+        day = str(v.get("day", ""))
+        if day not in forward_days:
+            issues.append({"type": "ORPHAN_FORWARD_VERIFICATION", "day": day})
+
+    # Strictly post-freeze data-layer records may only be sealed forward data or its byte-parity verification.
+    allowed_kinds = {"forward_m1", "forward_m1_verify"}
     for e in rows:
         day = str(e.get("day", ""))
         kind = e.get("kind")
-        if day > FREEZE_DAY and kind != "forward_m1":
+        if day > FREEZE_DAY and kind not in allowed_kinds:
             issues.append({
                 "type": "NON_FORWARD_MANIFEST_AFTER_FREEZE_DAY",
                 "day": day,
@@ -112,9 +155,10 @@ def audit(root: Path) -> dict:
             })
 
     return {
-        "scope": "GTG Pristine Forward Seal Audit v0.1",
+        "scope": "GTG Pristine Forward Seal Audit v0.2",
         "freeze_day": FREEZE_DAY,
         "forward_days": len(forward),
+        "verification_records": len(verifications),
         "first_forward_day": forward[0]["day"] if forward else None,
         "last_forward_day": forward[-1]["day"] if forward else None,
         "checked": checked,
