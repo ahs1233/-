@@ -130,3 +130,17 @@ Selection discipline:
 - Candidate must have PF >1 in both segments.
 - Prefer higher worst-segment mean R, then lower worst-segment drawdown, rather than maximum total profit.
 - This is development selection, not true OOS. Pristine Forward OOS remains untouched.
+
+# CAUSALITY CORRECTION BEFORE v0.5.2 FREEZE
+
+During Pine translation, a look-ahead issue was found in the development simulator:
+the planned reward/risk admission test used the next H1 open, which is not known at signal close.
+
+Correction before final candidate freeze:
+- Stop and target remain frozen from the signal bar.
+- Planned reward/risk is computed from signal close, not next open.
+- Position quantity is computed from signal-close-to-stop distance.
+- The actual fill remains next H1 open.
+- Any entry gap therefore changes realized R naturally.
+- The robustness grid must be rerun after this correction.
+- Previous grid ranking is discarded and must not be used for v0.5.2 selection.
