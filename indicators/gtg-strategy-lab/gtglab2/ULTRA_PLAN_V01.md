@@ -301,3 +301,19 @@ GTGLab2 succeeds only when a frozen bidirectional policy:
 6. is stable across time/regimes,
 7. adds value over simpler baselines,
 8. survives forward shadow and final Holdout.
+
+
+## Implementation checkpoint — 2026-10-04
+
+Sprint A:
+- A1 Typed bidirectional contracts: IMPLEMENTED.
+- A2 Synthetic LONG/SHORT symmetry tests: IMPLEMENTED; independent PASS.
+- A3 Session bucket parity foundation: IMPLEMENTED.
+- A4 Raw EMA geometry extractor: IMPLEMENTED.
+- A5 Prefix invariance / no-future-leakage test: IMPLEMENTED; independent PASS.
+
+Independent foundation test result: 9/9 PASS.
+
+Device-local parity rerun: PENDING due Remote Desktop command timeout.
+
+Next executable sprint: B — causal Session Narrative, multi-timeframe adapter, liquidity map, and no-lookahead tests.
