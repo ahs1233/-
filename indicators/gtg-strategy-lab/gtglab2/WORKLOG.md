@@ -414,3 +414,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Historical Holdout read=false
 
+
+## 2026-10-04T14:30:27.709806Z — GTGLAB2-0022 — pine_v02_extended_historical_test
+
+**Action:** Applied exact supplied Pine v0.2 logic from 2025-01-01 through available clean-data T_FREEZE 2026-09-30T13:40:49Z.
+
+**Reason:** User explicitly requested 2025-01-01 to 2026-10-01 testing.
+
+**Result:** 57 trades overall, +8.1775R, PF 1.1998, max DD -19.2154R. Previously sealed Holdout subset: 51 trades, +2.9682R, PF 1.0751. Historical Holdout is now consumed/opened; Pristine Forward OOS remains blind.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V02_EXTENDED_2025_2026_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+

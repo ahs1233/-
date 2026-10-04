@@ -92,7 +92,7 @@ The separate cold-start autonomy issue remains open because the exporter still d
 Daily task:
 - `GTG Pristine Forward Seal Audit`
 - enabled
-- last scheduled run succeeded before 2026-10-03 became an expected settled day.
+- manually rerun after 2026-10-03 recovery; LastResult `0`.
 
 The older `C:\Users\alk\gtg-lab-data-jforex` forward records are legacy public-datafeed records and are not the canonical Pristine Forward store.
 
@@ -100,12 +100,12 @@ The older `C:\Users\alk\gtg-lab-data-jforex` forward records are legacy public-d
 Latest readiness checkpoint:
 - status: COLLECTING
 - integrity: PASS
-- valid snapshots: 241
-- snapshots remaining: 9,759
-- elapsed: ~0.559 days
-- time remaining: ~29.441 days
+- valid snapshots: 255
+- snapshots remaining: 9,745
+- elapsed: ~0.569 days
+- time remaining: ~29.431 days
 - earliest registered 30-day unlock: 2026-11-02T21:37:13Z
-- Fusion Grade ratio: ~95.44%
+- Fusion Grade ratio: ~95.69%
 
 Research locks remain:
 - outcome linkage: LOCKED
@@ -180,4 +180,10 @@ but current evidence is not robust to conservative execution costs.
 8. Liquid positioning is now captured with reproducible event-time/SHA provenance but remains secondary and locked from the primary first test.
 9. Promote only a candidate that survives realistic costs and independent forward/paper evidence.
 10. Open Final Holdout only at its registered final gate.
+
+
+## 2026-10-04 — Historical Holdout opened by explicit user request
+- Exact Pine v0.2 was tested from 2025-01-01 through clean-data T_FREEZE 2026-09-30T13:40:49Z.
+- Historical Holdout is no longer unseen for this candidate.
+- Pristine Forward OOS remains blind and must stay untouched for future final evidence.
 

@@ -114,3 +114,10 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - This is Pine-logic emulation, not the separate Python strategy implementation.
 - Historical Holdout remained sealed.
 
+
+## 2026-10-04 — Pine v0.2 extended historical test
+- User requested exact Pine v0.2 from 2025-01-01 through 2026-10-01; clean snapshot ended at 2026-09-30T13:40:49Z.
+- Full available interval: 57 trades, +8.1775R, PF 1.1998, max DD -19.2154R.
+- Previously sealed Holdout subset: 51 trades, +2.9682R, PF 1.0751.
+- Historical Holdout is now opened/consumed. Pristine Forward OOS remains blind.
+

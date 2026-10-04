@@ -96,3 +96,9 @@
 **Decision:** Stage 1 has two parallel tracks: (A) immutable Clean Historical Track for reproducible Train/Validation/Holdout evaluation, and (B) Development Track on the existing working data/code path. Validation outcomes may inform development, but a modified candidate cannot reuse the same Validation as fresh confirmation. Historical Holdout remains sealed until the final candidate gate.
 **Status:** Active.
 
+
+## 2026-10-04 — Holdout consumption decision
+- User explicitly requested testing through 2026-10-01, authorizing opening of the historical Holdout.
+- Do not later claim this Historical Holdout as unseen evidence for a tuned successor.
+- Preserve Pristine Forward OOS as the remaining blind gate.
+
