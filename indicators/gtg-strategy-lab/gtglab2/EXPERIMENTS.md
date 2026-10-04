@@ -264,3 +264,21 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Swing: +58.312R full period, PF 1.042, 6/9 positive years, but severe negative years in 2021, 2022 and 2026.
 - Critical finding: in 2025 all accepted Swing states (0/4/5) were positive; in 2026 all three were negative. The failure is therefore broader than State 0 alone.
 - Decision: static state-at-entry is insufficient; next research must model state transition/evolution and post-entry behavior.
+
+
+## 2026-10-05 — State Evolution Engine v0.1
+- Added causal state-evolution features across M5, M15 and 24H-120H context.
+- Fixed Logistic Regression, no hyperparameter search, threshold fixed from Train distribution.
+- Scalper improved materially: consumed 2025-2026 became +9.789R PF 1.136; 2026 improved from -10.066R static-state result to -0.717R.
+- Swing validation passed (+22.396R PF 1.120) but consumed 2025-2026 failed (-28.541R PF 0.832), especially 2026 (-27.403R PF 0.686).
+- Diagnostic: Swing mean score did not fall in 2026 even though positive-label rate fell sharply. 2026 showed a more persistent multi-day downside context (120H return +1.49 ATR in 2025 vs -3.53 ATR in 2026 selected events).
+- OOD test did not support simple out-of-range failure; this is concept drift / relationship shift.
+- Decision: retain evolution features; Scalper bottleneck moves to payoff geometry; Swing needs adaptive walk-forward learning.
+
+
+## 2026-10-05 — State Evolution Engine v0.1
+- Added causal evolution features across H1/M15/M5 plus higher-order 24H/72H/120H regime descriptors and transition-path features.
+- Scalper AUC: Train .651, Validation .619, consumed 2025-26 .666. Evolution-gated consumed result improved to +9.789R PF 1.136, and 2026 improved from static -10.066R PF .907 to -0.717R PF .983. However Validation fell to +0.594R PF 1.006 versus static +12.872R PF 1.051, so the preregistered improvement criterion failed.
+- Swing AUC: Train .612, Validation .554, consumed .533. Validation remained positive (+22.396R PF 1.120) but did not beat static baseline; consumed 2025-26 failed at -28.541R PF .832.
+- 2026 Swing passed many model gates despite a low actual positive-outcome rate, indicating a higher-order regime mapping shift rather than merely weak local signals.
+- Decision: retain evolution architecture; Scalper evolution is promising research, Swing evolution v0.1 fails; no promotion.

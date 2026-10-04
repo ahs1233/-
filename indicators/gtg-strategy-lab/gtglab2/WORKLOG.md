@@ -695,3 +695,38 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Pristine Forward OOS read=false
 - 2018 partial from March 1
 - 2026 partial through September 30
+
+
+## 2026-10-04T22:26:35.4003526Z — GTGLAB2-0040 — state_evolution_v01
+
+**Action:** Built causal State Evolution features over M5/M15 and 24H-120H context, trained fixed logistic gates on 2018-2022, froze thresholds from Train distribution, validated 2023-2024, and reported consumed 2025-2026 without retuning.
+
+**Result:** Scalper improved materially and nearly neutralized 2026 failure. Swing improved historical Train/Validation but still failed 2025-2026, especially 2026. Diagnostics show concept drift: model confidence did not fall while actual success rate did. 2026 had materially more persistent multi-day downside context, but not simple OOD extremes.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_STATE_EVOLUTION_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/state-evolution-v01/summary.json`
+
+**Verification:**
+- Pristine Forward OOS read=false
+- No future/year feature in model
+- Threshold fixed from Train probabilities only
+- No hyperparameter search
+- 2025-2026 consumed diagnostic only
+
+
+## 2026-10-05 — GTGLAB2-0040 — state_evolution_v01
+
+**Action:** Tested causal state evolution rather than static market-state labels using H1/M15/M5 acceleration, efficiency changes, 24H/72H/120H regime structure, state-transition frequency, and anchor-to-signal recovery behavior.
+
+**Result:** Scalper showed meaningful discrimination (Validation AUC .619) and nearly neutralized the consumed 2026 loss, but its Validation execution was only +0.594R PF 1.006 and worse than the prior static baseline. Swing Validation AUC was only .554 and consumed 2025-2026 deteriorated to -28.541R PF .832. The Swing failure indicates that local state evolution is not enough to model the higher-order regime shift.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_STATE_EVOLUTION_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/state-evolution-v01/summary.json`
+
+**Verification:**
+- Threshold frozen from Train distribution only
+- No hyperparameter search
+- 2025-2026 diagnostic only
+- Pristine Forward OOS read=false
