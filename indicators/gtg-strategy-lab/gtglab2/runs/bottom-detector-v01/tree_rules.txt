@@ -1,0 +1,19 @@
+|--- lower_wick_atr <= 0.724
+|   |--- close_location <= 0.637
+|   |   |--- lower_wick_atr <= 0.216
+|   |   |   |--- class: 0
+|   |   |--- lower_wick_atr >  0.216
+|   |   |   |--- class: 0
+|   |--- close_location >  0.637
+|   |   |--- body_atr <= 0.751
+|   |   |   |--- class: 1
+|   |   |--- body_atr >  0.751
+|   |   |   |--- class: 1
+|--- lower_wick_atr >  0.724
+|   |--- lower_wick_atr <= 1.374
+|   |   |--- drift5_atr <= -0.323
+|   |   |   |--- class: 1
+|   |   |--- drift5_atr >  -0.323
+|   |   |   |--- class: 1
+|   |--- lower_wick_atr >  1.374
+|   |   |--- class: 1

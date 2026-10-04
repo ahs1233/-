@@ -181,3 +181,10 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Absolute cheapness alone was not useful: false lows were often closer to the absolute recent low than true bottoms.
 - No trading rule promoted. Next target is a causal Bottom Detector with separated Swing and Scalper research.
 
+
+## 2026-10-04 — Bottom Detector v0.1
+- Logistic Bottom Score passed the research gate: AUC 0.623 validation / 0.611 pseudo-test.
+- High-confidence threshold frozen on 2023-2024 delivered 59.5% GOOD rate on 2025-2026 vs 40.15% baseline.
+- Dominant causal signals: lower-wick rejection, close recovery, downside deceleration; EMA context secondary.
+- Promote detector only for Swing/Scalper research, not direct trading.
+

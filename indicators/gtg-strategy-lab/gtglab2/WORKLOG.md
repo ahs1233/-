@@ -534,3 +534,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T19:38:37.639757Z — GTGLAB2-0030 — bottom_detector_v01
+
+**Action:** Completed causal Bottom Detector v0.1 on Bottom Atlas resolved candidates.
+
+**Reason:** Continue GTGLab2 from raw bottom mapping to a causal bottom-quality score.
+
+**Result:** Logistic AUC train 0.640, validation 0.623, pseudo-test 0.611. Frozen high-confidence threshold produced 59.5% GOOD rate on 2025-2026 vs 40.15% baseline.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_BOTTOM_DETECTOR_V01_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+
