@@ -32,3 +32,17 @@ PanWatch provides multi-venue microstructure acquisition/fusion. GTGLab2 stores 
 
 ## Current branch
 - `research/gtglab2`
+
+
+## GTGLab2 engine — implemented foundation
+- `gtglab2/engine/session_narrative.py` — causal session-to-session evidence.
+- `gtglab2/engine/mtf_context.py` — completed-bar-only MTF aggregation/alignment.
+- `gtglab2/engine/liquidity_map.py` — prior-only liquidity references.
+- `gtglab2/engine/inventory.py` — fixed-risk tranche state machine.
+- `gtglab2/engine/setup_policy.py` — Range/Trend Long/Short mapping.
+- `gtglab2/engine/execution.py` — BID/ASK and slippage execution.
+- `gtglab2/engine/metrics.py` — episode-level metrics.
+- `gtglab2/engine/test_phase1_foundation.py`
+- `gtglab2/engine/test_phase2_context.py`
+- `gtglab2/engine/test_phase3_inventory.py`
+- `gtglab2/engine/test_phase4_execution.py`
