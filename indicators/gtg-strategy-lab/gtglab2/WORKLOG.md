@@ -82,3 +82,27 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - 9/9 Phase 1 foundation tests PASS
 - Liquid paper trading enabled in connected Co-Invest connector
 
+
+## 2026-10-04T09:43:31.859072Z — GTGLAB2-0005 — phase2_core_implemented
+
+**Action:** Implemented causal session, liquidity, MTF, fixed-risk inventory, invalidation, and bid/ask execution layers; preregistered doctrine reference v0.1.
+
+**Reason:** Execute GTGLab2 Ultra Plan phases 2-8 without opening protected outcome sources.
+
+**Result:** 17/17 GTGLab2 phase tests PASS; doctrine reference protocol frozen before first run; reference experiment started on development-only history.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/engine/session_context.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/liquidity.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/mtf_context.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/inventory.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/invalidation.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/execution.py`
+- `indicators/gtg-strategy-lab/gtglab2/PROTOCOL_DOCTRINE_REFERENCE_V01.md`
+- `indicators/gtg-strategy-lab/gtglab2/doctrine_reference_v01.py`
+
+**Verification:**
+- 17/17 unit tests PASS
+- Historical Holdout not read
+- Pristine Forward OOS not decoded
+
