@@ -130,3 +130,10 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - 11 losing trades had first reached +1R or more; 5 had reached +2R or more.
 - Maximum losing streak = 13 trades; top-two-winner concentration makes overall edge fragile.
 
+
+## 2026-10-04 — Pine v0.3 Strict MTF
+- Final candidate this round: exact v0.2 exits + MTF score +3/-3 only.
+- 28 trades, +19.7697R, PF 2.1842, max DD -5.2546R.
+- 2025: +11.7236R, PF 2.8584. 2026 through Sep 30: +8.0461R, PF 1.7747.
+- Two dynamic-risk overlays were tested and rejected as inferior.
+

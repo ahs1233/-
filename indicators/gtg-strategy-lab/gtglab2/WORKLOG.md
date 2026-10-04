@@ -444,3 +444,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T15:09:48.059541Z — GTGLAB2-0024 — pine_v03_strict_mtf_test
+
+**Action:** Completed Pine v0.3 Strict MTF test on 2025-01-01 through clean-data T_FREEZE.
+
+**Reason:** User asked to modify Pine code first, then apply it.
+
+**Result:** v0.3 Strict MTF: 28 trades, +19.7697R, PF 2.1842, max DD -5.2546R. Two risk-overlay variants were tested and rejected as inferior.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V03_STRICT_MTF_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+

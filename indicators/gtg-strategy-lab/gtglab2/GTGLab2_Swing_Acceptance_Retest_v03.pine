@@ -1,0 +1,654 @@
+//@version=6
+strategy("GTGLab2 Swing Acceptance-Retest v0.3 Strict MTF",
+     overlay = true,
+     pyramiding = 0,
+     process_orders_on_close = false,
+     calc_on_order_fills = true,
+     calc_on_every_tick = false,
+     initial_capital = 100000,
+     default_qty_type = strategy.fixed,
+     default_qty_value = 1)
+
+// ============================================================================
+// GTGLab2 v0.3 — development candidate
+//
+// Changes from v0.2:
+// 1) Strong MTF context only:
+//      LONG  => H1/H4/D1 EMA50 slopes all positive  (score = +3)
+//      SHORT => H1/H4/D1 EMA50 slopes all negative  (score = -3)
+// 2) Original v0.2 exit logic is retained because two tested risk overlays reduced performance.
+// 3) Optional dynamic risk protection remains available but is OFF by default.
+// 4) Acceptance / Retest / State Engine remain unchanged.
+// 5) 24H timeout remains the terminal swing horizon.
+//
+// Research note:
+// v0.3 is tuned after opening 2025-2026 historical outcomes.
+// That interval is DEVELOPMENT data now, not clean OOS evidence.
+// ============================================================================
+
+// INPUTS
+bool useValidationWindow = input.bool(false, "Use date window")
+int testStart = input.time(1735689600000, "Start UTC")  // 2025-01-01
+int testEnd   = input.time(1790812800000, "End UTC")    // 2026-10-01
+
+float riskCash = input.float(100.0, "Synthetic 1R cash", minval = 1.0)
+bool useDynamicRisk = input.bool(false, "Experimental dynamic risk protection")
+float initialStopR = input.float(2.0, "Emergency stop (R)", minval = 0.5, step = 0.25)
+float beTriggerR = input.float(2.0, "Breakeven trigger (R)", minval = 1.0, step = 0.25)
+float lockTriggerR = input.float(3.0, "Lock +1R trigger (R)", minval = 2.0, step = 0.25)
+float trailTriggerR = input.float(6.0, "Trail trigger (R)", minval = 3.0, step = 0.25)
+float trailDistanceR = input.float(2.0, "Trail distance (R)", minval = 0.5, step = 0.25)
+
+bool showState = input.bool(true, "Show State Engine background")
+bool showRange = input.bool(true, "Show prior 24H range")
+bool showSignals = input.bool(true, "Show signals")
+bool showDashboard = input.bool(true, "Show dashboard")
+
+// CONSTANTS
+int ST_RANGE = 0
+int ST_TRANSITION = 1
+int ST_TREND_UP = 2
+int ST_TREND_DOWN = -2
+int SRC_NONE = 0
+int SRC_RANGE = 1
+int SRC_OTHER = 2
+int MAX_GAP_MS = 10800000
+
+bool isH1 = timeframe.isintraday and timeframe.multiplier == 60
+bool dateOK = not useValidationWindow or (time >= testStart and time < testEnd)
+
+// H1 RAW FEATURES
+float trueRange = ta.tr(true)
+float atr14 = ta.sma(trueRange, 14)
+float absChange = math.abs(close - close[1])
+float path24 = ta.sma(absChange, 24) * 24.0
+float path48 = ta.sma(absChange, 48) * 48.0
+
+float efficiency24 = na
+float efficiency48 = na
+if not na(path24) and path24 > 0
+    efficiency24 := math.abs(close - close[24]) / path24
+if not na(path48) and path48 > 0
+    efficiency48 := math.abs(close - close[48]) / path48
+
+float drift12 = na
+float drift24 = na
+float drift48 = na
+if not na(atr14) and atr14 > 0
+    drift12 := (close - close[12]) / atr14
+    drift24 := (close - close[24]) / atr14
+    drift48 := (close - close[48]) / atr14
+
+float prior24Upper = ta.highest(high[1], 24)
+float prior24Lower = ta.lowest(low[1], 24)
+float prior24Width = prior24Upper - prior24Lower
+
+float position24 = na
+if not na(prior24Width) and prior24Width > 0
+    position24 := (close - prior24Lower) / prior24Width
+
+float breakoutUpAtr = na
+float breakoutDownAtr = na
+if not na(atr14) and atr14 > 0
+    breakoutUpAtr := (close - prior24Upper) / atr14
+    breakoutDownAtr := (prior24Lower - close) / atr14
+
+// DIRECTIONAL CHANGE helper
+f_dc(float threshold, float src, float hiIn, float loIn, float extIn, int dirIn) =>
+    float hiOut = hiIn
+    float loOut = loIn
+    float extOut = extIn
+    int dirOut = dirIn
+    if dirOut == 0
+        hiOut := math.max(hiOut, src)
+        loOut := math.min(loOut, src)
+        if src >= loOut * (1 + threshold)
+            dirOut := 1
+            extOut := src
+        else if src <= hiOut * (1 - threshold)
+            dirOut := -1
+            extOut := src
+    else if dirOut == 1
+        if src > extOut
+            extOut := src
+        else if src <= extOut * (1 - threshold)
+            dirOut := -1
+            extOut := src
+    else
+        if src < extOut
+            extOut := src
+        else if src >= extOut * (1 + threshold)
+            dirOut := 1
+            extOut := src
+    [hiOut, loOut, extOut, dirOut]
+
+// Four DC states
+var float dc025Hi = na
+var float dc025Lo = na
+var float dc025Extreme = na
+var int dc025Dir = 0
+var float dc050Hi = na
+var float dc050Lo = na
+var float dc050Extreme = na
+var int dc050Dir = 0
+var float dc100Hi = na
+var float dc100Lo = na
+var float dc100Extreme = na
+var int dc100Dir = 0
+var float dc200Hi = na
+var float dc200Lo = na
+var float dc200Extreme = na
+var int dc200Dir = 0
+
+if na(dc025Hi)
+    dc025Hi := close
+    dc025Lo := close
+    dc025Extreme := close
+    dc050Hi := close
+    dc050Lo := close
+    dc050Extreme := close
+    dc100Hi := close
+    dc100Lo := close
+    dc100Extreme := close
+    dc200Hi := close
+    dc200Lo := close
+    dc200Extreme := close
+
+[a025,b025,c025,d025] = f_dc(0.0025, close, dc025Hi, dc025Lo, dc025Extreme, dc025Dir)
+dc025Hi := a025
+dc025Lo := b025
+dc025Extreme := c025
+dc025Dir := d025
+
+[a050,b050,c050,d050] = f_dc(0.005, close, dc050Hi, dc050Lo, dc050Extreme, dc050Dir)
+dc050Hi := a050
+dc050Lo := b050
+dc050Extreme := c050
+dc050Dir := d050
+
+[a100,b100,c100,d100] = f_dc(0.01, close, dc100Hi, dc100Lo, dc100Extreme, dc100Dir)
+dc100Hi := a100
+dc100Lo := b100
+dc100Extreme := c100
+dc100Dir := d100
+
+[a200,b200,c200,d200] = f_dc(0.02, close, dc200Hi, dc200Lo, dc200Extreme, dc200Dir)
+dc200Hi := a200
+dc200Lo := b200
+dc200Extreme := c200
+dc200Dir := d200
+
+int dcUpCount = 0
+int dcDownCount = 0
+if dc025Dir == 1
+    dcUpCount += 1
+else if dc025Dir == -1
+    dcDownCount += 1
+if dc050Dir == 1
+    dcUpCount += 1
+else if dc050Dir == -1
+    dcDownCount += 1
+if dc100Dir == 1
+    dcUpCount += 1
+else if dc100Dir == -1
+    dcDownCount += 1
+if dc200Dir == 1
+    dcUpCount += 1
+else if dc200Dir == -1
+    dcDownCount += 1
+
+int rangeVotes = 0
+if not na(efficiency24) and efficiency24 <= 0.35
+    rangeVotes += 1
+if not na(efficiency48) and efficiency48 <= 0.35
+    rangeVotes += 1
+if not na(drift24) and math.abs(drift24) <= 1.50
+    rangeVotes += 1
+if not na(drift48) and math.abs(drift48) <= 3.00
+    rangeVotes += 1
+
+bool rangeCore = rangeVotes >= 3
+bool trendUpCore = not na(drift24) and not na(efficiency24) and dcUpCount >= 3 and drift24 >= 1.00 and efficiency24 >= 0.35
+bool trendDownCore = not na(drift24) and not na(efficiency24) and dcDownCount >= 3 and drift24 <= -1.00 and efficiency24 >= 0.35
+bool breakoutUp = not na(breakoutUpAtr) and breakoutUpAtr >= 0.10
+bool breakoutDown = not na(breakoutDownAtr) and breakoutDownAtr >= 0.10
+
+bool validState = bar_index >= 168 and
+     not na(atr14) and not na(drift12) and not na(drift24) and not na(drift48) and
+     not na(efficiency24) and not na(efficiency48) and
+     not na(prior24Upper) and not na(prior24Lower) and not na(position24)
+
+// STATE ENGINE
+var int marketState = na
+var int lastValidTime = na
+var int transitionSource = SRC_NONE
+var int transitionDir = 0
+var int transitionStartBar = na
+var float transitionPrevClose = na
+var float transitionUpper = na
+var float transitionLower = na
+var int transitionUpStreak = 0
+var int transitionDownStreak = 0
+var int transitionRangeStreak = 0
+var int rangeAge = 0
+var int rangeCoreStreak = 0
+
+bool newRangeTransition = false
+float newTransitionUpper = na
+float newTransitionLower = na
+
+if validState
+    bool gapReset = false
+    if not na(lastValidTime)
+        int gapMs = time - lastValidTime
+        if gapMs <= 0 or gapMs > MAX_GAP_MS
+            gapReset := true
+
+    if gapReset
+        marketState := na
+        transitionSource := SRC_NONE
+        transitionDir := 0
+        transitionStartBar := na
+        transitionPrevClose := na
+        transitionUpper := na
+        transitionLower := na
+        transitionUpStreak := 0
+        transitionDownStreak := 0
+        transitionRangeStreak := 0
+        rangeAge := 0
+        rangeCoreStreak := 0
+
+    int previousState = marketState
+
+    if na(previousState)
+        if rangeCore
+            marketState := ST_RANGE
+            rangeAge := 1
+        else if trendUpCore
+            marketState := ST_TREND_UP
+            rangeAge := 0
+        else if trendDownCore
+            marketState := ST_TREND_DOWN
+            rangeAge := 0
+        else
+            marketState := ST_TRANSITION
+            transitionSource := SRC_OTHER
+            transitionDir := 0
+            transitionStartBar := bar_index
+            transitionPrevClose := close
+            transitionUpStreak := 0
+            transitionDownStreak := 0
+            transitionRangeStreak := 0
+
+    else if previousState == ST_RANGE
+        int triggerDir = 0
+        if breakoutUp
+            triggerDir := 1
+        else if breakoutDown
+            triggerDir := -1
+        else if trendUpCore
+            triggerDir := 1
+        else if trendDownCore
+            triggerDir := -1
+
+        if triggerDir == 0
+            marketState := ST_RANGE
+            rangeAge += 1
+        else
+            marketState := ST_TRANSITION
+            transitionSource := SRC_RANGE
+            transitionDir := triggerDir
+            transitionStartBar := bar_index
+            transitionPrevClose := close
+            transitionUpper := prior24Upper
+            transitionLower := prior24Lower
+            transitionUpStreak := 0
+            transitionDownStreak := 0
+            transitionRangeStreak := 0
+            newRangeTransition := true
+            newTransitionUpper := prior24Upper
+            newTransitionLower := prior24Lower
+            rangeAge := 0
+
+    else if previousState == ST_TRANSITION
+        int transitionAge = bar_index - transitionStartBar + 1
+        bool resolved = false
+        int resolvedState = ST_TRANSITION
+
+        if transitionSource == SRC_RANGE
+            bool confirmed = false
+            if transitionDir == 1
+                confirmed := transitionPrevClose > transitionUpper and close > transitionUpper and dcUpCount >= 3 and drift24 > 0
+            else if transitionDir == -1
+                confirmed := transitionPrevClose < transitionLower and close < transitionLower and dcDownCount >= 3 and drift24 < 0
+
+            bool prevInside = transitionPrevClose >= transitionLower and transitionPrevClose <= transitionUpper
+            bool nowInside = close >= transitionLower and close <= transitionUpper
+            bool backInside = prevInside and nowInside
+
+            if confirmed
+                resolved := true
+                resolvedState := transitionDir == 1 ? ST_TREND_UP : ST_TREND_DOWN
+            else if backInside
+                resolved := true
+                resolvedState := ST_RANGE
+            else if transitionAge >= 4
+                resolved := true
+                resolvedState := trendUpCore ? ST_TREND_UP : trendDownCore ? ST_TREND_DOWN : ST_RANGE
+        else
+            transitionUpStreak := trendUpCore ? transitionUpStreak + 1 : 0
+            transitionDownStreak := trendDownCore ? transitionDownStreak + 1 : 0
+            transitionRangeStreak := rangeCore ? transitionRangeStreak + 1 : 0
+
+            if transitionDir == 1 and transitionUpStreak >= 2
+                resolved := true
+                resolvedState := ST_TREND_UP
+            else if transitionDir == -1 and transitionDownStreak >= 2
+                resolved := true
+                resolvedState := ST_TREND_DOWN
+            else if transitionDir == 0 and transitionUpStreak >= 2
+                resolved := true
+                resolvedState := ST_TREND_UP
+            else if transitionDir == 0 and transitionDownStreak >= 2
+                resolved := true
+                resolvedState := ST_TREND_DOWN
+            else if transitionRangeStreak >= 2
+                resolved := true
+                resolvedState := ST_RANGE
+            else if transitionAge >= 4
+                resolved := true
+                resolvedState := trendUpCore ? ST_TREND_UP : trendDownCore ? ST_TREND_DOWN : ST_RANGE
+
+        if resolved
+            marketState := resolvedState
+            transitionSource := SRC_NONE
+            transitionDir := 0
+            transitionStartBar := na
+            transitionPrevClose := na
+            transitionUpper := na
+            transitionLower := na
+            transitionUpStreak := 0
+            transitionDownStreak := 0
+            transitionRangeStreak := 0
+            rangeCoreStreak := 0
+            rangeAge := resolvedState == ST_RANGE ? 1 : 0
+        else
+            marketState := ST_TRANSITION
+            transitionPrevClose := close
+
+    else if previousState == ST_TREND_UP
+        if trendDownCore
+            marketState := ST_TRANSITION
+            transitionSource := SRC_OTHER
+            transitionDir := -1
+            transitionStartBar := bar_index
+            transitionPrevClose := close
+            transitionUpStreak := 0
+            transitionDownStreak := 0
+            transitionRangeStreak := 0
+            rangeCoreStreak := 0
+        else
+            rangeCoreStreak := rangeCore ? rangeCoreStreak + 1 : 0
+            if rangeCoreStreak >= 3
+                marketState := ST_RANGE
+                rangeAge := 1
+                rangeCoreStreak := 0
+            else
+                marketState := ST_TREND_UP
+
+    else if previousState == ST_TREND_DOWN
+        if trendUpCore
+            marketState := ST_TRANSITION
+            transitionSource := SRC_OTHER
+            transitionDir := 1
+            transitionStartBar := bar_index
+            transitionPrevClose := close
+            transitionUpStreak := 0
+            transitionDownStreak := 0
+            transitionRangeStreak := 0
+            rangeCoreStreak := 0
+        else
+            rangeCoreStreak := rangeCore ? rangeCoreStreak + 1 : 0
+            if rangeCoreStreak >= 3
+                marketState := ST_RANGE
+                rangeAge := 1
+                rangeCoreStreak := 0
+            else
+                marketState := ST_TREND_DOWN
+
+    lastValidTime := time
+
+// COMPLETED-BAR MTF CONTEXT
+float ema50H1 = ta.ema(close, 50)
+float h1Ema50Slope = ema50H1 - ema50H1[1]
+
+float h4Ema50Slope = request.security(
+     syminfo.tickerid, "240",
+     ta.ema(close, 50)[1] - ta.ema(close, 50)[2],
+     gaps = barmerge.gaps_off,
+     lookahead = barmerge.lookahead_on)
+
+float d1Ema50Slope = request.security(
+     syminfo.tickerid, "D",
+     ta.ema(close, 50)[1] - ta.ema(close, 50)[2],
+     gaps = barmerge.gaps_off,
+     lookahead = barmerge.lookahead_on)
+
+f_sign(float x) =>
+    int result = 0
+    if not na(x)
+        if x > 0
+            result := 1
+        else if x < 0
+            result := -1
+    result
+
+int mtfScore = f_sign(h1Ema50Slope) + f_sign(h4Ema50Slope) + f_sign(d1Ema50Slope)
+
+// v0.3: full alignment only
+bool longContextOK = mtfScore == 3
+bool shortContextOK = mtfScore == -3
+
+// ACCEPTANCE / RETEST
+var bool waitingResolution = false
+var int eventBreakDir = 0
+var int eventBreakBar = na
+var float eventUpper = na
+var float eventLower = na
+var bool waitingRetest = false
+var int eventAcceptanceBar = na
+var int eventAcceptedDir = 0
+var float eventAcceptedBoundary = na
+
+bool acceptanceLong = false
+bool acceptanceShort = false
+bool retestLong = false
+bool retestShort = false
+
+if newRangeTransition
+    bool eventCrossUp = high > newTransitionUpper
+    bool eventCrossDown = low < newTransitionLower
+    if eventCrossUp != eventCrossDown
+        waitingResolution := true
+        eventBreakDir := eventCrossUp ? 1 : -1
+        eventBreakBar := bar_index
+        eventUpper := newTransitionUpper
+        eventLower := newTransitionLower
+
+if waitingResolution
+    int resolutionAge = bar_index - eventBreakBar
+    if resolutionAge > 3
+        waitingResolution := false
+    else if eventBreakDir == 1
+        if close <= eventUpper
+            waitingResolution := false
+        else if resolutionAge > 0 and close[1] > eventUpper and close > eventUpper
+            acceptanceLong := true
+            waitingResolution := false
+            waitingRetest := true
+            eventAcceptanceBar := bar_index
+            eventAcceptedDir := 1
+            eventAcceptedBoundary := eventUpper
+    else if eventBreakDir == -1
+        if close >= eventLower
+            waitingResolution := false
+        else if resolutionAge > 0 and close[1] < eventLower and close < eventLower
+            acceptanceShort := true
+            waitingResolution := false
+            waitingRetest := true
+            eventAcceptanceBar := bar_index
+            eventAcceptedDir := -1
+            eventAcceptedBoundary := eventLower
+
+if waitingRetest
+    int retestAge = bar_index - eventAcceptanceBar
+    if retestAge > 6
+        waitingRetest := false
+    else if retestAge >= 1
+        if eventAcceptedDir == 1
+            if low <= eventAcceptedBoundary and close > eventAcceptedBoundary
+                retestLong := true
+                waitingRetest := false
+        else if eventAcceptedDir == -1
+            if high >= eventAcceptedBoundary and close < eventAcceptedBoundary
+                retestShort := true
+                waitingRetest := false
+
+// ENTRY / RISK STATE
+var bool orderReserved = false
+var float activeBoundary = na
+var float activeRiskATR = na
+var float activeStop = na
+var int filledEntryBar = na
+var float bestClose = na
+
+bool longSignal = isH1 and dateOK and strategy.position_size == 0 and not orderReserved and retestLong and longContextOK
+bool shortSignal = isH1 and dateOK and strategy.position_size == 0 and not orderReserved and retestShort and shortContextOK
+
+if longSignal and not na(atr14) and atr14 > 0
+    float qtyLong = riskCash / atr14
+    strategy.entry("LONG", strategy.long, qty = qtyLong, comment = "v0.3 LONG")
+    activeBoundary := eventAcceptedBoundary
+    activeRiskATR := atr14
+    orderReserved := true
+
+if shortSignal and not na(atr14) and atr14 > 0
+    float qtyShort = riskCash / atr14
+    strategy.entry("SHORT", strategy.short, qty = qtyShort, comment = "v0.3 SHORT")
+    activeBoundary := eventAcceptedBoundary
+    activeRiskATR := atr14
+    orderReserved := true
+
+if strategy.position_size != 0 and na(filledEntryBar)
+    filledEntryBar := bar_index
+    bestClose := close
+    if strategy.position_size > 0
+        activeStop := strategy.position_avg_price - initialStopR * activeRiskATR
+    else
+        activeStop := strategy.position_avg_price + initialStopR * activeRiskATR
+
+// DYNAMIC PROTECTION
+if strategy.position_size > 0 and not na(filledEntryBar)
+    if useDynamicRisk
+        bestClose := math.max(bestClose, close)
+        float gainR = (bestClose - strategy.position_avg_price) / activeRiskATR
+        float candidateStop = strategy.position_avg_price - initialStopR * activeRiskATR
+        if gainR >= beTriggerR
+            candidateStop := math.max(candidateStop, strategy.position_avg_price)
+        if gainR >= lockTriggerR
+            candidateStop := math.max(candidateStop, strategy.position_avg_price + 1.0 * activeRiskATR)
+        if gainR >= trailTriggerR
+            candidateStop := math.max(candidateStop, bestClose - trailDistanceR * activeRiskATR)
+        activeStop := math.max(activeStop, candidateStop)
+        strategy.exit("L-RISK", "LONG", stop = activeStop, comment = "Experimental risk stop")
+
+    int heldBars = bar_index - filledEntryBar + 1
+    bool oppositeStateLong = marketState == ST_TREND_DOWN
+    bool twoInsideLong = close <= activeBoundary and close[1] <= activeBoundary
+    bool timeoutLong = heldBars >= 24
+
+    if oppositeStateLong
+        strategy.close("LONG", comment = "State TREND_DOWN")
+    else if twoInsideLong
+        strategy.close("LONG", comment = "2 closes inside")
+    else if timeoutLong
+        strategy.close("LONG", comment = "24H timeout")
+
+if strategy.position_size < 0 and not na(filledEntryBar)
+    if useDynamicRisk
+        bestClose := math.min(bestClose, close)
+        float gainR = (strategy.position_avg_price - bestClose) / activeRiskATR
+        float candidateStop = strategy.position_avg_price + initialStopR * activeRiskATR
+        if gainR >= beTriggerR
+            candidateStop := math.min(candidateStop, strategy.position_avg_price)
+        if gainR >= lockTriggerR
+            candidateStop := math.min(candidateStop, strategy.position_avg_price - 1.0 * activeRiskATR)
+        if gainR >= trailTriggerR
+            candidateStop := math.min(candidateStop, bestClose + trailDistanceR * activeRiskATR)
+        activeStop := math.min(activeStop, candidateStop)
+        strategy.exit("S-RISK", "SHORT", stop = activeStop, comment = "Experimental risk stop")
+
+    int heldBars = bar_index - filledEntryBar + 1
+    bool oppositeStateShort = marketState == ST_TREND_UP
+    bool twoInsideShort = close >= activeBoundary and close[1] >= activeBoundary
+    bool timeoutShort = heldBars >= 24
+
+    if oppositeStateShort
+        strategy.close("SHORT", comment = "State TREND_UP")
+    else if twoInsideShort
+        strategy.close("SHORT", comment = "2 closes inside")
+    else if timeoutShort
+        strategy.close("SHORT", comment = "24H timeout")
+
+bool tradeJustClosed = strategy.position_size == 0 and strategy.position_size[1] != 0
+if tradeJustClosed
+    orderReserved := false
+    activeBoundary := na
+    activeRiskATR := na
+    activeStop := na
+    filledEntryBar := na
+    bestClose := na
+
+// VISUALS
+color stateBg = na
+if marketState == ST_RANGE
+    stateBg := color.new(color.gray, 92)
+else if marketState == ST_TRANSITION
+    stateBg := color.new(color.orange, 92)
+else if marketState == ST_TREND_UP
+    stateBg := color.new(color.green, 94)
+else if marketState == ST_TREND_DOWN
+    stateBg := color.new(color.red, 94)
+
+bgcolor(showState ? stateBg : na)
+plot(showRange ? prior24Upper : na, "Prior 24H Upper", color.new(color.red, 55))
+plot(showRange ? prior24Lower : na, "Prior 24H Lower", color.new(color.green, 55))
+plot(strategy.position_size != 0 ? activeBoundary : na, "Accepted Boundary", color.orange, 2, plot.style_linebr)
+plot(useDynamicRisk and strategy.position_size != 0 ? activeStop : na, "Dynamic Stop", color.yellow, 2, plot.style_linebr)
+
+plotshape(showSignals and acceptanceLong, "Acceptance Long", shape.circle, location.belowbar, color = color.green, size = size.tiny, text = "A")
+plotshape(showSignals and acceptanceShort, "Acceptance Short", shape.circle, location.abovebar, color = color.red, size = size.tiny, text = "A")
+plotshape(showSignals and longSignal, "v0.3 LONG", shape.triangleup, location.belowbar, color = color.lime, size = size.small, text = "L")
+plotshape(showSignals and shortSignal, "v0.3 SHORT", shape.triangledown, location.abovebar, color = color.fuchsia, size = size.small, text = "S")
+
+// DASHBOARD
+var table dash = table.new(position.top_right, 2, 8, border_width = 1)
+if barstate.islast and showDashboard
+    string stateText = marketState == ST_RANGE ? "RANGE" : marketState == ST_TRANSITION ? "TRANSITION" : marketState == ST_TREND_UP ? "TREND UP" : marketState == ST_TREND_DOWN ? "TREND DOWN" : "WARMUP"
+    string setupText = waitingResolution ? "Break resolution" : waitingRetest ? "Waiting Retest" : strategy.position_size > 0 ? "LONG active" : strategy.position_size < 0 ? "SHORT active" : "Idle"
+    table.cell(dash,0,0,"GTGLab2")
+    table.cell(dash,1,0,"v0.3 Strict MTF")
+    table.cell(dash,0,1,"Chart")
+    table.cell(dash,1,1,isH1 ? "H1 OK" : "USE 1H", bgcolor = isH1 ? color.new(color.green,75) : color.new(color.red,50))
+    table.cell(dash,0,2,"State")
+    table.cell(dash,1,2,stateText)
+    table.cell(dash,0,3,"MTF Score")
+    table.cell(dash,1,3,str.tostring(mtfScore))
+    table.cell(dash,0,4,"Context")
+    table.cell(dash,1,4,"STRICT ±3")
+    table.cell(dash,0,5,"Risk overlay")
+    table.cell(dash,1,5,useDynamicRisk ? "ON" : "OFF")
+    table.cell(dash,0,6,"Setup")
+    table.cell(dash,1,6,setupText)
+    table.cell(dash,0,7,"Window")
+    table.cell(dash,1,7,useValidationWindow ? "Custom" : "All chart")
