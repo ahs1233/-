@@ -106,3 +106,25 @@ Research locks remain unchanged:
 - Historical Holdout LOCKED.
 - Pristine OOS LOCKED.
 - Microstructure outcome linkage LOCKED.
+
+
+## Implementation checkpoint — Phase 1–4
+
+Implemented on `research/gtglab2`:
+- bidirectional contracts and timeframe roles,
+- causal session narrative,
+- completed-bar-only MTF adapter,
+- causal liquidity map,
+- EMA 9/21/50/200/1000 geometry,
+- fixed-risk tranche inventory,
+- invalidation lockout and FLIP_WAIT,
+- explicit BID/ASK + slippage execution,
+- episode metrics and same-risk scaled-vs-single comparison.
+
+Independent combined regression:
+- **32/32 PASS**.
+
+This is infrastructure/logic validation, not a profitability result.
+
+Next research gate:
+- define/freeze measurable sweep-vs-acceptance and entry/invalidation parameters before outcome-linked evaluation.
