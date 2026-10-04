@@ -223,3 +223,11 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Deep retest improved theoretical R:R but selected failing bottoms. Most strong Scalper signals moved away without retest.
 - Decision: stop H1 entry-offset tuning; move execution research to M5/M15 while H1 defines context/candidate bottom.
 
+
+
+## 2026-10-05 — Linked H1/M15/M5 Entry Resolution v0.1
+- Built 607,272 exact M5 bars and causally linked them to completed M15/H1 context.
+- Scalper filtered pseudo-test: 491 trades, -18.654R, PF 0.918, avg entry R:R 0.839.
+- Swing filtered pseudo-test: 339 trades, -3.289R, PF 0.986, avg entry R:R 2.390.
+- M5 materially improved remaining R:R versus M15, especially Swing, but 2025/2026 stability failed.
+- Decision: keep H1/M15/M5 architecture; do not promote execution candidate yet. Remaining problem is identifying the true transition micro-low, not simply lowering the timeframe.

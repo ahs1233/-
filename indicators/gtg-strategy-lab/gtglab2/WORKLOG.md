@@ -624,3 +624,21 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+
+## 2026-10-04T21:44:35.1152745Z — GTGLAB2-0036 — linked_h1_m15_m5_entry_v01
+
+**Action:** Added M5 as a causal execution layer linked to completed M15 and H1 context.
+
+**Reason:** User requested linking the 5-minute timeframe after H1 next-open and deep-limit execution showed timing/adverse-selection failures.
+
+**Result:** M5 substantially improved available entry R:R versus M15, but frozen 2025-2026 expectancy remained negative for filtered engines. Scalper: 491 trades, -18.654R, PF 0.918, avg R:R 0.839. Swing: 339 trades, -3.289R, PF 0.986, avg R:R 2.390. 2025 was positive while 2026 failed sharply, so no execution candidate is promoted.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_LINKED_H1_M15_M5_ENTRY_V01_2026-10-05.md`
+- `indicators/gtg-strategy-lab/gtglab2/runs/linked-h1-m15-m5-entry-v01/summary.json`
+
+**Verification:**
+- Pristine Forward OOS read=false
+- No year feature
+- M15/H1 context uses only bars closed by the M5 signal close
