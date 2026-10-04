@@ -1,0 +1,213 @@
+//@version=6
+strategy("GTGLab2 Buy Low / Sell High v0.5.2",
+     overlay = true,
+     pyramiding = 0,
+     process_orders_on_close = false,
+     calc_on_order_fills = true,
+     initial_capital = 100000,
+     default_qty_type = strategy.fixed,
+     default_qty_value = 1)
+
+// ============================================================================
+// GTGLab2 v0.5.2 — Buy Low / Sell High
+//
+// Fixed after robustness grid:
+// - LONG only.
+// - Buy a failed-break / rejection near the lower 40% of the prior 48H range.
+// - Only inside a bullish structure.
+// - EMA50/EMA200 separation must be >= 1 ATR.
+// - Structural stop below signal low by 0.75 ATR.
+// - Sell at 60% of the frozen prior 48H range.
+// - Planned reward/risk must be >= 1.25.
+// - Failure exit: two closes below frozen prior-48H low.
+// - Timeout: 48 H1 bars.
+// ============================================================================
+
+bool useDateWindow = input.bool(false, "Use date window")
+int testStart = input.time(1519862400000, "Start UTC") // 2018-03-01
+int testEnd   = input.time(1790812800000, "End UTC")   // 2026-10-01
+
+float riskCash = input.float(100.0, "Synthetic 1R cash", minval = 1.0)
+float maxPosition48 = input.float(0.40, "Max 48H position", minval = 0.10, maxval = 0.80, step = 0.05)
+float minEmaGapAtr = input.float(1.00, "Min EMA50/200 gap (ATR)", minval = 0.0, step = 0.25)
+float stopCushionAtr = input.float(0.75, "Stop cushion below signal low (ATR)", minval = 0.0, step = 0.25)
+float targetPercentile = input.float(0.60, "Target percentile of 48H range", minval = 0.40, maxval = 1.0, step = 0.05)
+float minPlannedRR = input.float(1.25, "Minimum planned R:R", minval = 0.5, step = 0.25)
+
+bool showRange = input.bool(true, "Show frozen/current 48H structure")
+bool showSignals = input.bool(true, "Show signals")
+bool showDashboard = input.bool(true, "Show dashboard")
+
+bool isH1 = timeframe.isintraday and timeframe.multiplier == 60
+bool dateOK = not useDateWindow or (time >= testStart and time < testEnd)
+
+// Core measurements
+float tr = ta.tr(true)
+float atr14 = ta.sma(tr, 14)
+float ema50 = ta.ema(close, 50)
+float ema200 = ta.ema(close, 200)
+
+float prior48Low = ta.lowest(low[1], 48)
+float prior48High = ta.highest(high[1], 48)
+float prior48Width = prior48High - prior48Low
+float position48 = na
+if not na(prior48Width) and prior48Width > 0
+    position48 := (close - prior48Low) / prior48Width
+
+float prior12Low = ta.lowest(low[1], 12)
+
+// Bull structure:
+// price regime is not merely above EMA50; medium-term trend must itself rise.
+bool bullStructure = (
+     not na(ema200[24]) and
+     ema50 > ema200 and
+     ema200 >= ema200[24]
+)
+
+float emaGapAtr = na
+if not na(atr14) and atr14 > 0
+    emaGapAtr := (ema50 - ema200) / atr14
+
+bool trendStrengthOK = not na(emaGapAtr) and emaGapAtr >= minEmaGapAtr
+bool cheapEnough = not na(position48) and position48 <= maxPosition48
+
+// Failed-break rejection:
+// price probes below the previous 12H floor, fails to stay there,
+// and closes with bullish recovery.
+bool rejection = (
+     not na(prior12Low) and
+     low < prior12Low and
+     close > prior12Low and
+     close > open and
+     close > close[1]
+)
+
+bool rawSignal = isH1 and dateOK and bullStructure and trendStrengthOK and cheapEnough and rejection
+
+// Signal-time frozen levels.
+var bool orderReserved = false
+var float reservedStop = na
+var float reservedTarget = na
+var float reservedRisk = na
+var float reservedRR = na
+var float reserved48Low = na
+
+var int filledEntryBar = na
+var float activeStop = na
+var float activeTarget = na
+var float active48Low = na
+var float activeRisk = na
+
+bool qualifiedSignal = false
+
+if rawSignal and strategy.position_size == 0 and not orderReserved
+    float candidateStop = low - stopCushionAtr * atr14
+    float candidateTarget = prior48Low + targetPercentile * prior48Width
+
+    // Pine order fills at the next bar open. We cannot know that exact open
+    // on the signal bar, so qualification uses the signal close as a causal
+    // proxy; the exact backtest harness re-checks planned R:R at next open.
+    float estimatedRisk = close - candidateStop
+    float estimatedReward = candidateTarget - close
+    float estimatedRR = na
+    if estimatedRisk > 0 and estimatedReward > 0
+        estimatedRR := estimatedReward / estimatedRisk
+
+    if not na(estimatedRR) and estimatedRR >= minPlannedRR
+        qualifiedSignal := true
+        reservedStop := candidateStop
+        reservedTarget := candidateTarget
+        reservedRisk := estimatedRisk
+        reservedRR := estimatedRR
+        reserved48Low := prior48Low
+
+        float qty = riskCash / estimatedRisk
+        strategy.entry("LONG", strategy.long, qty = qty, comment = "Buy Low v0.5.2")
+        orderReserved := true
+
+// After next-open fill, rebase quantity cannot be changed, but active structural
+// levels remain the signal-frozen stop/target.
+if strategy.position_size > 0 and na(filledEntryBar)
+    filledEntryBar := bar_index
+    activeStop := reservedStop
+    activeTarget := reservedTarget
+    active48Low := reserved48Low
+    activeRisk := strategy.position_avg_price - activeStop
+
+if strategy.position_size > 0 and not na(filledEntryBar)
+    // Structural bracket.
+    strategy.exit("STRUCTURE EXIT", "LONG",
+         stop = activeStop,
+         limit = activeTarget,
+         comment = "Stop / Sell Higher")
+
+    int heldBars = bar_index - filledEntryBar + 1
+
+    bool failedLow = (
+         close < active48Low and
+         close[1] < active48Low
+    )
+
+    bool timeout = heldBars >= 48
+
+    if failedLow
+        strategy.close("LONG", comment = "2 closes below 48H low")
+    else if timeout
+        strategy.close("LONG", comment = "48H timeout")
+
+bool tradeJustClosed = strategy.position_size == 0 and strategy.position_size[1] != 0
+if tradeJustClosed
+    orderReserved := false
+    reservedStop := na
+    reservedTarget := na
+    reservedRisk := na
+    reservedRR := na
+    reserved48Low := na
+    filledEntryBar := na
+    activeStop := na
+    activeTarget := na
+    active48Low := na
+    activeRisk := na
+
+// Visuals
+plot(showRange ? prior48Low : na, "Prior 48H Low", color.new(color.green, 55), 1)
+plot(showRange ? prior48High : na, "Prior 48H High", color.new(color.red, 55), 1)
+plot(strategy.position_size > 0 ? activeStop : na, "Active Stop", color.red, 2, plot.style_linebr)
+plot(strategy.position_size > 0 ? activeTarget : na, "Sell-Higher Target", color.green, 2, plot.style_linebr)
+
+plotshape(showSignals and qualifiedSignal,
+     title = "Buy Low",
+     style = shape.triangleup,
+     location = location.belowbar,
+     color = color.lime,
+     size = size.small,
+     text = "BUY")
+
+bgcolor(bullStructure and trendStrengthOK ? color.new(color.green, 95) : na)
+
+// Dashboard
+var table dash = table.new(position.top_right, 2, 8, border_width = 1)
+
+if barstate.islast and showDashboard
+    string regimeText = bullStructure ? (trendStrengthOK ? "BULL OK" : "WEAK BULL") : "NO BUY"
+    string priceText = na(position48) ? "-" : str.tostring(position48, "#.00")
+    string gapText = na(emaGapAtr) ? "-" : str.tostring(emaGapAtr, "#.00")
+    string setupText = strategy.position_size > 0 ? "LONG active" : orderReserved ? "Order reserved" : "Waiting"
+
+    table.cell(dash,0,0,"GTGLab2")
+    table.cell(dash,1,0,"v0.5.2")
+    table.cell(dash,0,1,"Chart")
+    table.cell(dash,1,1,isH1 ? "H1 OK" : "USE 1H",
+         bgcolor = isH1 ? color.new(color.green,75) : color.new(color.red,50))
+    table.cell(dash,0,2,"Regime")
+    table.cell(dash,1,2,regimeText)
+    table.cell(dash,0,3,"48H position")
+    table.cell(dash,1,3,priceText)
+    table.cell(dash,0,4,"EMA gap / ATR")
+    table.cell(dash,1,4,gapText)
+    table.cell(dash,0,5,"Trigger")
+    table.cell(dash,1,5,rejection ? "REJECTION" : "-")
+    table.cell(dash,0,6,"Setup")
+    table.cell(dash,1,6,setupText)
+    table.cell(dash,0,7,"Mode")
+    table.cell(dash,1,7,"BUY LOW")
