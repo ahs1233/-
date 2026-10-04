@@ -1,0 +1,73 @@
+{
+  "scope": "GTGLab2 v0.5.1 long-only trend pullback",
+  "pristine_forward_oos_read": false,
+  "quality": {
+    "complete_h1": 49632,
+    "incomplete_dropped": 1059,
+    "days_loaded": 2668
+  },
+  "overall": {
+    "n": 2,
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "total_r": 0.6676829925230685,
+    "mean_r": 0.33384149626153425,
+    "median_r": 0.33384149626153425,
+    "profit_factor": 1.6676829925230685,
+    "max_drawdown_r": -1.0,
+    "avg_planned_rr": 1.6404176960962842
+  },
+  "by_year": {
+    "2020": {
+      "n": 1,
+      "wins": 0,
+      "losses": 1,
+      "win_rate": 0.0,
+      "total_r": -1.0,
+      "mean_r": -1.0,
+      "median_r": -1.0,
+      "profit_factor": 0.0,
+      "max_drawdown_r": -1.0,
+      "avg_planned_rr": 1.6131523996694996
+    },
+    "2023": {
+      "n": 1,
+      "wins": 1,
+      "losses": 0,
+      "win_rate": 1.0,
+      "total_r": 1.6676829925230685,
+      "mean_r": 1.6676829925230685,
+      "median_r": 1.6676829925230685,
+      "profit_factor": null,
+      "max_drawdown_r": 1.6676829925230685,
+      "avg_planned_rr": 1.6676829925230687
+    }
+  },
+  "by_exit": {
+    "STOP": {
+      "n": 1,
+      "wins": 0,
+      "losses": 1,
+      "win_rate": 0.0,
+      "total_r": -1.0,
+      "mean_r": -1.0,
+      "median_r": -1.0,
+      "profit_factor": 0.0,
+      "max_drawdown_r": -1.0,
+      "avg_planned_rr": 1.6131523996694996
+    },
+    "TARGET": {
+      "n": 1,
+      "wins": 1,
+      "losses": 0,
+      "win_rate": 1.0,
+      "total_r": 1.6676829925230685,
+      "mean_r": 1.6676829925230685,
+      "median_r": 1.6676829925230685,
+      "profit_factor": null,
+      "max_drawdown_r": 1.6676829925230685,
+      "avg_planned_rr": 1.6676829925230687
+    }
+  }
+}

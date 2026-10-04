@@ -154,3 +154,12 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Secondary 2026: +9.6390R on 4 trades.
 - Earlier 2018-2022: +5.4883R overall, but 2018/2019 still fail; regime engine is improved, not complete.
 
+
+## 2026-10-04 — v0.5 Buy Low / Sell Higher development
+- v0.5 initial broad version: 393 trades, +18.53R, PF 1.066; RANGE_LOW rejected and stop too tight.
+- v0.5.1 strict v0.4-regime version: only 2 trades; rejected as unusably sparse.
+- v0.5.2 robustness grid: 486 preregistered combinations with causal R/R correction and split 2018-2023 vs 2024-2026.
+- Frozen v0.5.2: position48<=0.45, EMA gap>=1 ATR, stop cushion 0.75 ATR, target 60% of 48H range, min planned RR 1.25.
+- Final: 139 trades, +35.4243R, PF 1.4883, max DD -9.6099R.
+- Pristine Forward OOS remains untouched.
+

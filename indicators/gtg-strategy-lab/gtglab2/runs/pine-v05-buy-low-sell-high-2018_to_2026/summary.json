@@ -1,0 +1,221 @@
+{
+  "scope": "GTGLab2 v0.5 Buy Low / Sell High preregistered structural test",
+  "requested_start": "2018-03-01T00:00:00+00:00",
+  "requested_end": "2026-09-30T13:40:49+00:00",
+  "pristine_forward_oos_read": false,
+  "quality": {
+    "complete_h1": 49632,
+    "incomplete_dropped": 1059,
+    "days_loaded": 2668
+  },
+  "overall": {
+    "n": 393,
+    "wins": 106,
+    "losses": 287,
+    "win_rate": 0.2697201017811705,
+    "total_r": 18.52905027110532,
+    "mean_r": 0.04714771061349954,
+    "median_r": -1.0,
+    "profit_factor": 1.0662651760891488,
+    "max_drawdown_r": -21.713757957676286,
+    "avg_planned_rr": 4.025691185207885
+  },
+  "by_year": {
+    "2018": {
+      "n": 42,
+      "wins": 10,
+      "losses": 32,
+      "win_rate": 0.23809523809523808,
+      "total_r": 2.1988791489722765,
+      "mean_r": 0.05235426545172087,
+      "median_r": -1.0,
+      "profit_factor": 1.068607739877165,
+      "max_drawdown_r": -10.050015827793572,
+      "avg_planned_rr": 4.153693889828136
+    },
+    "2019": {
+      "n": 44,
+      "wins": 16,
+      "losses": 28,
+      "win_rate": 0.36363636363636365,
+      "total_r": 16.523057453690143,
+      "mean_r": 0.37552403303841236,
+      "median_r": -1.0,
+      "profit_factor": 1.5968464994172429,
+      "max_drawdown_r": -8.14309143548306,
+      "avg_planned_rr": 4.176889371945884
+    },
+    "2020": {
+      "n": 36,
+      "wins": 10,
+      "losses": 26,
+      "win_rate": 0.2777777777777778,
+      "total_r": -2.858760941831627,
+      "mean_r": -0.07941002616198964,
+      "median_r": -1.0,
+      "profit_factor": 0.890047656083399,
+      "max_drawdown_r": -13.0,
+      "avg_planned_rr": 3.661572437547756
+    },
+    "2021": {
+      "n": 47,
+      "wins": 13,
+      "losses": 34,
+      "win_rate": 0.2765957446808511,
+      "total_r": 7.697863389138267,
+      "mean_r": 0.16378432742847376,
+      "median_r": -1.0,
+      "profit_factor": 1.2304457627948628,
+      "max_drawdown_r": -9.200707606263157,
+      "avg_planned_rr": 4.06236842459501
+    },
+    "2022": {
+      "n": 51,
+      "wins": 11,
+      "losses": 40,
+      "win_rate": 0.21568627450980393,
+      "total_r": 4.106708506845507,
+      "mean_r": 0.08052369621265701,
+      "median_r": -1.0,
+      "profit_factor": 1.108689870972756,
+      "max_drawdown_r": -13.10017160707381,
+      "avg_planned_rr": 4.319316618644805
+    },
+    "2023": {
+      "n": 54,
+      "wins": 12,
+      "losses": 42,
+      "win_rate": 0.2222222222222222,
+      "total_r": -14.907782540614926,
+      "mean_r": -0.2760700470484246,
+      "median_r": -1.0,
+      "profit_factor": 0.6356441720119227,
+      "max_drawdown_r": -18.13653537043737,
+      "avg_planned_rr": 4.8806608701183745
+    },
+    "2024": {
+      "n": 49,
+      "wins": 12,
+      "losses": 37,
+      "win_rate": 0.24489795918367346,
+      "total_r": -4.369699797772083,
+      "mean_r": -0.08917754689330781,
+      "median_r": -1.0,
+      "profit_factor": 0.8733666679041209,
+      "max_drawdown_r": -13.181357655235907,
+      "avg_planned_rr": 3.654169991060114
+    },
+    "2025": {
+      "n": 40,
+      "wins": 17,
+      "losses": 23,
+      "win_rate": 0.425,
+      "total_r": 23.870293452805047,
+      "mean_r": 0.5967573363201262,
+      "median_r": -1.0,
+      "profit_factor": 2.0378388457741323,
+      "max_drawdown_r": -6.0,
+      "avg_planned_rr": 3.263274732122487
+    },
+    "2026": {
+      "n": 30,
+      "wins": 5,
+      "losses": 25,
+      "win_rate": 0.16666666666666666,
+      "total_r": -13.731508400127282,
+      "mean_r": -0.4577169466709094,
+      "median_r": -1.0,
+      "profit_factor": 0.4343507262971647,
+      "max_drawdown_r": -21.713757957676286,
+      "avg_planned_rr": 3.5894760985496985
+    }
+  },
+  "by_setup": {
+    "BULL_PULLBACK": {
+      "n": 245,
+      "wins": 74,
+      "losses": 171,
+      "win_rate": 0.3020408163265306,
+      "total_r": 34.296340348824266,
+      "mean_r": 0.1399850626482623,
+      "median_r": -1.0,
+      "profit_factor": 1.2061889774075993,
+      "max_drawdown_r": -14.699420665076047,
+      "avg_planned_rr": 3.850083258006132
+    },
+    "RANGE_LOW": {
+      "n": 148,
+      "wins": 32,
+      "losses": 116,
+      "win_rate": 0.21621621621621623,
+      "total_r": -15.767290077718956,
+      "mean_r": -0.10653574376837133,
+      "median_r": -1.0,
+      "profit_factor": 0.8608177713080253,
+      "max_drawdown_r": -30.363780136878773,
+      "avg_planned_rr": 4.316393497129704
+    }
+  },
+  "by_exit": {
+    "48H_TIMEOUT": {
+      "n": 29,
+      "wins": 25,
+      "losses": 4,
+      "win_rate": 0.8620689655172413,
+      "total_r": 43.11807752648069,
+      "mean_r": 1.486830259533817,
+      "median_r": 1.2862420423237122,
+      "profit_factor": 49.21403202607277,
+      "max_drawdown_r": -0.281227989788583,
+      "avg_planned_rr": 4.390168563350865
+    },
+    "FAILURE_2_CLOSES": {
+      "n": 11,
+      "wins": 0,
+      "losses": 11,
+      "win_rate": 0.0,
+      "total_r": -6.725418762945908,
+      "mean_r": -0.6114017057223552,
+      "median_r": -0.5210450550265151,
+      "profit_factor": 0.0,
+      "max_drawdown_r": -6.725418762945909,
+      "avg_planned_rr": 3.67518832903565
+    },
+    "STOP": {
+      "n": 272,
+      "wins": 0,
+      "losses": 272,
+      "win_rate": 0.0,
+      "total_r": -272.0,
+      "mean_r": -1.0,
+      "median_r": -1.0,
+      "profit_factor": 0.0,
+      "max_drawdown_r": -272.0,
+      "avg_planned_rr": 4.268194953414255
+    },
+    "TARGET": {
+      "n": 80,
+      "wins": 80,
+      "losses": 0,
+      "win_rate": 1.0,
+      "total_r": 247.72808909104538,
+      "mean_r": 3.096601113638067,
+      "median_r": 2.962139900885646,
+      "profit_factor": null,
+      "max_drawdown_r": 1.5022675736961588,
+      "avg_planned_rr": 3.096601113638067
+    },
+    "TARGET_GAP": {
+      "n": 1,
+      "wins": 1,
+      "losses": 0,
+      "win_rate": 1.0,
+      "total_r": 6.408302416525183,
+      "mean_r": 6.408302416525183,
+      "median_r": 6.408302416525183,
+      "profit_factor": null,
+      "max_drawdown_r": 6.408302416525183,
+      "avg_planned_rr": 5.677559410408602
+    }
+  }
+}

@@ -489,3 +489,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T16:04:48.327221Z — GTGLAB2-0027 — pine_v052_buy_low_sell_higher
+
+**Action:** Built causal long-only Buy Low / Sell Higher v0.5.2 and completed full historical development diagnostic.
+
+**Reason:** User directed GTGLab to focus on buying low and selling higher rather than macro modeling.
+
+**Result:** v0.5.2: 139 trades, +35.4243R, PF 1.4883, max DD -9.6099R. Early segment 2018-2023 +23.4855R PF 1.4348; later 2024-2026 +11.9387R PF 1.6444. Negative years remain 2020, 2023, 2026.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_PINE_V052_BUY_LOW_SELL_HIGHER_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+
