@@ -31,3 +31,21 @@ Chronological, append-only in spirit. Corrections should be added as new entries
 
 **Reason**
 The project had accumulated many experiments, protocols, and operational fixes. A single canonical evidence trail is required so future work can be audited and reused rather than reconstructed from chat history.
+
+## 2026-10-04T00:18:51.145074Z — GTGLAB2-0002 — documentation_checkpoint
+
+**Action:** GTGLab2 canonical evidence trail created, validated, committed, and pushed.
+
+**Reason:** Create a durable project guide so future decisions, experiments, failures, fixes, and verification can be reconstructed from the repository.
+
+**Result:** Canonical guide is live on research/gtglab2.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/`
+
+**Verification:**
+- record_event.py py_compile PASS
+- EVENTS.jsonl parsed successfully
+- Git push research/gtglab2 PASS
+
+**Commit:** `896e71a`
