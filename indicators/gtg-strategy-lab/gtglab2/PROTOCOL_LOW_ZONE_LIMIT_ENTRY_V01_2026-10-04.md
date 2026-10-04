@@ -96,3 +96,14 @@ run exactly that configuration on 2025-2026 without modification.
 It is only a temporal robustness diagnostic.
 
 No Pine promotion until the entry-timing bridge is positive and stable.
+
+## Fill-order clarification before first run
+Added before any grid outcome was observed.
+
+For a pending bar with open above the buy limit:
+- if low does not reach limit and high reaches target: cancel as missed move.
+- if low reaches limit AND high also reaches target in the same H1 bar while stop is not already gapped: intrabar order is unknowable; cancel as AMBIGUOUS rather than assume a profitable fill-then-target sequence.
+- if low reaches limit but target is not touched: fill at the limit.
+- after a fill, if the same bar reaches stop, count STOP.
+
+For a bar opening at/below the limit but above stop, the order fills immediately at open; subsequent H1 high/low can trigger the bracket, with STOP taking precedence if both stop and target are touched.
