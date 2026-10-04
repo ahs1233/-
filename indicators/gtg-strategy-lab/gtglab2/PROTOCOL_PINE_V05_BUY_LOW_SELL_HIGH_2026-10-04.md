@@ -99,3 +99,34 @@ v0.5.1 frozen changes before rerun:
 - Target remains 75% of frozen prior-48H range.
 - Planned reward/risk must be >= 1.5.
 - Timeout remains 48 H1.
+
+# ADDENDUM — v0.5.2 Robustness Grid
+
+v0.5.1 was rejected before promotion because it generated only 2 trades across 2018-2026.
+
+To avoid arbitrary one-off tuning, v0.5.2 will use a small preregistered robustness grid around the same long-only trend-pullback hypothesis.
+
+Fixed logic:
+- LONG only.
+- Bull structure: EMA50 > EMA200 and EMA200 >= EMA200[24].
+- Failed-break rejection: low < prior 12H low, close back above it, bullish close, close > previous close.
+- Frozen 48H structural target.
+- One trade at a time.
+- 48H timeout.
+
+Grid:
+- position48 max: 0.35, 0.40, 0.45
+- minimum EMA50/EMA200 gap in ATR: 0.0, 0.5, 1.0
+- minimum ATR14 / medianATR120: 0.0, 0.90, 1.00
+- stop cushion below signal low: 0.25, 0.50, 0.75 ATR
+- target percentile of frozen 48H range: 0.60, 0.70, 0.75
+- minimum planned reward/risk: 1.25, 1.50
+
+Selection discipline:
+- Development segment: 2018-03-01 through 2023-12-31.
+- Internal pseudo-validation: 2024-01-01 through 2026-09-30.
+- Candidate must have >=20 trades in each segment.
+- Candidate must be profitable in both segments.
+- Candidate must have PF >1 in both segments.
+- Prefer higher worst-segment mean R, then lower worst-segment drawdown, rather than maximum total profit.
+- This is development selection, not true OOS. Pristine Forward OOS remains untouched.
