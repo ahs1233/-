@@ -273,3 +273,20 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Real gate action=BLOCK
 - Historical Holdout remains disallowed
 
+
+## 2026-10-04T10:31:18.052479Z — GTGLAB2-0014 — scheduled_gate_audit_enabled
+
+**Action:** Enabled and verified a 3-hour GTGLab2 metadata-only research gate audit task.
+
+**Reason:** Keep forward readiness and canonical JForex freshness continuously checked without decoding outcomes or manually bypassing gates.
+
+**Result:** Task GTGLab2 Research Gate Audit created; Task Scheduler LastResult=0; cadence 3h; IgnoreNew; battery allowed; 15m execution limit; latest logged cycle micro=0 audit=0 seal=3 gate=3.
+
+**Files:**
+- `scripts/gtglab2_gate_audit.ps1`
+- `indicators/gtg-strategy-lab/gtglab2/FORWARD_SEAL_STATUS_LATEST.json`
+
+**Verification:**
+- Scheduled task execution LastResult=0
+- Gate remains fail-closed while registered conditions are unmet
+

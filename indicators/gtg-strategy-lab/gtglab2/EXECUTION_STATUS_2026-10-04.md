@@ -62,6 +62,8 @@ The outcome linkage remains locked.
 
 The executable gatekeeper currently returns `BLOCK` because the 30-day gate, 10,000-snapshot gate, and canonical JForex freshness gate are not all satisfied. It also hard-codes Historical Holdout and production execution as disallowed at this stage.
 
+A Windows task, `GTGLab2 Research Gate Audit`, now reruns the metadata-only readiness/audit/gate chain every 3 hours. It was executed through Task Scheduler and returned LastResult `0`; its logged `seal=3` and `gate=3` values are intentional fail-closed statuses while registered gates remain unmet.
+
 ## Economic results
 Doctrine Reference v0.1:
 - FAIL

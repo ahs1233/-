@@ -123,6 +123,15 @@ Executable forward gate:
 - Historical Holdout allowed: **NO**
 - Production execution allowed: **NO**
 
+Automated research-gate audit:
+- Windows task: `GTGLab2 Research Gate Audit`
+- cadence: every 3 hours
+- multiple instances: `IgnoreNew`
+- battery start: allowed
+- execution limit: 15 minutes
+- task-level verification: LastResult `0`
+- latest audit cycle recorded `micro=0 audit=0 seal=3 gate=3`; `seal=3/gate=3` are expected fail-closed blocker states, not crashes.
+
 ## Liquid / Co-Invest
 - connection: VERIFIED
 - GOLD market/positioning read: VERIFIED

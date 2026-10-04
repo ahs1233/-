@@ -68,6 +68,8 @@
 - `data/audit_microstructure_quality.py`
 - `data/microstructure_forward_readiness.py`
 - `scripts/capture_microstructure_forward.ps1`
+- `scripts/gtglab2_gate_audit.ps1` — refreshes readiness/seal metadata and evaluates the fail-closed research gate.
+- Windows task `GTGLab2 Research Gate Audit` — every 3 hours, IgnoreNew, battery allowed, 15-minute limit.
 - `MICROSTRUCTURE_READINESS_LATEST.json`
 
 ## Pristine Forward

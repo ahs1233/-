@@ -9,12 +9,12 @@
   ],
   "sealed_new_days": [],
   "verification_added_days": [],
-  "verified_existing_days": [
+  "verified_existing_days": [],
+  "pending_cache_verification_days": [
     "2026-09-30",
     "2026-10-01",
     "2026-10-02"
   ],
-  "pending_cache_verification_days": [],
   "historical_holdout_read": false,
   "pristine_price_oos_decoded": false,
   "trading_outcomes_read": false
