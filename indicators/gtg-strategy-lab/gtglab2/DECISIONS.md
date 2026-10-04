@@ -84,3 +84,10 @@
 ## D-019 â€” Forward price collection fails closed
 **Decision:** If an expected JForex/IHistory export is missing, GTGLab2 records a blocker and does not substitute public datafeed bytes.
 **Status:** Active.
+
+## D-2026-10-04 — Two-stage execution order
+- Stage 1: run and validate GTGLab2 on historical XAUUSD data from 2018 through 2026 first.
+- Stage 2: only after Stage 1 is completed and its strategy contract is frozen, run that frozen strategy on live/forward data.
+- Forward collectors continue operating during Stage 1 only to preserve blind future data; no outcome-linked live evaluation or trading is permitted before Stage 1 closes.
+- Historical Final Holdout remains sealed until its registered final gate; Stage 1 uses only permitted historical development/validation partitions.
+

@@ -349,3 +349,19 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - 72/72 engine tests PASS
 
+
+## 2026-10-04T12:18:17.001531Z — GTGLAB2-0018 — roadmap_decision
+
+**Action:** GTGLab2 execution order changed to two explicit stages: historical 2018-2026 first, live/forward second.
+
+**Reason:** User requested a simpler sequential project structure.
+
+**Result:** Stage 1 historical research must complete before any live strategy run. Forward collection continues blind in parallel but is not evaluated or traded.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/DECISIONS.md`
+
+**Verification:**
+- Historical Holdout remains sealed
+- Live strategy execution remains blocked until Stage 1 completion
+
