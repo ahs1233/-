@@ -579,3 +579,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T20:04:54.379773Z — GTGLAB2-0033 — low_zone_limit_entry_v01
+
+**Action:** Completed frozen low-zone limit entry test after detector timing failure.
+
+**Reason:** Test whether waiting for a retest near the detected bottom restores executable expectancy.
+
+**Result:** Grid selected on 2018-2024, then frozen. 2025-2026 failed: Swing 167 fills -23.626R PF 0.789; Scalper 53 fills -11.409R PF 0.692. Reject tested limit-entry bridge.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_LOW_ZONE_LIMIT_ENTRY_V01_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+

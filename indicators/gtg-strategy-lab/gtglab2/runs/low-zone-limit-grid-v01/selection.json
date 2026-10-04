@@ -1,0 +1,1217 @@
+{
+  "scope": "Low-Zone Limit Entry v0.1 grid selection through 2024 only",
+  "quality": {
+    "complete_h1": 49632,
+    "incomplete_dropped": 1059,
+    "days_loaded": 2668
+  },
+  "pristine_forward_oos_read": false,
+  "engines": {
+    "swing": {
+      "threshold": 0.5669356193705579,
+      "grid_n": 12,
+      "eligible_n": 8,
+      "selected": {
+        "limit_offset_atr": 1.0,
+        "expiry_h": 3,
+        "stats": {
+          "attempts": 875,
+          "fills": 690,
+          "cancel_gap_stop": 0,
+          "cancel_missed": 63,
+          "cancel_ambiguous": 5,
+          "expired": 117,
+          "busy_skips": 378,
+          "invalid": 0,
+          "fill_rate": 0.7885714285714286
+        },
+        "train": {
+          "n": 478,
+          "total_r": 22.45195051369021,
+          "mean_r": 0.04697060776922638,
+          "profit_factor": 1.0781494413172943,
+          "max_drawdown_r": -17.2056290003361,
+          "win_rate": 0.39748953974895396,
+          "avg_entry_rr": 1.6582902305975435
+        },
+        "validation": {
+          "n": 212,
+          "total_r": 9.500015296273293,
+          "mean_r": 0.0448113929069495,
+          "profit_factor": 1.0748032700493957,
+          "max_drawdown_r": -13.59610696123109,
+          "win_rate": 0.4009433962264151,
+          "avg_entry_rr": 1.6250756161013604
+        },
+        "eligible": true,
+        "worst_mean": 0.0448113929069495,
+        "worst_dd_abs": 17.2056290003361,
+        "min_fills": 212
+      },
+      "eligible_ranked": [
+        {
+          "limit_offset_atr": 1.0,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 875,
+            "fills": 690,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 63,
+            "cancel_ambiguous": 5,
+            "expired": 117,
+            "busy_skips": 378,
+            "invalid": 0,
+            "fill_rate": 0.7885714285714286
+          },
+          "train": {
+            "n": 478,
+            "total_r": 22.45195051369021,
+            "mean_r": 0.04697060776922638,
+            "profit_factor": 1.0781494413172943,
+            "max_drawdown_r": -17.2056290003361,
+            "win_rate": 0.39748953974895396,
+            "avg_entry_rr": 1.6582902305975435
+          },
+          "validation": {
+            "n": 212,
+            "total_r": 9.500015296273293,
+            "mean_r": 0.0448113929069495,
+            "profit_factor": 1.0748032700493957,
+            "max_drawdown_r": -13.59610696123109,
+            "win_rate": 0.4009433962264151,
+            "avg_entry_rr": 1.6250756161013604
+          },
+          "eligible": true,
+          "worst_mean": 0.0448113929069495,
+          "worst_dd_abs": 17.2056290003361,
+          "min_fills": 212
+        },
+        {
+          "limit_offset_atr": 0.5,
+          "expiry_h": 12,
+          "stats": {
+            "attempts": 883,
+            "fills": 598,
+            "cancel_gap_stop": 1,
+            "cancel_missed": 181,
+            "cancel_ambiguous": 5,
+            "expired": 98,
+            "busy_skips": 370,
+            "invalid": 0,
+            "fill_rate": 0.6772366930917327
+          },
+          "train": {
+            "n": 409,
+            "total_r": 8.424718538402338,
+            "mean_r": 0.020598333834724543,
+            "profit_factor": 1.0298181697106783,
+            "max_drawdown_r": -18.666666666666593,
+            "win_rate": 0.3080684596577017,
+            "avg_entry_rr": 2.3461603949008367
+          },
+          "validation": {
+            "n": 189,
+            "total_r": 6.8082647183892835,
+            "mean_r": 0.036022564647562344,
+            "profit_factor": 1.052371267064533,
+            "max_drawdown_r": -19.000000000000107,
+            "win_rate": 0.31216931216931215,
+            "avg_entry_rr": 2.33419622755382
+          },
+          "eligible": true,
+          "worst_mean": 0.020598333834724543,
+          "worst_dd_abs": 19.000000000000107,
+          "min_fills": 189
+        },
+        {
+          "limit_offset_atr": 0.5,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 903,
+            "fills": 576,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 142,
+            "cancel_ambiguous": 5,
+            "expired": 180,
+            "busy_skips": 350,
+            "invalid": 0,
+            "fill_rate": 0.6378737541528239
+          },
+          "train": {
+            "n": 396,
+            "total_r": 8.091385205068862,
+            "mean_r": 0.020432790921891066,
+            "profit_factor": 1.0295806517633974,
+            "max_drawdown_r": -22.00000000000005,
+            "win_rate": 0.30808080808080807,
+            "avg_entry_rr": 2.346581485305831
+          },
+          "validation": {
+            "n": 180,
+            "total_r": 12.474931385056053,
+            "mean_r": 0.06930517436142251,
+            "profit_factor": 1.1022535359430823,
+            "max_drawdown_r": -21.333333333333396,
+            "win_rate": 0.32222222222222224,
+            "avg_entry_rr": 2.334239372264845
+          },
+          "eligible": true,
+          "worst_mean": 0.020432790921891066,
+          "worst_dd_abs": 22.00000000000005,
+          "min_fills": 180
+        },
+        {
+          "limit_offset_atr": 0.75,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 894,
+            "fills": 626,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 81,
+            "cancel_ambiguous": 2,
+            "expired": 185,
+            "busy_skips": 359,
+            "invalid": 0,
+            "fill_rate": 0.7002237136465325
+          },
+          "train": {
+            "n": 438,
+            "total_r": 27.302092018589303,
+            "mean_r": 0.062333543421436766,
+            "profit_factor": 1.0988157641633072,
+            "max_drawdown_r": -15.084397030333136,
+            "win_rate": 0.3675799086757991,
+            "avg_entry_rr": 1.9137144029952373
+          },
+          "validation": {
+            "n": 188,
+            "total_r": 2.095071762522627,
+            "mean_r": 0.011143998736822485,
+            "profit_factor": 1.0171727193649396,
+            "max_drawdown_r": -15.417551675654622,
+            "win_rate": 0.35106382978723405,
+            "avg_entry_rr": 1.8922952815126284
+          },
+          "eligible": true,
+          "worst_mean": 0.011143998736822485,
+          "worst_dd_abs": 15.417551675654622,
+          "min_fills": 188
+        },
+        {
+          "limit_offset_atr": 1.0,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 862,
+            "fills": 705,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 88,
+            "cancel_ambiguous": 6,
+            "expired": 63,
+            "busy_skips": 391,
+            "invalid": 0,
+            "fill_rate": 0.8178654292343387
+          },
+          "train": {
+            "n": 487,
+            "total_r": 28.451950513690065,
+            "mean_r": 0.058422896332012454,
+            "profit_factor": 1.0980104446256524,
+            "max_drawdown_r": -16.193862930828455,
+            "win_rate": 0.4024640657084189,
+            "avg_entry_rr": 1.6541006625759935
+          },
+          "validation": {
+            "n": 218,
+            "total_r": 2.3618008489803746,
+            "mean_r": 0.010833948848533828,
+            "profit_factor": 1.017757901120153,
+            "max_drawdown_r": -18.99662220721622,
+            "win_rate": 0.38990825688073394,
+            "avg_entry_rr": 1.6154501614854235
+          },
+          "eligible": true,
+          "worst_mean": 0.010833948848533828,
+          "worst_dd_abs": 18.99662220721622,
+          "min_fills": 218
+        },
+        {
+          "limit_offset_atr": 0.5,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 933,
+            "fills": 530,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 93,
+            "cancel_ambiguous": 2,
+            "expired": 308,
+            "busy_skips": 320,
+            "invalid": 0,
+            "fill_rate": 0.5680600214362272
+          },
+          "train": {
+            "n": 363,
+            "total_r": 3.469405993381977,
+            "mean_r": 0.00955759226826991,
+            "profit_factor": 1.013738240882884,
+            "max_drawdown_r": -20.333333333333538,
+            "win_rate": 0.30303030303030304,
+            "avg_entry_rr": 2.348575480212049
+          },
+          "validation": {
+            "n": 167,
+            "total_r": 12.446479165682387,
+            "mean_r": 0.07452981536336759,
+            "profit_factor": 1.1101458333246228,
+            "max_drawdown_r": -15.028452219373722,
+            "win_rate": 0.32335329341317365,
+            "avg_entry_rr": 2.3361355376544806
+          },
+          "eligible": true,
+          "worst_mean": 0.00955759226826991,
+          "worst_dd_abs": 20.333333333333538,
+          "min_fills": 167
+        },
+        {
+          "limit_offset_atr": 0.75,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 881,
+            "fills": 653,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 116,
+            "cancel_ambiguous": 3,
+            "expired": 109,
+            "busy_skips": 372,
+            "invalid": 0,
+            "fill_rate": 0.7412031782065834
+          },
+          "train": {
+            "n": 456,
+            "total_r": 35.01637773287502,
+            "mean_r": 0.07679030204577855,
+            "profit_factor": 1.1227383515383644,
+            "max_drawdown_r": -13.805219173104742,
+            "win_rate": 0.37280701754385964,
+            "avg_entry_rr": 1.910247291129153
+          },
+          "validation": {
+            "n": 197,
+            "total_r": 0.885428743801193,
+            "mean_r": 0.004494562151275091,
+            "profit_factor": 1.0069174120609468,
+            "max_drawdown_r": -19.79195066235725,
+            "win_rate": 0.350253807106599,
+            "avg_entry_rr": 1.8867245027843147
+          },
+          "eligible": true,
+          "worst_mean": 0.004494562151275091,
+          "worst_dd_abs": 19.79195066235725,
+          "min_fills": 197
+        },
+        {
+          "limit_offset_atr": 1.0,
+          "expiry_h": 12,
+          "stats": {
+            "attempts": 857,
+            "fills": 715,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 108,
+            "cancel_ambiguous": 6,
+            "expired": 28,
+            "busy_skips": 396,
+            "invalid": 0,
+            "fill_rate": 0.8343057176196033
+          },
+          "train": {
+            "n": 495,
+            "total_r": 35.45195051369012,
+            "mean_r": 0.07162010204785883,
+            "profit_factor": 1.121288219114064,
+            "max_drawdown_r": -16.19386293082846,
+            "win_rate": 0.4080808080808081,
+            "avg_entry_rr": 1.6507518900376164
+          },
+          "validation": {
+            "n": 220,
+            "total_r": 0.36180084898037457,
+            "mean_r": 0.0016445493135471571,
+            "profit_factor": 1.0026800062887433,
+            "max_drawdown_r": -18.996622207216223,
+            "win_rate": 0.38636363636363635,
+            "avg_entry_rr": 1.6144006145628287
+          },
+          "eligible": true,
+          "worst_mean": 0.0016445493135471571,
+          "worst_dd_abs": 18.996622207216223,
+          "min_fills": 220
+        }
+      ],
+      "all_results": [
+        {
+          "limit_offset_atr": 1.0,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 875,
+            "fills": 690,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 63,
+            "cancel_ambiguous": 5,
+            "expired": 117,
+            "busy_skips": 378,
+            "invalid": 0,
+            "fill_rate": 0.7885714285714286
+          },
+          "train": {
+            "n": 478,
+            "total_r": 22.45195051369021,
+            "mean_r": 0.04697060776922638,
+            "profit_factor": 1.0781494413172943,
+            "max_drawdown_r": -17.2056290003361,
+            "win_rate": 0.39748953974895396,
+            "avg_entry_rr": 1.6582902305975435
+          },
+          "validation": {
+            "n": 212,
+            "total_r": 9.500015296273293,
+            "mean_r": 0.0448113929069495,
+            "profit_factor": 1.0748032700493957,
+            "max_drawdown_r": -13.59610696123109,
+            "win_rate": 0.4009433962264151,
+            "avg_entry_rr": 1.6250756161013604
+          },
+          "eligible": true,
+          "worst_mean": 0.0448113929069495,
+          "worst_dd_abs": 17.2056290003361,
+          "min_fills": 212
+        },
+        {
+          "limit_offset_atr": 0.5,
+          "expiry_h": 12,
+          "stats": {
+            "attempts": 883,
+            "fills": 598,
+            "cancel_gap_stop": 1,
+            "cancel_missed": 181,
+            "cancel_ambiguous": 5,
+            "expired": 98,
+            "busy_skips": 370,
+            "invalid": 0,
+            "fill_rate": 0.6772366930917327
+          },
+          "train": {
+            "n": 409,
+            "total_r": 8.424718538402338,
+            "mean_r": 0.020598333834724543,
+            "profit_factor": 1.0298181697106783,
+            "max_drawdown_r": -18.666666666666593,
+            "win_rate": 0.3080684596577017,
+            "avg_entry_rr": 2.3461603949008367
+          },
+          "validation": {
+            "n": 189,
+            "total_r": 6.8082647183892835,
+            "mean_r": 0.036022564647562344,
+            "profit_factor": 1.052371267064533,
+            "max_drawdown_r": -19.000000000000107,
+            "win_rate": 0.31216931216931215,
+            "avg_entry_rr": 2.33419622755382
+          },
+          "eligible": true,
+          "worst_mean": 0.020598333834724543,
+          "worst_dd_abs": 19.000000000000107,
+          "min_fills": 189
+        },
+        {
+          "limit_offset_atr": 0.5,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 903,
+            "fills": 576,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 142,
+            "cancel_ambiguous": 5,
+            "expired": 180,
+            "busy_skips": 350,
+            "invalid": 0,
+            "fill_rate": 0.6378737541528239
+          },
+          "train": {
+            "n": 396,
+            "total_r": 8.091385205068862,
+            "mean_r": 0.020432790921891066,
+            "profit_factor": 1.0295806517633974,
+            "max_drawdown_r": -22.00000000000005,
+            "win_rate": 0.30808080808080807,
+            "avg_entry_rr": 2.346581485305831
+          },
+          "validation": {
+            "n": 180,
+            "total_r": 12.474931385056053,
+            "mean_r": 0.06930517436142251,
+            "profit_factor": 1.1022535359430823,
+            "max_drawdown_r": -21.333333333333396,
+            "win_rate": 0.32222222222222224,
+            "avg_entry_rr": 2.334239372264845
+          },
+          "eligible": true,
+          "worst_mean": 0.020432790921891066,
+          "worst_dd_abs": 22.00000000000005,
+          "min_fills": 180
+        },
+        {
+          "limit_offset_atr": 0.75,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 894,
+            "fills": 626,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 81,
+            "cancel_ambiguous": 2,
+            "expired": 185,
+            "busy_skips": 359,
+            "invalid": 0,
+            "fill_rate": 0.7002237136465325
+          },
+          "train": {
+            "n": 438,
+            "total_r": 27.302092018589303,
+            "mean_r": 0.062333543421436766,
+            "profit_factor": 1.0988157641633072,
+            "max_drawdown_r": -15.084397030333136,
+            "win_rate": 0.3675799086757991,
+            "avg_entry_rr": 1.9137144029952373
+          },
+          "validation": {
+            "n": 188,
+            "total_r": 2.095071762522627,
+            "mean_r": 0.011143998736822485,
+            "profit_factor": 1.0171727193649396,
+            "max_drawdown_r": -15.417551675654622,
+            "win_rate": 0.35106382978723405,
+            "avg_entry_rr": 1.8922952815126284
+          },
+          "eligible": true,
+          "worst_mean": 0.011143998736822485,
+          "worst_dd_abs": 15.417551675654622,
+          "min_fills": 188
+        },
+        {
+          "limit_offset_atr": 1.0,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 862,
+            "fills": 705,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 88,
+            "cancel_ambiguous": 6,
+            "expired": 63,
+            "busy_skips": 391,
+            "invalid": 0,
+            "fill_rate": 0.8178654292343387
+          },
+          "train": {
+            "n": 487,
+            "total_r": 28.451950513690065,
+            "mean_r": 0.058422896332012454,
+            "profit_factor": 1.0980104446256524,
+            "max_drawdown_r": -16.193862930828455,
+            "win_rate": 0.4024640657084189,
+            "avg_entry_rr": 1.6541006625759935
+          },
+          "validation": {
+            "n": 218,
+            "total_r": 2.3618008489803746,
+            "mean_r": 0.010833948848533828,
+            "profit_factor": 1.017757901120153,
+            "max_drawdown_r": -18.99662220721622,
+            "win_rate": 0.38990825688073394,
+            "avg_entry_rr": 1.6154501614854235
+          },
+          "eligible": true,
+          "worst_mean": 0.010833948848533828,
+          "worst_dd_abs": 18.99662220721622,
+          "min_fills": 218
+        },
+        {
+          "limit_offset_atr": 0.5,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 933,
+            "fills": 530,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 93,
+            "cancel_ambiguous": 2,
+            "expired": 308,
+            "busy_skips": 320,
+            "invalid": 0,
+            "fill_rate": 0.5680600214362272
+          },
+          "train": {
+            "n": 363,
+            "total_r": 3.469405993381977,
+            "mean_r": 0.00955759226826991,
+            "profit_factor": 1.013738240882884,
+            "max_drawdown_r": -20.333333333333538,
+            "win_rate": 0.30303030303030304,
+            "avg_entry_rr": 2.348575480212049
+          },
+          "validation": {
+            "n": 167,
+            "total_r": 12.446479165682387,
+            "mean_r": 0.07452981536336759,
+            "profit_factor": 1.1101458333246228,
+            "max_drawdown_r": -15.028452219373722,
+            "win_rate": 0.32335329341317365,
+            "avg_entry_rr": 2.3361355376544806
+          },
+          "eligible": true,
+          "worst_mean": 0.00955759226826991,
+          "worst_dd_abs": 20.333333333333538,
+          "min_fills": 167
+        },
+        {
+          "limit_offset_atr": 0.75,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 881,
+            "fills": 653,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 116,
+            "cancel_ambiguous": 3,
+            "expired": 109,
+            "busy_skips": 372,
+            "invalid": 0,
+            "fill_rate": 0.7412031782065834
+          },
+          "train": {
+            "n": 456,
+            "total_r": 35.01637773287502,
+            "mean_r": 0.07679030204577855,
+            "profit_factor": 1.1227383515383644,
+            "max_drawdown_r": -13.805219173104742,
+            "win_rate": 0.37280701754385964,
+            "avg_entry_rr": 1.910247291129153
+          },
+          "validation": {
+            "n": 197,
+            "total_r": 0.885428743801193,
+            "mean_r": 0.004494562151275091,
+            "profit_factor": 1.0069174120609468,
+            "max_drawdown_r": -19.79195066235725,
+            "win_rate": 0.350253807106599,
+            "avg_entry_rr": 1.8867245027843147
+          },
+          "eligible": true,
+          "worst_mean": 0.004494562151275091,
+          "worst_dd_abs": 19.79195066235725,
+          "min_fills": 197
+        },
+        {
+          "limit_offset_atr": 1.0,
+          "expiry_h": 12,
+          "stats": {
+            "attempts": 857,
+            "fills": 715,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 108,
+            "cancel_ambiguous": 6,
+            "expired": 28,
+            "busy_skips": 396,
+            "invalid": 0,
+            "fill_rate": 0.8343057176196033
+          },
+          "train": {
+            "n": 495,
+            "total_r": 35.45195051369012,
+            "mean_r": 0.07162010204785883,
+            "profit_factor": 1.121288219114064,
+            "max_drawdown_r": -16.19386293082846,
+            "win_rate": 0.4080808080808081,
+            "avg_entry_rr": 1.6507518900376164
+          },
+          "validation": {
+            "n": 220,
+            "total_r": 0.36180084898037457,
+            "mean_r": 0.0016445493135471571,
+            "profit_factor": 1.0026800062887433,
+            "max_drawdown_r": -18.996622207216223,
+            "win_rate": 0.38636363636363635,
+            "avg_entry_rr": 1.6144006145628287
+          },
+          "eligible": true,
+          "worst_mean": 0.0016445493135471571,
+          "worst_dd_abs": 18.996622207216223,
+          "min_fills": 220
+        },
+        {
+          "limit_offset_atr": 0.25,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 972,
+            "fills": 439,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 103,
+            "cancel_ambiguous": 2,
+            "expired": 428,
+            "busy_skips": 281,
+            "invalid": 0,
+            "fill_rate": 0.45164609053497945
+          },
+          "train": {
+            "n": 303,
+            "total_r": 8.83889122080993,
+            "mean_r": 0.02917125815448822,
+            "profit_factor": 1.0393813311296323,
+            "max_drawdown_r": -20.0,
+            "win_rate": 0.25742574257425743,
+            "avg_entry_rr": 3.002979332234676
+          },
+          "validation": {
+            "n": 136,
+            "total_r": -0.3972631334801626,
+            "mean_r": -0.002921052452060019,
+            "profit_factor": 0.9961052633972536,
+            "max_drawdown_r": -18.000000000000128,
+            "win_rate": 0.25,
+            "avg_entry_rr": 2.9999999999999885
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.25,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 930,
+            "fills": 506,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 161,
+            "cancel_ambiguous": 4,
+            "expired": 259,
+            "busy_skips": 323,
+            "invalid": 0,
+            "fill_rate": 0.5440860215053763
+          },
+          "train": {
+            "n": 348,
+            "total_r": -2.670776362127686,
+            "mean_r": -0.007674644718757719,
+            "profit_factor": 0.989745282842295,
+            "max_drawdown_r": -27.999999999999947,
+            "win_rate": 0.25,
+            "avg_entry_rr": 3.0025940737560544
+          },
+          "validation": {
+            "n": 158,
+            "total_r": 1.6027368665198813,
+            "mean_r": 0.010143904218480262,
+            "profit_factor": 1.013582515817965,
+            "max_drawdown_r": -18.99999999999993,
+            "win_rate": 0.25316455696202533,
+            "avg_entry_rr": 2.999999999999993
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.25,
+          "expiry_h": 12,
+          "stats": {
+            "attempts": 900,
+            "fills": 536,
+            "cancel_gap_stop": 1,
+            "cancel_missed": 214,
+            "cancel_ambiguous": 5,
+            "expired": 144,
+            "busy_skips": 353,
+            "invalid": 0,
+            "fill_rate": 0.5955555555555555
+          },
+          "train": {
+            "n": 367,
+            "total_r": -7.939209271923101,
+            "mean_r": -0.021632722811779567,
+            "profit_factor": 0.9711766520692318,
+            "max_drawdown_r": -31.9392092719228,
+            "win_rate": 0.24795640326975477,
+            "avg_entry_rr": 3.0024597756596894
+          },
+          "validation": {
+            "n": 169,
+            "total_r": -1.3972631334801235,
+            "mean_r": -0.00826782919219008,
+            "profit_factor": 0.9889979280828338,
+            "max_drawdown_r": -18.00000000000001,
+            "win_rate": 0.2485207100591716,
+            "avg_entry_rr": 2.999999999999995
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.75,
+          "expiry_h": 12,
+          "stats": {
+            "attempts": 866,
+            "fills": 666,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 142,
+            "cancel_ambiguous": 4,
+            "expired": 54,
+            "busy_skips": 387,
+            "invalid": 0,
+            "fill_rate": 0.76905311778291
+          },
+          "train": {
+            "n": 464,
+            "total_r": 35.587806304303896,
+            "mean_r": 0.07669785841444805,
+            "profit_factor": 1.1225927634469897,
+            "max_drawdown_r": -14.805219173104742,
+            "win_rate": 0.3728448275862069,
+            "avg_entry_rr": 1.9093316974397354
+          },
+          "validation": {
+            "n": 202,
+            "total_r": -9.828856970484493,
+            "mean_r": -0.04865770777467571,
+            "profit_factor": 0.9271936520704852,
+            "max_drawdown_r": -20.791950662357255,
+            "win_rate": 0.3316831683168317,
+            "avg_entry_rr": 1.8859922838327938
+          },
+          "eligible": false
+        }
+      ]
+    },
+    "scalper": {
+      "threshold": 0.6786512019247182,
+      "grid_n": 9,
+      "eligible_n": 2,
+      "selected": {
+        "limit_offset_atr": 0.1,
+        "expiry_h": 3,
+        "stats": {
+          "attempts": 1036,
+          "fills": 186,
+          "cancel_gap_stop": 0,
+          "cancel_missed": 729,
+          "cancel_ambiguous": 63,
+          "expired": 58,
+          "busy_skips": 178,
+          "invalid": 0,
+          "fill_rate": 0.17953667953667954
+        },
+        "train": {
+          "n": 125,
+          "total_r": 6.622485421387163,
+          "mean_r": 0.052979883371097304,
+          "profit_factor": 1.0871379660708838,
+          "max_drawdown_r": -14.27887569545594,
+          "win_rate": 0.392,
+          "avg_entry_rr": 1.6481692929728868
+        },
+        "validation": {
+          "n": 61,
+          "total_r": 6.989649305771017,
+          "mean_r": 0.1145844148487052,
+          "profit_factor": 1.199704265879172,
+          "max_drawdown_r": -5.24564481187581,
+          "win_rate": 0.4262295081967213,
+          "avg_entry_rr": 1.6470588235294228
+        },
+        "eligible": true,
+        "worst_mean": 0.052979883371097304,
+        "worst_dd_abs": 14.27887569545594,
+        "min_fills": 61
+      },
+      "eligible_ranked": [
+        {
+          "limit_offset_atr": 0.1,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 1036,
+            "fills": 186,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 729,
+            "cancel_ambiguous": 63,
+            "expired": 58,
+            "busy_skips": 178,
+            "invalid": 0,
+            "fill_rate": 0.17953667953667954
+          },
+          "train": {
+            "n": 125,
+            "total_r": 6.622485421387163,
+            "mean_r": 0.052979883371097304,
+            "profit_factor": 1.0871379660708838,
+            "max_drawdown_r": -14.27887569545594,
+            "win_rate": 0.392,
+            "avg_entry_rr": 1.6481692929728868
+          },
+          "validation": {
+            "n": 61,
+            "total_r": 6.989649305771017,
+            "mean_r": 0.1145844148487052,
+            "profit_factor": 1.199704265879172,
+            "max_drawdown_r": -5.24564481187581,
+            "win_rate": 0.4262295081967213,
+            "avg_entry_rr": 1.6470588235294228
+          },
+          "eligible": true,
+          "worst_mean": 0.052979883371097304,
+          "worst_dd_abs": 14.27887569545594,
+          "min_fills": 61
+        },
+        {
+          "limit_offset_atr": 0.25,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 1033,
+            "fills": 214,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 694,
+            "cancel_ambiguous": 78,
+            "expired": 47,
+            "busy_skips": 181,
+            "invalid": 0,
+            "fill_rate": 0.20716360116166505
+          },
+          "train": {
+            "n": 141,
+            "total_r": 0.6125401887933659,
+            "mean_r": 0.004344256658108978,
+            "profit_factor": 1.0077536732758654,
+            "max_drawdown_r": -16.421496886117726,
+            "win_rate": 0.4397163120567376,
+            "avg_entry_rr": 1.2538004787515127
+          },
+          "validation": {
+            "n": 73,
+            "total_r": 5.914217171197151,
+            "mean_r": 0.08101667357804317,
+            "profit_factor": 1.1592969968560647,
+            "max_drawdown_r": -5.4587980900941755,
+            "win_rate": 0.4794520547945205,
+            "avg_entry_rr": 1.2499999999999984
+          },
+          "eligible": true,
+          "worst_mean": 0.004344256658108978,
+          "worst_dd_abs": 16.421496886117726,
+          "min_fills": 73
+        }
+      ],
+      "all_results": [
+        {
+          "limit_offset_atr": 0.1,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 1036,
+            "fills": 186,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 729,
+            "cancel_ambiguous": 63,
+            "expired": 58,
+            "busy_skips": 178,
+            "invalid": 0,
+            "fill_rate": 0.17953667953667954
+          },
+          "train": {
+            "n": 125,
+            "total_r": 6.622485421387163,
+            "mean_r": 0.052979883371097304,
+            "profit_factor": 1.0871379660708838,
+            "max_drawdown_r": -14.27887569545594,
+            "win_rate": 0.392,
+            "avg_entry_rr": 1.6481692929728868
+          },
+          "validation": {
+            "n": 61,
+            "total_r": 6.989649305771017,
+            "mean_r": 0.1145844148487052,
+            "profit_factor": 1.199704265879172,
+            "max_drawdown_r": -5.24564481187581,
+            "win_rate": 0.4262295081967213,
+            "avg_entry_rr": 1.6470588235294228
+          },
+          "eligible": true,
+          "worst_mean": 0.052979883371097304,
+          "worst_dd_abs": 14.27887569545594,
+          "min_fills": 61
+        },
+        {
+          "limit_offset_atr": 0.25,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 1033,
+            "fills": 214,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 694,
+            "cancel_ambiguous": 78,
+            "expired": 47,
+            "busy_skips": 181,
+            "invalid": 0,
+            "fill_rate": 0.20716360116166505
+          },
+          "train": {
+            "n": 141,
+            "total_r": 0.6125401887933659,
+            "mean_r": 0.004344256658108978,
+            "profit_factor": 1.0077536732758654,
+            "max_drawdown_r": -16.421496886117726,
+            "win_rate": 0.4397163120567376,
+            "avg_entry_rr": 1.2538004787515127
+          },
+          "validation": {
+            "n": 73,
+            "total_r": 5.914217171197151,
+            "mean_r": 0.08101667357804317,
+            "profit_factor": 1.1592969968560647,
+            "max_drawdown_r": -5.4587980900941755,
+            "win_rate": 0.4794520547945205,
+            "avg_entry_rr": 1.2499999999999984
+          },
+          "eligible": true,
+          "worst_mean": 0.004344256658108978,
+          "worst_dd_abs": 16.421496886117726,
+          "min_fills": 73
+        },
+        {
+          "limit_offset_atr": 0.1,
+          "expiry_h": 1,
+          "stats": {
+            "attempts": 1116,
+            "fills": 132,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 696,
+            "cancel_ambiguous": 64,
+            "expired": 224,
+            "busy_skips": 98,
+            "invalid": 0,
+            "fill_rate": 0.11827956989247312
+          },
+          "train": {
+            "n": 91,
+            "total_r": -4.145734245917405,
+            "mean_r": -0.045557519185905546,
+            "profit_factor": 0.9297333178658066,
+            "max_drawdown_r": -10.910440128270078,
+            "win_rate": 0.3516483516483517,
+            "avg_entry_rr": 1.6470588235294124
+          },
+          "validation": {
+            "n": 41,
+            "total_r": 5.813178717535945,
+            "mean_r": 0.1417848467691694,
+            "profit_factor": 1.2527469007624321,
+            "max_drawdown_r": -8.245644811875897,
+            "win_rate": 0.43902439024390244,
+            "avg_entry_rr": 1.6470588235294257
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.1,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 960,
+            "fills": 191,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 701,
+            "cancel_ambiguous": 56,
+            "expired": 12,
+            "busy_skips": 254,
+            "invalid": 0,
+            "fill_rate": 0.19895833333333332
+          },
+          "train": {
+            "n": 126,
+            "total_r": -5.846466099120734,
+            "mean_r": -0.046400524596196306,
+            "profit_factor": 0.9269191737609909,
+            "max_drawdown_r": -24.51253309831688,
+            "win_rate": 0.36507936507936506,
+            "avg_entry_rr": 1.6481604797233393
+          },
+          "validation": {
+            "n": 65,
+            "total_r": 10.163626128420255,
+            "mean_r": 0.15636347889877314,
+            "profit_factor": 1.282322948011674,
+            "max_drawdown_r": -5.705882352941146,
+            "win_rate": 0.4461538461538462,
+            "avg_entry_rr": 1.6680716578226955
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.25,
+          "expiry_h": 1,
+          "stats": {
+            "attempts": 1104,
+            "fills": 162,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 668,
+            "cancel_ambiguous": 83,
+            "expired": 191,
+            "busy_skips": 110,
+            "invalid": 0,
+            "fill_rate": 0.14673913043478262
+          },
+          "train": {
+            "n": 110,
+            "total_r": -11.84397978757993,
+            "mean_r": -0.1076725435234539,
+            "profit_factor": 0.8232241822749264,
+            "max_drawdown_r": -15.593979787579597,
+            "win_rate": 0.39090909090909093,
+            "avg_entry_rr": 1.24999999999999
+          },
+          "validation": {
+            "n": 52,
+            "total_r": 4.414217171197199,
+            "mean_r": 0.0848887917537923,
+            "profit_factor": 1.1689524151119266,
+            "max_drawdown_r": -7.208798090094115,
+            "win_rate": 0.4807692307692308,
+            "avg_entry_rr": 1.2499999999999927
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.25,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 962,
+            "fills": 213,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 669,
+            "cancel_ambiguous": 72,
+            "expired": 8,
+            "busy_skips": 252,
+            "invalid": 0,
+            "fill_rate": 0.22141372141372143
+          },
+          "train": {
+            "n": 141,
+            "total_r": -9.13606860363831,
+            "mean_r": -0.06479481279176107,
+            "profit_factor": 0.888584529223923,
+            "max_drawdown_r": -21.670105678549476,
+            "win_rate": 0.41843971631205673,
+            "avg_entry_rr": 1.2538004787515122
+          },
+          "validation": {
+            "n": 72,
+            "total_r": 6.262097470449046,
+            "mean_r": 0.08697357597845896,
+            "profit_factor": 1.1733357354825,
+            "max_drawdown_r": -4.750000000000009,
+            "win_rate": 0.4861111111111111,
+            "avg_entry_rr": 1.2500000000000002
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.4,
+          "expiry_h": 1,
+          "stats": {
+            "attempts": 1092,
+            "fills": 222,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 622,
+            "cancel_ambiguous": 121,
+            "expired": 127,
+            "busy_skips": 122,
+            "invalid": 0,
+            "fill_rate": 0.2032967032967033
+          },
+          "train": {
+            "n": 147,
+            "total_r": -5.808472692646303,
+            "mean_r": -0.03951341967786601,
+            "profit_factor": 0.921995105547268,
+            "max_drawdown_r": -12.829445151588281,
+            "win_rate": 0.48299319727891155,
+            "avg_entry_rr": 0.9571988391108935
+          },
+          "validation": {
+            "n": 75,
+            "total_r": 3.856538896967601,
+            "mean_r": 0.05142051862623468,
+            "profit_factor": 1.114139359115393,
+            "max_drawdown_r": -5.511300460677519,
+            "win_rate": 0.5333333333333333,
+            "avg_entry_rr": 0.9565217391304395
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.4,
+          "expiry_h": 3,
+          "stats": {
+            "attempts": 1029,
+            "fills": 249,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 634,
+            "cancel_ambiguous": 113,
+            "expired": 33,
+            "busy_skips": 185,
+            "invalid": 0,
+            "fill_rate": 0.24198250728862974
+          },
+          "train": {
+            "n": 164,
+            "total_r": -2.223704952244546,
+            "mean_r": -0.0135591765380765,
+            "profit_factor": 0.9726817229473106,
+            "max_drawdown_r": -16.854082174746587,
+            "win_rate": 0.5,
+            "avg_entry_rr": 0.9571286519177995
+          },
+          "validation": {
+            "n": 85,
+            "total_r": 3.6391475926198336,
+            "mean_r": 0.0428135010896451,
+            "profit_factor": 1.0938215181648074,
+            "max_drawdown_r": -5.877215730516725,
+            "win_rate": 0.5294117647058824,
+            "avg_entry_rr": 0.9565217391304409
+          },
+          "eligible": false
+        },
+        {
+          "limit_offset_atr": 0.4,
+          "expiry_h": 6,
+          "stats": {
+            "attempts": 963,
+            "fills": 240,
+            "cancel_gap_stop": 0,
+            "cancel_missed": 612,
+            "cancel_ambiguous": 108,
+            "expired": 3,
+            "busy_skips": 251,
+            "invalid": 0,
+            "fill_rate": 0.24922118380062305
+          },
+          "train": {
+            "n": 158,
+            "total_r": -10.57032129348962,
+            "mean_r": -0.06690076768031405,
+            "profit_factor": 0.8701433095519168,
+            "max_drawdown_r": -21.37461155946993,
+            "win_rate": 0.4810126582278481,
+            "avg_entry_rr": 0.9571516992388389
+          },
+          "validation": {
+            "n": 82,
+            "total_r": 6.072086983273658,
+            "mean_r": 0.07404984125943485,
+            "profit_factor": 1.169668313754105,
+            "max_drawdown_r": -5.086956521739013,
+            "win_rate": 0.5487804878048781,
+            "avg_entry_rr": 0.9565217391304394
+          },
+          "eligible": false
+        }
+      ]
+    }
+  }
+}

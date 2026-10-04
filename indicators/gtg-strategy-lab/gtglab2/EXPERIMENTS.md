@@ -201,3 +201,10 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Scalper primary pseudo-test: -8.90R, PF 0.800 despite 77.5% wins; average entry R:R only 0.27.
 - Root cause: confirmation candle already captures much of bounce. Next step: time-limited low-zone limit entry; do not chase.
 
+
+## 2026-10-04 — Low-Zone Limit Entry v0.1
+- Entry grid selected only on 2018-2024, then frozen.
+- Swing selected: low+1ATR limit, 3H expiry. 2025-2026: 167 fills, -23.626R, PF 0.789; 2025 +6.137R but 2026 -29.763R.
+- Scalper selected: low+0.10ATR limit, 3H expiry. 2025-2026: 53 fills, -11.409R, PF 0.692.
+- Reject both limit-entry bridges. Do not retune on consumed 2025-2026.
+
