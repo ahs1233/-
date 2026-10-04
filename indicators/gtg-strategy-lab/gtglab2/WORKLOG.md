@@ -594,3 +594,18 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Verification:**
 - Pristine Forward OOS read=false
 
+
+## 2026-10-04T20:37:02.061794Z — GTGLAB2-0034 — m15_entry_resolution_v01
+
+**Action:** Tested GTGLab2 bottom detection and executable next-bar entry on exact M15 bars aggregated from clean M1.
+
+**Reason:** User proposed changing execution timeframe from H1 to M15.
+
+**Result:** M15 detector quality held: Scalper AUC 0.701 pseudo-test, Swing-entry AUC 0.621. But next-M15-open filtered execution remained negative because confirmation consumed reward: Scalper -21.77R PF 0.903, Swing-entry -9.50R PF 0.979 on 2025-2026.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_M15_ENTRY_RESOLUTION_V01_2026-10-04.md`
+
+**Verification:**
+- Pristine Forward OOS read=false
+

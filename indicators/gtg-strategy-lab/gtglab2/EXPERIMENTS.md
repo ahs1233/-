@@ -208,3 +208,10 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Scalper selected: low+0.10ATR limit, 3H expiry. 2025-2026: 53 fills, -11.409R, PF 0.692.
 - Reject both limit-entry bridges. Do not retune on consumed 2025-2026.
 
+
+## 2026-10-04 — M15 Entry Resolution v0.1
+- Built 201,591 exact M15 bars from clean M1 and 27,500 fresh-low candidates.
+- Scalper detector pseudo-test AUC 0.701; filtered next-M15-open execution -21.77R PF 0.903 because avg remaining R:R only 0.276.
+- Swing-entry detector pseudo-test AUC 0.621; filtered next-M15-open -9.50R PF 0.979; avg R:R 0.875.
+- Conclusion: M15 is the correct entry-resolution timeframe, but market-chasing after confirmation remains wrong. Next execution must be M15 low-zone retest/limit.
+

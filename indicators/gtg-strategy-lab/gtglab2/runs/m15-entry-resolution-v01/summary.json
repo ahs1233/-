@@ -1,0 +1,448 @@
+{
+  "scope": "M15 Entry Resolution Study v0.1",
+  "m15_bars": 201591,
+  "candidates": 27500,
+  "pristine_forward_oos_read": false,
+  "engines": {
+    "scalper": {
+      "target": "scalp_good",
+      "selected_C": 0.1,
+      "validation_top25_threshold": 0.6550974591086755,
+      "model": {
+        "train": {
+          "n": 14808,
+          "base_rate": 0.5937331172339276,
+          "roc_auc": 0.6973617441750721,
+          "pr_auc": 0.7909596376413398,
+          "brier": 0.2196973909752157
+        },
+        "validation": {
+          "n": 6097,
+          "base_rate": 0.5957028046580285,
+          "roc_auc": 0.7030301981038505,
+          "pr_auc": 0.7965057261067855,
+          "brier": 0.2186812588035378
+        },
+        "pseudo_test": {
+          "n": 5385,
+          "base_rate": 0.5886722376973074,
+          "roc_auc": 0.7012464484337505,
+          "pr_auc": 0.7873674139873269,
+          "brier": 0.21836017069725464
+        },
+        "selection_runs": [
+          {
+            "C": 0.1,
+            "n": 6097,
+            "base_rate": 0.5957028046580285,
+            "roc_auc": 0.7030301981038505,
+            "pr_auc": 0.7965057261067855,
+            "brier": 0.2186812588035378
+          },
+          {
+            "C": 0.3,
+            "n": 6097,
+            "base_rate": 0.5957028046580285,
+            "roc_auc": 0.7030114331924475,
+            "pr_auc": 0.7965154698499114,
+            "brier": 0.21869625358807368
+          },
+          {
+            "C": 3.0,
+            "n": 6097,
+            "base_rate": 0.5957028046580285,
+            "roc_auc": 0.7030031676957582,
+            "pr_auc": 0.7965041175243035,
+            "brier": 0.21870339711296757
+          },
+          {
+            "C": 1.0,
+            "n": 6097,
+            "base_rate": 0.5957028046580285,
+            "roc_auc": 0.7030010454736353,
+            "pr_auc": 0.7965021654791458,
+            "brier": 0.21870178292044684
+          }
+        ]
+      },
+      "filtered_execution": {
+        "train_2018_2022": {
+          "n": 2691,
+          "wins": 2097,
+          "losses": 594,
+          "win_rate": 0.7792642140468228,
+          "total_r": -27.73543662986309,
+          "mean_r": -0.010306739736106687,
+          "profit_factor": 0.9513139830035388,
+          "max_drawdown_r": -42.44088910938974,
+          "avg_entry_rr": 0.27646064879099097,
+          "exit_counts": {
+            "TARGET": 2084,
+            "STOP": 516,
+            "16BAR_TIMEOUT": 46,
+            "STOP_BOTH": 37,
+            "TARGET_GAP": 6,
+            "STOP_GAP": 2
+          }
+        },
+        "validation_2023_2024": {
+          "n": 1094,
+          "wins": 883,
+          "losses": 211,
+          "win_rate": 0.8071297989031079,
+          "total_r": 28.209117275762146,
+          "mean_r": 0.025785299155175637,
+          "profit_factor": 1.138406595230873,
+          "max_drawdown_r": -14.758378273996993,
+          "avg_entry_rr": 0.277908051197202,
+          "exit_counts": {
+            "TARGET": 878,
+            "STOP": 179,
+            "STOP_BOTH": 18,
+            "16BAR_TIMEOUT": 16,
+            "TARGET_GAP": 2,
+            "STOP_GAP": 1
+          }
+        },
+        "pseudo_test_2025_2026": {
+          "n": 997,
+          "wins": 776,
+          "losses": 221,
+          "win_rate": 0.7783350050150452,
+          "total_r": -21.770381012284716,
+          "mean_r": -0.021835888678319676,
+          "profit_factor": 0.902996036328266,
+          "max_drawdown_r": -28.695429520606307,
+          "avg_entry_rr": 0.27568622550283534,
+          "exit_counts": {
+            "TARGET": 774,
+            "STOP": 191,
+            "STOP_BOTH": 18,
+            "16BAR_TIMEOUT": 7,
+            "STOP_GAP": 5,
+            "TARGET_GAP": 2
+          }
+        },
+        "all": {
+          "n": 4782,
+          "wins": 3756,
+          "losses": 1026,
+          "win_rate": 0.7854454203262233,
+          "total_r": -21.29670036638568,
+          "mean_r": -0.004453513251021681,
+          "profit_factor": 0.9786589285218968,
+          "max_drawdown_r": -42.44088910938974,
+          "avg_entry_rr": 0.2766303180118408,
+          "exit_counts": {
+            "TARGET": 3736,
+            "STOP": 886,
+            "STOP_BOTH": 73,
+            "16BAR_TIMEOUT": 69,
+            "TARGET_GAP": 10,
+            "STOP_GAP": 8
+          }
+        }
+      },
+      "baseline_execution": {
+        "train_2018_2022": {
+          "n": 6974,
+          "wins": 3853,
+          "losses": 3121,
+          "win_rate": 0.5524806423860051,
+          "total_r": 9.681829183058312,
+          "mean_r": 0.0013882749043674092,
+          "profit_factor": 1.0031502556432632,
+          "max_drawdown_r": -124.3832893029864,
+          "avg_entry_rr": 0.9559189156761894,
+          "exit_counts": {
+            "TARGET": 3724,
+            "STOP": 2935,
+            "16BAR_TIMEOUT": 186,
+            "STOP_BOTH": 99,
+            "TARGET_GAP": 20,
+            "STOP_GAP": 10
+          }
+        },
+        "validation_2023_2024": {
+          "n": 2873,
+          "wins": 1617,
+          "losses": 1256,
+          "win_rate": 0.5628263139575357,
+          "total_r": 73.9144900969207,
+          "mean_r": 0.025727285101608318,
+          "profit_factor": 1.060198325524949,
+          "max_drawdown_r": -32.22557395810709,
+          "avg_entry_rr": 0.9798062005146778,
+          "exit_counts": {
+            "TARGET": 1560,
+            "STOP": 1170,
+            "16BAR_TIMEOUT": 97,
+            "STOP_BOTH": 36,
+            "TARGET_GAP": 5,
+            "STOP_GAP": 5
+          }
+        },
+        "pseudo_test_2025_2026": {
+          "n": 2474,
+          "wins": 1375,
+          "losses": 1099,
+          "win_rate": 0.5557801131770412,
+          "total_r": 25.27901346808426,
+          "mean_r": 0.010217871248215141,
+          "profit_factor": 1.0229687417934359,
+          "max_drawdown_r": -36.54254584709045,
+          "avg_entry_rr": 0.951999590718935,
+          "exit_counts": {
+            "TARGET": 1345,
+            "STOP": 1045,
+            "16BAR_TIMEOUT": 42,
+            "STOP_BOTH": 31,
+            "STOP_GAP": 7,
+            "TARGET_GAP": 4
+          }
+        },
+        "all": {
+          "n": 12321,
+          "wins": 6845,
+          "losses": 5476,
+          "win_rate": 0.5555555555555556,
+          "total_r": 108.87533274806327,
+          "mean_r": 0.008836566248523924,
+          "profit_factor": 1.0201554546757117,
+          "max_drawdown_r": -124.3832893029864,
+          "avg_entry_rr": 0.960701949471882,
+          "exit_counts": {
+            "TARGET": 6629,
+            "STOP": 5150,
+            "16BAR_TIMEOUT": 325,
+            "STOP_BOTH": 166,
+            "TARGET_GAP": 29,
+            "STOP_GAP": 22
+          }
+        }
+      },
+      "invalid_next_open_filtered": 1346,
+      "invalid_next_open_baseline": 795
+    },
+    "swing_entry": {
+      "target": "swing_good",
+      "selected_C": 1.0,
+      "validation_top25_threshold": 0.5755328144433961,
+      "model": {
+        "train": {
+          "n": 14351,
+          "base_rate": 0.3908438436345899,
+          "roc_auc": 0.6364623250887885,
+          "pr_auc": 0.5483457512922825,
+          "brier": 0.2340720144929407
+        },
+        "validation": {
+          "n": 5871,
+          "base_rate": 0.4055527167433146,
+          "roc_auc": 0.6287758027074416,
+          "pr_auc": 0.5579645817501899,
+          "brier": 0.23516169010335794
+        },
+        "pseudo_test": {
+          "n": 5274,
+          "base_rate": 0.3951459992415624,
+          "roc_auc": 0.6210198316476032,
+          "pr_auc": 0.5376654958781435,
+          "brier": 0.23762294701735792
+        },
+        "selection_runs": [
+          {
+            "C": 1.0,
+            "n": 5871,
+            "base_rate": 0.4055527167433146,
+            "roc_auc": 0.6287758027074416,
+            "pr_auc": 0.5579645817501899,
+            "brier": 0.23516169010335794
+          },
+          {
+            "C": 3.0,
+            "n": 5871,
+            "base_rate": 0.4055527167433146,
+            "roc_auc": 0.6287730348544891,
+            "pr_auc": 0.557961458616568,
+            "brier": 0.23516238266917622
+          },
+          {
+            "C": 0.3,
+            "n": 5871,
+            "base_rate": 0.4055527167433146,
+            "roc_auc": 0.6287689432457769,
+            "pr_auc": 0.5579699936232769,
+            "brier": 0.23515930174603433
+          },
+          {
+            "C": 0.1,
+            "n": 5871,
+            "base_rate": 0.4055527167433146,
+            "roc_auc": 0.6287685822214788,
+            "pr_auc": 0.557980624837932,
+            "brier": 0.23515277563784942
+          }
+        ]
+      },
+      "filtered_execution": {
+        "train_2018_2022": {
+          "n": 2771,
+          "wins": 1522,
+          "losses": 1249,
+          "win_rate": 0.5492601948754963,
+          "total_r": 0.5277722041349442,
+          "mean_r": 0.0001904627225315569,
+          "profit_factor": 1.0004403844626395,
+          "max_drawdown_r": -45.1563544114117,
+          "avg_entry_rr": 0.8839401761358311,
+          "exit_counts": {
+            "TARGET": 1429,
+            "STOP": 1157,
+            "32BAR_TIMEOUT": 166,
+            "STOP_BOTH": 10,
+            "TARGET_GAP": 7,
+            "STOP_GAP": 2
+          }
+        },
+        "validation_2023_2024": {
+          "n": 1145,
+          "wins": 655,
+          "losses": 490,
+          "win_rate": 0.5720524017467249,
+          "total_r": 48.09405106928838,
+          "mean_r": 0.04200353805178025,
+          "profit_factor": 1.102030890649848,
+          "max_drawdown_r": -17.014515136658833,
+          "avg_entry_rr": 0.8825638690486936,
+          "exit_counts": {
+            "TARGET": 608,
+            "STOP": 447,
+            "32BAR_TIMEOUT": 77,
+            "STOP_BOTH": 9,
+            "STOP_GAP": 2,
+            "TARGET_GAP": 2
+          }
+        },
+        "pseudo_test_2025_2026": {
+          "n": 1019,
+          "wins": 563,
+          "losses": 456,
+          "win_rate": 0.5525024533856723,
+          "total_r": -9.504814318600243,
+          "mean_r": -0.009327590106575311,
+          "profit_factor": 0.9789166800374818,
+          "max_drawdown_r": -44.68338625198977,
+          "avg_entry_rr": 0.8748429067825451,
+          "exit_counts": {
+            "TARGET": 532,
+            "STOP": 430,
+            "32BAR_TIMEOUT": 43,
+            "STOP_BOTH": 6,
+            "STOP_GAP": 6,
+            "TARGET_GAP": 2
+          }
+        },
+        "all": {
+          "n": 4935,
+          "wins": 2740,
+          "losses": 2195,
+          "win_rate": 0.5552178318135765,
+          "total_r": 39.11700895482306,
+          "mean_r": 0.007926445583550773,
+          "profit_factor": 1.0184459883269172,
+          "max_drawdown_r": -45.1563544114117,
+          "avg_entry_rr": 0.8817424073241246,
+          "exit_counts": {
+            "TARGET": 2569,
+            "STOP": 2034,
+            "32BAR_TIMEOUT": 286,
+            "STOP_BOTH": 25,
+            "TARGET_GAP": 11,
+            "STOP_GAP": 10
+          }
+        }
+      },
+      "baseline_execution": {
+        "train_2018_2022": {
+          "n": 5268,
+          "wins": 2134,
+          "losses": 3134,
+          "win_rate": 0.4050873196659074,
+          "total_r": -40.88549272619575,
+          "mean_r": -0.007761103402846574,
+          "profit_factor": 0.9866308242902221,
+          "max_drawdown_r": -131.17266946629462,
+          "avg_entry_rr": 1.73217657335271,
+          "exit_counts": {
+            "STOP": 3002,
+            "TARGET": 1863,
+            "32BAR_TIMEOUT": 372,
+            "STOP_BOTH": 15,
+            "TARGET_GAP": 13,
+            "STOP_GAP": 3
+          }
+        },
+        "validation_2023_2024": {
+          "n": 2205,
+          "wins": 932,
+          "losses": 1273,
+          "win_rate": 0.4226757369614512,
+          "total_r": 88.56760063398715,
+          "mean_r": 0.040166712305663106,
+          "profit_factor": 1.0712217890034121,
+          "max_drawdown_r": -34.087773519472336,
+          "avg_entry_rr": 1.7515521909537937,
+          "exit_counts": {
+            "STOP": 1214,
+            "TARGET": 803,
+            "32BAR_TIMEOUT": 171,
+            "STOP_BOTH": 13,
+            "TARGET_GAP": 2,
+            "STOP_GAP": 2
+          }
+        },
+        "pseudo_test_2025_2026": {
+          "n": 1903,
+          "wins": 806,
+          "losses": 1097,
+          "win_rate": 0.4235417761429322,
+          "total_r": 85.827669898885,
+          "mean_r": 0.045101245348862326,
+          "profit_factor": 1.0787444417120877,
+          "max_drawdown_r": -44.088333290473926,
+          "avg_entry_rr": 1.7372512363805706,
+          "exit_counts": {
+            "STOP": 1064,
+            "TARGET": 716,
+            "32BAR_TIMEOUT": 101,
+            "TARGET_GAP": 8,
+            "STOP_GAP": 8,
+            "STOP_BOTH": 6
+          }
+        },
+        "all": {
+          "n": 9376,
+          "wins": 3872,
+          "losses": 5504,
+          "win_rate": 0.4129692832764505,
+          "total_r": 133.50977780667645,
+          "mean_r": 0.014239524083476585,
+          "profit_factor": 1.0247621413389967,
+          "max_drawdown_r": -131.17266946629462,
+          "avg_entry_rr": 1.7377632116368833,
+          "exit_counts": {
+            "STOP": 5280,
+            "TARGET": 3382,
+            "32BAR_TIMEOUT": 644,
+            "STOP_BOTH": 34,
+            "TARGET_GAP": 23,
+            "STOP_GAP": 13
+          }
+        }
+      },
+      "invalid_next_open_filtered": 80,
+      "invalid_next_open_baseline": 54
+    }
+  }
+}
