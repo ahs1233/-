@@ -79,3 +79,23 @@ Primary diagnostics:
 - reward/risk distribution
 
 Pristine Forward OOS remains untouched.
+
+# ADDENDUM — v0.5.1 Trend Pullback
+
+After the preregistered v0.5 run:
+- RANGE_LOW was rejected: -15.77R, PF 0.86.
+- 272/393 trades hit the structural stop; the 0.25 ATR cushion was too tight for this reversal style.
+
+v0.5.1 frozen changes before rerun:
+- LONG only.
+- Remove RANGE_LOW completely.
+- Require the existing v0.4 bullish regime:
+  - MTF score = +3
+  - (EMA50 - EMA200) / ATR14 >= 1.5
+  - ATR14 >= rolling median ATR14 over 120 H1 bars
+- Cheap price remains position48 <= 0.40.
+- Reversal remains: break below previous 12H low, reclaim it, bullish close, close > previous close.
+- Structural stop = signal low - 0.50 ATR14.
+- Target remains 75% of frozen prior-48H range.
+- Planned reward/risk must be >= 1.5.
+- Timeout remains 48 H1.
