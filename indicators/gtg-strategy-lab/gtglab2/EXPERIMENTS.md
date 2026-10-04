@@ -97,3 +97,12 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Treatment: ALIGNED -> TAKE; OPPOSED -> SKIP; MIXED/INSUFFICIENT -> baseline unchanged.
 - Outcome linkage: **FORBIDDEN** until both 30 days and 10,000 valid snapshots are reached.
 - Historical Holdout: remains sealed.
+
+## 2026-10-04 — Open Historical Batch Evaluation
+- Source: clean JForex/Python historical corpus; Holdout sealed.
+- Acceptance+Context SINGLE C2: n=271, mean +0.05696R, total +15.44R, PF 1.058.
+- Train: -0.05276R/trade; Validation: +0.69062R/trade.
+- STAGED: -0.00772R/trade overall.
+- Rejection SINGLE: -0.13709R/trade; STAGED: -0.06494R/trade.
+- Conclusion: Acceptance path survives as research direction but is not stable across years; Rejection remains rejected.
+

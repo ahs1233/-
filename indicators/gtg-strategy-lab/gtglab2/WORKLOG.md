@@ -383,3 +383,19 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Pristine OOS decoded=false
 - Train prefix parity PASS
 
+
+## 2026-10-04T14:08:45.927660Z — GTGLAB2-0020 — historical_open_batch_evaluation
+
+**Action:** Evaluated current GTGLab2 Acceptance/Retest and Rejection paths across the open JForex/Python historical corpus with C2 costs.
+
+**Reason:** User requested full historical testing instead of TradingView Deep Backtesting subscription.
+
+**Result:** Acceptance+Context SINGLE: n=271, +0.05696R/trade, +15.44R total, PF=1.058; Train negative, Validation strong. STAGED roughly flat/negative. Rejection path negative. Historical Holdout remains sealed.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_HISTORICAL_OPEN_BATCH_2026-10-04.md`
+
+**Verification:**
+- Historical Holdout read=false
+- Pristine OOS decoded=false
+
