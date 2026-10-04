@@ -1,4 +1,4 @@
-# GTGLab2 — Current State
+﻿# GTGLab2 â€” Current State
 
 Updated: 2026-10-04
 
@@ -11,18 +11,18 @@ Updated: 2026-10-04
 The current architecture is:
 
 Higher-TF Context
-→ H1 Market State
-→ Session Narrative
-→ Liquidity Map
-→ MA Geometry
-→ MTF Alignment
-→ Sweep / Break
-→ Acceptance / Rejection
-→ Fixed-Risk Entry Construction
-→ Invalidation
-→ Continue / Exit / Flip
-→ BID/ASK Execution
-→ Risk Guard / Shadow Ledger
+â†’ H1 Market State
+â†’ Session Narrative
+â†’ Liquidity Map
+â†’ MA Geometry
+â†’ MTF Alignment
+â†’ Sweep / Break
+â†’ Acceptance / Rejection
+â†’ Fixed-Risk Entry Construction
+â†’ Invalidation
+â†’ Continue / Exit / Flip
+â†’ BID/ASK Execution
+â†’ Risk Guard / Shadow Ledger
 
 The system is explicitly bidirectional:
 - Range Long
@@ -33,7 +33,7 @@ The system is explicitly bidirectional:
 Scalper and Swing remain distinct execution tracks.
 
 ## Test status
-- unified GTGLab2 engine tests: **66/66 PASS**
+- unified GTGLab2 engine tests: **72/72 PASS**
 - GTGLab2 tools tests: **7/7 PASS**
 - data-layer regression: **107/107 PASS**
 
@@ -165,7 +165,7 @@ The project has rejected two important simplifications:
 2. Staging alone is not an edge.
 
 The strongest surviving price-only hypothesis is:
-**Acceptance → Retest → Continuation**
+**Acceptance â†’ Retest â†’ Continuation**
 
 but current evidence is not robust to conservative execution costs.
 
@@ -180,3 +180,4 @@ but current evidence is not robust to conservative execution costs.
 8. Liquid positioning is now captured with reproducible event-time/SHA provenance but remains secondary and locked from the primary first test.
 9. Promote only a candidate that survives realistic costs and independent forward/paper evidence.
 10. Open Final Holdout only at its registered final gate.
+

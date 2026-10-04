@@ -332,3 +332,20 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Microstructure task LastResult=0 after sparse-checkout recovery
 - Historical Holdout read=false; Pristine OOS decoded=false
 
+
+## 2026-10-04T11:07:50.013577Z — GTGLAB2-0017 — evaluation_metrics_frozen
+
+**Action:** Validated and froze source-family ablation helpers and episode-level execution metrics.
+
+**Reason:** Complete the preregistered evaluation layer before future microstructure outcomes are unlocked.
+
+**Result:** 72/72 unified engine tests PASS; source-family vote provenance, leave-one-source-out alignment, paired episode comparison, MAE/MFE/risk-use and invalidation-time metrics verified.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/engine/forward_microstructure_gate.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/metrics.py`
+- `indicators/gtg-strategy-lab/gtglab2/engine/test_phase8_metrics_ablation.py`
+
+**Verification:**
+- 72/72 engine tests PASS
+

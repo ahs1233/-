@@ -52,3 +52,46 @@ def treatment_action(side: Side, evidence: MicroEvidence) -> str:
     if a is MicroAlignment.OPPOSED:
         return "SKIP"
     return "BASELINE_UNCHANGED"
+
+
+
+def evidence_from_source_votes(source_votes: dict[str, tuple[int, ...]]) -> MicroEvidence:
+    """Build frozen evidence while preserving source-family provenance.
+
+    The mapping must contain only source families already deemed ready by the
+    collection protocol. Zero votes remain valid neutral evidence.
+    """
+    if not source_votes:
+        return MicroEvidence(ready_families=0, votes=())
+    votes: list[int] = []
+    for source in sorted(source_votes):
+        vals = tuple(source_votes[source])
+        if any(v not in (-1, 0, 1) for v in vals):
+            raise ValueError(f"invalid vote for source {source}")
+        votes.extend(vals)
+    return MicroEvidence(ready_families=len(source_votes), votes=tuple(votes))
+
+
+def classify_source_votes(
+    side: Side,
+    source_votes: dict[str, tuple[int, ...]],
+) -> MicroAlignment:
+    return classify_alignment(side, evidence_from_source_votes(source_votes))
+
+
+def leave_one_source_out_alignments(
+    side: Side,
+    source_votes: dict[str, tuple[int, ...]],
+) -> dict[str, MicroAlignment]:
+    """Recompute alignment after removing each source family once."""
+    if len(source_votes) < 2:
+        raise ValueError("source ablation requires at least two source families")
+    out: dict[str, MicroAlignment] = {}
+    for removed in sorted(source_votes):
+        kept = {
+            name: votes
+            for name, votes in source_votes.items()
+            if name != removed
+        }
+        out[removed] = classify_source_votes(side, kept)
+    return out
