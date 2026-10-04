@@ -93,10 +93,26 @@ Fix:
 - a separate daily Windows task, GTG Pristine Forward Seal Audit, verifies that the expected export exists and fails visibly if it does not,
 - exporter and seal/audit responsibilities are explicitly separated.
 
+### A9 — Legacy public-datafeed capture could still target the canonical root
+A warning in a docstring was not sufficient: the legacy `capture_forward.py` CLI could still be run against canonical `.lab-data`.
+
+Fix:
+- the CLI is now fail-closed under TRADE_CONTRACT v0.2.3,
+- explicit `--allow-legacy-public-audit` is required,
+- an explicit separate audit root is required,
+- the canonical root is rejected even with opt-in.
+
+## Remaining operational constraint
+
+`GtgForwardExport` currently re-checks on XAUUSD ticks after its initial start pass. During a market closure, a newly settled prior day can therefore remain unexported until the next tick / strategy restart. This is not hidden: the daily Seal Audit returns a blocked non-zero state for any missing expected settled day. No autonomous-export claim is made beyond an active JForex strategy.
+
 ## Verification
 
-Python collection/quality/seal test suite:
-- 33/33 PASS
+Expanded Python data/collection/quality/seal test suite:
+- 63/63 PASS
+
+JForex forward exporter:
+- compiled against installed `jforex-api 4.8.13` with Java source/target 11: PASS
 
 Live microstructure collector:
 - Task enabled
