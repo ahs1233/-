@@ -317,3 +317,35 @@ Independent foundation test result: 9/9 PASS.
 Device-local parity rerun: PENDING due Remote Desktop command timeout.
 
 Next executable sprint: B — causal Session Narrative, multi-timeframe adapter, liquidity map, and no-lookahead tests.
+
+
+## Implementation checkpoint — Sprint B/C/D
+
+Sprint B — causal context:
+- Session Narrative: IMPLEMENTED.
+- MTF completed-bar adapter: IMPLEMENTED.
+- Causal rolling liquidity map: IMPLEMENTED.
+- Causality/no-lookahead tests: 7/7 independent PASS.
+
+Sprint C — inventory and bidirectional policy:
+- Fixed-risk tranche state machine: IMPLEMENTED.
+- Range Long/Short mapping: IMPLEMENTED.
+- Trend Long/Short mapping: IMPLEMENTED.
+- EXIT then FLIP_WAIT invariant: IMPLEMENTED.
+- Inventory tests: 7/7 independent PASS.
+
+Sprint D — execution:
+- Explicit BID/ASK entry/exit: IMPLEMENTED.
+- Symmetric slippage model: IMPLEMENTED.
+- Same-total-size scaled vs single interface: IMPLEMENTED.
+- Episode metrics: IMPLEMENTED.
+- Execution tests: 9/9 independent PASS.
+
+Combined regression for Phase 1–4:
+- 32/32 tests PASS in independent Python execution.
+- Historical Holdout remained locked.
+- Pristine OOS remained undecoded.
+- Microstructure outcome linkage remained locked.
+
+Remaining operational verification:
+- rerun the same suite on the authorized desktop environment after Remote Desktop command responsiveness returns.
