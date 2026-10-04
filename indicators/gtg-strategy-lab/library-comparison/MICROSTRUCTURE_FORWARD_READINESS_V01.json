@@ -12,59 +12,59 @@
     "snapshot_count_gate": false
   },
   "progress": {
-    "valid_snapshots": 109,
-    "snapshots_remaining": 9891,
-    "elapsed_days": 0.09467998090277778,
-    "days_remaining": 29.90532001909722,
+    "valid_snapshots": 116,
+    "snapshots_remaining": 9884,
+    "elapsed_days": 0.1013012011574074,
+    "days_remaining": 29.89869879884259,
     "first_capture": "2026-10-03T21:37:13.099764+00:00",
-    "last_capture": "2026-10-03T23:53:33.450114+00:00",
+    "last_capture": "2026-10-04T00:03:05.523544+00:00",
     "time_gate_unlock_utc": "2026-11-02T21:37:13.099764+00:00"
   },
   "quality": {
     "grade_counts": {
       "single_source_grade": 6,
-      "fusion_grade": 103
+      "fusion_grade": 110
     },
-    "fusion_grade_count": 103,
-    "fusion_grade_ratio": 0.944954128440367,
+    "fusion_grade_count": 110,
+    "fusion_grade_ratio": 0.9482758620689655,
     "source_coverage": {
       "binance_xau_perp": {
-        "available_count": 105,
-        "coverage_ratio": 0.963302752293578
+        "available_count": 112,
+        "coverage_ratio": 0.9655172413793104
       },
       "bitfinex_xaut": {
-        "available_count": 109,
+        "available_count": 116,
         "coverage_ratio": 1.0
       },
       "kraken_paxg_spot": {
-        "available_count": 105,
-        "coverage_ratio": 0.963302752293578
+        "available_count": 112,
+        "coverage_ratio": 0.9655172413793104
       }
     },
     "ready_source_family_coverage": {
       "binance": {
-        "ready_count": 105,
-        "coverage_ratio": 0.963302752293578
+        "ready_count": 112,
+        "coverage_ratio": 0.9655172413793104
       },
       "bitfinex": {
-        "ready_count": 35,
-        "coverage_ratio": 0.3211009174311927
+        "ready_count": 36,
+        "coverage_ratio": 0.3103448275862069
       },
       "kraken": {
-        "ready_count": 105,
-        "coverage_ratio": 0.963302752293578
+        "ready_count": 112,
+        "coverage_ratio": 0.9655172413793104
       }
     },
     "cadence": {
-      "interval_count": 108,
-      "median_interval_seconds": 60.0089715,
+      "interval_count": 115,
+      "median_interval_seconds": 60.015318,
       "max_gap_seconds": 1136.95406,
-      "gaps_over_90s": 6,
+      "gaps_over_90s": 7,
       "gaps_over_300s": 2,
       "recent_interval_count": 60,
       "recent_median_interval_seconds": 60.017247,
       "recent_max_gap_seconds": 325.696289,
-      "recent_gaps_over_90s": 2,
+      "recent_gaps_over_90s": 3,
       "recent_gaps_over_300s": 1
     }
   },
