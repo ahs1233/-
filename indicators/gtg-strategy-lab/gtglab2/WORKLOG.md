@@ -987,3 +987,27 @@ Primary 2025 vs Jan-Sep 2026 Swing Shadow:
 **Supporting events:** Delta_OW -0.5002R, CI [-0.9909,-0.0958], but donor ESS ratio 28.4% and donor max month share 26.45% fail frozen gates.
 
 **Decision:** INCONCLUSIVE. Negative overlap signal is persistent but the empirically supported overlap population is too narrow/concentrated for the preregistered decisive claim. Cause of 2026 weakness remains unresolved. Productive/Destructive remains deferred. OOS read=false.
+
+## 2026-10-05 — GTGLAB2-0052 — swing_loss_path_audit_v01
+
+**Protocol:** `7b9d29b`
+
+**Implementation:** `121f9fd`; bootstrap performance refactor `ef4974b`; timing summary `c981c42`; exit-time label correction `534bada`.
+
+**Base:** `18e4865`.
+
+**Population:** 1,177 corrected Swing Shadow trades before Health. All 1,177 have pre-exit M1 Bid paths; 1,176 have complete original 864-M5 horizon.
+
+**Reconciliation:** Shadow total +79.6536R, matching Experiment 1 before Health. (The +69.468R number is the post-Health stream.)
+
+**Loss anatomy:** 699 losses. NO_START 57.94%; STARTED_THEN_FADED 25.18%; STRONG_PROGRESS_FAILED 16.88%.
+
+**Post-exit diagnostic:** among 697 eligible losing non-target exits, 77.19% later recovered entry, 68.87% later reached +0.5R, 57.39% later reached +1R, 37.88% later reached +2R, and 42.75% later reached the original target before the original 864-M5 horizon ended.
+
+**Timing:** losing-trade median reclaim close loss 3 M5 bars; anchor recross 66 observed M1 minutes; later +1R median 1,284 observed minutes after exit; later original target median 1,622 observed minutes.
+
+**Frozen decision:** Entry Initiation FAIL; Profit Retention FAIL; Horizon/Invalidation PASS. Final class HORIZON_INVALIDATION_CANDIDATE.
+
+**Interpretation:** trade stop and idea invalidation may be different events for a material subset. Do not widen/remove stops. The only next hypothesis allowed is a fresh-confirmation one-reentry design with separately capped idea-level risk.
+
+**OOS:** unread.

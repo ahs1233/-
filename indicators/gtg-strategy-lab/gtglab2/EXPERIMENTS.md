@@ -420,3 +420,14 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Target 2026 low-overlap: 47.62% with e>=.90; 37.14% with e>=.95. These carry only 9.86% and 5.71% of normalized overlap-weight mass respectively.
 - Supporting pre-Permission events also show a negative overlap-weighted contrast (-0.5002R; CI [-0.9909,-0.0958]) but fail donor ESS-ratio and month-concentration gates.
 - Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
+
+## 2026-10-05 — Swing Loss-Path Audit v0.1 result
+- Primary mechanism classification: **HORIZON_INVALIDATION_CANDIDATE**.
+- Corrected Swing Shadow reconciled: 1,177 trades, +79.654R before Health; 699 losses.
+- Loss archetypes: NO_START 405/699 = 57.94%; STARTED_THEN_FADED 176 = 25.18%; STRONG_PROGRESS_FAILED 118 = 16.88%.
+- Frozen Entry Initiation criterion FAILED (57.94% < 60%); Profit Retention criterion FAILED (16.88% < 30%).
+- Of 697 losing non-target exits with complete remaining original horizon, 57.39% later reached +1R and 42.75% later reached the original target before the same 864-M5 horizon ended.
+- Broad-segment late +1R: 53.83% / 55.95% / 69.34%; late target: 38.78% / 42.86% / 54.01%.
+- 2,000 block-bootstrap CI: late +1R [52.74%,61.85%]; late target [38.22%,47.25%].
+- This does NOT justify wider stops or holding through stop. It justifies one next mechanical hypothesis: fresh-confirmation re-entry after a stop, with the first hard stop unchanged and one separately risked second attempt maximum.
+- Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
