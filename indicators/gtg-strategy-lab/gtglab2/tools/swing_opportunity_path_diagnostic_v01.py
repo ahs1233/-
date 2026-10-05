@@ -305,9 +305,10 @@ def moving_block_days(days,rng):
         out.extend(days[s:min(n,s+BLOCK_DAYS)])
     return out[:n]
 
-def resample_rows(df,calendar_days,rng,prefix):
+def resample_rows(df,calendar_days,rng,prefix,byday=None):
     chosen=moving_block_days(calendar_days,rng)
-    byday={k:g for k,g in df.groupby("trading_day")}
+    if byday is None:
+        byday={k:g for k,g in df.groupby("trading_day",sort=False)}
     parts=[]; counter=0
     for occ,day in enumerate(chosen):
         g=byday.get(day)
@@ -321,9 +322,11 @@ def resample_rows(df,calendar_days,rng,prefix):
 def bootstrap_contrast(donor,target,donor_days,target_days,stage,scales,removed,nrep=N_BOOT):
     rng=np.random.default_rng(SEED + {"raw":0,"geometry":101,"full":202}[stage])
     vals=[]; match_n=[]; adequate=0; failed=0
+    donor_byday={k:g for k,g in donor.groupby("trading_day",sort=False)}
+    target_byday={k:g for k,g in target.groupby("trading_day",sort=False)}
     for b in range(nrep):
-        db=resample_rows(donor,donor_days,rng,f"D{b}_")
-        tb=resample_rows(target,target_days,rng,f"T{b}_")
+        db=resample_rows(donor,donor_days,rng,f"D{b}_",donor_byday)
+        tb=resample_rows(target,target_days,rng,f"T{b}_",target_byday)
         if len(db)==0 or len(tb)==0:
             failed+=1; continue
         if stage=="raw":
