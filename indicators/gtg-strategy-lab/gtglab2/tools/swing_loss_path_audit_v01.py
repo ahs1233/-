@@ -275,24 +275,36 @@ def moving_block_days(days,rng):
 def bootstrap_primary_shares(df):
     q=df.copy()
     q["entry_day"]=pd.to_datetime(q.entry_t,unit="ms",utc=True).dt.strftime("%Y-%m-%d")
-    days=sorted(q.entry_day.unique())
-    groups={d:g for d,g in q.groupby("entry_day")}
+    q["is_loss"]=((q.pnl_r<0)&q.pre_path_available).astype(int)
+    q["is_no_start"]=((q.pnl_r<0)&q.pre_path_available&(q.loss_archetype=="NO_START")).astype(int)
+    q["is_strong"]=((q.pnl_r<0)&q.pre_path_available&(q.loss_archetype=="STRONG_PROGRESS_FAILED")).astype(int)
+    late_mask=((q.pnl_r<0)&q.pre_path_available&
+               (~q.exit_class.isin(["TARGET","TARGET_GAP"]))&
+               q.post_exit_eligible&q.post_exit_path_available)
+    q["is_late"]=late_mask.astype(int)
+    q["is_late_plus1"]=(late_mask&q.later_reached_plus_1_0r.fillna(False)).astype(int)
+    q["is_late_target"]=(late_mask&q.later_reached_original_target.fillna(False)).astype(int)
+
+    daily=(q.groupby("entry_day",sort=True)[
+        ["is_loss","is_no_start","is_strong","is_late","is_late_plus1","is_late_target"]
+    ].sum().astype(int))
+    days=daily.index.tolist()
+    arr=daily.to_numpy(np.int64)
+    pos={d:i for i,d in enumerate(days)}
+
     rng=np.random.default_rng(SEED)
     vals={"no_start":[],"strong_progress_failed":[],"late_plus1":[],"late_target":[]}
     for _ in range(N_BOOT):
         chosen=moving_block_days(days,rng)
-        parts=[groups[d] for d in chosen if d in groups]
-        if not parts:continue
-        z=pd.concat(parts,ignore_index=True)
-        losses=z[(z.pnl_r<0)&z.pre_path_available]
-        late=losses[(~losses.exit_class.isin(["TARGET","TARGET_GAP"]))&
-                    losses.post_exit_eligible&losses.post_exit_path_available]
-        if len(losses):
-            vals["no_start"].append(float((losses.loss_archetype=="NO_START").mean()))
-            vals["strong_progress_failed"].append(float((losses.loss_archetype=="STRONG_PROGRESS_FAILED").mean()))
-        if len(late):
-            vals["late_plus1"].append(float(late.later_reached_plus_1_0r.mean()))
-            vals["late_target"].append(float(late.later_reached_original_target.mean()))
+        idx=np.fromiter((pos[d] for d in chosen),dtype=np.int64,count=len(chosen))
+        s=arr[idx].sum(axis=0)
+        loss_n,no_start_n,strong_n,late_n,late_plus1_n,late_target_n=[int(v) for v in s]
+        if loss_n>0:
+            vals["no_start"].append(no_start_n/loss_n)
+            vals["strong_progress_failed"].append(strong_n/loss_n)
+        if late_n>0:
+            vals["late_plus1"].append(late_plus1_n/late_n)
+            vals["late_target"].append(late_target_n/late_n)
     out={}
     for k,a in vals.items():
         x=np.asarray(a,float)
@@ -348,19 +360,28 @@ def main():
     if q.anchor_high.isna().any():
         raise RuntimeError(f"Missing anchor_high for {int(q.anchor_high.isna().sum())} trades")
 
-    print("aggregate M5",flush=True)
-    m5,_,_,_=audit.aggregate_all(ROOT)
-    m5_t_to_idx={int(t):i for i,t in enumerate(m5.t.to_numpy(np.int64))}
-    path=M1Path(ROOT)
+    features_path=OUT/"trade_path_features.csv"
+    if features_path.exists():
+        f=pd.read_csv(features_path)
+        required={"signal_t","pre_path_available","horizon_complete","loss_archetype",
+                  "later_reached_plus_1_0r","later_reached_original_target"}
+        if len(f)!=1177 or not required.issubset(f.columns):
+            raise RuntimeError("Existing path artifact failed resume validation")
+        print("reuse validated trade_path_features.csv",flush=True)
+    else:
+        print("aggregate M5",flush=True)
+        m5,_,_,_=audit.aggregate_all(ROOT)
+        m5_t_to_idx={int(t):i for i,t in enumerate(m5.t.to_numpy(np.int64))}
+        path=M1Path(ROOT)
 
-    rows=[]
-    q=q.sort_values("entry_t").reset_index(drop=True)
-    for i,tr in enumerate(q.itertuples(index=False),1):
-        rows.append(trade_path_features(tr,m5,m5_t_to_idx,path))
-        if i%100==0:
-            print("path trades",i,"/",len(q),flush=True)
-    f=pd.DataFrame(rows)
-    f.to_csv(OUT/"trade_path_features.csv",index=False)
+        rows=[]
+        q=q.sort_values("entry_t").reset_index(drop=True)
+        for i,tr in enumerate(q.itertuples(index=False),1):
+            rows.append(trade_path_features(tr,m5,m5_t_to_idx,path))
+            if i%100==0:
+                print("path trades",i,"/",len(q),flush=True)
+        f=pd.DataFrame(rows)
+        f.to_csv(features_path,index=False)
 
     recon=pd.DataFrame([
         {"metric":"corrected_swing_shadow_trades","value":int(len(q))},
