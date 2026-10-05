@@ -965,3 +965,25 @@ Primary 2025 vs Jan-Sep 2026 Swing Shadow:
 - Geometry-only greedy shortfall is larger, but Full-stage shortfall is small.
 - Conclusion refinement: final Full-support collapse is dominated by sparse admissible overlap, not by greedy allocator inefficiency.
 - No PnL/outcome used. Experiment 3 primary classification remains DISTRIBUTED_MULTIDIMENSIONAL_COLLAPSE.
+
+## 2026-10-05 — GTGLAB2-0051 — overlap_population_contrast_v01
+
+**Protocol:** `fc00c3d`
+
+**Implementation:** `33978be`; technical event-column fix `f7ec325`; bootstrap performance-only refactor `1ffd813`.
+
+**Base:** `8c637d0`.
+
+**Primary:** corrected Swing Shadow before Health, 2025 full vs Jan-Sep 2026.
+
+**Model:** one frozen unpenalized logistic main-effects propensity model using the same Experiment 2 Geometry+Composition covariates. No search, no interactions, no trimming.
+
+**Primary result:** Delta_OW = -0.5547R; 95% block-bootstrap CI [-1.1074,-0.1350].
+
+**Quality gates:** convergence PASS; weighted mean balance PASS; bootstrap success PASS; ESS FAIL; temporal concentration FAIL.
+
+**Representation:** 47.62% of 2026 target trades have e>=.90 and 37.14% have e>=.95; these observations are heavily downweighted. Primary donor ESS 30.61, target ESS 49.31. Oct-2025 alone carries 33.65% of donor overlap weight.
+
+**Supporting events:** Delta_OW -0.5002R, CI [-0.9909,-0.0958], but donor ESS ratio 28.4% and donor max month share 26.45% fail frozen gates.
+
+**Decision:** INCONCLUSIVE. Negative overlap signal is persistent but the empirically supported overlap population is too narrow/concentrated for the preregistered decisive claim. Cause of 2026 weakness remains unresolved. Productive/Destructive remains deferred. OOS read=false.

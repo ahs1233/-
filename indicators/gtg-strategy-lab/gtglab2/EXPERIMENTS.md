@@ -407,3 +407,16 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Larger pre-Permission event sample retained 65.08% full feasibility but only 26.45% greedy coverage, exposing strong donor competition / allocation loss.
 - Historical 2023-2024 vs 2026 made Expansion Persistence the largest feasibility contributor (37.89%), consistent with a gradual descriptor transition into 2025/2026, but not a PnL-causal conclusion.
 - Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
+
+## 2026-10-05 — Overlap-Population Contrast v0.1 result
+- Primary classification: **INCONCLUSIVE**.
+- Frozen estimand: corrected Swing Shadow overlap population (ATO), not all 2026 opportunities.
+- Primary 2025 vs Jan-Sep 2026: donor n=122, target n=105.
+- Overlap-weighted donor mean +0.3975R; target mean -0.1572R; Delta_OW = -0.5547R.
+- 2,000 five-trading-day block-bootstrap fits: CI [-1.1074,-0.1350], 100% successful.
+- Mean balance PASS: max weighted |SMD| 4.89e-7.
+- ESS FAIL: donor 30.61 (25.1% raw), target 49.31 (47.0% raw); frozen gate requires >=50 and >=40% in both.
+- Temporal concentration FAIL: 2025 donor maximum month weight share 33.65% (Oct 2025), target 24.10%.
+- Target 2026 low-overlap: 47.62% with e>=.90; 37.14% with e>=.95. These carry only 9.86% and 5.71% of normalized overlap-weight mass respectively.
+- Supporting pre-Permission events also show a negative overlap-weighted contrast (-0.5002R; CI [-0.9909,-0.0958]) but fail donor ESS-ratio and month-concentration gates.
+- Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
