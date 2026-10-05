@@ -501,3 +501,57 @@ The knowledge chain is:
 Thus the observed late recovery does not currently imply a missing executable edge.
 
 Any future experiment requires a new independently motivated mechanism or new evidence. It must not be launched merely to compensate for the negative Experiment 7 result.
+
+## 2026-10-05 — Research-governance checkpoint after 5a8ae47
+
+The Late Recovery -> Re-entry -> Replace branch is closed.
+
+This closure means only that the tested modification hypotheses were rejected or resolved under their frozen contracts. It does NOT establish:
+- production readiness,
+- a stable deployable edge,
+- an explanation for 2026,
+- or that Swing must be repairable.
+
+The current reference is FROZEN for execution changes. Pristine Forward OOS remains SEALED.
+
+### Evidence threshold for any future experiment
+
+A new experiment is allowed only if it can answer ALL four questions before implementation:
+
+1. What specific observation requires this experiment?
+   - This may be new data, but does NOT have to be.
+   - It may instead be a verifiable contradiction in existing results, an implementation defect, a broken contract, or another concrete unresolved observation.
+
+2. What exact question does it test that prior experiments did NOT already close?
+
+3. What result would change an engineering decision?
+
+4. What preregistered result would reject the hypothesis and close the branch without relaxing conditions afterward?
+
+A plausible narrative, attractive feature, market story, or desire to explain a losing year is NOT sufficient evidence to launch another experiment.
+
+### Current null possibilities that remain open
+
+- 2026 weakness may be a temporary or sample-specific failure.
+- It may reflect an unresolved distribution/path change.
+- It may reflect a weakness in the original signal/entry architecture.
+- Swing may simply have weak or unstable expected value that does not justify additional engineering complexity.
+
+The research program is NOT obligated to invent a causal explanation for every losing year.
+
+### Current stable engineering state
+
+- corrected execution/accounting reference remains the baseline;
+- no new execution modification is authorized;
+- pyramiding = 0;
+- current-position priority = KEEP;
+- no additive re-entry;
+- no replacement layer;
+- Scalper = PARKED;
+- Swing = RESEARCH ONLY;
+- cause of 2026 weakness = UNRESOLVED;
+- Productive/Destructive Expansion = DEFERRED;
+- Pristine Forward OOS = SEALED;
+- no Experiment 8 is authorized by existing evidence.
+
+Future work begins only from a concrete falsifiable observation, not from pressure to continue the sequence.
