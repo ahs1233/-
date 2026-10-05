@@ -408,9 +408,9 @@ def main():
     primary["row_id"]=["P%06d"%i for i in range(len(primary))]
 
     # Supporting independent event outcomes.
-    event_out=pd.read_csv(EXP1/"swing_corrected_events.csv",usecols=["signal_t","label_valid","label_pnl_r"])
+    event_out=pd.read_csv(EXP1/"swing_corrected_events.csv",usecols=["signal_t","label_label_valid","label_pnl_r"])
     supporting=pre.merge(event_out,on="signal_t",how="left",validate="one_to_one")
-    supporting=supporting[supporting.label_valid & np.isfinite(supporting.label_pnl_r)].copy()
+    supporting=supporting[supporting.label_label_valid & np.isfinite(supporting.label_pnl_r)].copy()
     supporting=supporting.rename(columns={"label_pnl_r":"pnl_r"})
     supporting=attach_time_fields(supporting)
     supporting["row_id"]=["E%06d"%i for i in range(len(supporting))]
