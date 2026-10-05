@@ -1011,3 +1011,14 @@ Primary 2025 vs Jan-Sep 2026 Swing Shadow:
 **Interpretation:** trade stop and idea invalidation may be different events for a material subset. Do not widen/remove stops. The only next hypothesis allowed is a fresh-confirmation one-reentry design with separately capped idea-level risk.
 
 **OOS:** unread.
+
+## 2026-10-05 — GTGLAB2-0053 precheck — fresh-reclaim reference-capture audit
+- Outcome-blind identity/capture precheck completed before Experiment 6 protocol.
+- Baseline stopped Swing Shadow ideas: 697; all 697 have complete original 864-M5 horizon for this precheck.
+- Fresh setup definition used only for identity check: regenerated state-eligible HIGH_RECLAIM with episode_start_t >= first exit, signal after exit, and entry before the original idea horizon end.
+- Unique fresh events falling in at least one stopped-idea window: 2,627.
+- Unique fresh events that are Permission ON and executable at next Ask under frozen geometry: 1,394.
+- Of those, 659 (47.27%) are already executed by the corrected baseline Shadow stream; 735 are not.
+- 584 stopped ideas have at least one permission+Ask-executable fresh event; 460 have at least one such event not captured by baseline.
+- No second-attempt PnL/outcome was evaluated.
+- Implication: duplicate suppression is mandatory, but a nontrivial set of genuinely new candidate events remains to test.

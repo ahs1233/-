@@ -1,0 +1,14 @@
+{
+  "scope": "outcome-blind re-entry capture precheck",
+  "pristine_forward_oos_read": false,
+  "baseline_stopped_ideas": 697,
+  "complete_horizon_stopped_ideas": 697,
+  "ideas_with_any_permission_executable_fresh_event": 584,
+  "ideas_with_any_new_nonbaseline_fresh_event": 460,
+  "unique_fresh_events_in_any_stopped_idea_window": 2627,
+  "unique_permission_executable_fresh_events": 1394,
+  "unique_already_captured_by_baseline": 659,
+  "unique_new_not_captured_by_baseline": 735,
+  "baseline_capture_share_of_permission_executable": 0.4727403156384505,
+  "note": "No second-attempt PnL/outcome was evaluated."
+}
