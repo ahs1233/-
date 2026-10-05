@@ -1,0 +1,380 @@
+{
+  "scope": "Common-Support Failure Audit v0.1",
+  "protocol_commit": "ccd9951",
+  "base_commit": "8b50a67",
+  "pristine_forward_oos_read": false,
+  "outcome_blind": {
+    "event_columns_loaded": [
+      "signal_t",
+      "signal_idx",
+      "anchor_idx",
+      "state_id",
+      "anchor_low",
+      "anchor_high",
+      "atr_h1"
+    ],
+    "shadow_columns_loaded": [
+      "signal_t",
+      "entry_t"
+    ],
+    "permission_columns_loaded": [
+      "signal_t",
+      "permission_on"
+    ],
+    "forbidden_columns_loaded": [],
+    "pnl_used": false,
+    "labels_used": false,
+    "post_entry_path_used": false
+  },
+  "reconciliation_checks": {
+    "primary_donor_122": true,
+    "primary_target_105": true,
+    "primary_geometry_82": true,
+    "primary_full_18": true,
+    "seasonal_geometry_60": true,
+    "seasonal_full_12": true,
+    "historical_geometry_85": true,
+    "historical_full_2": true
+  },
+  "primary_classification": "DISTRIBUTED_MULTIDIMENSIONAL_COLLAPSE",
+  "classification_detail": {
+    "top2_dimensions": [
+      "session",
+      "coherence"
+    ],
+    "top2_share": 0.6092592592592593,
+    "dimensions_ge_10pct": 4
+  },
+  "primary_support_curve": [
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "stage": "G",
+      "constraints": "GEOMETRY_ONLY",
+      "target_total": 105,
+      "donor_total": 122,
+      "feasible_targets": 102,
+      "feasible_target_coverage": 0.9714285714285714,
+      "compatible_donors": 98,
+      "compatible_donor_coverage": 0.8032786885245902,
+      "compatible_edges": 2067,
+      "edge_density": 0.1613583138173302,
+      "zero_candidate_fraction": 0.02857142857142857,
+      "candidates_median_all_targets": 20.0,
+      "candidates_median_feasible_targets": 20.0,
+      "candidates_p10": 4.0,
+      "candidates_p90": 34.0,
+      "candidates_max": 47,
+      "greedy_matched": 82,
+      "greedy_target_coverage": 0.780952380952381,
+      "greedy_donor_coverage": 0.6721311475409836,
+      "allocation_loss_count": 20,
+      "allocation_loss_pp": 0.19047619047619047
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "stage": "G+S",
+      "constraints": "state",
+      "target_total": 105,
+      "donor_total": 122,
+      "feasible_targets": 98,
+      "feasible_target_coverage": 0.9333333333333333,
+      "compatible_donors": 88,
+      "compatible_donor_coverage": 0.7213114754098361,
+      "compatible_edges": 854,
+      "edge_density": 0.06666666666666667,
+      "zero_candidate_fraction": 0.06666666666666667,
+      "candidates_median_all_targets": 8.0,
+      "candidates_median_feasible_targets": 8.0,
+      "candidates_p10": 1.0,
+      "candidates_p90": 16.60000000000001,
+      "candidates_max": 26,
+      "greedy_matched": 75,
+      "greedy_target_coverage": 0.7142857142857143,
+      "greedy_donor_coverage": 0.6147540983606558,
+      "allocation_loss_count": 23,
+      "allocation_loss_pp": 0.21904761904761905
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "stage": "G+S+J",
+      "constraints": "state|session",
+      "target_total": 105,
+      "donor_total": 122,
+      "feasible_targets": 75,
+      "feasible_target_coverage": 0.7142857142857143,
+      "compatible_donors": 64,
+      "compatible_donor_coverage": 0.5245901639344263,
+      "compatible_edges": 256,
+      "edge_density": 0.01998438719750195,
+      "zero_candidate_fraction": 0.2857142857142857,
+      "candidates_median_all_targets": 2.0,
+      "candidates_median_feasible_targets": 3.0,
+      "candidates_p10": 0.0,
+      "candidates_p90": 7.0,
+      "candidates_max": 9,
+      "greedy_matched": 51,
+      "greedy_target_coverage": 0.4857142857142857,
+      "greedy_donor_coverage": 0.4180327868852459,
+      "allocation_loss_count": 24,
+      "allocation_loss_pp": 0.22857142857142856
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "stage": "G+S+J+C",
+      "constraints": "state|session|coherence",
+      "target_total": 105,
+      "donor_total": 122,
+      "feasible_targets": 43,
+      "feasible_target_coverage": 0.4095238095238095,
+      "compatible_donors": 44,
+      "compatible_donor_coverage": 0.36065573770491804,
+      "compatible_edges": 94,
+      "edge_density": 0.007338017174082748,
+      "zero_candidate_fraction": 0.5904761904761905,
+      "candidates_median_all_targets": 0.0,
+      "candidates_median_feasible_targets": 2.0,
+      "candidates_p10": 0.0,
+      "candidates_p90": 3.0,
+      "candidates_max": 5,
+      "greedy_matched": 31,
+      "greedy_target_coverage": 0.29523809523809524,
+      "greedy_donor_coverage": 0.2540983606557377,
+      "allocation_loss_count": 12,
+      "allocation_loss_pp": 0.11428571428571428
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "stage": "G+S+J+C+E",
+      "constraints": "state|session|coherence|expansion",
+      "target_total": 105,
+      "donor_total": 122,
+      "feasible_targets": 39,
+      "feasible_target_coverage": 0.37142857142857144,
+      "compatible_donors": 38,
+      "compatible_donor_coverage": 0.3114754098360656,
+      "compatible_edges": 85,
+      "edge_density": 0.00663544106167057,
+      "zero_candidate_fraction": 0.6285714285714286,
+      "candidates_median_all_targets": 0.0,
+      "candidates_median_feasible_targets": 2.0,
+      "candidates_p10": 0.0,
+      "candidates_p90": 3.0,
+      "candidates_max": 5,
+      "greedy_matched": 28,
+      "greedy_target_coverage": 0.26666666666666666,
+      "greedy_donor_coverage": 0.22950819672131148,
+      "allocation_loss_count": 11,
+      "allocation_loss_pp": 0.10476190476190476
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "stage": "G+S+J+C+E+P",
+      "constraints": "state|session|coherence|expansion|persistence",
+      "target_total": 105,
+      "donor_total": 122,
+      "feasible_targets": 30,
+      "feasible_target_coverage": 0.2857142857142857,
+      "compatible_donors": 23,
+      "compatible_donor_coverage": 0.1885245901639344,
+      "compatible_edges": 51,
+      "edge_density": 0.003981264637002342,
+      "zero_candidate_fraction": 0.7142857142857143,
+      "candidates_median_all_targets": 0.0,
+      "candidates_median_feasible_targets": 2.0,
+      "candidates_p10": 0.0,
+      "candidates_p90": 2.0,
+      "candidates_max": 3,
+      "greedy_matched": 18,
+      "greedy_target_coverage": 0.17142857142857143,
+      "greedy_donor_coverage": 0.14754098360655737,
+      "allocation_loss_count": 12,
+      "allocation_loss_pp": 0.11428571428571428
+    }
+  ],
+  "primary_attrition": [
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "from_stage": "G",
+      "to_stage": "G+S",
+      "constraint_added": "state",
+      "feasible_target_loss": 4,
+      "feasible_coverage_loss_pp": 0.03809523809523807,
+      "greedy_pair_loss": 7,
+      "greedy_coverage_loss_pp": 0.06666666666666665
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "from_stage": "G+S",
+      "to_stage": "G+S+J",
+      "constraint_added": "session",
+      "feasible_target_loss": 23,
+      "feasible_coverage_loss_pp": 0.21904761904761905,
+      "greedy_pair_loss": 24,
+      "greedy_coverage_loss_pp": 0.2285714285714286
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "from_stage": "G+S+J",
+      "to_stage": "G+S+J+C",
+      "constraint_added": "coherence",
+      "feasible_target_loss": 32,
+      "feasible_coverage_loss_pp": 0.3047619047619048,
+      "greedy_pair_loss": 20,
+      "greedy_coverage_loss_pp": 0.19047619047619047
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "from_stage": "G+S+J+C",
+      "to_stage": "G+S+J+C+E",
+      "constraint_added": "expansion",
+      "feasible_target_loss": 4,
+      "feasible_coverage_loss_pp": 0.03809523809523807,
+      "greedy_pair_loss": 3,
+      "greedy_coverage_loss_pp": 0.02857142857142858
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "from_stage": "G+S+J+C+E",
+      "to_stage": "G+S+J+C+E+P",
+      "constraint_added": "persistence",
+      "feasible_target_loss": 9,
+      "feasible_coverage_loss_pp": 0.08571428571428574,
+      "greedy_pair_loss": 10,
+      "greedy_coverage_loss_pp": 0.09523809523809523
+    }
+  ],
+  "primary_shapley": [
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "dimension": "state",
+      "feasibility_loss_pp": 0.1461904761904762,
+      "feasibility_share_of_total": 0.21319444444444446,
+      "greedy_loss_pp": 0.10222222222222221,
+      "greedy_share_of_total": 0.1677083333333333
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "dimension": "session",
+      "feasibility_loss_pp": 0.2604761904761905,
+      "feasibility_share_of_total": 0.3798611111111111,
+      "greedy_loss_pp": 0.11730158730158731,
+      "greedy_share_of_total": 0.19244791666666666
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "dimension": "coherence",
+      "feasibility_loss_pp": 0.1573015873015873,
+      "feasibility_share_of_total": 0.22939814814814816,
+      "greedy_loss_pp": 0.1053968253968254,
+      "greedy_share_of_total": 0.17291666666666666
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "dimension": "expansion",
+      "feasibility_loss_pp": 0.023174603174603195,
+      "feasibility_share_of_total": 0.033796296296296324,
+      "greedy_loss_pp": 0.0411111111111111,
+      "greedy_share_of_total": 0.06744791666666664
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "dimension": "persistence",
+      "feasibility_loss_pp": 0.09857142857142856,
+      "feasibility_share_of_total": 0.14375,
+      "greedy_loss_pp": 0.24349206349206348,
+      "greedy_share_of_total": 0.3994791666666666
+    }
+  ],
+  "primary_leave_one_out": [
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "removed_constraint": "state",
+      "feasible_targets": 49,
+      "feasible_target_coverage": 0.4666666666666667,
+      "feasibility_restored_pp": 0.18095238095238098,
+      "greedy_matched": 29,
+      "greedy_target_coverage": 0.2761904761904762,
+      "greedy_restored_pp": 0.10476190476190478
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "removed_constraint": "session",
+      "feasible_targets": 67,
+      "feasible_target_coverage": 0.638095238095238,
+      "feasibility_restored_pp": 0.35238095238095235,
+      "greedy_matched": 28,
+      "greedy_target_coverage": 0.26666666666666666,
+      "greedy_restored_pp": 0.09523809523809523
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "removed_constraint": "coherence",
+      "feasible_targets": 52,
+      "feasible_target_coverage": 0.49523809523809526,
+      "feasibility_restored_pp": 0.20952380952380956,
+      "greedy_matched": 27,
+      "greedy_target_coverage": 0.2571428571428571,
+      "greedy_restored_pp": 0.08571428571428569
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "removed_constraint": "expansion",
+      "feasible_targets": 32,
+      "feasible_target_coverage": 0.3047619047619048,
+      "feasibility_restored_pp": 0.01904761904761909,
+      "greedy_matched": 19,
+      "greedy_target_coverage": 0.18095238095238095,
+      "greedy_restored_pp": 0.009523809523809518
+    },
+    {
+      "contrast": "PRIMARY_2025_vs_2026",
+      "removed_constraint": "persistence",
+      "feasible_targets": 39,
+      "feasible_target_coverage": 0.37142857142857144,
+      "feasibility_restored_pp": 0.08571428571428574,
+      "greedy_matched": 28,
+      "greedy_target_coverage": 0.26666666666666666,
+      "greedy_restored_pp": 0.09523809523809523
+    }
+  ],
+  "shapley_reconciliation": {
+    "geometry_feasible_coverage": 0.9714285714285714,
+    "full_feasible_coverage": 0.2857142857142857,
+    "total_feasibility_loss": 0.6857142857142857,
+    "sum_shapley_feasibility_loss": 0.6857142857142857,
+    "geometry_greedy_coverage": 0.780952380952381,
+    "full_greedy_coverage": 0.17142857142857143,
+    "total_greedy_loss": 0.6095238095238096,
+    "sum_shapley_greedy_loss": 0.6095238095238095
+  },
+  "sample_reconciliation": [
+    {
+      "sample": "PRIMARY_SHADOW_ALL",
+      "n": 1177
+    },
+    {
+      "sample": "PRIMARY_2025_FULL",
+      "n": 122
+    },
+    {
+      "sample": "PRIMARY_2025_JAN_SEP",
+      "n": 97
+    },
+    {
+      "sample": "PRIMARY_2026_JAN_SEP",
+      "n": 105
+    },
+    {
+      "sample": "PRIMARY_2023_2024",
+      "n": 289
+    },
+    {
+      "sample": "ALL_STATE_ELIGIBLE_PREENTRY",
+      "n": 5107
+    },
+    {
+      "sample": "SUPPORTING_PREENTRY_EXECUTABLE",
+      "n": 5099
+    }
+  ]
+}

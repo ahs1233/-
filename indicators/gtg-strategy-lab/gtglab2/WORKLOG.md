@@ -908,3 +908,50 @@ Primary 2025 vs Jan-Sep 2026 Swing Shadow:
 **Acceleration verification:** primary pair files and stage summary reproduced exact pre-acceleration SHA256 hashes. 1:1 no-replacement pairs have zero donor/target reuse.
 
 **Decision:** Do not relax calipers post hoc. Do not build Productive/Destructive Expansion model yet. Swing remains research-only. Pristine Forward OOS read=false.
+
+## 2026-10-05 — GTGLAB2-0050 — common_support_failure_audit_v01
+
+**Protocol:** `ccd9951`
+
+**Implementation:** `f718d16`, technical column-name fix `c4dd13f`.
+
+**Base:** Experiment 2 final `8b50a67`.
+
+**Method:** Outcome-blind support audit. Reused Experiment 2 geometry/composition constraints unchanged. Measured feasibility support before donor allocation and frozen greedy 1:1 no-replacement support. Audited canonical sequence G -> +State -> +Session -> +Coherence -> +Expansion Level -> +Persistence. Evaluated all 120 composition-constraint orders for Shapley-style support-loss attribution and ran leave-one-constraint-out diagnostics.
+
+**Reconciliation:** primary 82 Geometry / 18 Full; seasonal 60 / 12; historical 85 / 2 — all exact.
+
+**Primary result:** feasibility 97.1% at Geometry -> 28.6% Full; greedy 78.1% -> 17.1%. Classification = DISTRIBUTED_MULTIDIMENSIONAL_COLLAPSE.
+
+**Primary feasibility shares:** Session 38.0%, Coherence 22.9%, State 21.3%, Persistence 14.4%, Expansion Level 3.4%.
+
+**Supporting all-event sample:** Full feasibility 65.1%, greedy 26.4%, indicating large donor-allocation pressure in addition to multidimensional support erosion.
+
+**Decision:** do not loosen Experiment 2 calipers post hoc; do not build Productive/Destructive model yet. Next method, if pursued, should be a new preregistered lower-dimensional / overlap-weighting representation designed outcome-blind. Pristine OOS read=false.
+
+## 2026-10-05 — GTGLAB2-0050 — common_support_failure_audit_v01
+
+**Protocol:** `ccd9951`
+
+**Implementation:** `f718d16`, fix `c4dd13f`
+
+**Base:** `8b50a67`
+
+**Scope:** Outcome-blind support audit only. No PnL, labels, MAE/MFE, exit outcomes, Health outcomes, or post-entry path variables loaded or used.
+
+**Reconciliation:** reproduced Experiment 2 exactly:
+- primary 122 donor / 105 target
+- Geometry 82 pairs
+- Full 18 pairs
+- seasonal 60 / 12
+- historical 85 / 2
+
+**Primary support curve:** feasibility 97.14% -> 93.33% -> 71.43% -> 40.95% -> 37.14% -> 28.57%; greedy coverage 78.10% -> 71.43% -> 48.57% -> 29.52% -> 26.67% -> 17.14%.
+
+**Primary classification:** DISTRIBUTED_MULTIDIMENSIONAL_COLLAPSE.
+
+**Order-robust feasibility attribution:** Session 37.99%, Coherence 22.94%, State 21.32%, Persistence 14.38%, Expansion Level 3.38%.
+
+**Supporting events:** full feasibility 65.08% but greedy 26.45%, showing that larger sample improves feasible overlap while 1:1 donor competition remains severe.
+
+**Decision:** Experiment 3 explains why Experiment 2 lacked support but does not identify the cause of 2026 PnL. Do not loosen Experiment 2. Do not build Productive/Destructive Expansion yet. Pristine OOS read=false.

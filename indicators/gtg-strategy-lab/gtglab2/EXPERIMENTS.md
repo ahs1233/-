@@ -384,3 +384,26 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Path diagnostics on 18 pairs pointed toward lower MFE / worse path asymmetry in 2026, but cannot establish CONDITIONAL PATH because the primary support/balance gates failed.
 - Acceleration implementation reproduced primary match identifiers/distances/exclusions and stage outputs bit-identically by SHA256; matching was 1:1 without replacement, unit weights, zero duplicate donors/targets.
 - Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
+
+## 2026-10-05 — Common-Support Failure Audit v0.1 result
+- Experiment 3 completed outcome-blind: no PnL, labels, Health outcomes, MAE/MFE, or post-entry path variables were loaded.
+- Reproduced Experiment 2 support counts exactly: primary 82 Geometry / 18 Full; seasonal 60 / 12; historical 85 / 2.
+- Primary 2025-vs-Jan-Sep-2026 feasibility fell from 102/105 (97.1%) at Geometry to 30/105 (28.6%) at Full. Greedy 1:1 support fell from 82/105 (78.1%) to 18/105 (17.1%).
+- Canonical feasibility attrition: State -3.8pp, Session -21.9pp, Coherence -30.5pp, Expansion Level -3.8pp, Persistence -8.6pp.
+- Order-robust Shapley-style feasibility loss shares: Session 38.0%, Coherence 22.9%, State 21.3%, Persistence 14.4%, Expansion Level 3.4%.
+- Classification: **DISTRIBUTED_MULTIDIMENSIONAL_COLLAPSE**; Session+Coherence top-two share 60.9% (<70%), and four dimensions each contribute >=10%.
+- Leave-one-out: removing Session restores +35.2pp feasibility, Coherence +21.0pp, State +18.1pp, Persistence +8.6pp, Expansion Level only +1.9pp.
+- Larger pre-Permission event sample retains 65.1% Full feasibility but only 26.4% greedy support, showing policy-sample size / donor competition materially amplifies pairwise matching failure.
+- Expansion Level is descriptively higher in 2026 but is not the main common-support bottleneck; Expansion Persistence is a stronger historical separator and major donor-scarcity dimension.
+- Experiment 3 explains why matching failed, not why 2026 lost money. Productive/Destructive Expansion remains deferred; Pristine OOS remains sealed.
+
+## 2026-10-05 — Common-Support Failure Audit v0.1 result
+- Outcome-blind audit completed from base 8b50a67.
+- Primary classification: **DISTRIBUTED MULTIDIMENSIONAL COLLAPSE**.
+- Primary 2025-vs-Jan-Sep-2026 feasibility declined from 97.14% under Geometry to 28.57% under full Geometry+Composition; greedy 1:1 coverage declined from 78.10% to 17.14%.
+- Canonical attrition: State -3.81pp feasibility, Session -21.90pp, Coherence -30.48pp, Expansion Level -3.81pp, Persistence -8.57pp.
+- Order-robust feasibility attribution: Session 37.99%, Coherence 22.94%, State 21.32%, Persistence 14.38%, Expansion Level 3.38%. Top two = 60.93%; four dimensions >=10%, satisfying distributed-collapse criterion.
+- Leave-one-out: removing Session restored +35.24pp feasibility; Coherence +20.95pp; State +18.10pp; Persistence +8.57pp; Expansion Level +1.90pp.
+- Larger pre-Permission event sample retained 65.08% full feasibility but only 26.45% greedy coverage, exposing strong donor competition / allocation loss.
+- Historical 2023-2024 vs 2026 made Expansion Persistence the largest feasibility contributor (37.89%), consistent with a gradual descriptor transition into 2025/2026, but not a PnL-causal conclusion.
+- Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
