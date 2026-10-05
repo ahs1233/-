@@ -1,0 +1,24 @@
+{
+  "reference_head": "b9f645b6781021b923430710afd9881d25a9d009",
+  "verified": {
+    "D01_bid_only_long_execution": true,
+    "D02_signal_order_combined_drawdown": true,
+    "D03_wave_pseudo_h1_sampling": true,
+    "D04_observation_count_time_semantics": true,
+    "D05_future_label_filtered_event_stream": true,
+    "D06_signal_year_split_without_outcome_boundary": true,
+    "D07_control_raw_features": true,
+    "D07_max_adverse_anchor_empirical_max_abs": 0.0,
+    "D08_m5_both_bar_stop_first_without_m1": true,
+    "source_has_bid_and_ask": true
+  },
+  "m1_resolution": {
+    "ambiguous_m5_seen": 13,
+    "resolved_by_m1": 9,
+    "unresolved_same_m1_or_missing": 4
+  },
+  "data_meta": {
+    "files": 2672,
+    "raw_m1_rows": 3042196
+  }
+}

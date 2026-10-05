@@ -848,3 +848,26 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - frozen risk map before expansion-aware PnL
 - 2025-2026 not retuned
 - Pristine Forward OOS read=false
+
+## 2026-10-05 — GTGLAB2-0047 — measurement_execution_audit_v01
+
+**Reference:** clean worktree branch `research/gtglab2-measurement-audit-v01`, base `b9f645b`.
+
+**Protocol:** `492ad7a`
+
+**Implementation:** `bd6b2b6`
+
+**Action:** Audited and corrected measurement/execution without changing frozen triggers, state sets, stop/target multipliers, or Health thresholds. Added true Bid/Ask aggregation, ASK long entry, BID exits, true completed H1 structural features, full decision-time event streams independent of label availability, outcome-time split boundaries, normalized Control Transfer raw distances, M1 same-bar ordering resolution, and chronological M5 mark-to-market portfolio accounting.
+
+**Key result:** Old live signal set repriced for quoted spread fell from +108.114R to +5.513R. Corrected refit architecture produced +46.036R PF 1.064. Scalper became -23.432R PF .880; Swing remained +69.468R PF 1.132. 2026 remained negative at -9.999R.
+
+**Verification:**
+- 607,272 M5 / 201,591 M15 / 49,699 H1, same bar counts as reference
+- All 4,731 Scalper and 5,107 Swing decision-time eligible events scored
+- Train/Validation label boundary violations: 0
+- combined trade PnL exactly reconciles to final realized portfolio PnL
+- portfolio M5 MTM DD: -27.443R
+- M5 both-bar cases: 13; 9 resolved by M1, 4 remained same-M1 ambiguous and used conservative STOP-first
+- Pristine Forward OOS read=false
+
+**Decision:** Measurement audit passed. Do not promote. Do not build Productive/Destructive Expansion classifier yet. Execute Experiment 2 next.

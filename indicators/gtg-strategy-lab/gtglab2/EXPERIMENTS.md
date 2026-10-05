@@ -339,3 +339,12 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Control check: the index also identified 2020 expansion, so it is not merely a year/high-price detector.
 - Frozen expansion-aware risk reduced combined 2026 loss from -16.505R to -8.109R, but reduced full-period R from +108.114R to +87.071R. Swing 2026 improved from -13.012R to -5.315R with DD -17.309R -> -7.597R.
 - Decision: retain Expansion Index as top-level context; reject the current blunt risk map as final sizing logic. Next focus is Expansion Persistence + State Interaction.
+
+## 2026-10-05 — Measurement & Execution Audit v0.1
+- Rebuilt GTGLab2 measurement on a clean worktree at reference b9f645b using historical Bid+Ask instead of bid-only long execution.
+- Verified defects: bid-only long entry, signal-ordered combined DD, pseudo-H1 Wave sampling, future-label-filtered permission stream, split-boundary outcome leakage, raw Control Transfer distances, degenerate max_adverse_anchor_atr, and unresolved M5 both-bar ordering.
+- Pure price-side attribution on the old live signal set: +108.114R reported -> +5.513R after ASK-entry/BID-exit quoted spread; 47 old signals became non-executable (46 Scalper, 1 Swing).
+- Corrected architecture after required refit: Combined 1,673 trades +46.036R PF 1.064; M5 MTM DD -27.443R. Scalper -23.432R PF .880; Swing +69.468R PF 1.132.
+- Corrected 2026 combined remains negative at -9.999R PF .831; 2025 remains +24.251R PF 1.332.
+- Additional 0.25x quoted-spread adverse slippage per side reduces corrected combined to +4.909R PF 1.007; 0.50x makes it negative. Swing retains more cost cushion; Scalper has none.
+- Decision: Audit PASS, trading promotion NO-GO. Scalper current form NO-GO; Swing retained for research. Next: opportunity composition vs conditional path change before any Productive/Destructive Expansion model.
