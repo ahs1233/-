@@ -4,6 +4,7 @@ import json, math, sys
 import numpy as np
 import pandas as pd
 from scipy.stats import ks_2samp
+from numba import njit
 
 HERE=Path(__file__).resolve()
 GTG=HERE.parents[1]
@@ -186,63 +187,92 @@ def caliper_ok(tv,dv,stage,scales,removed):
             return False
     return True
 
+@njit(cache=True)
+def _greedy_match_numba(d_raw,d_z,t_raw,t_z,d_state,t_state,d_session,t_session,active,iqr,full_mode):
+    nd=d_raw.shape[0]
+    nt=t_raw.shape[0]
+    available=np.ones(nd,np.uint8)
+    out_idx=np.full(nt,-1,np.int64)
+    out_dist=np.full(nt,np.nan,np.float64)
+    nvars=6 if full_mode else 3
+    for i in range(nt):
+        best=-1
+        best_dist=1.0e308
+        for j in range(nd):
+            if available[j]==0:
+                continue
+            if active[0] and abs(d_raw[j,0]-t_raw[i,0])>0.5*iqr[0]:
+                continue
+            if active[1] and abs(d_raw[j,1]-t_raw[i,1])>0.5*iqr[1]:
+                continue
+            if abs(d_raw[j,2]-t_raw[i,2])>2.0:
+                continue
+            if full_mode:
+                if d_state[j]!=t_state[i] or d_session[j]!=t_session[i]:
+                    continue
+                if active[3] and abs(d_raw[j,3]-t_raw[i,3])>0.5*iqr[3]:
+                    continue
+                if abs(d_raw[j,4]-t_raw[i,4])>0.20:
+                    continue
+                if abs(d_raw[j,5]-t_raw[i,5])>0.20:
+                    continue
+            dist=0.0
+            for k in range(nvars):
+                if active[k]:
+                    dist+=abs(d_z[j,k]-t_z[i,k])
+            if dist<best_dist:
+                best_dist=dist
+                best=j
+        if best>=0:
+            out_idx[i]=best
+            out_dist[i]=best_dist
+            available[best]=0
+    return out_idx,out_dist
+
 def match_nn(donor,target,stage,scales,removed):
     vars_=GEOM_VARS if stage=="geometry" else FULL_CONT
     req=list(vars_)
-    if stage=="full": req+=EXACT_VARS
+    if stage=="full":
+        req+=EXACT_VARS
     d=donor.copy(); t=target.copy()
     d_complete=d[req].notna().all(axis=1)
     t_complete=t[req].notna().all(axis=1)
     d2=d[d_complete].copy().sort_values(["signal_t","row_id"]).reset_index(drop=True)
     t2=t[t_complete].copy().sort_values(["signal_t","row_id"]).reset_index(drop=True)
-    active_vars=[v for v in vars_ if v not in removed]
-    d2=standardize(d2,scales,active_vars)
-    t2=standardize(t2,scales,active_vars)
 
-    n=len(d2)
-    available=np.ones(n,dtype=bool)
+    raw_vars=FULL_CONT
+    d_raw=d2[raw_vars].to_numpy(np.float64)
+    t_raw=t2[raw_vars].to_numpy(np.float64)
+    active=np.array([v not in removed for v in raw_vars],dtype=np.bool_)
+    med=np.array([float(scales[v]["median"]) for v in raw_vars],dtype=np.float64)
+    iqr=np.array([float(scales[v]["iqr"]) for v in raw_vars],dtype=np.float64)
+    safe_iqr=np.where(iqr>0,iqr,1.0)
+    d_z=(d_raw-med)/safe_iqr
+    t_z=(t_raw-med)/safe_iqr
+
+    d_state=d2.state_id.to_numpy(np.int64) if "state_id" in d2 else np.zeros(len(d2),np.int64)
+    t_state=t2.state_id.to_numpy(np.int64) if "state_id" in t2 else np.zeros(len(t2),np.int64)
+    smap={"S0":0,"S1":1,"S2":2,"S3":3}
+    d_session=d2.session_bucket_utc.map(smap).fillna(-1).to_numpy(np.int64) if "session_bucket_utc" in d2 else np.zeros(len(d2),np.int64)
+    t_session=t2.session_bucket_utc.map(smap).fillna(-1).to_numpy(np.int64) if "session_bucket_utc" in t2 else np.zeros(len(t2),np.int64)
+
+    out_idx,out_dist=_greedy_match_numba(
+        d_raw,d_z,t_raw,t_z,d_state,t_state,d_session,t_session,active,iqr,stage=="full"
+    )
+
     donor_signal=d2.signal_t.to_numpy(np.int64)
     donor_row=d2.row_id.astype(str).to_numpy()
-    dz={v:d2[v+"_z"].to_numpy(float) for v in active_vars}
-    draw={v:d2[v].to_numpy(float) for v in vars_}
-    if stage=="full":
-        dst=d2.state_id.to_numpy()
-        dsession=d2.session_bucket_utc.astype(str).to_numpy()
-
+    target_signal=t2.signal_t.to_numpy(np.int64)
+    target_row=t2.row_id.astype(str).to_numpy()
     pairs=[]
-    for tr in t2.itertuples(index=False):
-        mask=available.copy()
-
-        if "entry_distance_anchor_atr" not in removed:
-            mask &= np.abs(draw["entry_distance_anchor_atr"]-float(tr.entry_distance_anchor_atr)) <= 0.5*scales["entry_distance_anchor_atr"]["iqr"]
-        if "entry_spread_r" not in removed:
-            mask &= np.abs(draw["entry_spread_r"]-float(tr.entry_spread_r)) <= 0.5*scales["entry_spread_r"]["iqr"]
-        mask &= np.abs(draw["bars_from_anchor"]-float(tr.bars_from_anchor)) <= 2
-
-        if stage=="full":
-            mask &= (dst==tr.state_id)
-            mask &= (dsession==str(tr.session_bucket_utc))
-            if "signed_coherence_24h" not in removed:
-                mask &= np.abs(draw["signed_coherence_24h"]-float(tr.signed_coherence_24h)) <= 0.5*scales["signed_coherence_24h"]["iqr"]
-            mask &= np.abs(draw["expansion_level"]-float(tr.expansion_level)) <= 0.20
-            mask &= np.abs(draw["expansion_persistence"]-float(tr.expansion_persistence)) <= 0.20
-
-        idx=np.flatnonzero(mask)
-        if len(idx)==0:
+    for i,di in enumerate(out_idx):
+        if di<0:
             continue
-
-        dist=np.zeros(len(idx),dtype=float)
-        for v in active_vars:
-            dist += np.abs(dz[v][idx]-float(getattr(tr,v+"_z")))
-        min_dist=float(np.min(dist))
-        tied=idx[dist==min_dist]
-        di=int(tied[0])
         pairs.append({
-            "target_row_id":str(tr.row_id),"donor_row_id":str(donor_row[di]),
-            "target_signal_t":int(tr.signal_t),"donor_signal_t":int(donor_signal[di]),
-            "distance":min_dist
+            "target_row_id":str(target_row[i]),"donor_row_id":str(donor_row[di]),
+            "target_signal_t":int(target_signal[i]),"donor_signal_t":int(donor_signal[di]),
+            "distance":float(out_dist[i])
         })
-        available[di]=False
 
     p=pd.DataFrame(pairs)
     meta={
