@@ -531,3 +531,41 @@ The supporting event sample does show severe donor competition, but it is diagno
 
 The next experiment should be selected from this result, not by modifying Experiment 2 post hoc.
 
+
+
+# 18. Post-close computational verification — maximum-cardinality matching
+
+This is a limited graph-allocation verification requested after Experiment 3 was closed. It does not change any caliper, support edge, outcome, or primary classification.
+
+On the exact same allowed donor-target bipartite networks, maximum-cardinality matching was compared with the frozen greedy 1:1 allocator.
+
+| Contrast | Stage | Feasible targets | Greedy | Maximum cardinality | Greedy shortfall |
+|---|---|---:|---:|---:|---:|
+| Primary 2025 vs 2026 | Geometry | 102 | 82 | 91 | 9 |
+| Primary 2025 vs 2026 | Full | 30 | 18 | **20** | **2** |
+| Seasonal 2025JS vs 2026 | Geometry | 100 | 60 | 66 | 6 |
+| Seasonal 2025JS vs 2026 | Full | 24 | 12 | **13** | **1** |
+| 2023-24 vs 2026 | Geometry | 103 | 85 | 103 | 18 |
+| 2023-24 vs 2026 | Full | 5 | 2 | **2** | **0** |
+| Supporting events 2025 vs 2026 | Geometry | 479 | 340 | 412 | 72 |
+| Supporting events 2025 vs 2026 | Full | 315 | 128 | **134** | **6** |
+
+Interpretation:
+
+- At Geometry-only stages, greedy allocation can materially understate the largest possible pair count.
+- At the final Full network, however, the greedy shortfall is small:
+  - Primary: +2 pairs possible at most (18 -> 20).
+  - Seasonal: +1.
+  - Historical: +0.
+  - Supporting events: +6.
+- Therefore the severe Full-support collapse is not primarily an artifact of greedy allocation.
+- Maximum cardinality still leaves 85 / 105 primary 2026 targets unmatched under the frozen Full network.
+
+This verification refines the earlier donor-competition wording:
+
+> Donor competition exists, especially at Geometry-only stages, but final Full-support failure is dominated by network sparsity / lack of admissible comparable donors under the frozen multidimensional constraints. Greedy suboptimality explains only a small part of the final Full pair deficit.
+
+Artifact:
+- runs/common-support-failure-audit-v01/maximum_cardinality_verification.csv
+
+This remains a support-graph statement only. It is not a PnL result and does not identify the cause of 2026 losses.

@@ -955,3 +955,13 @@ Primary 2025 vs Jan-Sep 2026 Swing Shadow:
 **Supporting events:** full feasibility 65.08% but greedy 26.45%, showing that larger sample improves feasible overlap while 1:1 donor competition remains severe.
 
 **Decision:** Experiment 3 explains why Experiment 2 lacked support but does not identify the cause of 2026 PnL. Do not loosen Experiment 2. Do not build Productive/Destructive Expansion yet. Pristine OOS read=false.
+
+## 2026-10-05 — GTGLAB2-0050 post-close verification — maximum-cardinality matching
+- Computed maximum-cardinality bipartite matching on the exact frozen Geometry and Full compatibility networks; no edge/caliper changed.
+- Primary Full: greedy 18 vs maximum 20.
+- Seasonal Full: 12 vs 13.
+- Historical Full: 2 vs 2.
+- Supporting-event Full: 128 vs 134.
+- Geometry-only greedy shortfall is larger, but Full-stage shortfall is small.
+- Conclusion refinement: final Full-support collapse is dominated by sparse admissible overlap, not by greedy allocator inefficiency.
+- No PnL/outcome used. Experiment 3 primary classification remains DISTRIBUTED_MULTIDIMENSIONAL_COLLAPSE.
