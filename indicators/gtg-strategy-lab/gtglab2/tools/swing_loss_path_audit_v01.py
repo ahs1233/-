@@ -403,7 +403,7 @@ def main():
             "mfe_p75":float(g.pre_exit_mfe_r.quantile(.75)),
             "mae_p25":float(g.pre_exit_mae_r.quantile(.25)),
             "mae_p75":float(g.pre_exit_mae_r.quantile(.75)),
-            "median_observed_min_to_exit":float(((g.exit_available_t-g.entry_t)/60000).median())
+            "median_elapsed_clock_min_to_exit":float(((g.exit_available_t-g.entry_t)/60000).median())
         })
         exit_rows.append(r)
     pd.DataFrame(exit_rows).to_csv(OUT/"exit_class_summary.csv",index=False)
