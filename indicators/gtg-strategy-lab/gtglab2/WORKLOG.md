@@ -1046,3 +1046,23 @@ Primary 2025 vs Jan-Sep 2026 Swing Shadow:
 **Classification:** INSUFFICIENT_INCREMENTAL_REENTRY_SAMPLE because n_second=0. The protocol's formal REFERENCE_ALREADY_CAPTURES threshold was not met because exact reference capture was 53.27% of 963 fully-valid assigned fresh events; the remaining 46.73% were blocked by open positions rather than executable while flat.
 
 **Decision:** Reject adding an Idea Memory / Fresh-Reclaim re-entry layer under the current architecture. Any nonzero sample would require a new hypothesis changing concurrency, priority, delayed-entry behavior, or eligibility. OOS unread.
+
+## 2026-10-05 — GTGLAB2-0054 — hold_vs_fresh_reclaim_replace_priority_v01
+
+**Protocol:** `fa4a842`
+
+**Implementation:** `0487c5f`
+
+**Base:** `c4c95b8`
+
+**Reference verification:** HOLD rebuilt from the same full event stream reproduced 1,177 trades, exact signal sequence, yearly counts, and per-trade/total R within 5.7e-14 numerical tolerance.
+
+**Causal contracts:** one-position maximum; causal occupancy cycle; one switch max; replacement horizon capped at first-position 864-M5 horizon; fixed 1R cash loss budget not replenished after partial loss; Ask/Bid atomic conversion cost; no extra time or pyramiding.
+
+**Result:** 587 switches. HOLD +79.6536R vs REPLACE +34.3794R. Raw delta -45.2742R. Gross nominal risk 1177R vs 1594.524R; gross-risk-matched HOLD +107.9095R, making adjusted delta -73.5301R. Efficiency 0.06768 -> 0.02156. MTM DD -30.62 -> -37.75R.
+
+**Segments:** delta -33.07R / -11.93R / -0.278R for 2018-22 / 2023-24 / 2025-26.
+
+**Bootstrap:** 2,000 five-trading-day blocks, CI [-81.157,-10.216] for total REPLACE-HOLD R.
+
+**Decision:** KEEP_HOLD_PRIORITY. Current open Swing position retains capital priority over the first fresh eligible HIGH_RECLAIM. No switch layer is promoted. OOS unread.

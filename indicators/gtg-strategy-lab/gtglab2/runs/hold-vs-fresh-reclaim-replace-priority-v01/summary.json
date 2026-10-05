@@ -1,0 +1,287 @@
+{
+  "scope": "Hold vs Fresh-Reclaim Replace Priority v0.1",
+  "protocol_commit": "fa4a842",
+  "base_commit": "c4c95b8",
+  "pristine_forward_oos_read": false,
+  "cost_contract": "historical quoted spread included via Ask entry/Bid exit including atomic switch; commission/financing excluded",
+  "hold_reconstruction": {
+    "n_match": true,
+    "signal_sequence_match": true,
+    "year_counts_match": true,
+    "total_r_abs_diff": 5.684341886080802e-14,
+    "max_trade_pnl_abs_diff": 5.684341886080802e-14,
+    "total_r_match": true,
+    "trade_pnl_match": true,
+    "all_pass": true
+  },
+  "invariants": {
+    "hold_reconstruction_pass": true,
+    "replace_max_one_switch_per_cycle": true,
+    "replace_max_risk_weight_le_1": true,
+    "replacement_horizon_cap": true,
+    "no_budget_refill": true
+  },
+  "hold_metrics": {
+    "trade_legs": 1177,
+    "cycles": 1177,
+    "total_r": 79.65358256399136,
+    "gross_nominal_risk_deployed": 1177.0,
+    "efficiency": 0.06767509138826794,
+    "profit_factor": 1.1141716047218198,
+    "mean_r_per_cycle": 0.06767509138826794,
+    "positive_cycle_rate": 0.405267629566695,
+    "risk_weighted_holding_m5_bars": 172997.0
+  },
+  "replace_metrics": {
+    "trade_legs": 1736,
+    "cycles": 1149,
+    "total_r": 34.37941742667388,
+    "gross_nominal_risk_deployed": 1594.5236059472472,
+    "efficiency": 0.021560933496654222,
+    "profit_factor": 1.048533545774852,
+    "mean_r_per_cycle": 0.029921163991883257,
+    "positive_cycle_rate": 0.42384682332463014,
+    "risk_weighted_holding_m5_bars": 148012.41693899108
+  },
+  "hold_portfolio": {
+    "stream": "HOLD",
+    "mtm_max_drawdown_r": -30.621817366922063,
+    "max_concurrent_trades": 1,
+    "max_concurrent_initial_risk": 1.0,
+    "final_realized_r": 79.65358256399135
+  },
+  "replace_portfolio": {
+    "stream": "REPLACE",
+    "mtm_max_drawdown_r": -37.745134577906434,
+    "max_concurrent_trades": 1,
+    "max_concurrent_initial_risk": 1.0,
+    "final_realized_r": 34.379417426673896
+  },
+  "lambda_gross_risk_match": 1.3547354341098108,
+  "gross_risk_matched_hold_total_r": 107.9095307532305,
+  "delta_vs_hold_r": -45.27416513731748,
+  "delta_vs_gross_risk_matched_hold_r": -73.53011332655662,
+  "efficiency_delta": -0.046114157891613716,
+  "switch_count": 587,
+  "switch_by_segment": {
+    "2018-2022": 333,
+    "2023-2024": 141,
+    "2025-2026": 113
+  },
+  "screen_counts": {
+    "POST_SWITCH_IGNORED": 768,
+    "SWITCH_EXECUTED": 587,
+    "PERMISSION_REJECT": 186
+  },
+  "switch_outcomes": {
+    "both_legs_loss_rate": 0.5059625212947189,
+    "replacement_positive_rate": 0.3594548551959114,
+    "replacement_target_rate": 0.3526405451448041
+  },
+  "concentration": {
+    "switched_cycles": 587,
+    "local_delta_sum_r": -29.234792152773082,
+    "top5_local_delta_r": 13.704295648649003,
+    "top10_local_delta_r": 25.125673883424618,
+    "best_local_delta_r": 3.2221193665500847,
+    "worst_local_delta_r": -3.183824330705875,
+    "note": "Local same-initial-cycle deltas are descriptive and need not sum to full portfolio delta because replacement changes downstream occupancy."
+  },
+  "bootstrap": {
+    "replications": 2000,
+    "point_total_delta_r": -45.27416513731749,
+    "bootstrap_mean": -43.67133263151258,
+    "ci_low": -81.1569210955108,
+    "ci_high": -10.215665068255412
+  },
+  "segment_results": [
+    {
+      "segment": "2018-2022",
+      "n_cycles_hold": 661,
+      "total_r_hold": 34.98565792954317,
+      "mean_r_hold": 0.05292837810823475,
+      "positive_rate_hold": 0.4039334341906203,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 660,
+      "total_r_replace": 1.9153152799361886,
+      "mean_r_replace": 0.0029019928483881643,
+      "positive_rate_replace": 0.4212121212121212,
+      "switch_cycles_replace": 333,
+      "delta_r": -33.070342649606985
+    },
+    {
+      "segment": "2023-2024",
+      "n_cycles_hold": 289,
+      "total_r_hold": 30.861125150793747,
+      "mean_r_hold": 0.10678590017575691,
+      "positive_rate_hold": 0.4186851211072664,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 280,
+      "total_r_replace": 18.93526620811572,
+      "mean_r_replace": 0.06762595074327044,
+      "positive_rate_replace": 0.4357142857142857,
+      "switch_cycles_replace": 141,
+      "delta_r": -11.925858942678026
+    },
+    {
+      "segment": "2025-2026",
+      "n_cycles_hold": 227,
+      "total_r_hold": 13.806799483654437,
+      "mean_r_hold": 0.060822905214336725,
+      "positive_rate_hold": 0.3920704845814978,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 209,
+      "total_r_replace": 13.528835938621967,
+      "mean_r_replace": 0.06473127243359793,
+      "positive_rate_replace": 0.41626794258373206,
+      "switch_cycles_replace": 113,
+      "delta_r": -0.27796354503247045
+    }
+  ],
+  "yearly_results": [
+    {
+      "cycle_start_year": 2018,
+      "n_cycles_hold": 105,
+      "total_r_hold": 15.723006380898129,
+      "mean_r_hold": 0.1497429179133155,
+      "positive_rate_hold": 0.4,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 102,
+      "total_r_replace": -1.1890170271231635,
+      "mean_r_replace": -0.011657029677678073,
+      "positive_rate_replace": 0.4019607843137255,
+      "switch_cycles_replace": 57,
+      "delta_r": -16.91202340802129
+    },
+    {
+      "cycle_start_year": 2019,
+      "n_cycles_hold": 106,
+      "total_r_hold": 0.5276018483298306,
+      "mean_r_hold": 0.004977375927639911,
+      "positive_rate_hold": 0.4056603773584906,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 107,
+      "total_r_replace": 6.5996135598635925,
+      "mean_r_replace": 0.061678631400594326,
+      "positive_rate_replace": 0.45794392523364486,
+      "switch_cycles_replace": 52,
+      "delta_r": 6.0720117115337615
+    },
+    {
+      "cycle_start_year": 2020,
+      "n_cycles_hold": 129,
+      "total_r_hold": 9.758340989594291,
+      "mean_r_hold": 0.07564605418290149,
+      "positive_rate_hold": 0.4263565891472868,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 128,
+      "total_r_replace": 2.761762246054264,
+      "mean_r_replace": 0.02157626754729894,
+      "positive_rate_replace": 0.4375,
+      "switch_cycles_replace": 63,
+      "delta_r": -6.996578743540027
+    },
+    {
+      "cycle_start_year": 2021,
+      "n_cycles_hold": 157,
+      "total_r_hold": -12.280719628197756,
+      "mean_r_hold": -0.07822114412864813,
+      "positive_rate_hold": 0.3821656050955414,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 156,
+      "total_r_replace": -21.36310734149678,
+      "mean_r_replace": -0.13694299577882552,
+      "positive_rate_replace": 0.38461538461538464,
+      "switch_cycles_replace": 81,
+      "delta_r": -9.082387713299022
+    },
+    {
+      "cycle_start_year": 2022,
+      "n_cycles_hold": 164,
+      "total_r_hold": 21.257428338918686,
+      "mean_r_hold": 0.1296184654812115,
+      "positive_rate_hold": 0.40853658536585363,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 167,
+      "total_r_replace": 15.106063842638271,
+      "mean_r_replace": 0.09045547211160641,
+      "positive_rate_replace": 0.4311377245508982,
+      "switch_cycles_replace": 80,
+      "delta_r": -6.151364496280415
+    },
+    {
+      "cycle_start_year": 2023,
+      "n_cycles_hold": 151,
+      "total_r_hold": 7.238620130126842,
+      "mean_r_hold": 0.04793788165646915,
+      "positive_rate_hold": 0.3973509933774834,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 144,
+      "total_r_replace": -0.7776803701930677,
+      "mean_r_replace": -0.0054005581263407475,
+      "positive_rate_replace": 0.4166666666666667,
+      "switch_cycles_replace": 70,
+      "delta_r": -8.01630050031991
+    },
+    {
+      "cycle_start_year": 2024,
+      "n_cycles_hold": 138,
+      "total_r_hold": 23.622505020666907,
+      "mean_r_hold": 0.1711775726135283,
+      "positive_rate_hold": 0.4420289855072464,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 136,
+      "total_r_replace": 19.712946578308788,
+      "mean_r_replace": 0.14494813660521166,
+      "positive_rate_replace": 0.45588235294117646,
+      "switch_cycles_replace": 71,
+      "delta_r": -3.9095584423581187
+    },
+    {
+      "cycle_start_year": 2025,
+      "n_cycles_hold": 122,
+      "total_r_hold": 22.14389326265521,
+      "mean_r_hold": 0.18150732182504273,
+      "positive_rate_hold": 0.4344262295081967,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 111,
+      "total_r_replace": 18.28736614966484,
+      "mean_r_replace": 0.16475104639337695,
+      "positive_rate_replace": 0.4594594594594595,
+      "switch_cycles_replace": 59,
+      "delta_r": -3.8565271129903707
+    },
+    {
+      "cycle_start_year": 2026,
+      "n_cycles_hold": 105,
+      "total_r_hold": -8.337093779000778,
+      "mean_r_hold": -0.07940089313334074,
+      "positive_rate_hold": 0.34285714285714286,
+      "switch_cycles_hold": 0,
+      "n_cycles_replace": 98,
+      "total_r_replace": -4.758530211042874,
+      "mean_r_replace": -0.04855643072492729,
+      "positive_rate_replace": 0.3673469387755102,
+      "switch_cycles_replace": 54,
+      "delta_r": 3.5785635679579038
+    }
+  ],
+  "classification": "KEEP_HOLD_PRIORITY",
+  "classification_detail": {
+    "minimum_switch_sample_pass": true,
+    "switch_cycles_total": 587,
+    "switch_cycles_by_segment": {
+      "2018-2022": 333,
+      "2023-2024": 141,
+      "2025-2026": 113
+    },
+    "lambda_gross": 1.3547354341098108,
+    "raw_delta_r": -45.27416513731748,
+    "gross_risk_matched_hold_total_r": 107.9095307532305,
+    "delta_vs_gross_risk_matched_hold_r": -73.53011332655662,
+    "efficiency_delta": -0.046114157891613716,
+    "dd_pass": false,
+    "segment_pass": false,
+    "bootstrap_ci_lower_positive": false
+  }
+}

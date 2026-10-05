@@ -1,0 +1,12 @@
+metric,value
+state_eligible_events,5107
+permission_on_events,2320
+geometry_valid_events,5099
+hold_selected_events,2320
+hold_overlap_skips,1137
+hold_executed,1177
+replace_cycles,1149
+replace_switch_cycles,587
+screen_POST_SWITCH_IGNORED,768
+screen_SWITCH_EXECUTED,587
+screen_PERMISSION_REJECT,186

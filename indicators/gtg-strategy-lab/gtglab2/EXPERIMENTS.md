@@ -442,3 +442,16 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Candidate policy therefore equals corrected reference exactly: +79.654R, PF 1.114, M5 MTM DD -30.622R, lambda_risk=1.0.
 - Conclusion: idea memory plus the same State/Permission/Ask geometry/pyramiding=0 adds no new executable trade. Do not rescue by changing concurrency, priority, delayed-entry, or eligibility inside this experiment.
 - Fresh-Reclaim Re-entry layer: DO NOT ADD. Pristine OOS remains sealed.
+
+## 2026-10-05 — Hold vs Fresh-Reclaim Replace Priority v0.1 result
+- Final class: **KEEP_HOLD_PRIORITY**.
+- HOLD reconstructed independently from the full corrected event stream and matched the 1,177-trade reference signal-by-signal and PnL-by-PnL.
+- REPLACE executed 587 independent switch cycles (333 / 141 / 113 across the three broad segments), so the minimum decision gate passed.
+- HOLD: +79.654R, PF 1.114, efficiency 0.06768R per gross risk unit, MTM DD -30.622R.
+- REPLACE: +34.379R, PF 1.049, efficiency 0.02156, MTM DD -37.745R.
+- Raw delta: -45.274R.
+- Gross-risk-matched HOLD total: +107.910R; REPLACE delta vs risk-matched HOLD: -73.530R.
+- 2,000 five-trading-day block-bootstrap CI for REPLACE-HOLD: [-81.157R, -10.216R].
+- REPLACE was worse in all three broad segments; it improved only 2019 and consumed-diagnostic 2026 at individual-year level.
+- Decision: retain pyramiding=0 and current-position priority. Do not add switch logic.
+- Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
