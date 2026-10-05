@@ -301,6 +301,32 @@ def resample_rows(df,calendar_days,rng,prefix,groups):
         parts.append(q)
     return pd.concat(parts,ignore_index=True) if parts else df.iloc[0:0].copy()
 
+def bootstrap_point(donor,target,scales):
+    combo,_,_,fitmeta=fit_propensity(donor,target,scales)
+    d=combo[combo["T"]==0]
+    t=combo[combo["T"]==1]
+    dw=d.overlap_weight.to_numpy(float)
+    tw=t.overlap_weight.to_numpy(float)
+    delta=wmean(t.pnl_r,tw)-wmean(d.pnl_r,dw)
+    max_smd=0.0
+    for v in DESIGN:
+        a=d[v].to_numpy(float); b=t[v].to_numpy(float)
+        va=np.var(a,ddof=1) if len(a)>1 else np.nan
+        vb=np.var(b,ddof=1) if len(b)>1 else np.nan
+        pooled=math.sqrt((va+vb)/2.0) if np.isfinite(va) and np.isfinite(vb) and (va+vb)>0 else 0.0
+        diff=wmean(b,tw)-wmean(a,dw)
+        smd=diff/pooled if pooled>0 else (0.0 if abs(diff)<1e-15 else np.inf)
+        max_smd=max(max_smd,abs(float(smd)))
+    de=ess(dw); te=ess(tw)
+    balance_pass=bool(max_smd<=.10)
+    ess_pass=bool(de>=50 and te>=50 and de/len(d)>=.40 and te/len(t)>=.40)
+    return {
+        "converged":fitmeta["converged"],
+        "delta_ow":float(delta),
+        "donor_ess":float(de),"target_ess":float(te),
+        "balance_pass":balance_pass,"ess_pass":ess_pass
+    }
+
 def bootstrap(donor,target,donor_days,target_days,scales,label,nrep=N_BOOT):
     rng=np.random.default_rng(SEED + sum(ord(c) for c in label))
     dg=day_groups(donor); tg=day_groups(target)
@@ -311,7 +337,7 @@ def bootstrap(donor,target,donor_days,target_days,scales,label,nrep=N_BOOT):
         if len(db)==0 or len(tb)==0:
             fitfail+=1; continue
         try:
-            _,bal,ov,_,_,meta=point_estimate(db,tb,scales,label+"_BOOT")
+            meta=bootstrap_point(db,tb,scales)
             if not meta["converged"] or not np.isfinite(meta["delta_ow"]):
                 fitfail+=1; continue
             vals.append(meta["delta_ow"])
