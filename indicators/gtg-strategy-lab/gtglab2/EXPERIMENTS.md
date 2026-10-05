@@ -359,3 +359,16 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Conditional Path Change is an outcome, never a matching variable.
 - Productive/Destructive Expansion modeling remains deferred until Experiment 2 shows a residual path effect.
 - Pristine Forward OOS remains sealed.
+
+## 2026-10-05 — Swing Opportunity Composition vs Conditional Path v0.1 preregistered
+- Experiment 2 is frozen as an information-gain diagnostic, not a PnL optimization.
+- Primary population: corrected Swing Shadow before Health, after frozen Permission and overlap prevention.
+- Supporting population: all corrected Swing state-eligible events before Permission, overlap prevention, and Health; overlapping event outcomes are diagnostic only and never portfolio PnL.
+- Primary contrast: full 2025 vs Jan-Sep 2026; mandatory calendar-balanced Jan-Sep 2025 vs Jan-Sep 2026 sensitivity; 2023-2024 are additional consumed historical references.
+- Sequential design: raw gap -> geometry-matched gap -> geometry+composition-matched gap -> post-entry path residual.
+- Matching uses pre-entry information only. Path outcomes (MAE/MFE, reclaim loss, anchor recross, time-to-barrier) are never matching inputs.
+- Train-only scales/calipers; exact State/session in full matching; common-support and balance gates are mandatory.
+- Economic materiality margin frozen at 0.05R/trade.
+- Dependence-aware moving-block bootstrap: 5 trading days, 2,000 replications, rematching each replication.
+- Final classification must be one of: GEOMETRY, COMPOSITION, CONDITIONAL PATH, INCONCLUSIVE.
+- No Productive/Destructive classifier; Pristine OOS remains sealed.
