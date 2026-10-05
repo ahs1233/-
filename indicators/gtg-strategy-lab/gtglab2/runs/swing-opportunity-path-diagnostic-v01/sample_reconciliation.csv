@@ -1,0 +1,3 @@
+sample,n,permission_on,execution_valid_resolved,invalid_or_censored,permission_and_valid,shadow_executed,permission_valid_not_shadow_overlap_or_suppressed
+ALL_EVENTS,5107,2320,5099,8,2314,1177,1137
+PRIMARY_SHADOW,1177,1177,1177,0,1177,1177,0

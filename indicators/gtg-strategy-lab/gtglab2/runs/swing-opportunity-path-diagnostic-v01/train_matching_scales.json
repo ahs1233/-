@@ -1,0 +1,39 @@
+{
+  "source_population": "all state-eligible Swing events 2018-2022",
+  "scales": {
+    "entry_distance_anchor_atr": {
+      "median": 0.7198459355550879,
+      "iqr": 0.4691033713615721,
+      "n": 2862
+    },
+    "entry_spread_r": {
+      "median": 0.054823130609587434,
+      "iqr": 0.03016173381728117,
+      "n": 2862
+    },
+    "bars_from_anchor": {
+      "median": 1.0,
+      "iqr": 1.0,
+      "n": 2862
+    },
+    "signed_coherence_24h": {
+      "median": -0.1610600773842099,
+      "iqr": 0.337584234614603,
+      "n": 2861
+    },
+    "expansion_level": {
+      "median": 0.4190263735472961,
+      "iqr": 0.5007016155146979,
+      "n": 2862
+    },
+    "expansion_persistence": {
+      "median": 0.11666666666666667,
+      "iqr": 0.375,
+      "n": 2849
+    }
+  },
+  "removed_zero_iqr": [],
+  "state_distance_train_q95": 4.088857713771301,
+  "train_atr_price_n": 27793,
+  "train_expansion_q75": 0.7500089950707013
+}

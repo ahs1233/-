@@ -887,3 +887,24 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Method:** Sequential raw -> geometry matching -> geometry+composition matching -> conditional post-entry path. Matching variables are pre-entry only. Common support, balance, 0.05R economic margin, and 5-trading-day block bootstrap are preregistered.
 
 **No execution yet. No model added. Pristine OOS remains unread.**
+
+## 2026-10-05 — GTGLAB2-0049 — Swing Opportunity Composition vs Conditional Path v0.1
+
+**Protocol:** `5ad2a38`
+
+**Implementation lineage:** `3885e4c` -> `ebd5fed` -> `7d5cea0` -> `041c621`.
+
+**Primary result:** INCONCLUSIVE.
+
+Primary 2025 vs Jan-Sep 2026 Swing Shadow:
+- Raw: 122 vs 105, delta -0.2609R, CI [-0.5610,-0.0038].
+- Geometry: 82 pairs, 78.1% target coverage, ADEQUATE support but FAILED balance (max |SMD| 1.022), delta -0.4295R.
+- Geometry+Composition: 18 pairs, 17.1% target coverage, INSUFFICIENT support and FAILED balance, delta -0.8324R with wide CI crossing both economically material signs.
+
+**Interpretation:** We did not find enough balanced comparable observations under the frozen design to estimate the conditional performance difference confidently. This does not distinguish genuine distributional change from finite sample size / strict multidimensional matching.
+
+**Supporting diagnostics:** pre-Permission events also show negative 2026 raw outcomes; matched support/balance remains inadequate. Path metrics are directionally worse in the 18-pair subset but are non-decisive.
+
+**Acceleration verification:** primary pair files and stage summary reproduced exact pre-acceleration SHA256 hashes. 1:1 no-replacement pairs have zero donor/target reuse.
+
+**Decision:** Do not relax calipers post hoc. Do not build Productive/Destructive Expansion model yet. Swing remains research-only. Pristine Forward OOS read=false.

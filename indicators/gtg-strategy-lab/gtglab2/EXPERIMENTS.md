@@ -372,3 +372,15 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Dependence-aware moving-block bootstrap: 5 trading days, 2,000 replications, rematching each replication.
 - Final classification must be one of: GEOMETRY, COMPOSITION, CONDITIONAL PATH, INCONCLUSIVE.
 - No Productive/Destructive classifier; Pristine OOS remains sealed.
+
+## 2026-10-05 — Swing Opportunity Composition vs Conditional Path v0.1 result
+- Primary classification: **INCONCLUSIVE**.
+- Primary corrected Swing Shadow: 2025 n=122 vs Jan-Sep 2026 n=105.
+- Raw delta 2026-2025 = -0.2609R/trade, 95% 5-day block-bootstrap CI [-0.5610, -0.0038]; under the frozen ±0.05R economic rule this remains INCONCLUSIVE.
+- Geometry matching produced 82 pairs (78.1% 2026 coverage) but balance FAILED, driven mainly by entry_spread_r SMD ≈ -1.02; only 54.6% of bootstrap replications achieved adequate support.
+- Full Geometry+Composition matching produced only 18 pairs (17.1% 2026 coverage, 14.8% 2025 coverage), support INSUFFICIENT, balance FAILED, and 0% of bootstrap replications achieved adequate support.
+- Calendar-balanced Jan-Sep comparison repeated the same failure: 12 full pairs, 11.4% target coverage, support INSUFFICIENT, balance FAILED.
+- Supporting pre-Permission event sample showed negative 2026 raw outcomes, but full matching still had insufficient support and failed balance; it does not override the primary classification.
+- Path diagnostics on 18 pairs pointed toward lower MFE / worse path asymmetry in 2026, but cannot establish CONDITIONAL PATH because the primary support/balance gates failed.
+- Acceleration implementation reproduced primary match identifiers/distances/exclusions and stage outputs bit-identically by SHA256; matching was 1:1 without replacement, unit weights, zero duplicate donors/targets.
+- Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.

@@ -1,0 +1,54 @@
+{
+  "experiment_id": "GTGLAB2-0049",
+  "accelerated_commit": "041c621",
+  "matching_contract": "deterministic 1:1 nearest-neighbor without replacement, unit weight",
+  "baseline_hashes": {
+    "primary_geometry_matches.csv": "316AEA216970E868D346832E3788E503DFA390CBA51516B172195A2B2BB477AC",
+    "primary_full_matches.csv": "83C2EF41F83887846CFBE540B4DDC2F77D71A5144C923C1D7F24779541231683",
+    "calendar_balanced_matches.csv": "86C3AF77153FFDB969D6CD4AD15606E13CDB83B997CA3A628734359D068BF1DB",
+    "historical_reference_matches.csv": "55BF122F96DD263ABBB43B9C54A0EC1E8E5B5383678E62E4B0B07700653FFEE0",
+    "stage_summary.csv": "B90CAA7E604AEDDAB719D9D9C30153AC150FFC2886490039A09F8481121C16B4"
+  },
+  "accelerated_hashes": {
+    "primary_geometry_matches.csv": "316AEA216970E868D346832E3788E503DFA390CBA51516B172195A2B2BB477AC",
+    "primary_full_matches.csv": "83C2EF41F83887846CFBE540B4DDC2F77D71A5144C923C1D7F24779541231683",
+    "calendar_balanced_matches.csv": "86C3AF77153FFDB969D6CD4AD15606E13CDB83B997CA3A628734359D068BF1DB",
+    "historical_reference_matches.csv": "55BF122F96DD263ABBB43B9C54A0EC1E8E5B5383678E62E4B0B07700653FFEE0",
+    "stage_summary.csv": "B90CAA7E604AEDDAB719D9D9C30153AC150FFC2886490039A09F8481121C16B4"
+  },
+  "pair_uniqueness": {
+    "primary_geometry": {
+      "rows": 82,
+      "unique_target": 82,
+      "unique_donor": 82,
+      "target_duplicates": 0,
+      "donor_duplicates": 0,
+      "weight": 1
+    },
+    "primary_full": {
+      "rows": 18,
+      "unique_target": 18,
+      "unique_donor": 18,
+      "target_duplicates": 0,
+      "donor_duplicates": 0,
+      "weight": 1
+    },
+    "calendar_balanced_full": {
+      "rows": 12,
+      "unique_target": 12,
+      "unique_donor": 12,
+      "target_duplicates": 0,
+      "donor_duplicates": 0,
+      "weight": 1
+    },
+    "historical_full": {
+      "rows": 2,
+      "unique_target": 2,
+      "unique_donor": 2,
+      "target_duplicates": 0,
+      "donor_duplicates": 0,
+      "weight": 1
+    }
+  },
+  "result": "PASS_BIT_IDENTICAL_PRIMARY_MATCH_OUTPUTS"
+}
