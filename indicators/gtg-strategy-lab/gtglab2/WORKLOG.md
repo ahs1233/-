@@ -831,3 +831,20 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Health uses only trades closed before next entry
 - No 2025-2026 retuning
 - Pristine Forward OOS read=false
+
+## 2026-10-05 — GTGLAB2-0046 — movement_expansion_index_v01
+
+**Action:** Converted the user's 2025->2026 gradual gold expansion hypothesis into a causal Movement Expansion Index using percent-normalized movement scale, volatility-of-volatility, expansion velocity, and acceleration. Applied the frozen index above Integrated Decision Architecture v0.1.
+
+**Result:** Expansion rose progressively from mean index +0.310 in 2024 to +0.668 in 2025 and +1.470 in 2026. High/Extreme share rose 20.1% -> 29.1% -> 54.6%, while 2026 spent 85.8% of contexts in High/Extreme/Cooldown. The frozen expansion-aware risk map cut 2026 combined loss roughly in half (-16.505R -> -8.109R), and Swing 2026 from -13.012R to -5.315R, but full-period R fell to +87.071R because the map was deliberately conservative.
+
+**Files:**
+- `indicators/gtg-strategy-lab/gtglab2/PROTOCOL_MOVEMENT_EXPANSION_INDEX_V01.md`
+- `indicators/gtg-strategy-lab/gtglab2/RESULT_MOVEMENT_EXPANSION_INDEX_V01_2026-10-05.md`
+
+**Verification:**
+- no year identity feature
+- train-only 2018-2022 normalization and thresholds
+- frozen risk map before expansion-aware PnL
+- 2025-2026 not retuned
+- Pristine Forward OOS read=false
