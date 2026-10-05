@@ -130,10 +130,10 @@ def enrich_events(events,x,h1ctx,state_dist,state_q95,permission,shadow,live):
     return q
 
 def build_primary(shadow,enriched):
-    cols=["signal_t","entry_t","entry_distance_anchor_atr","entry_spread_r","entry_rr",
+    cols=["signal_t","entry_t","entry_distance_anchor_atr","entry_spread_r",
           "stop_distance_atr","target_distance_atr","bars_from_anchor","session_bucket_utc",
           "signed_coherence_24h","expansion_level","expansion_persistence","state_distance",
-          "state_novel_train_q95","anchor_high","anchor_low","trading_day","month"]
+          "state_novel_train_q95","anchor_high","trading_day","month"]
     pre=enriched[cols].drop_duplicates("signal_t")
     q=shadow.merge(pre,on=["signal_t","entry_t"],how="left")
     q["row_id"]=["P%06d"%i for i in range(len(q))]
