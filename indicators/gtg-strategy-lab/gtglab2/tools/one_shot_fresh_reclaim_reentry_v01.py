@@ -215,9 +215,15 @@ def prepare_events(x,xs,perm):
         raise RuntimeError(f"State-eligible regeneration count mismatch: {len(allowed)} vs {len(p)}")
     akey=allowed[["signal_t","signal_idx","anchor_idx","state_id"]].sort_values("signal_t").reset_index(drop=True)
     pkey=p[["signal_t","signal_idx","anchor_idx","state_id"]].sort_values("signal_t").reset_index(drop=True)
-    if not akey.equals(pkey):
-        m=akey.merge(pkey,on="signal_t",how="outer",suffixes=("_regen","_corr"),indicator=True)
-        raise RuntimeError(f"State-eligible event identity mismatch rows={int((m._merge!='both').sum())}")
+    m=akey.merge(pkey,on="signal_t",how="outer",suffixes=("_regen","_corr"),indicator=True)
+    missing=int((m._merge!="both").sum())
+    mismatch=0
+    both=m[m._merge=="both"]
+    for col in ["signal_idx","anchor_idx","state_id"]:
+        mismatch += int((pd.to_numeric(both[f"{col}_regen"],errors="coerce").to_numpy(float) !=
+                         pd.to_numeric(both[f"{col}_corr"],errors="coerce").to_numpy(float)).sum())
+    if missing or mismatch:
+        raise RuntimeError(f"State-eligible event identity mismatch missing={missing} value_mismatch={mismatch}")
     ev=raw.merge(p[["signal_t","permission_on","score","permission_mean3"]],on="signal_t",how="left")
     tarr=x.t.to_numpy(np.int64)
     ev["episode_start_t"]=[int(tarr[int(i)]) for i in ev.episode_start_idx]
