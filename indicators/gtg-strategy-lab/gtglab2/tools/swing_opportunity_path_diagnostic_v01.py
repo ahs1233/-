@@ -195,32 +195,55 @@ def match_nn(donor,target,stage,scales,removed):
     t_complete=t[req].notna().all(axis=1)
     d2=d[d_complete].copy().sort_values(["signal_t","row_id"]).reset_index(drop=True)
     t2=t[t_complete].copy().sort_values(["signal_t","row_id"]).reset_index(drop=True)
-    d2=standardize(d2,scales,[v for v in vars_ if v not in removed])
-    t2=standardize(t2,scales,[v for v in vars_ if v not in removed])
-    available=set(range(len(d2)))
+    active_vars=[v for v in vars_ if v not in removed]
+    d2=standardize(d2,scales,active_vars)
+    t2=standardize(t2,scales,active_vars)
+
+    n=len(d2)
+    available=np.ones(n,dtype=bool)
+    donor_signal=d2.signal_t.to_numpy(np.int64)
+    donor_row=d2.row_id.astype(str).to_numpy()
+    dz={v:d2[v+"_z"].to_numpy(float) for v in active_vars}
+    draw={v:d2[v].to_numpy(float) for v in vars_}
+    if stage=="full":
+        dst=d2.state_id.to_numpy()
+        dsession=d2.session_bucket_utc.astype(str).to_numpy()
+
     pairs=[]
-    for ti,tr in t2.iterrows():
-        cand=[]
-        tv=tr
-        for di in sorted(available):
-            dr=d2.iloc[di]
-            if not caliper_ok(tv,dr,stage,scales,removed):
-                continue
-            dist=0.0
-            for v in vars_:
-                if v in removed: continue
-                dist+=abs(float(tv[v+"_z"])-float(dr[v+"_z"]))
-            cand.append((dist,int(dr.signal_t),str(dr.row_id),di))
-        if not cand: continue
-        cand.sort(key=lambda x:(x[0],x[1],x[2]))
-        dist,_,_,di=cand[0]
-        dr=d2.iloc[di]
+    for tr in t2.itertuples(index=False):
+        mask=available.copy()
+
+        if "entry_distance_anchor_atr" not in removed:
+            mask &= np.abs(draw["entry_distance_anchor_atr"]-float(tr.entry_distance_anchor_atr)) <= 0.5*scales["entry_distance_anchor_atr"]["iqr"]
+        if "entry_spread_r" not in removed:
+            mask &= np.abs(draw["entry_spread_r"]-float(tr.entry_spread_r)) <= 0.5*scales["entry_spread_r"]["iqr"]
+        mask &= np.abs(draw["bars_from_anchor"]-float(tr.bars_from_anchor)) <= 2
+
+        if stage=="full":
+            mask &= (dst==tr.state_id)
+            mask &= (dsession==str(tr.session_bucket_utc))
+            if "signed_coherence_24h" not in removed:
+                mask &= np.abs(draw["signed_coherence_24h"]-float(tr.signed_coherence_24h)) <= 0.5*scales["signed_coherence_24h"]["iqr"]
+            mask &= np.abs(draw["expansion_level"]-float(tr.expansion_level)) <= 0.20
+            mask &= np.abs(draw["expansion_persistence"]-float(tr.expansion_persistence)) <= 0.20
+
+        idx=np.flatnonzero(mask)
+        if len(idx)==0:
+            continue
+
+        dist=np.zeros(len(idx),dtype=float)
+        for v in active_vars:
+            dist += np.abs(dz[v][idx]-float(getattr(tr,v+"_z")))
+        min_dist=float(np.min(dist))
+        tied=idx[dist==min_dist]
+        di=int(tied[0])
         pairs.append({
-            "target_row_id":str(tr.row_id),"donor_row_id":str(dr.row_id),
-            "target_signal_t":int(tr.signal_t),"donor_signal_t":int(dr.signal_t),
-            "distance":float(dist)
+            "target_row_id":str(tr.row_id),"donor_row_id":str(donor_row[di]),
+            "target_signal_t":int(tr.signal_t),"donor_signal_t":int(donor_signal[di]),
+            "distance":min_dist
         })
-        available.remove(di)
+        available[di]=False
+
     p=pd.DataFrame(pairs)
     meta={
         "target_total":int(len(t)),"donor_total":int(len(d)),
