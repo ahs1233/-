@@ -464,6 +464,28 @@ def main():
                           "ambiguous_n":int(g.progress_before_minus_0_5r_order_ambiguous.sum())})
     pd.DataFrame(prog_rows).to_csv(OUT/"progress_before_adverse_summary.csv",index=False)
 
+    timing_metrics=[
+        "observed_min_to_mfe","observed_min_to_mae",
+        "observed_min_to_plus_0_5r","observed_min_to_plus_1_0r",
+        "observed_min_to_minus_0_5r","observed_min_to_minus_1_0r",
+        "m5_bars_to_reclaim_close_loss","observed_min_to_anchor_touch_recross",
+        "observed_min_after_exit_to_entry","observed_min_after_exit_to_plus_0_5r",
+        "observed_min_after_exit_to_plus_1_0r","observed_min_after_exit_to_original_target"
+    ]
+    timing_rows=[]
+    for scope,g in [("ALL",f),("LOSSES",loss)]:
+        for metric in timing_metrics:
+            if metric not in g.columns: continue
+            x=pd.to_numeric(g[metric],errors="coerce").dropna()
+            timing_rows.append({
+                "scope":scope,"metric":metric,"n":int(len(x)),
+                "median":float(x.median()) if len(x) else None,
+                "p25":float(x.quantile(.25)) if len(x) else None,
+                "p75":float(x.quantile(.75)) if len(x) else None,
+                "p90":float(x.quantile(.90)) if len(x) else None,
+            })
+    pd.DataFrame(timing_rows).to_csv(OUT/"timing_summary.csv",index=False)
+
     boot=bootstrap_primary_shares(f)
     (OUT/"bootstrap_summary.json").write_text(json.dumps(boot,indent=2),encoding="utf-8")
 
