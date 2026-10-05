@@ -877,3 +877,13 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 **Decision:** Scalper PARK. Swing RETAIN FOR RESEARCH. 2026 cause unresolved. Productive/Destructive Expansion deferred. Pristine OOS sealed.
 
 **Experiment 2 framing:** use corrected Swing Shadow before Health. First control pre-entry Entry Geometry and Opportunity Composition. Only then test Conditional Path Change as the outcome. Include 2023-2024 as an additional consumed historical reference so the experiment is not reduced to a 2025-vs-2026 narrative.
+
+## 2026-10-05 — GTGLAB2-0049 — swing_opportunity_path_diagnostic_v01 preregistration
+
+**Protocol commit:** `5ad2a38`
+
+**Scope frozen before results:** Corrected Swing only. Primary sample is Shadow before Health; supporting sample is all state-eligible decision events before Permission/overlap. Primary comparison is 2025 vs Jan-Sep 2026 with mandatory Jan-Sep 2025 sensitivity and 2023-2024 consumed references.
+
+**Method:** Sequential raw -> geometry matching -> geometry+composition matching -> conditional post-entry path. Matching variables are pre-entry only. Common support, balance, 0.05R economic margin, and 5-trading-day block bootstrap are preregistered.
+
+**No execution yet. No model added. Pristine OOS remains unread.**
