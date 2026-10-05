@@ -431,3 +431,14 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - 2,000 block-bootstrap CI: late +1R [52.74%,61.85%]; late target [38.22%,47.25%].
 - This does NOT justify wider stops or holding through stop. It justifies one next mechanical hypothesis: fresh-confirmation re-entry after a stop, with the first hard stop unchanged and one separately risked second attempt maximum.
 - Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
+
+## 2026-10-05 — One-Shot Fresh-Reclaim Re-entry v0.1 result
+- Final class: **INSUFFICIENT_INCREMENTAL_REENTRY_SAMPLE**.
+- Reference reconciled: 1,177 Swing Shadow trades, +79.654R before Health.
+- HIGH_RECLAIM regeneration: 5,187 raw; 5,107 state-eligible; exact identity match to corrected 5,107-event permission stream.
+- Stopped ideas: 697. Terminal statuses: REFERENCE_ALREADY_CAPTURES 513; Permission rejects 103; blocked-open-trade 68; horizon expired 9; no fresh setup 3; geometry reject 1.
+- Fully-valid assigned fresh events: 963 = 513 exact reference captures + 450 blocked by an already-open trade + 0 incremental entries.
+- Incremental second attempts: **0**. Displaced reference trades: 0.
+- Candidate policy therefore equals corrected reference exactly: +79.654R, PF 1.114, M5 MTM DD -30.622R, lambda_risk=1.0.
+- Conclusion: idea memory plus the same State/Permission/Ask geometry/pyramiding=0 adds no new executable trade. Do not rescue by changing concurrency, priority, delayed-entry, or eligibility inside this experiment.
+- Fresh-Reclaim Re-entry layer: DO NOT ADD. Pristine OOS remains sealed.

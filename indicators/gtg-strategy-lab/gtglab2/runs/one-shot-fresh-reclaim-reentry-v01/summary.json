@@ -1,0 +1,117 @@
+{
+  "scope": "One-Shot Fresh-Reclaim Re-entry v0.1",
+  "protocol_commits": [
+    "11b5d0d",
+    "6cc91d6"
+  ],
+  "base_commit": "0d71256",
+  "pristine_forward_oos_read": false,
+  "event_reconciliation": {
+    "raw_high_reclaim_n": 5187,
+    "state_eligible_n": 5107,
+    "corrected_permission_stream_n": 5107,
+    "identity_match": true
+  },
+  "reference": {
+    "n": 1177,
+    "total_r": 79.6535825639913
+  },
+  "idea_status_counts": {
+    "REFERENCE_ALREADY_CAPTURES": 513,
+    "FRESH_EVENTS_REJECTED_PERMISSION": 103,
+    "FRESH_EVENTS_BLOCKED_OPEN_TRADE": 68,
+    "HORIZON_EXPIRED": 9,
+    "NO_FRESH_SETUP": 3,
+    "FRESH_EVENTS_REJECTED_GEOMETRY": 1
+  },
+  "screen_result_counts": {
+    "PERMISSION_REJECT": 1024,
+    "REFERENCE_ALREADY_CAPTURES": 513,
+    "BLOCKED_OPEN_TRADE": 450,
+    "STATE_REJECT": 24,
+    "GEOMETRY_REJECT": 3
+  },
+  "second_attempt": {
+    "n": 0,
+    "raw_total_r": 0.0,
+    "weighted_total_r": 0.0,
+    "positive_share": null,
+    "double_loss_share": null,
+    "exit_counts": {},
+    "median_entry_rr": null
+  },
+  "displacement": {
+    "n": 0,
+    "reference_pnl_r_sum_displaced": 0.0,
+    "positive_share": null
+  },
+  "risk_match_lambda": 1.0,
+  "portfolio": [
+    {
+      "stream": "REFERENCE",
+      "n": 1177,
+      "total_r": 79.6535825639913,
+      "nominal_risk_units": 1177.0,
+      "efficiency": 0.0676750913882679,
+      "profit_factor": 1.1141716047218198,
+      "win_rate": 0.405267629566695,
+      "realized_exit_order_dd_r": -30.096000186823296,
+      "risk_weighted_holding_m5_bars": 174155.0,
+      "mtm_max_drawdown_r": -30.621817366922063,
+      "max_concurrent_trades": 1,
+      "max_concurrent_initial_risk": 1.0,
+      "final_realized_r": 79.65358256399129
+    },
+    {
+      "stream": "CANDIDATE",
+      "n": 1177,
+      "total_r": 79.6535825639913,
+      "nominal_risk_units": 1177.0,
+      "efficiency": 0.0676750913882679,
+      "profit_factor": 1.1141716047218198,
+      "win_rate": 0.405267629566695,
+      "realized_exit_order_dd_r": -30.096000186823296,
+      "risk_weighted_holding_m5_bars": 174155.0,
+      "mtm_max_drawdown_r": -30.621817366922063,
+      "max_concurrent_trades": 1,
+      "max_concurrent_initial_risk": 1.0,
+      "final_realized_r": 79.65358256399129
+    },
+    {
+      "stream": "RISK_MATCHED_REFERENCE",
+      "n": 1177,
+      "total_r": 79.6535825639913,
+      "nominal_risk_units": 1177.0,
+      "efficiency": 0.0676750913882679,
+      "profit_factor": 1.1141716047218198,
+      "win_rate": 0.405267629566695,
+      "realized_exit_order_dd_r": -30.096000186823296,
+      "risk_weighted_holding_m5_bars": 174155.0,
+      "mtm_max_drawdown_r": -30.621817366922063,
+      "max_concurrent_trades": 1,
+      "max_concurrent_initial_risk": 1.0,
+      "final_realized_r": 79.65358256399129
+    }
+  ],
+  "bootstrap": {
+    "replications": 2000,
+    "days": 882,
+    "point_total_delta_r": 0.0,
+    "bootstrap_mean_total_delta_r": 0.0,
+    "ci_low": 0.0,
+    "ci_high": 0.0,
+    "share_gt_zero": 0.0
+  },
+  "classification": "INSUFFICIENT_INCREMENTAL_REENTRY_SAMPLE",
+  "classification_detail": {
+    "fully_valid_fresh_events": 963,
+    "reference_captured": 513,
+    "reference_capture_share": 0.5327102803738317,
+    "second_attempt_n": 0,
+    "segment_counts": {
+      "2018-2022": 0,
+      "2023-2024": 0,
+      "2025-2026": 0
+    }
+  }
+}

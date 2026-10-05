@@ -1,0 +1,9 @@
+{
+  "replications": 2000,
+  "days": 882,
+  "point_total_delta_r": 0.0,
+  "bootstrap_mean_total_delta_r": 0.0,
+  "ci_low": 0.0,
+  "ci_high": 0.0,
+  "share_gt_zero": 0.0
+}

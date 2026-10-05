@@ -1,0 +1,1 @@
+engine,state_id,year,signal_t,entry_t,exit_t,exit_available_t,anchor_low,atr_h1,entry_px,entry_bid_px,stop_px,target_px,exit_px,risk_px,entry_rr,pnl_r,exit_kind,m1_ambiguous,entry_spread_px,exit_spread_px,trade_role,risk_weight,scaled_pnl_r,idea_id,holding_m5_bars

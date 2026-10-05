@@ -1,0 +1,12 @@
+metric,value
+reference_trades,1177.0
+reference_total_r,79.6535825639913
+reference_stopped_ideas,697.0
+regenerated_raw_high_reclaims,5187.0
+regenerated_state_eligible,5107.0
+corrected_permission_stream,5107.0
+candidate_policy_trades,1177.0
+candidate_normal_reference_trades,1177.0
+incremental_second_attempts,0.0
+displaced_reference_trades,0.0
+risk_match_lambda,1.0

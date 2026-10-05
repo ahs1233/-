@@ -1022,3 +1022,27 @@ Primary 2025 vs Jan-Sep 2026 Swing Shadow:
 - 584 stopped ideas have at least one permission+Ask-executable fresh event; 460 have at least one such event not captured by baseline.
 - No second-attempt PnL/outcome was evaluated.
 - Implication: duplicate suppression is mandatory, but a nontrivial set of genuinely new candidate events remains to test.
+
+## 2026-10-05 — GTGLAB2-0053 — one_shot_fresh_reclaim_reentry_v01
+
+**Protocol:** `11b5d0d`; pre-result ledger clarification `6cc91d6`.
+
+**Supplemental outcome-blind precheck:** `a0b05c1`. It found non-baseline fresh events in idea windows but did not model chronological occupancy or PnL.
+
+**Implementation:** `41f16dd`; pre-result event-identity dtype verification fix `0158a53`.
+
+**Base:** `0d71256`.
+
+**Reference:** 1,177 corrected Swing Shadow trades, +79.6536R.
+
+**Event reconciliation:** 5,187 raw HIGH_RECLAIM; 5,107 state-eligible; exact match to corrected 5,107 permission-stream events.
+
+**Stopped ideas:** 697, all reconciled to terminal status.
+
+**Policy result:** 0 incremental second attempts, 0 displaced reference trades. 513 ideas were naturally recaptured by an exact reference signal. 450 fully-valid assigned non-reference fresh events occurred while a trade was already open, so pyramiding=0 prevented a new entry.
+
+**Candidate = Reference:** 1,177 trades, +79.6536R, PF 1.11417, MTM DD -30.6218R, nominal risk 1,177R.
+
+**Classification:** INSUFFICIENT_INCREMENTAL_REENTRY_SAMPLE because n_second=0. The protocol's formal REFERENCE_ALREADY_CAPTURES threshold was not met because exact reference capture was 53.27% of 963 fully-valid assigned fresh events; the remaining 46.73% were blocked by open positions rather than executable while flat.
+
+**Decision:** Reject adding an Idea Memory / Fresh-Reclaim re-entry layer under the current architecture. Any nonzero sample would require a new hypothesis changing concurrency, priority, delayed-entry behavior, or eligibility. OOS unread.
