@@ -455,3 +455,49 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - REPLACE was worse in all three broad segments; it improved only 2019 and consumed-diagnostic 2026 at individual-year level.
 - Decision: retain pyramiding=0 and current-position priority. Do not add switch logic.
 - Productive/Destructive Expansion remains deferred. Pristine OOS remains sealed.
+
+## 2026-10-05 — Research closure after Experiments 5-7
+
+### Stable decision
+
+The late-recovery branch is CLOSED under the tested contracts.
+
+- Experiment 5 established a descriptive path fact: a material share of stopped Swing ideas later recover within the original 864-M5 horizon.
+- Experiment 6 showed that fresh confirmations occurring while flat are already captured by the corrected reference; additive re-entry is policy-equivalent under the frozen engine.
+- Experiment 7 showed that giving the first fresh eligible HIGH_RECLAIM priority over the current position is historically inferior under the frozen one-position, one-switch, fixed-horizon, non-renewing-risk-budget contract.
+
+Therefore:
+
+- pyramiding remains 0;
+- current open position retains priority;
+- no additive re-entry layer;
+- no replacement layer;
+- HORIZON_INVALIDATION_CANDIDATE is retained as a descriptive discovery that generated a tested hypothesis, NOT as an outstanding engineering recommendation;
+- Swing remains research-only;
+- Scalper remains parked;
+- cause of 2026 weakness remains unresolved;
+- Productive/Destructive Expansion remains deferred;
+- Pristine Forward OOS remains sealed;
+- no Experiment 8 is authorized by Experiments 5-7 alone.
+
+### Precision limits
+
+1. The 587 replacement cycles are not assumed statistically independent. Cycle-level aggregation prevents repeated-signal counting but does not remove temporal dependence between cycles. The moving-block bootstrap remains the dependence-aware uncertainty summary used in Experiment 7.
+
+2. Gross-risk matching is an efficiency comparator only. Scaling HOLD to +107.91R does not reproduce identical temporal exposure, MTM drawdown, or instantaneous risk. The unscaled primary comparison (HOLD +79.654R vs REPLACE +34.379R, delta -45.274R) is sufficient for KEEP_HOLD_PRIORITY.
+
+3. The rejected object is the exact tested replacement contract: first fresh eligible HIGH_RECLAIM, one switch maximum, one-position cap, original-cycle horizon cap, non-renewing 1R cash-risk budget, corrected Ask/Bid execution. Experiment 7 does not prove every conceivable replacement rule must fail. It also provides no evidence-based reason to search for exceptions now.
+
+### Updated interpretation of Experiment 5
+
+Late recovery after stop is not evidence by itself of an executable policy defect.
+
+The knowledge chain is:
+
+- Exp 5: later recovery exists as a price-path phenomenon.
+- Exp 6: when flat, the existing engine already captures fresh executable confirmations.
+- Exp 7: when occupied, replacing the current position with the fresh confirmation damages the historical portfolio under the frozen contract.
+
+Thus the observed late recovery does not currently imply a missing executable edge.
+
+Any future experiment requires a new independently motivated mechanism or new evidence. It must not be launched merely to compensate for the negative Experiment 7 result.
