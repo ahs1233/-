@@ -871,3 +871,9 @@ The project had accumulated many experiments, protocols, and operational fixes. 
 - Pristine Forward OOS read=false
 
 **Decision:** Measurement audit passed. Do not promote. Do not build Productive/Destructive Expansion classifier yet. Execute Experiment 2 next.
+
+## 2026-10-05 — Research decision after GTGLAB2-0047
+
+**Decision:** Scalper PARK. Swing RETAIN FOR RESEARCH. 2026 cause unresolved. Productive/Destructive Expansion deferred. Pristine OOS sealed.
+
+**Experiment 2 framing:** use corrected Swing Shadow before Health. First control pre-entry Entry Geometry and Opportunity Composition. Only then test Conditional Path Change as the outcome. Include 2023-2024 as an additional consumed historical reference so the experiment is not reduced to a 2025-vs-2026 narrative.
