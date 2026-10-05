@@ -348,3 +348,14 @@ This register inherits closed GTGLab experiments and will hold all GTGLab2 exper
 - Corrected 2026 combined remains negative at -9.999R PF .831; 2025 remains +24.251R PF 1.332.
 - Additional 0.25x quoted-spread adverse slippage per side reduces corrected combined to +4.909R PF 1.007; 0.50x makes it negative. Swing retains more cost cushion; Scalper has none.
 - Decision: Audit PASS, trading promotion NO-GO. Scalper current form NO-GO; Swing retained for research. Next: opportunity composition vs conditional path change before any Productive/Destructive Expansion model.
+
+## 2026-10-05 — Post Measurement Audit Research Decision
+- Current Scalper architecture is parked after executable-price correction removed its expectancy.
+- Swing remains the only engine worth continuing, but is research-only and not considered a proven edge.
+- Prior use of 2020 as a proven "Productive Expansion" example is withdrawn; future 2020 comparisons must use corrected Swing and matched expansion contexts.
+- Measurement attribution is treated as bundled where multiple fixes/refits changed together; no unsupported per-defect R attribution.
+- Negative corrected 2026 keeps structural-change hypotheses open but does not prove them.
+- Experiment 2 will start from corrected Swing SHADOW before Health and ask whether matched pre-entry opportunities differ in outcome/path after controlling Entry Geometry and Opportunity Composition.
+- Conditional Path Change is an outcome, never a matching variable.
+- Productive/Destructive Expansion modeling remains deferred until Experiment 2 shows a residual path effect.
+- Pristine Forward OOS remains sealed.
