@@ -511,6 +511,10 @@ Every stopped idea must end in exactly one high-level status:
 - FRESH_EVENTS_REJECTED_GEOMETRY
 - FRESH_EVENTS_BLOCKED_OPEN_TRADE
 - CENSORED_HORIZON
+- FIRST_ATTEMPT_DISPLACED_BY_EARLIER_REENTRY
+
+The stopped-idea ledger begins from every stop-ended first attempt in the corrected reference.
+If a reference first attempt would not actually execute in the candidate policy because an earlier incremental re-entry is still open, mark its reference idea_id as FIRST_ATTEMPT_DISPLACED_BY_EARLIER_REENTRY. It cannot generate a second attempt inside the candidate policy.
 
 If multiple rejected events occurred before final status:
 retain detailed counts in the event screening ledger.
