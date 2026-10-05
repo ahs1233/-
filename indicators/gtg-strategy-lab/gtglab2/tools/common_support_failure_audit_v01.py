@@ -464,7 +464,7 @@ def main():
     classification,detail=classify(pshap,ploo,pfull)
 
     # Stage lost-target distributions
-    loss_summary=(loss.groupby(["contrast","first_no_support_stage","state_id","session"],dropna=False)
+    loss_summary=(loss.groupby(["contrast","first_no_support_stage","state_id","session_bucket_utc"],dropna=False)
                     .size().reset_index(name="target_count"))
 
     # Required outputs
