@@ -1995,7 +1995,12 @@ strengthWord(float q, bool fem) =>
 // currency symbol: mixed with Arabic text they are reordered by the bidi renderer.
 zoneDistText(SlotState ss, bool isRes) =>
     float d = isRes ? ss.lo - close : close - ss.hi
-    ss.containing or d <= 0 ? "السعر عندها" : str.tostring(d, d >= 100 ? "0" : d >= 1 ? "0.0" : format.mintick)
+    ss.containing or d <= 0 ? "السعر عندها" : str.tostring(d, d >= 100 ? "0" : d >= 0.1 ? "0.0" : format.mintick)
+
+// The second zone's label is skipped when its centre is within 1.5 ATR of the first's;
+// on small timeframes the two labels otherwise print on top of each other.
+labelCrowded(SlotState second, SlotState first) =>
+    first.active and math.abs((second.lo + second.hi) - (first.lo + first.hi)) * 0.5 < 1.5 * atrEng
 
 zoneLabelText(SlotState ss, bool isRes) =>
     string tag = ss.navTag == "Flip مؤكد" ? (isRes ? "كانت دعماً" : "كانت مقاومة") : ss.navTag == "Flip محتمل" ? (isRes ? "دعم مكسور" : "مقاومة مكسورة") : ss.navTag
@@ -2040,7 +2045,7 @@ if barstate.islast
 
         if zonesPerSide >= 2 and slotR2.active
             smartResBox2 := box.new(left = zoneLeft(slotR2), top = slotR2.hi, right = zoneRightTime, bottom = slotR2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, 94), border_color = color.new(color.red, 42), border_width = 1)
-            if showZoneLabels
+            if showZoneLabels and not labelCrowded(slotR2, slotR1)
                 smartResLabel2 := label.new(x = zoneRightTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText(slotR2, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
 
         if slotS1.active
@@ -2052,7 +2057,7 @@ if barstate.islast
 
         if zonesPerSide >= 2 and slotS2.active
             smartSupBox2 := box.new(left = zoneLeft(slotS2), top = slotS2.hi, right = zoneRightTime, bottom = slotS2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, 94), border_color = color.new(color.blue, 42), border_width = 1)
-            if showZoneLabels
+            if showZoneLabels and not labelCrowded(slotS2, slotS1)
                 smartSupLabel2 := label.new(x = zoneRightTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText(slotS2, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
 
 
