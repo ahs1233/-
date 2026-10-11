@@ -2396,6 +2396,16 @@ if barstate.islast
         pzMid := line.new(x1 = pzTime, y1 = pullLevel(0.55), x2 = zoneRightTime, y2 = pullLevel(0.55), xloc = xloc.bar_time, color = color.new(color.orange, 20), style = line.style_dotted, width = 1)
         pzInv := line.new(x1 = pzTime, y1 = pzStart, x2 = zoneRightTime, y2 = pzStart, xloc = xloc.bar_time, color = color.new(color.gray, 20), style = line.style_dashed, width = 1)
         pzLabel := label.new(x = pzTime, y = pTop, text = "منطقة الارتداد المتوقعة", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
+    else if showPullZone and zzDir != 0 and not na(swLastPx)
+        // Provisional: a strong move still in progress (top/bottom not confirmed yet). The band
+        // is measured from the move's confirmed start to its running extreme, so it moves with it.
+        float runPx = zzDir > 0 ? zzHi : zzLo
+        int runTime = zzDir > 0 ? zzHiTime : zzLoTime
+        if math.abs(runPx - swLastPx) >= pullMinMove * swLastAtr
+            float l40 = runPx - 0.40 * (runPx - swLastPx)
+            float l77 = runPx - 0.77 * (runPx - swLastPx)
+            pzBox := box.new(left = runTime, top = math.max(l40, l77), right = zoneRightTime, bottom = math.min(l40, l77), xloc = xloc.bar_time, bgcolor = color.new(color.orange, 94), border_color = color.new(color.orange, 55), border_width = 1, border_style = line.style_dotted)
+            pzLabel := label.new(x = runTime, y = math.max(l40, l77), text = "ارتداد متوقع إذا انتهت الحركة هنا", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
 
 
 // ============================================================================
