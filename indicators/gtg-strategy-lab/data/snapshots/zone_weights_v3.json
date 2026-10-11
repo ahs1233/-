@@ -1,0 +1,909 @@
+{
+ "prereg": "reports/zone_weights_v3_preregistration.md",
+ "mintick": 0.001,
+ "feeds": {
+  "train": "242f8c47a6cd38608d99c8e939d70c64a62ef40b628a810f949694a5daf21234",
+  "oos": "5f030b4795417a3a91e6fd59dc6ae9603518b8fe9d918262c1242827f560d792"
+ },
+ "splice": "2023-06-05T00:00:00.000Z",
+ "vp": {
+  "len": 500,
+  "binAtr": 0.25
+ },
+ "tf": {
+  "M15": {
+   "decided": 28793,
+   "byYear": {
+    "2018": 2559,
+    "2019": 3378,
+    "2020": 3425,
+    "2021": 3456,
+    "2022": 3463,
+    "2023": 3344,
+    "2024": 3363,
+    "2025": 3288,
+    "2026": 2517
+   },
+   "exams": {
+    "2025": {
+     "weighted": {
+      "learnN": 22988,
+      "testN": 3288,
+      "breakRateTest": 0.4343065693430657,
+      "yearShare": {
+       "2018": 0.05154639175257732,
+       "2019": 0.08247422680412371,
+       "2020": 0.10309278350515463,
+       "2021": 0.13402061855670103,
+       "2022": 0.16494845360824742,
+       "2023": 0.20618556701030927,
+       "2024": 0.25773195876288657
+      },
+      "auc": 0.5397243305924521,
+      "terciles": {
+       "low": 0.39324817518248173,
+       "mid": 0.4333941605839416,
+       "high": 0.4762773722627737
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     },
+     "unweighted": {
+      "learnN": 22988,
+      "testN": 3288,
+      "breakRateTest": 0.4343065693430657,
+      "yearShare": null,
+      "auc": 0.5367406102225837,
+      "terciles": {
+       "low": 0.40602189781021897,
+       "mid": 0.4260948905109489,
+       "high": 0.4708029197080292
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     }
+    },
+    "2026": {
+     "weighted": {
+      "learnN": 26276,
+      "testN": 2517,
+      "breakRateTest": 0.4036551450139054,
+      "yearShare": {
+       "2018": 0.020202020202020204,
+       "2019": 0.050505050505050504,
+       "2020": 0.08080808080808081,
+       "2021": 0.10101010101010101,
+       "2022": 0.13131313131313133,
+       "2023": 0.16161616161616163,
+       "2024": 0.20202020202020202,
+       "2025": 0.25252525252525254
+      },
+      "auc": 0.5200758549418498,
+      "terciles": {
+       "low": 0.3837902264600715,
+       "mid": 0.4028605482717521,
+       "high": 0.42431466030989273
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     },
+     "unweighted": {
+      "learnN": 26276,
+      "testN": 2517,
+      "breakRateTest": 0.4036551450139054,
+      "yearShare": null,
+      "auc": 0.5206719142618832,
+      "terciles": {
+       "low": 0.38498212157330153,
+       "mid": 0.40047675804529204,
+       "high": 0.42550655542312277
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     }
+    }
+   },
+   "perYear": {
+    "2018": {
+     "n": 2559,
+     "breakRate": 0.429,
+     "inSampleAuc": 0.581,
+     "groupStrength": {
+      "zone": 0.17,
+      "move": 0.545,
+      "ma": 0.235,
+      "vp": 0.211,
+      "rsi": 0.384
+     },
+     "weights": {
+      "displayQ": -0.065,
+      "gateQ": 0.064,
+      "widthAtr": -0.107,
+      "members": 0.059,
+      "hasAnchor": 0.017,
+      "logAge": -0.073,
+      "speed": -0.135,
+      "fuel": 0.219,
+      "fuelAcc": 0.032,
+      "headingToward": 0.372,
+      "routeToward": -0.023,
+      "approach6": 0.302,
+      "distMA50": 0.039,
+      "distMA200": 0.032,
+      "distMA1000": 0.003,
+      "maInZone": -0.061,
+      "priceVsMA200Toward": 0.05,
+      "ma50SlopeToward": -0.216,
+      "zoneDensityLog": -0.164,
+      "distPOC": -0.029,
+      "zoneInValueArea": 0.068,
+      "pathDensityLog": 0.111,
+      "rsiToward": -0.31,
+      "rsiChange6Toward": -0.227
+     }
+    },
+    "2019": {
+     "n": 3378,
+     "breakRate": 0.409,
+     "inSampleAuc": 0.559,
+     "groupStrength": {
+      "zone": 0.3,
+      "move": 0.195,
+      "ma": 0.32,
+      "vp": 0.124,
+      "rsi": 0.238
+     },
+     "weights": {
+      "displayQ": -0.127,
+      "gateQ": 0.226,
+      "widthAtr": -0.13,
+      "members": 0.059,
+      "hasAnchor": -0.043,
+      "logAge": 0.025,
+      "speed": -0.043,
+      "fuel": 0.026,
+      "fuelAcc": 0.042,
+      "headingToward": -0.138,
+      "routeToward": -0.104,
+      "approach6": -0.061,
+      "distMA50": -0.061,
+      "distMA200": -0.041,
+      "distMA1000": 0.014,
+      "maInZone": -0.024,
+      "priceVsMA200Toward": 0.241,
+      "ma50SlopeToward": -0.195,
+      "zoneDensityLog": -0.097,
+      "distPOC": 0.054,
+      "zoneInValueArea": 0.049,
+      "pathDensityLog": 0.027,
+      "rsiToward": 0.238,
+      "rsiChange6Toward": -0.002
+     }
+    },
+    "2020": {
+     "n": 3425,
+     "breakRate": 0.369,
+     "inSampleAuc": 0.561,
+     "groupStrength": {
+      "zone": 0.318,
+      "move": 0.172,
+      "ma": 0.232,
+      "vp": 0.138,
+      "rsi": 0.181
+     },
+     "weights": {
+      "displayQ": 0.223,
+      "gateQ": -0.205,
+      "widthAtr": -0.088,
+      "members": -0.022,
+      "hasAnchor": 0.015,
+      "logAge": -0.032,
+      "speed": 0.022,
+      "fuel": 0.097,
+      "fuelAcc": 0.003,
+      "headingToward": 0.072,
+      "routeToward": -0.043,
+      "approach6": 0.113,
+      "distMA50": -0.079,
+      "distMA200": 0.086,
+      "distMA1000": -0.059,
+      "maInZone": 0.01,
+      "priceVsMA200Toward": 0.177,
+      "ma50SlopeToward": -0.072,
+      "zoneDensityLog": -0.109,
+      "distPOC": -0.025,
+      "zoneInValueArea": 0.018,
+      "pathDensityLog": 0.079,
+      "rsiToward": -0.137,
+      "rsiChange6Toward": -0.118
+     }
+    },
+    "2021": {
+     "n": 3456,
+     "breakRate": 0.414,
+     "inSampleAuc": 0.56,
+     "groupStrength": {
+      "zone": 0.261,
+      "move": 0.136,
+      "ma": 0.11,
+      "vp": 0.114,
+      "rsi": 0.014
+     },
+     "weights": {
+      "displayQ": -0.106,
+      "gateQ": 0.092,
+      "widthAtr": -0.17,
+      "members": 0.131,
+      "hasAnchor": -0.048,
+      "logAge": -0.01,
+      "speed": -0.083,
+      "fuel": 0.077,
+      "fuelAcc": 0.023,
+      "headingToward": -0.044,
+      "routeToward": 0.03,
+      "approach6": -0.048,
+      "distMA50": 0.08,
+      "distMA200": -0.016,
+      "distMA1000": -0.003,
+      "maInZone": -0.008,
+      "priceVsMA200Toward": -0.051,
+      "ma50SlopeToward": -0.052,
+      "zoneDensityLog": -0.081,
+      "distPOC": 0.068,
+      "zoneInValueArea": -0.006,
+      "pathDensityLog": 0.042,
+      "rsiToward": -0.007,
+      "rsiChange6Toward": 0.012
+     }
+    },
+    "2022": {
+     "n": 3463,
+     "breakRate": 0.414,
+     "inSampleAuc": 0.554,
+     "groupStrength": {
+      "zone": 0.244,
+      "move": 0.241,
+      "ma": 0.117,
+      "vp": 0.099,
+      "rsi": 0.066
+     },
+     "weights": {
+      "displayQ": 0.164,
+      "gateQ": -0.106,
+      "widthAtr": -0.144,
+      "members": 0.018,
+      "hasAnchor": -0.015,
+      "logAge": 0.016,
+      "speed": 0.031,
+      "fuel": -0.101,
+      "fuelAcc": 0.097,
+      "headingToward": -0.131,
+      "routeToward": 0.138,
+      "approach6": 0.038,
+      "distMA50": 0.039,
+      "distMA200": -0.049,
+      "distMA1000": 0.019,
+      "maInZone": 0.048,
+      "priceVsMA200Toward": -0.075,
+      "ma50SlopeToward": -0.039,
+      "zoneDensityLog": -0.085,
+      "distPOC": 0.009,
+      "zoneInValueArea": 0.001,
+      "pathDensityLog": 0.049,
+      "rsiToward": 0.065,
+      "rsiChange6Toward": -0.013
+     }
+    },
+    "2023": {
+     "n": 3344,
+     "breakRate": 0.417,
+     "inSampleAuc": 0.557,
+     "groupStrength": {
+      "zone": 0.218,
+      "move": 0.258,
+      "ma": 0.193,
+      "vp": 0.153,
+      "rsi": 0.144
+     },
+     "weights": {
+      "displayQ": 0.155,
+      "gateQ": -0.134,
+      "widthAtr": -0.059,
+      "members": -0.011,
+      "hasAnchor": -0.033,
+      "logAge": -0.029,
+      "speed": -0.005,
+      "fuel": -0.01,
+      "fuelAcc": -0.05,
+      "headingToward": -0.102,
+      "routeToward": 0.175,
+      "approach6": 0.152,
+      "distMA50": 0.1,
+      "distMA200": -0.103,
+      "distMA1000": -0.015,
+      "maInZone": -0.017,
+      "priceVsMA200Toward": -0.126,
+      "ma50SlopeToward": -0.017,
+      "zoneDensityLog": 0.069,
+      "distPOC": 0.074,
+      "zoneInValueArea": -0.109,
+      "pathDensityLog": 0.036,
+      "rsiToward": -0.143,
+      "rsiChange6Toward": 0.014
+     }
+    },
+    "2024": {
+     "n": 3363,
+     "breakRate": 0.426,
+     "inSampleAuc": 0.576,
+     "groupStrength": {
+      "zone": 0.241,
+      "move": 0.453,
+      "ma": 0.149,
+      "vp": 0.164,
+      "rsi": 0.325
+     },
+     "weights": {
+      "displayQ": 0.157,
+      "gateQ": -0.047,
+      "widthAtr": -0.171,
+      "members": 0.035,
+      "hasAnchor": 0.021,
+      "logAge": -0.019,
+      "speed": -0.054,
+      "fuel": 0.079,
+      "fuelAcc": 0.029,
+      "headingToward": -0.113,
+      "routeToward": -0.024,
+      "approach6": -0.426,
+      "distMA50": -0.052,
+      "distMA200": 0.049,
+      "distMA1000": 0.075,
+      "maInZone": 0.036,
+      "priceVsMA200Toward": 0.097,
+      "ma50SlopeToward": 0.027,
+      "zoneDensityLog": -0.138,
+      "distPOC": -0.067,
+      "zoneInValueArea": 0.052,
+      "pathDensityLog": 0.027,
+      "rsiToward": 0.206,
+      "rsiChange6Toward": 0.252
+     }
+    },
+    "2025": {
+     "n": 3288,
+     "breakRate": 0.434,
+     "inSampleAuc": 0.577,
+     "groupStrength": {
+      "zone": 0.278,
+      "move": 0.206,
+      "ma": 0.136,
+      "vp": 0.096,
+      "rsi": 0.182
+     },
+     "weights": {
+      "displayQ": -0.149,
+      "gateQ": 0.193,
+      "widthAtr": -0.107,
+      "members": -0.004,
+      "hasAnchor": 0.046,
+      "logAge": 0.067,
+      "speed": -0.067,
+      "fuel": 0.04,
+      "fuelAcc": 0.014,
+      "headingToward": 0.11,
+      "routeToward": 0.154,
+      "approach6": -0.019,
+      "distMA50": -0.061,
+      "distMA200": 0.006,
+      "distMA1000": 0.084,
+      "maInZone": 0.081,
+      "priceVsMA200Toward": -0.008,
+      "ma50SlopeToward": 0.034,
+      "zoneDensityLog": -0.047,
+      "distPOC": -0.038,
+      "zoneInValueArea": -0.016,
+      "pathDensityLog": 0.073,
+      "rsiToward": -0.12,
+      "rsiChange6Toward": -0.137
+     }
+    },
+    "2026": {
+     "n": 2517,
+     "breakRate": 0.404,
+     "inSampleAuc": 0.558,
+     "groupStrength": {
+      "zone": 0.149,
+      "move": 0.293,
+      "ma": 0.135,
+      "vp": 0.217,
+      "rsi": 0.249
+     },
+     "weights": {
+      "displayQ": -0.033,
+      "gateQ": 0.008,
+      "widthAtr": -0.082,
+      "members": 0.108,
+      "hasAnchor": -0.049,
+      "logAge": 0.011,
+      "speed": 0.031,
+      "fuel": -0.079,
+      "fuelAcc": 0.018,
+      "headingToward": -0.105,
+      "routeToward": 0.008,
+      "approach6": -0.259,
+      "distMA50": 0.091,
+      "distMA200": 0.072,
+      "distMA1000": 0.008,
+      "maInZone": 0.007,
+      "priceVsMA200Toward": 0.056,
+      "ma50SlopeToward": -0.039,
+      "zoneDensityLog": -0.09,
+      "distPOC": 0.088,
+      "zoneInValueArea": 0.081,
+      "pathDensityLog": 0.157,
+      "rsiToward": 0.129,
+      "rsiChange6Toward": 0.213
+     }
+    }
+   },
+   "seconds": 72
+  },
+  "H1": {
+   "decided": 6740,
+   "byYear": {
+    "2018": 268,
+    "2019": 835,
+    "2020": 854,
+    "2021": 839,
+    "2022": 832,
+    "2023": 855,
+    "2024": 837,
+    "2025": 802,
+    "2026": 618
+   },
+   "exams": {
+    "2025": {
+     "weighted": {
+      "learnN": 5320,
+      "testN": 802,
+      "breakRateTest": 0.4389027431421446,
+      "yearShare": {
+       "2018": 0.05154639175257732,
+       "2019": 0.08247422680412371,
+       "2020": 0.10309278350515463,
+       "2021": 0.13402061855670103,
+       "2022": 0.16494845360824742,
+       "2023": 0.20618556701030927,
+       "2024": 0.25773195876288657
+      },
+      "auc": 0.5484532828282829,
+      "terciles": {
+       "low": 0.3782771535580524,
+       "mid": 0.4626865671641791,
+       "high": 0.4756554307116105
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     },
+     "unweighted": {
+      "learnN": 5320,
+      "testN": 802,
+      "breakRateTest": 0.4389027431421446,
+      "yearShare": null,
+      "auc": 0.544760101010101,
+      "terciles": {
+       "low": 0.3857677902621723,
+       "mid": 0.4664179104477612,
+       "high": 0.46441947565543074
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     }
+    },
+    "2026": {
+     "weighted": {
+      "learnN": 6122,
+      "testN": 618,
+      "breakRateTest": 0.42718446601941745,
+      "yearShare": {
+       "2018": 0.020202020202020204,
+       "2019": 0.050505050505050504,
+       "2020": 0.08080808080808081,
+       "2021": 0.10101010101010101,
+       "2022": 0.13131313131313133,
+       "2023": 0.16161616161616163,
+       "2024": 0.20202020202020202,
+       "2025": 0.25252525252525254
+      },
+      "auc": 0.5459146550248245,
+      "terciles": {
+       "low": 0.3883495145631068,
+       "mid": 0.4223300970873786,
+       "high": 0.470873786407767
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     },
+     "unweighted": {
+      "learnN": 6122,
+      "testN": 618,
+      "breakRateTest": 0.42718446601941745,
+      "yearShare": null,
+      "auc": 0.5434108029447012,
+      "terciles": {
+       "low": 0.3737864077669903,
+       "mid": 0.4368932038834951,
+       "high": 0.470873786407767
+      },
+      "pass": {
+       "auc060": false,
+       "spread15": false
+      }
+     }
+    }
+   },
+   "perYear": {
+    "2018": {
+     "n": 268,
+     "breakRate": 0.41,
+     "inSampleAuc": 0.654,
+     "groupStrength": {
+      "zone": 0.695,
+      "move": 0.726,
+      "ma": 0.56,
+      "vp": 0.761,
+      "rsi": 0.345
+     },
+     "weights": {
+      "displayQ": 0.479,
+      "gateQ": -0.4,
+      "widthAtr": -0.012,
+      "members": 0.134,
+      "hasAnchor": -0.274,
+      "logAge": 0.006,
+      "speed": -0.436,
+      "fuel": 0.449,
+      "fuelAcc": 0.014,
+      "headingToward": -0.207,
+      "routeToward": -0.213,
+      "approach6": -0.218,
+      "distMA50": -0.067,
+      "distMA200": -0.103,
+      "distMA1000": 0.068,
+      "maInZone": -0.07,
+      "priceVsMA200Toward": -0.008,
+      "ma50SlopeToward": 0.538,
+      "zoneDensityLog": -0.464,
+      "distPOC": 0.088,
+      "zoneInValueArea": 0.579,
+      "pathDensityLog": -0.143,
+      "rsiToward": -0.068,
+      "rsiChange6Toward": 0.338
+     }
+    },
+    "2019": {
+     "n": 835,
+     "breakRate": 0.412,
+     "inSampleAuc": 0.613,
+     "groupStrength": {
+      "zone": 0.196,
+      "move": 0.384,
+      "ma": 0.231,
+      "vp": 0.325,
+      "rsi": 0.27
+     },
+     "weights": {
+      "displayQ": -0.108,
+      "gateQ": -0.012,
+      "widthAtr": -0.135,
+      "members": 0.037,
+      "hasAnchor": 0.056,
+      "logAge": 0.063,
+      "speed": -0.148,
+      "fuel": 0.036,
+      "fuelAcc": 0.209,
+      "headingToward": -0.198,
+      "routeToward": -0.022,
+      "approach6": -0.203,
+      "distMA50": 0.091,
+      "distMA200": 0.029,
+      "distMA1000": 0.074,
+      "maInZone": 0.031,
+      "priceVsMA200Toward": -0.163,
+      "ma50SlopeToward": 0.105,
+      "zoneDensityLog": -0.135,
+      "distPOC": 0.168,
+      "zoneInValueArea": 0.063,
+      "pathDensityLog": 0.235,
+      "rsiToward": 0.254,
+      "rsiChange6Toward": 0.091
+     }
+    },
+    "2020": {
+     "n": 854,
+     "breakRate": 0.419,
+     "inSampleAuc": 0.637,
+     "groupStrength": {
+      "zone": 0.498,
+      "move": 0.93,
+      "ma": 0.403,
+      "vp": 0.218,
+      "rsi": 0.607
+     },
+     "weights": {
+      "displayQ": -0.259,
+      "gateQ": 0.374,
+      "widthAtr": -0.104,
+      "members": 0.005,
+      "hasAnchor": -0.17,
+      "logAge": -0.041,
+      "speed": -0.233,
+      "fuel": 0.166,
+      "fuelAcc": 0.062,
+      "headingToward": 0.857,
+      "routeToward": -0.031,
+      "approach6": -0.208,
+      "distMA50": -0.063,
+      "distMA200": 0.113,
+      "distMA1000": 0.018,
+      "maInZone": 0.03,
+      "priceVsMA200Toward": -0.255,
+      "ma50SlopeToward": 0.282,
+      "zoneDensityLog": -0.182,
+      "distPOC": 0.008,
+      "zoneInValueArea": 0.118,
+      "pathDensityLog": 0.016,
+      "rsiToward": -0.599,
+      "rsiChange6Toward": 0.1
+     }
+    },
+    "2021": {
+     "n": 839,
+     "breakRate": 0.392,
+     "inSampleAuc": 0.6,
+     "groupStrength": {
+      "zone": 0.702,
+      "move": 0.457,
+      "ma": 0.315,
+      "vp": 0.259,
+      "rsi": 0.236
+     },
+     "weights": {
+      "displayQ": 0.375,
+      "gateQ": -0.553,
+      "widthAtr": -0.006,
+      "members": 0.069,
+      "hasAnchor": -0.052,
+      "logAge": -0.197,
+      "speed": -0.219,
+      "fuel": 0.299,
+      "fuelAcc": -0.051,
+      "headingToward": 0.227,
+      "routeToward": 0.132,
+      "approach6": 0.002,
+      "distMA50": 0.023,
+      "distMA200": 0.044,
+      "distMA1000": -0.08,
+      "maInZone": 0.056,
+      "priceVsMA200Toward": -0.16,
+      "ma50SlopeToward": -0.248,
+      "zoneDensityLog": 0.115,
+      "distPOC": 0.052,
+      "zoneInValueArea": -0.003,
+      "pathDensityLog": -0.226,
+      "rsiToward": 0.119,
+      "rsiChange6Toward": -0.204
+     }
+    },
+    "2022": {
+     "n": 832,
+     "breakRate": 0.43,
+     "inSampleAuc": 0.575,
+     "groupStrength": {
+      "zone": 0.212,
+      "move": 0.323,
+      "ma": 0.252,
+      "vp": 0.178,
+      "rsi": 0.394
+     },
+     "weights": {
+      "displayQ": 0.01,
+      "gateQ": -0.045,
+      "widthAtr": -0.149,
+      "members": 0.025,
+      "hasAnchor": 0.086,
+      "logAge": -0.112,
+      "speed": -0.013,
+      "fuel": 0.044,
+      "fuelAcc": -0.061,
+      "headingToward": 0.251,
+      "routeToward": 0.163,
+      "approach6": 0.096,
+      "distMA50": 0.024,
+      "distMA200": -0.149,
+      "distMA1000": 0.007,
+      "maInZone": 0.078,
+      "priceVsMA200Toward": -0.14,
+      "ma50SlopeToward": 0.122,
+      "zoneDensityLog": -0.09,
+      "distPOC": -0.074,
+      "zoneInValueArea": -0.106,
+      "pathDensityLog": 0.082,
+      "rsiToward": -0.394,
+      "rsiChange6Toward": 0.007
+     }
+    },
+    "2023": {
+     "n": 855,
+     "breakRate": 0.415,
+     "inSampleAuc": 0.607,
+     "groupStrength": {
+      "zone": 0.26,
+      "move": 0.528,
+      "ma": 0.287,
+      "vp": 0.201,
+      "rsi": 0.571
+     },
+     "weights": {
+      "displayQ": 0.062,
+      "gateQ": -0.177,
+      "widthAtr": -0.154,
+      "members": 0.067,
+      "hasAnchor": 0.052,
+      "logAge": -0.038,
+      "speed": -0.038,
+      "fuel": 0.151,
+      "fuelAcc": -0.134,
+      "headingToward": -0.099,
+      "routeToward": 0.25,
+      "approach6": -0.405,
+      "distMA50": -0.005,
+      "distMA200": 0.024,
+      "distMA1000": 0.135,
+      "maInZone": -0.035,
+      "priceVsMA200Toward": -0.009,
+      "ma50SlopeToward": -0.249,
+      "zoneDensityLog": 0.121,
+      "distPOC": -0.036,
+      "zoneInValueArea": 0.13,
+      "pathDensityLog": -0.087,
+      "rsiToward": 0.55,
+      "rsiChange6Toward": 0.152
+     }
+    },
+    "2024": {
+     "n": 837,
+     "breakRate": 0.404,
+     "inSampleAuc": 0.653,
+     "groupStrength": {
+      "zone": 1.797,
+      "move": 0.868,
+      "ma": 0.139,
+      "vp": 0.384,
+      "rsi": 0.807
+     },
+     "weights": {
+      "displayQ": -1.267,
+      "gateQ": 1.223,
+      "widthAtr": 0.028,
+      "members": -0.123,
+      "hasAnchor": 0.221,
+      "logAge": -0.255,
+      "speed": 0.091,
+      "fuel": 0.142,
+      "fuelAcc": 0.007,
+      "headingToward": 0.176,
+      "routeToward": 0.023,
+      "approach6": 0.833,
+      "distMA50": -0.083,
+      "distMA200": -0.014,
+      "distMA1000": -0.073,
+      "maInZone": -0.019,
+      "priceVsMA200Toward": 0.004,
+      "ma50SlopeToward": -0.081,
+      "zoneDensityLog": -0.27,
+      "distPOC": 0.204,
+      "zoneInValueArea": 0.011,
+      "pathDensityLog": 0.182,
+      "rsiToward": -0.325,
+      "rsiChange6Toward": -0.739
+     }
+    },
+    "2025": {
+     "n": 802,
+     "breakRate": 0.439,
+     "inSampleAuc": 0.615,
+     "groupStrength": {
+      "zone": 0.206,
+      "move": 0.405,
+      "ma": 0.533,
+      "vp": 0.093,
+      "rsi": 0.424
+     },
+     "weights": {
+      "displayQ": 0.088,
+      "gateQ": 0.004,
+      "widthAtr": -0.031,
+      "members": -0.136,
+      "hasAnchor": 0.105,
+      "logAge": 0.066,
+      "speed": -0.036,
+      "fuel": 0.009,
+      "fuelAcc": -0.015,
+      "headingToward": 0.254,
+      "routeToward": 0.204,
+      "approach6": -0.237,
+      "distMA50": -0.264,
+      "distMA200": 0.263,
+      "distMA1000": -0.093,
+      "maInZone": -0.039,
+      "priceVsMA200Toward": -0.138,
+      "ma50SlopeToward": 0.341,
+      "zoneDensityLog": -0.036,
+      "distPOC": 0.074,
+      "zoneInValueArea": 0.022,
+      "pathDensityLog": 0.037,
+      "rsiToward": -0.365,
+      "rsiChange6Toward": 0.216
+     }
+    },
+    "2026": {
+     "n": 618,
+     "breakRate": 0.427,
+     "inSampleAuc": 0.608,
+     "groupStrength": {
+      "zone": 0.125,
+      "move": 0.819,
+      "ma": 0.167,
+      "vp": 0.242,
+      "rsi": 0.815
+     },
+     "weights": {
+      "displayQ": -0.034,
+      "gateQ": -0.021,
+      "widthAtr": -0.058,
+      "members": -0.017,
+      "hasAnchor": -0.012,
+      "logAge": 0.101,
+      "speed": 0.052,
+      "fuel": -0.198,
+      "fuelAcc": 0.119,
+      "headingToward": 0.312,
+      "routeToward": 0.102,
+      "approach6": 0.712,
+      "distMA50": -0.037,
+      "distMA200": 0.08,
+      "distMA1000": 0.039,
+      "maInZone": 0.105,
+      "priceVsMA200Toward": 0.035,
+      "ma50SlopeToward": -0.08,
+      "zoneDensityLog": -0.091,
+      "distPOC": 0.122,
+      "zoneInValueArea": -0.089,
+      "pathDensityLog": 0.166,
+      "rsiToward": -0.551,
+      "rsiChange6Toward": -0.601
+     }
+    }
+   },
+   "seconds": 17
+  }
+ },
+ "passes": 0,
+ "verdict": "NOT_USEFUL"
+}
