@@ -1,0 +1,80 @@
+# R5 — reload determinism from independent histories (JS reference)
+# working tree on top of 7aa6fa0; node v22.22.2; 2026-09-28T12:35Z
+# Pine: not changed and not run. Engine (engine.mjs): no diff.
+
+## 1. node --test reference/history.test.mjs
+✔ H0 HTF feed from time buckets: gaps, bucket-start times, previous closed bar (lookahead_on + [1])
+✔ H0b the market has session gaps (daily break and weekend)
+✔ H1 causality: series and anchor feeds at bar i are the same when built from the prefix ending at i
+ℹ prefix points 50; lookahead control differs at 43
+✔ H2 seed 21: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+ℹ W=1983 shared=3001 slot=3001 anchor=3001 event=731
+✔ H2 seed 7: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+ℹ W=1983 shared=3001 slot=3001 anchor=3001 event=668
+✔ H2-NC negative control: HTF bars built by array position depend on where the load starts
+ℹ index feed: 3001/3001 warmed bars differ; [["levels.K",72119],["slots.R2",3891],["slots.R1",3141],["slots.S2",3068],["slots.S1",2266],["events.rejectS",6]]
+✔ H3 studyExtraBars: 0, 700 and 3000 agree on every bar they all have warmed
+✔ H4 reload later: a live continuation and a fresh reload with a moved history window agree
+✔ H5 replay: rebuilding the same load from scratch gives byte-identical GTGSNAP captures
+✔ H6 warm-up is real and W covers it: differences inside the window, none after it
+ℹ late start 2024-01-05T08:16:00.000Z: 617 of 2984 bars differ; last difference at +616 bars (W=1983)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15362.966905
+exit=0
+
+## 2. Mutation negative controls (each applied to a scratch copy of reference/, never committed)
+### M1 — infinite-memory ATR: atrEng = cumulative mean of TR since the load's first bar
+ok 1 H0 HTF feed from time buckets: gaps, bucket-start times, previous closed bar (lookahead_on + [1])
+ok 2 H0b the market has session gaps (daily break and weekend)
+ok 3 H1 causality: series and anchor feeds at bar i are the same when built from the prefix ending at i
+not ok 4 H2 seed 21: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+not ok 5 H2 seed 7: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+ok 6 H2-NC negative control: HTF bars built by array position depend on where the load starts
+ok 7 H3 studyExtraBars: 0, 700 and 3000 agree on every bar they all have warmed
+not ok 8 H4 reload later: a live continuation and a fresh reload with a moved history window agree
+ok 9 H5 replay: rebuilding the same load from scratch gives byte-identical GTGSNAP captures
+ok 10 H6 warm-up is real and W covers it: differences inside the window, none after it
+
+### M2 — warm-up threshold 600 bars instead of W = 1983
+ok 1 H0 HTF feed from time buckets: gaps, bucket-start times, previous closed bar (lookahead_on + [1])
+ok 2 H0b the market has session gaps (daily break and weekend)
+ok 3 H1 causality: series and anchor feeds at bar i are the same when built from the prefix ending at i
+not ok 4 H2 seed 21: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+not ok 5 H2 seed 7: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+not ok 6 H2-NC negative control: HTF bars built by array position depend on where the load starts
+not ok 7 H3 studyExtraBars: 0, 700 and 3000 agree on every bar they all have warmed
+not ok 8 H4 reload later: a live continuation and a fresh reload with a moved history window agree
+ok 9 H5 replay: rebuilding the same load from scratch gives byte-identical GTGSNAP captures
+not ok 10 H6 warm-up is real and W covers it: differences inside the window, none after it
+
+### M3 — HTF feed keeps every pivot since its HTF history start (not the last three)
+ok 1 H0 HTF feed from time buckets: gaps, bucket-start times, previous closed bar (lookahead_on + [1])
+ok 2 H0b the market has session gaps (daily break and weekend)
+ok 3 H1 causality: series and anchor feeds at bar i are the same when built from the prefix ending at i
+not ok 4 H2 seed 21: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+not ok 5 H2 seed 7: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+ok 6 H2-NC negative control: HTF bars built by array position depend on where the load starts
+ok 7 H3 studyExtraBars: 0, 700 and 3000 agree on every bar they all have warmed
+ok 8 H4 reload later: a live continuation and a fresh reload with a moved history window agree
+ok 9 H5 replay: rebuilding the same load from scratch gives byte-identical GTGSNAP captures
+ok 10 H6 warm-up is real and W covers it: differences inside the window, none after it
+
+### M4 — feed reads the forming HTF bar (no [1] offset)
+not ok 1 H0 HTF feed from time buckets: gaps, bucket-start times, previous closed bar (lookahead_on + [1])
+ok 2 H0b the market has session gaps (daily break and weekend)
+not ok 3 H1 causality: series and anchor feeds at bar i are the same when built from the prefix ending at i
+ok 4 H2 seed 21: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+ok 5 H2 seed 7: shorter history, longer history (prepend) and HTF history start do not change warmed bars
+ok 6 H2-NC negative control: HTF bars built by array position depend on where the load starts
+ok 7 H3 studyExtraBars: 0, 700 and 3000 agree on every bar they all have warmed
+ok 8 H4 reload later: a live continuation and a fresh reload with a moved history window agree
+ok 9 H5 replay: rebuilding the same load from scratch gives byte-identical GTGSNAP captures
+ok 10 H6 warm-up is real and W covers it: differences inside the window, none after it
+
+Expected: every mutation makes at least one R5 test fail; the unmutated run passes 10/10.

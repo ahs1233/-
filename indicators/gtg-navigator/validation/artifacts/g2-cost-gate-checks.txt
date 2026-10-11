@@ -1,0 +1,31 @@
+# G2 cost gate — candidate a123ad6 (Pine blob 4b5234ee0ee7469f4e09287e9d11ebcd2a81c262)
+# Status: NOT_RETESTED_ON_TRADINGVIEW. G2 on 680fb20 (blob 8cdddd1) is FAILED — PROFILER_TIMEOUT (GPT, messages 63).
+
+Cause (static diff cdf1a8a → 680fb20, production path): section 12a computed hashState on every engine
+step (all pool records × 26 fields + 64-bar OHLC ring + latch fold + one sort_indices) although, with
+validationMode off and no capture, nothing reads it. Baseline had only a slot-level digest.
+Integers hashed per engine step (JS encoders mirroring Pine; synthetic XAU-like M1, 3001 warmed bars):
+  pool records : min 38  median 58  p95 60  max 60
+  hashSlots    : min 27  median 57  p95 71  max 90
+  hashState    : min 1256  median 1776  p95 1828  max 1828
+Other hunks since cdf1a8a add O(1) per level (navArmed) or small per-bar work (latch keysIntersect,
+18b barssince/diagBit); capture is gated by captureOn.
+
+Change: bool hashStateOn = engineStep and (validationMode or captureOn). The pool collection, sort,
+hashState and latch fold run only under it; hashSlots stays on every engine step; v_hashState plots
+under hashStateOn. captureOn moved before 12a (same expression). Hash values unchanged wherever computed.
+Observable change: with validationMode OFF and no capture, v_hashState is na (was a number).
+
+Line map for the Profiler (new file): gated block 1898–1931, latch fold 2357–2360, hashSlots 1890–1896.
+Engine blocks 1145 / 1406 / 1591 unchanged.
+
+C18 (static): gate expression, captureOn defined once before it, heavy lines only under "if hashStateOn",
+hashSlots under "if engineStep", v_hashState/v_hashSlots plot guards, nothing before 12a reads the hashes.
+Negative controls (scratch copies; result = C18 fails, C1–C17 pass, 17/18):
+  NC1 state-hash block back under "if engineStep"          → C18 ✖, 17 pass
+  NC2 latch fold back under "if engineStep"                → C18 ✖, 17 pass
+  NC3 gate without captureOn                               → C18 ✖, 17 pass
+  NC4 v_hashState plot back on engineStep                  → C18 ✖, 17 pass
+
+Syntax (pynescript, not a compile): 606 statements, 0 problems (8cdddd1: 604).
+Reference suite: 107/107 before (68cf96e) → 108/108 after (C18 added).

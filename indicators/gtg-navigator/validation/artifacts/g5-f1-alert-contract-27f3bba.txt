@@ -1,0 +1,20 @@
+# G5-F1 — static alert contract verification (blob 27f3bba). Source lines are gtg_navigator_v0.4.7.pine.
+# For each alert: trigger condition, message, match with ALERT_CONTRACT.md, match with the HUD state, placeholder/old text.
+# Result column: OK = condition, message, contract and HUD agree; no placeholder, no stale text.
+
+#  Alert               Condition (source)                                              Message (verbatim, Arabic)                                                          Contract row            HUD state at the same moment                                  Result
+1  Speed Burst         2334 speedScore crosses >= speedExtreme (confirmed bar)          "السرعة أصبحت استثنائية مقارنة بعينتها الأخيرة."                                     #1 edge, R3b guard      speedClass = "استثنائية" (line 340; R3b: extreme >= fast)       OK
+2  Fuel Surge          2335 fuelScore crosses >= fuelHigh (confirmed)                   "وقود/دفع الحركة دخل النطاق المرتفع."                                                #2 edge                 fuelClass = "مرتفع" (line 472)                                 OK
+3  Heading Up          2336 headingScore crosses > headingClear (confirmed)             "الاتجاه الحالي أصبح صاعدًا بوضوح."                                                   #3 edge, R3b guard      headingText = "↗ صاعد" (clear band, line 395)                  OK
+4  Heading Down        2337 mirror of #3                                                "الاتجاه الحالي أصبح هابطًا بوضوح."                                                   #4                      headingText = "↘ هابط" (line 397)                              OK
+5  Strong Obstacle     2349 R4-A: enter Strong+Near for a specific obstacle (latch)     "السعر اقترب من عائق سعري قوي."                                                       #5 R4-A                 roadStatus "يقترب من مقاومة قوية / دعم قوي" (line 2132)         OK
+6  No Chase            2361 noChase becomes true (confirmed)                            "اندفاع سريع قرب عائق مع دفع غير متحسن — لا تطارد الحركة."                              #6 DESIGN_DECISION Q-B  roadStatus "… — لا تطارد" (lines 2126–2132)                    OK
+7  Obstacle Break      2362 ev.breakingUp/Dn on a displayed level                       "حدث اختراق/كسر لعائق سعري معروض (قيد التأكيد)."                                      #7                      roadStatus "… — يحتاج تثبيت" / navTag "قيد الكسر"             OK
+8  Obstacle Rejection  2363 ev.rejectR/S on a displayed level                           "ظهر رفض/ارتداد واضح من عائق سعري معروض."                                            #8                      roadStatus "رفض من مقاومة" / "ارتداد من دعم" (2120–2123)       OK
+9  Break Accepted      2364 ev.acceptedUp/Dn, armed at break start (R4-B)               "الكسر أصبح مقبولًا وفق محرك المناطق."                                                #9 R4-B, Q-A neutral    roadStatus "اختراق مقبول" / "كسر مقبول" (2112–2114, C16)       OK
+10 Flip Confirmed      2061 ev.flipConfirmed, armed, within flipWindow                  "إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد."                                    #10 R4-B                navTag "Flip مؤكد" (line 1771)                                 OK
+
+# Contract checks already enforced by tests: C11 (verbatim consumer lines), C13 (R4-A), C14 (R4-B), C15 (neutral Accepted text),
+# C16 (neutral HUD texts; "Flip محتمل" only on BROKEN), A1–A6, K1–K6, O1–O9, B1–B8 — all passing at 11dc960 (112/112).
+# No placeholder, TODO or legacy "— المستوى الآن Flip محتمل" text remains (C15 asserts its absence).
+# Verdict F1: VERIFIED (10/10).

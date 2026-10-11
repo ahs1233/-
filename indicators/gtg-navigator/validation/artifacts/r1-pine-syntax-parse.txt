@@ -1,0 +1,4 @@
+# pynescript per-statement syntax parse (v5 grammar; syntax only — NOT a TradingView compile) | file blob ad441bad109e813e2d573f178422aa723171d548 | 2026-09-28T07:21:34Z
+header OK
+DONE 561 statements, 0 problems
+# after a later edit to the capture section (sinceText), that section was re-parsed on file blob 87402d37c706e24f86579f91a4ca99de78506a6f: capture section parse ok | 2026-09-28T07:23:03Z

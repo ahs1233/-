@@ -1,0 +1,3 @@
+# pynescript parse (syntax only, NOT a TradingView compile) of the R3 guard statement in file blob 2bb4a29e7ce0cbfddfc326b13cfaf94064d22fb2 | 2026-09-28T07:48:26Z
+guard parse ok
+# the rest of the file is unchanged since r1b-pine-syntax-parse.txt (564 statements, 0 problems); the guard adds one top-level statement.

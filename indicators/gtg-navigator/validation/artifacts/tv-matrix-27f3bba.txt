@@ -1,0 +1,149 @@
+# TradingView matrix — GTG Navigator, Pine blob 27f3bba90231e742f9b261eb17a1ba4d5ae67873 (HEAD 1391a4b..fc86dae, no Pine change)
+# Run by Claude via Desktop Commander, 2026-09-28 17:51–17:59 UTC. Chrome only; one GTG instance; source verified in Monaco (E46).
+# Inputs (read back through UIA before Ok): StrictDebug=On, ValidationMode=On, StudyExtraBars=1000, captureFrom=0 (R5=na).
+# Symbols: OANDA:XAUUSD, BINANCE:BTCUSDT. Readings transcribed from the zoomed GTGDIAG crops tv-matrix-<cell>-diag-27f3bba.png;
+# full-chart screenshots tv-matrix-<cell>-27f3bba.png show the zones, HUD and legend.
+
+=== XAU_M1   (BAR 2026-09-28T17:55:00.000Z)
+  breakBars                          104
+  acceptBars                         88
+  rejectBars                         62
+  flipBars                           20
+  strongObstacleAlerts               131
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+=== XAU_M5   (BAR 2026-09-28T17:50:00.000Z)
+  breakBars                          99
+  acceptBars                         87
+  rejectBars                         56
+  flipBars                           18
+  strongObstacleAlerts               112
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+=== XAU_M15   (BAR 2026-09-28T17:30:00.000Z)
+  breakBars                          68
+  acceptBars                         59
+  rejectBars                         39
+  flipBars                           10
+  strongObstacleAlerts               95
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+=== XAU_H1   (BAR 2026-09-28T16:00:00.000Z)
+  breakBars                          78
+  acceptBars                         69
+  rejectBars                         44
+  flipBars                           16
+  strongObstacleAlerts               100
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+=== BTC_M1   (BAR 2026-09-28T17:57:00.000Z)
+  breakBars                          120
+  acceptBars                         108
+  rejectBars                         66
+  flipBars                           26
+  strongObstacleAlerts               131
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+=== BTC_M5   (BAR 2026-09-28T17:50:00.000Z)
+  breakBars                          117
+  acceptBars                         109
+  rejectBars                         65
+  flipBars                           32
+  strongObstacleAlerts               107
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+=== BTC_M15   (BAR 2026-09-28T17:30:00.000Z)
+  breakBars                          78
+  acceptBars                         70
+  rejectBars                         47
+  flipBars                           13
+  strongObstacleAlerts               93
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+=== BTC_H1   (BAR 2026-09-28T16:00:00.000Z)
+  breakBars                          68
+  acceptBars                         60
+  rejectBars                         47
+  flipBars                           18
+  strongObstacleAlerts               93
+  breakAlertMismatch                 0
+  acceptAlertMismatch                0
+  rejectAlertMismatch                0
+  flipAlertMismatch                  0
+  obsEventMismatch                   0
+  acceptWithoutBreakWithin3Bars      0
+  flipWithoutAcceptedWithin60Bars    0
+  warmedConfirmedCount               1000
+  maxInvTotal1000                    0
+  maxInvCritical1000                 0
+
+Per-cell checks (all 8): Runtime Error = 0 with StrictDebug=On (UIA: no error text; no error icon in the
+screenshots); GTG instances = 1; MISMATCH = 0 (all five engine↔alert/obstacle fields); acceptWithoutBreak = 0;
+flipWithoutAccept = 0; warmedConfirmedCount = 1000; INV = 0 (violations 0, critical 0); zones ≤ 2 above and
+≤ 2 below with no duplicated boxes (XAU M1, XAU M5, BTC M1, BTC M5: exactly 2+2); HUD (top-right) and
+GTGDIAG (bottom-left) intact; legend single line.
+
+Repeatability across independent loads (same last confirmed bar, EVT identical):
+  BTC H1  bar 16:00  EVT 102273958080580  — 17:27, 17:53 and 17:58 UTC loads
+  BTC M15 bar 17:30  EVT 102268589381710  — 17:53 and 17:58 loads
+  XAU M15 bar 17:30  EVT 104464383011908  — 17:54 and 17:56 loads
+Not a substitute for E41 (the R5 fingerprint covers state and events, EVT covers event counts only).
+
+Scope limits: one 1000-bar window per cell; event counts are recorded, not judged (calibration out of scope);
+M5/M15/H1 check Pine runtime and invariants, not JS parity (the JS reference models the M1 profile only).

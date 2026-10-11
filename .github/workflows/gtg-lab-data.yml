@@ -1,0 +1,22 @@
+name: GTG Lab data job
+
+# Runs a data-acquisition job described by a file under data/jobs/ on the lab branch.
+# Probe only for now (no data is stored or committed).
+on:
+  push:
+    branches: ["claude/gtg-strategy-lab-edge-f0h5ra"]
+    paths:
+      - "indicators/gtg-strategy-lab/data/jobs/**"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Dukascopy reachability probe from a GitHub runner
+        working-directory: indicators/gtg-strategy-lab/data
+        run: python3 probe_source.py --n 24 --gap 1.5 | tee probe.txt; tail -1 probe.txt >> "$GITHUB_STEP_SUMMARY"

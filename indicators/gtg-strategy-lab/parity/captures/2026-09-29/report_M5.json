@@ -1,0 +1,262 @@
+{
+  "replay": {
+    "verdict": "PASS",
+    "emaSeed": "sma",
+    "tf": "M5",
+    "mintick": 0.001,
+    "bars": 5976,
+    "W": 1600,
+    "jsStartBar": 2374,
+    "pineFirstEngineRow": 2374,
+    "lowPrecision": [],
+    "runs": {
+      "first": {
+        "fields": {
+          "m_speedScore": {
+            "compared": 5976,
+            "mismatched": 391,
+            "first": {
+              "bar": 1,
+              "t": 1788127500000,
+              "pine": 50,
+              "js": 100
+            }
+          },
+          "m_instantSpeedScore": {
+            "compared": 5976,
+            "mismatched": 387,
+            "first": {
+              "bar": 1,
+              "t": 1788127500000,
+              "pine": 50,
+              "js": 100
+            }
+          },
+          "m_fuelScore": {
+            "compared": 5976,
+            "mismatched": 458,
+            "first": {
+              "bar": 14,
+              "t": 1788131400000,
+              "pine": 50,
+              "js": 50.3222762917444
+            }
+          },
+          "m_atr": {
+            "compared": 5963,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA14(ticks)": {
+            "compared": 5963,
+            "mismatched": 49,
+            "first": {
+              "bar": 13,
+              "t": 1788131100000,
+              "pine": 4458.945357142858,
+              "js": 4458.448685547223
+            }
+          },
+          "m_headingScore": {
+            "compared": 5958,
+            "mismatched": 93,
+            "first": {
+              "bar": 18,
+              "t": 1788132600000,
+              "pine": -28.129522431083124,
+              "js": -12.563219874129969
+            }
+          },
+          "headingSign": {
+            "compared": 5958,
+            "mismatched": 10,
+            "first": {
+              "bar": 18,
+              "t": 1788132600000,
+              "pine": -1,
+              "js": 0
+            }
+          },
+          "MA22(ticks)": {
+            "compared": 5955,
+            "mismatched": 97,
+            "first": {
+              "bar": 21,
+              "t": 1788133500000,
+              "pine": 4457.2129545454545,
+              "js": 4454.307551510758
+            }
+          },
+          "MA50(ticks)": {
+            "compared": 5927,
+            "mismatched": 233,
+            "first": {
+              "bar": 49,
+              "t": 1788141900000,
+              "pine": 4454.3449,
+              "js": 4450.3061679107395
+            }
+          },
+          "m_routeScore": {
+            "compared": 5922,
+            "mismatched": 338,
+            "first": {
+              "bar": 54,
+              "t": 1788143400000,
+              "pine": -32.286084260047204,
+              "js": -56.40481507710176
+            }
+          },
+          "routeSign": {
+            "compared": 5922,
+            "mismatched": 2,
+            "first": {
+              "bar": 89,
+              "t": 1788153900000,
+              "pine": -1,
+              "js": 0
+            }
+          },
+          "MA200(ticks)": {
+            "compared": 5777,
+            "mismatched": 609,
+            "first": {
+              "bar": 199,
+              "t": 1788186900000,
+              "pine": 4441.004725,
+              "js": 4441.174283429954
+            }
+          },
+          "MA1000(ticks)": {
+            "compared": 4977,
+            "mismatched": 3936,
+            "first": {
+              "bar": 999,
+              "t": 1788437700000,
+              "pine": 4395.250849999999,
+              "js": 4396.250431012255
+            }
+          },
+          "v_hashSlots": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_hashState": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_eventBits": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_obsState": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          }
+        },
+        "mismatched": 6603
+      },
+      "sma": {
+        "fields": {
+          "m_speedScore": {
+            "compared": 5976,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_instantSpeedScore": {
+            "compared": 5976,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_fuelScore": {
+            "compared": 5976,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_atr": {
+            "compared": 5963,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA14(ticks)": {
+            "compared": 5963,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_headingScore": {
+            "compared": 5958,
+            "mismatched": 0,
+            "first": null
+          },
+          "headingSign": {
+            "compared": 5958,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA22(ticks)": {
+            "compared": 5955,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA50(ticks)": {
+            "compared": 5927,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_routeScore": {
+            "compared": 5922,
+            "mismatched": 0,
+            "first": null
+          },
+          "routeSign": {
+            "compared": 5922,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA200(ticks)": {
+            "compared": 5777,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA1000(ticks)": {
+            "compared": 4977,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_hashSlots": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_hashState": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_eventBits": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_obsState": {
+            "compared": 3601,
+            "mismatched": 0,
+            "first": null
+          }
+        },
+        "mismatched": 0
+      }
+    }
+  },
+  "copyVsFrozen": {
+    "verdict": "PASS",
+    "shared": 5976,
+    "compared": 14404,
+    "mismatched": 0,
+    "first": null
+  }
+}

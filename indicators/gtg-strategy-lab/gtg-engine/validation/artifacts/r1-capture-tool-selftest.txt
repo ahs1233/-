@@ -1,0 +1,14 @@
+# compare-captures self-test on JS-generated captures (not Pine) | base c34f957 + R1 worktree | node v22.22.2
+# captures: js-capture.mjs 3000 5 {0|700} 1500 2800 2850
+## A = full history, B = first 700 bars withheld (same engine start)
+capA.txt: bars=51 incomplete=0 pineVsJsHashMismatch=0
+capB.txt: bars=51 incomplete=0 pineVsJsHashMismatch=0
+levels=state,events common=51 differing=0 onlyA=0 onlyB=0
+exit=0
+## A vs C = B with one non-primary lastKeys entry altered (negative control)
+capA.txt: bars=51 incomplete=0 pineVsJsHashMismatch=0
+capC.txt 1700168120000 HASH pine=(696980587,1078641554) js=(464693123,1078641554)
+capC.txt: bars=51 incomplete=0 pineVsJsHashMismatch=1
+DIFF 1700168120000: slots.R1.lastKeys[exact] 54405343360000,54405374080000 ≠ 54405343360000,54405374080032
+levels=state,events common=51 differing=1 onlyA=0 onlyB=0
+exit=1

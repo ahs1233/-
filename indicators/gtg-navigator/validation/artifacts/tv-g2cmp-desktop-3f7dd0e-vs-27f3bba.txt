@@ -1,0 +1,44 @@
+G2 numeric comparison — baseline cdf1a8a (blob 3f7dd0e) vs current 11dc960 (blob 27f3bba)
+Surface: TradingView Desktop 3.4.1 (Electron 41.7.1), CDP 127.0.0.1:9222 (runbook §1, Ahmed 2026-09-29).
+Chart: OANDA:XAUUSD, 1m. Only the script under test on the chart (Ahmed's layout protected: autosave OFF, E-24).
+Inputs: defaults (production). validationMode = false.
+Source check: editor blob before and after each series (LF): 3f7dd0e1481d68ff49fbc2779084cae7fc75cc28 / 27f3bba90231e742f9b261eb17a1ba4d5ae67873, unchanged.
+Saved scripts (pine-facade, read-only): "GTG baseline cdf1a8a TEMP" = 3f7dd0e; "GTG Navigator v0.4.7 — Structural Zone Engine" v23 = 27f3bba.
+
+Method
+- One run = remove the study, "Add to chart" from the Pine Editor (new instance), set studyExtraBars = run number (1, 2, 3), Profiler mode ON, read the result, Profiler OFF.
+- studyExtraBars is only used as `engineWindow + (validationMode ? studyExtraBars : 0)` in both versions, so with validationMode = false it changes nothing computed. It is set only to give each run a new cache key: TradingView returned the identical profile (4648829 us) for an unchanged instance and for a re-added identical one while no new bars arrived (21:00–22:00 UTC gold break). All six runs were in that break, so every run saw the same bars (executions 8256 each).
+- Values are read from the Profiler widget's own data (React props `performance.total` and per-line `time`/`invocations`), in microseconds. No tooltip reading, no rounding.
+- Executions (control variable): invocations of `bool engineStep = ...` (baseline L529, current L547).
+- Hot block: `if engineStep` at baseline L1364 / current L1406 (same code block; current carries the R4/R5 additions).
+
+## base_3f7dd0e
+r1 utc=2026-09-28T21:40:04.347Z total=4997821 us exec(L529)=8256 entries=1107
+   engineStep blocks: 1104-1220 751956 us 15.0% x8256 | 1364-1502 1581120 us 31.6% x8256 | 1549-1739 639975 us 12.8% x8256 | 1747-1762 15182 us 0.3% x8256
+   top single lines: L1407 435702us x26690 | L1453 366435us x30668 | L1131 283907us x89083 | L318 265585us x8256 | L1559 203313us x30668
+r2 utc=2026-09-28T21:40:29.841Z total=4486706 us exec(L529)=8256 entries=1107
+   engineStep blocks: 1104-1220 677347 us 15.1% x8256 | 1364-1502 1492467 us 33.3% x8256 | 1549-1739 565999 us 12.6% x8256 | 1747-1762 13603 us 0.3% x8256
+   top single lines: L1407 409667us x26690 | L1453 312380us x30668 | L318 261738us x8256 | L1131 236897us x89083 | L319 202552us x8256
+r3 utc=2026-09-28T21:40:55.276Z total=4938935 us exec(L529)=8256 entries=1107
+   engineStep blocks: 1104-1220 695627 us 14.1% x8256 | 1364-1502 1543923 us 31.3% x8256 | 1549-1739 599241 us 12.1% x8256 | 1747-1762 14349 us 0.3% x8256
+   top single lines: L1407 427913us x26690 | L1453 337275us x30668 | L318 278637us x8256 | L1131 235790us x89083 | L319 213901us x8256
+## cur_27f3bba
+r1 utc=2026-09-28T21:41:49.456Z total=5037452 us exec(L547)=8256 entries=1188
+   engineStep blocks: 1145-1262 704609 us 14.0% x8256 | 1406-1544 1618671 us 32.1% x8256 | 1591-1787 587754 us 11.7% x8256 | 1890-1896 70653 us 1.4% x8256
+   top single lines: L1449 398001us x26690 | L1495 327122us x30668 | L336 282200us x8256 | L1173 251940us x89083 | L337 215737us x8256
+r2 utc=2026-09-28T21:42:15.153Z total=5281719 us exec(L547)=8256 entries=1188
+   engineStep blocks: 1145-1262 708086 us 13.4% x8256 | 1406-1544 1560193 us 29.5% x8256 | 1591-1787 578650 us 11.0% x8256 | 1890-1896 67995 us 1.3% x8256
+   top single lines: L1449 425121us x26690 | L1495 344271us x30668 | L336 312916us x8256 | L1173 249883us x89083 | L337 232741us x8256
+r3 utc=2026-09-28T21:42:40.730Z total=4775715 us exec(L547)=8256 entries=1188
+   engineStep blocks: 1145-1262 715635 us 15.0% x8256 | 1406-1544 1533457 us 32.1% x8256 | 1591-1787 573121 us 12.0% x8256 | 1890-1896 67731 us 1.4% x8256
+   top single lines: L1449 418564us x26690 | L1495 340691us x30668 | L336 272445us x8256 | L1173 261049us x89083 | L337 209151us x8256
+## comparison (microseconds)
+total: base median 4938935 worst 4997821 min 4486706 | cur median 5037452 worst 5281719 min 4775715 | delta median 98517 us (2.0%) delta worst 283898 us (5.7%) | spread base 511115 cur 506004
+hot engineStep block (1364 vs 1406): base median 1543923 worst 1581120 min 1492467 | cur median 1560193 worst 1618671 min 1533457 | delta median 16270 us (1.1%) delta worst 37551 us (2.4%) | spread base 88653 cur 85214
+
+Reading
+- Total: current median +98.5 ms (+2.0%), worst +283.9 ms (+5.7%). Both deltas are smaller than the run-to-run spread of either series (511 ms and 506 ms).
+- Hot block: +16.3 ms median (+1.1%), smaller than its spread (89 ms / 85 ms).
+- The one block that is new in cost is the post-engine block (current L1890-1896, hashSlots under engineStep): 68-71 ms (1.3-1.4%) against 13.6-15.2 ms for baseline L1747-1762.
+- Executions equal in all six runs (8256): the control holds.
+- Earlier Chrome reading of 27f3bba (E46, 9 s tooltip, 8069 executions, live bars) is a different surface and different conditions; it is not used in this comparison.

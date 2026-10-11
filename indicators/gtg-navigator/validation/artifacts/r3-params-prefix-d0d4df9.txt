@@ -1,0 +1,11 @@
+# params.test.mjs (Q1–Q4) against reference/engine.mjs at d0d4df9 (no Q_stay guard) | node v22.22.2 | 2026-09-28T07:47:18Z
+not ok 1 - Q1 R3 fixture: qEnter=55, qStay=80, gateQ=70 is refused instead of flickering
+  error: 'Missing expected exception.'
+ok 2 - Q2 valid pairs never alternate: R1 is constant and equals (q ≥ Q_enter)
+ok 3 - Q3 boundary: qStay = qEnter and qStay < qEnter are accepted, defaults are valid
+not ok 4 - Q4 the engine refuses an inverted pair at construction, before any bar
+  error: 'Missing expected exception.'
+# tests 4
+# pass 2
+# fail 2
+# unfixed reference, qEnter=55 qStay=80 gateQ=70: R1.active = true,false,true,false,true,false

@@ -1,0 +1,24 @@
+# E41 compare command, dry run on JS captures (tools/js-capture.mjs; synthetic seed 21, continuous M1).
+# Proves the command and its failure mode only. Not TradingView evidence.
+# A: full history, engine start 3000. B: 2777 bars dropped, engine start 6000. Range: bars 8000–8004.
+$ compare-captures.mjs A.txt B.txt --expect-from 1700480000000 --expect-to 1700480240000 --step-ms 60000
+/tmp/claude-0/-home-user--/4704d917-51dc-5d02-a5e7-924de3c0c7ca/scratchpad/A.txt: bars=5 incomplete=0 missing=0 unexpected=0 pineVsJsHashMismatch=0
+/tmp/claude-0/-home-user--/4704d917-51dc-5d02-a5e7-924de3c0c7ca/scratchpad/B.txt: bars=5 incomplete=0 missing=0 unexpected=0 pineVsJsHashMismatch=0
+levels=state,events common=5 differing=0 onlyA=0 onlyB=0
+RESULT OK
+exit=0
+
+# Negative control: B engine started 100 bars before the range (inside W, not warmed).
+$ compare-captures.mjs A.txt Bcold.txt --expect-from 1700480000000 --expect-to 1700480240000 --step-ms 60000
+/tmp/claude-0/-home-user--/4704d917-51dc-5d02-a5e7-924de3c0c7ca/scratchpad/A.txt: bars=5 incomplete=0 missing=0 unexpected=0 pineVsJsHashMismatch=0
+/tmp/claude-0/-home-user--/4704d917-51dc-5d02-a5e7-924de3c0c7ca/scratchpad/Bcold.txt: bars=5 incomplete=0 missing=0 unexpected=0 pineVsJsHashMismatch=0
+DIFF 1700480000000: slots.R1.active[exact] true ≠ false | slots.S1.lo[raw] 1954.5807197971 ≠ 1950.730037214 | slots.S1.lo[ticks] 195458 ≠ 195073 | slots.S1.hi[raw] 1956.9204376066 ≠ 1952.2548198045 | slots.S1.hi[
+DIFF 1700480060000: slots.R1.active[exact] true ≠ false | slots.S1.side[exact] 0 ≠ -1 | slots.S1.containing[exact] true ≠ false | slots.S1.lo[raw] 1954.5807197971 ≠ 1950.730037214 | slots.S1.lo[ticks] 195458 ≠ 
+DIFF 1700480120000: slots.R1.active[exact] true ≠ false | slots.S1.side[exact] 0 ≠ -1 | slots.S1.containing[exact] true ≠ false | slots.S1.lo[raw] 1954.5807197971 ≠ 1950.730037214 | slots.S1.lo[ticks] 195458 ≠ 
+DIFF 1700480180000: slots.R2.active[exact] true ≠ false | slots.S2.entryKeys[exact] 54415333120001,54415340800001,54415350400001 ≠ 54415333120001,54415340800001 | levels.length[exact] 48 ≠ 20 | levels.5441449024000
+DIFF 1700480240000: slots.R2.active[exact] true ≠ false | slots.S2.entryKeys[exact] 54415333120001,54415340800001,54415350400001 ≠ 54415333120001,54415340800001 | levels.length[exact] 46 ≠ 19 | levels.5441449024000
+levels=state,events common=5 differing=5 onlyA=0 onlyB=0
+RESULT FAIL (5)
+exit=1
+
+# capture size: 303 GTGSNAP lines for 5 bars

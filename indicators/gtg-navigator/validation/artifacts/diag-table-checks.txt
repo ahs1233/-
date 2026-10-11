@@ -1,0 +1,18 @@
+# 18b validation-only table: checks on file blob 8cdddd18f15995d4723a64ff1c2f2725cc2daef5 | node v22.22.2 | 2026-09-28T11:05:08Z
+# source plot-type calls: 7f97c41 = 52 ; 98177c2 (RE10140 on TradingView) = 56 ; now = 52  (call counts, NOT actual TradingView plot counts)
+# engine/reference untouched since 7f97c41: engine.mjs, obstacle.mjs: no diff
+## Pine diff vs 7f97c41, changed line ranges (all inside section 18b):
+@@ -2432,0 +2433,84 @@ plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_wi
+## counterexample (message 59 v1): violation before the window
+e309e53 v_diagInv1000: invViolationBars=0 invCriticalBars=0   <- false clean
+current INV:           maxInvTotal1000=1 maxInvCritical1000=1
+## negative control 1: a diagnostic plot re-added
+not ok 17 - C17 rolling diagnostics (18b): no plot counts, window 1000, analyzer masks, field order, validation-only table
+## negative control 2: packing field order swapped (acceptBars <-> rejectBars)
+not ok 17 - C17 rolling diagnostics (18b): no plot counts, window 1000, analyzer masks, field order, validation-only table
+## negative control 3: diagnostic table moved onto the HUD position (top_right)
+not ok 17 - C17 rolling diagnostics (18b): no plot counts, window 1000, analyzer masks, field order, validation-only table
+## negative control 4: INV clamped instead of na on overflow
+not ok 17 - C17 rolling diagnostics (18b): no plot counts, window 1000, analyzer masks, field order, validation-only table
+# restored blob 8cdddd18f15995d4723a64ff1c2f2725cc2daef5
+## full-file pynescript per-statement parse (syntax only, NOT a TradingView compile) on blob 8cdddd18f15995d4723a64ff1c2f2725cc2daef5: DONE 604 statements, 0 problems

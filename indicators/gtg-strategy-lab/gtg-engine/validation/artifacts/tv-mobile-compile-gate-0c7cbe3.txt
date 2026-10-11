@@ -1,0 +1,32 @@
+Mobile Compile Gate — GTG Navigator v0.4.7 (message 82)
+Reported on TradingView Mobile by Ahmed with the GitHub source 27f3bba:
+  (1) SHORT_TITLE_TOO_LONG ; (2) after shortening the title: CE10213 "The script must have at least one output function call".
+Hotfix proposed: fix/tradingview-compile-hotfix-2026-09-29 @ c360083 (blob 93a7ef8): shorttitle "GTGv0.4.7" +
+  plot(na, title = "GTG_OUTPUT_ANCHOR", display = display.none). Not merged; assessed below.
+
+Pine compiles on TradingView's servers; the editor markers below are that compiler's output (Desktop 3.4.1, CDP).
+All sources were fetched from GitHub raw at the stated commit and hashed before use.
+
+A. 27f3bba (GitHub @ 869d936), pasted fresh into a new untitled indicator
+   markers: [SHORT_TITLE_TOO_LONG severity 4 = warning, line 4] — nothing else.
+   Add to chart: added (instance UYic1t), no error. => the full 27f3bba source has no CE10213.
+B. The same source cut after line 2172 (the first output call, plot(... "MA14"), is line 2173; ~77% of the file)
+   live markers: SHORT_TITLE_TOO_LONG only; Add to chart: REFUSED with
+   "(CE10213) The script must have at least one output function call (e.g. plot, barcolor, etc.)";
+   afterwards the marker list shows that error at severity 8.
+   => CE10213 is reproduced exactly when the compiler receives a source without its output calls, i.e. a truncated
+      copy. The full file has 8 top-level plot() calls; a complete paste cannot raise CE10213.
+Conclusion on the hotfix: GTG_OUTPUT_ANCHOR is not required. It would make a truncated paste compile silently
+   (no zones/HUD/alerts after the cut) instead of failing, so it is left out. The shorttitle problem is real and fixed.
+
+C. Release source 0c7cbe3 (GitHub @ f82c846), pasted fresh into a new untitled indicator
+   markers: [] (0 errors, 0 warnings). Add to chart: added (instance y6K9iL), no legend error, z-order in front.
+   2be5e7e (intermediate, @ 7528bd3) also 0 markers and added (PfRiHM).
+D. Account copy: the saved script "GTG Navigator v0.4.7 — Structural Zone Engine" updated from 27f3bba (v23) to v24;
+   pine-facade returns v24 = blob 0c7cbe3 (2620 lines). Mobile can add it from the account (no paste).
+E. Static guard: reference/pine-contract.test.mjs C20 — shorttitle <= 10 chars ("GTG v0.4.7" = 10), 67 inputs with
+   display.none, HUD opacity, behind_chart = false, at least one top-level output call. Fails on 27f3bba, passes on 0c7cbe3.
+
+Gate result: PASS for the source (server compiler: 0 errors, 0 warnings; fresh Add to chart succeeds; both Mobile
+errors explained and removed). Not observed by Claude on a phone: the Mobile app run itself. Recommended check for
+Ahmed: add "GTG Navigator v0.4.7" v24 from My scripts on Mobile (or paste and confirm 2620 lines before compiling).

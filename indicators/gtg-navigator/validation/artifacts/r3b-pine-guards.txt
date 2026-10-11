@@ -1,0 +1,7 @@
+# pynescript parse (syntax only, NOT a TradingView compile) of the R3 + R3b guard statements in file blob 661f9c99a868b4c7700774cb15f9ff4cc64a2ac1 | 2026-09-28T07:54:14Z
+guards parse ok
+## negative controls on C11/C12 (Pine edited in a scratch copy, then restored)
+# weakened route guard (<= → <):
+not ok 12 - C12 R3b guards: Pine refuses the three inverted pairs on the first bar with runtime.error
+# edited speedBurst line:
+not ok 11 - C11 consumers.mjs transcribes these Pine lines verbatim (fails if Pine changes them)
