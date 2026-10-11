@@ -2272,9 +2272,9 @@ if barstate.islast
         table.cell(lampTable, 0, 0, dirText + " • " + why, text_color = lampFg, bgcolor = lampBg, text_size = dashSize())
         color rowBg = color.new(color.black, 20)
         table.cell(lampTable, 0, 1, zoneLine(slotR1, true, ""), text_color = color.new(color.red, 0), bgcolor = rowBg, text_size = dashSize())
-        table.cell(lampTable, 0, 2, zoneLine(slotR2, true, "بعد الاختراق: "), text_color = color.new(color.red, 40), bgcolor = rowBg, text_size = dashSize())
+        table.cell(lampTable, 0, 2, zoneLine(slotR2, true, "بعد الاختراق • "), text_color = color.new(color.red, 40), bgcolor = rowBg, text_size = dashSize())
         table.cell(lampTable, 0, 3, zoneLine(slotS1, false, ""), text_color = color.new(color.aqua, 0), bgcolor = rowBg, text_size = dashSize())
-        table.cell(lampTable, 0, 4, zoneLine(slotS2, false, "بعد الكسر: "), text_color = color.new(color.aqua, 40), bgcolor = rowBg, text_size = dashSize())
+        table.cell(lampTable, 0, 4, zoneLine(slotS2, false, "بعد الكسر • "), text_color = color.new(color.aqua, 40), bgcolor = rowBg, text_size = dashSize())
 
     if showDashboard and dashboardMode != "COMPACT"
         string dSize = dashSize()
