@@ -15,8 +15,9 @@ indicator(
 //   2. Zone confluence counts only event groups whose quality reaches Q_stay.
 //   3. DOZ leg efficiency measures net move and path on the same basis.
 //   4. Unused fast-slope code removed from the tactical heading.
-// Display: COMPACT shows a two-line traffic light; zone labels use plain words and the
-// distance from price.
+// Display: COMPACT shows the traffic light and both scenarios (resistance ahead and the next
+// one after a break, support below and the next one after a break, with strength, distance
+// and the share of the current strong move); zone labels use plain words and the distance.
 // Expected pullback zone (section 15b): after a strong move, the 45%–80% band of that move.
 // Validation instrumentation of v0.4.7 (hashes, Data Window export, rolling diagnostics, log
 // capture) removed: it compared the Pine engine with the JS reference, which lastgtg no
@@ -2199,19 +2200,33 @@ var table dash = table.new(
      frame_width = 1
 )
 
-// COMPACT mode: a two-line traffic light (state + nearest resistance / support).
-var table lampTable = table.new(position.top_right, 1, 3, border_width = 0, frame_width = 0)
+// COMPACT mode: the traffic light, then both scenarios: the resistance ahead and the next one
+// if it breaks, the support below and the next one if it breaks.
+var table lampTable = table.new(position.top_right, 1, 5, border_width = 0, frame_width = 0)
 
 fmtOpt(float v) =>
     na(v) ? "—" : str.tostring(v, "#.##")
 
-lampSideText(SlotState ss, bool isRes) =>
-    not ss.active ? (isRes ? "لا مقاومة قريبة" : "لا دعم قريب") : (isRes ? "مقاومة " : "دعم ") + zoneDistText(ss, isRes)
+// Where a price sits inside the current strong zigzag move: 0 at the move's running extreme,
+// 1 at its start. na when the move is not strong (same rule as the pullback zone).
+moveShare(float px) =>
+    float runPx = zzDir > 0 ? zzHi : zzDir < 0 ? zzLo : na
+    float span = na(runPx) or na(swLastPx) ? na : runPx - swLastPx
+    bool strongMove = not na(span) and math.abs(span) >= pullMinMove * swLastAtr
+    strongMove ? (runPx - px) / span : na
+
+zoneLine(SlotState ss, bool isRes, string prefix) =>
+    string txt = prefix + (isRes ? "لا مقاومة قريبة" : "لا دعم قريب")
+    if ss.active
+        float sh = moveShare(isRes ? ss.lo : ss.hi)
+        string shareTxt = not na(sh) and sh > 0 and sh <= 1.2 ? " • " + str.tostring(math.round(sh * 100)) + "% من الحركة" : ""
+        txt := prefix + (isRes ? "مقاومة " : "دعم ") + strengthWord(ss.quality, isRes) + " • " + zoneDistText(ss, isRes) + shareTxt
+    txt
 
 
 if barstate.islast
     table.clear(dash, 0, 0, 1, 10)
-    table.clear(lampTable, 0, 0, 0, 2)
+    table.clear(lampTable, 0, 0, 0, 4)
 
     if showDashboard and dashboardMode == "COMPACT"
         // 2 = green (road open), 1 = yellow (caution), 0 = red (stop / do not chase).
@@ -2255,8 +2270,11 @@ if barstate.islast
         color lampFg = lamp == 1 ? color.black : color.white
         // One idea per cell: Arabic words and plain numbers only, so nothing is reordered.
         table.cell(lampTable, 0, 0, dirText + " • " + why, text_color = lampFg, bgcolor = lampBg, text_size = dashSize())
-        table.cell(lampTable, 0, 1, lampSideText(slotR1, true), text_color = color.new(color.red, 0), bgcolor = color.new(color.black, 20), text_size = dashSize())
-        table.cell(lampTable, 0, 2, lampSideText(slotS1, false), text_color = color.new(color.aqua, 0), bgcolor = color.new(color.black, 20), text_size = dashSize())
+        color rowBg = color.new(color.black, 20)
+        table.cell(lampTable, 0, 1, zoneLine(slotR1, true, ""), text_color = color.new(color.red, 0), bgcolor = rowBg, text_size = dashSize())
+        table.cell(lampTable, 0, 2, zoneLine(slotR2, true, "بعد الاختراق: "), text_color = color.new(color.red, 40), bgcolor = rowBg, text_size = dashSize())
+        table.cell(lampTable, 0, 3, zoneLine(slotS1, false, ""), text_color = color.new(color.aqua, 0), bgcolor = rowBg, text_size = dashSize())
+        table.cell(lampTable, 0, 4, zoneLine(slotS2, false, "بعد الكسر: "), text_color = color.new(color.aqua, 40), bgcolor = rowBg, text_size = dashSize())
 
     if showDashboard and dashboardMode != "COMPACT"
         string dSize = dashSize()
