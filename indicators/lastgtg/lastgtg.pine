@@ -2435,10 +2435,13 @@ if barstate.islast
 
     if showDashboard and dashboardMode == "COMPACT"
         // 2 = green (road open), 1 = yellow (caution), 0 = red (stop / do not chase).
-        int lamp = 2
-        string why = "الطريق مفتوح"
+        // Yellow is the default: green must be earned (clear heading aligned with the route,
+        // no obstacle within the awareness distance ahead, fuel not low, no exhaustion).
+        int lamp = 1
+        string why = "أدلة مختلطة"
         if breakAcceptedUp or breakAcceptedDn
             why := breakAcceptedUp ? "اختراق مؤكد" : "كسر مؤكد"
+            lamp := 2
         else if noChase
             why := "لا تطارد"
             lamp := 0
@@ -2456,13 +2459,19 @@ if barstate.islast
             lamp := 1
         else if obstacleNear or candleTouchesObstacle
             why := obstacleRole == 1 ? "مقاومة قريبة" : obstacleRole == -1 ? "دعم قريب" : "منطقة قريبة"
-            lamp := 1
+        else if movingTowardResistance or movingTowardSupport
+            why := movingTowardResistance ? "مقاومة أمامه" : "دعم أمامه"
         else if fuelExhaustion
             why := "الزخم يضعف"
-            lamp := 1
         else if headingSign == 0
             why := "بدون اتجاه واضح"
-            lamp := 1
+        else if routeSign == 0
+            why := "المسار العام غير واضح"
+        else if fuelScore < fuelLowThreshold
+            why := "الوقود ضعيف"
+        else if headingSign == routeSign
+            why := "الطريق مفتوح"
+            lamp := 2
         // The lamp uses the clear heading (|score| > clear threshold), not the weak-drift
         // fallback in tacticalSign, so a small pullback does not flip the displayed direction.
         string dirText = headingSign > 0 ? "صاعد" : headingSign < 0 ? "هابط" : "متردد"
