@@ -1,0 +1,12 @@
+M5 (zigzag 1 ATR) strong moves 2688, same-candle share 62%
+  clean       n= 1024 | depth p25 44% median 59% p75 78% | full reversal 12% | resumed 28%
+  same candle n= 1664 | depth p25 40% median 54% p75 69% | full reversal 2% | resumed 73%
+M15 (zigzag 1 ATR) strong moves 1058, same-candle share 61%
+  clean       n=  414 | depth p25 46% median 60% p75 78% | full reversal 14% | resumed 25%
+  same candle n=  644 | depth p25 43% median 56% p75 72% | full reversal 4% | resumed 74%
+H1 (zigzag 1.2 ATR) strong moves 380, same-candle share 62%
+  clean       n=  143 | depth p25 44% median 57% p75 80% | full reversal 15% | resumed 34%
+  same candle n=  237 | depth p25 40% median 55% p75 69% | full reversal 3% | resumed 74%
+H4 (zigzag 1.5 ATR) strong moves 136, same-candle share 56%
+  clean       n=   60 | depth p25 44% median 60% p75 74% | full reversal 8% | resumed 55%
+  same candle n=   76 | depth p25 36% median 46% p75 58% | full reversal 0% | resumed 88%
