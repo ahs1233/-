@@ -17,7 +17,7 @@ indicator(
 //   4. Unused fast-slope code removed from the tactical heading.
 // Display: COMPACT shows a two-line traffic light; zone labels use plain words and the
 // distance from price.
-// Expected pullback zone (section 15b): after a strong move, the 40%–77% band of that move.
+// Expected pullback zone (section 15b): after a strong move, the 45%–80% band of that move.
 // Validation instrumentation of v0.4.7 (hashes, Data Window export, rolling diagnostics, log
 // capture) removed: it compared the Pine engine with the JS reference, which lastgtg no
 // longer matches. One direction (the clear heading) drives every consumer.
@@ -2065,10 +2065,11 @@ if barstate.islast
 // 15b. EXPECTED PULLBACK ZONE
 // ATR zigzag on the chart timeframe (same rule as structure/segmentation.mjs). After a
 // confirmed move of at least pullMinMove × ATR (ATR at the move's start), the band
-// 40%–77% of that move is drawn, with 55% and the 100% invalidation line.
-// Train 2018–2024, moves ≥ 4 ATR on M15/H1/H4: median depth 52–57%, middle half
-// 40–77%, full reversal 6–9%. Out-of-sample check pending
-// (gtg-strategy-lab/reports/pullback_depth_preregistration.md).
+// 45%–80% of that move is drawn, with 60% and the 100% invalidation line.
+// Train 2018–2024, moves ≥ 4 ATR, pullbacks at least one candle after the turn, M5–H1:
+// median depth 59–61%, middle half about 44–84%, full reversal 13–18%.
+// A map, not an entry: limit entries in this band did no better than chance
+// (gtg-strategy-lab/reports/zone_bounce_train.md).
 // ============================================================================
 
 groupPull = "منطقة الارتداد المتوقعة"
@@ -2168,22 +2169,22 @@ if barstate.islast
         label.delete(pzLabel)
         pzLabel := na
     if showPullZone and pzOn
-        float pTop = math.max(pullLevel(0.40), pullLevel(0.77))
-        float pBot = math.min(pullLevel(0.40), pullLevel(0.77))
+        float pTop = math.max(pullLevel(0.45), pullLevel(0.80))
+        float pBot = math.min(pullLevel(0.45), pullLevel(0.80))
         pzBox := box.new(left = pzTime, top = pTop, right = zoneRightTime, bottom = pBot, xloc = xloc.bar_time, bgcolor = color.new(color.orange, 88), border_color = color.new(color.orange, 30), border_width = 1, border_style = line.style_dashed)
-        pzMid := line.new(x1 = pzTime, y1 = pullLevel(0.55), x2 = zoneRightTime, y2 = pullLevel(0.55), xloc = xloc.bar_time, color = color.new(color.orange, 20), style = line.style_dotted, width = 1)
+        pzMid := line.new(x1 = pzTime, y1 = pullLevel(0.60), x2 = zoneRightTime, y2 = pullLevel(0.60), xloc = xloc.bar_time, color = color.new(color.orange, 20), style = line.style_dotted, width = 1)
         pzInv := line.new(x1 = pzTime, y1 = pzStart, x2 = zoneRightTime, y2 = pzStart, xloc = xloc.bar_time, color = color.new(color.gray, 20), style = line.style_dashed, width = 1)
-        pzLabel := label.new(x = pzTime, y = pTop, text = "منطقة الارتداد المتوقعة", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
+        pzLabel := label.new(x = pzTime, y = pTop, text = "منطقة توقف الارتداد المعتادة — ليست إشارة دخول", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
     else if showPullZone and zzDir != 0 and not na(swLastPx)
         // Provisional: a strong move still in progress (top/bottom not confirmed yet). The band
         // is measured from the move's confirmed start to its running extreme, so it moves with it.
         float runPx = zzDir > 0 ? zzHi : zzLo
         int runTime = zzDir > 0 ? zzHiTime : zzLoTime
         if math.abs(runPx - swLastPx) >= pullMinMove * swLastAtr
-            float l40 = runPx - 0.40 * (runPx - swLastPx)
-            float l77 = runPx - 0.77 * (runPx - swLastPx)
-            pzBox := box.new(left = runTime, top = math.max(l40, l77), right = zoneRightTime, bottom = math.min(l40, l77), xloc = xloc.bar_time, bgcolor = color.new(color.orange, 94), border_color = color.new(color.orange, 55), border_width = 1, border_style = line.style_dotted)
-            pzLabel := label.new(x = runTime, y = math.max(l40, l77), text = "ارتداد متوقع إذا انتهت الحركة هنا", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
+            float l45 = runPx - 0.45 * (runPx - swLastPx)
+            float l80 = runPx - 0.80 * (runPx - swLastPx)
+            pzBox := box.new(left = runTime, top = math.max(l45, l80), right = zoneRightTime, bottom = math.min(l45, l80), xloc = xloc.bar_time, bgcolor = color.new(color.orange, 94), border_color = color.new(color.orange, 55), border_width = 1, border_style = line.style_dotted)
+            pzLabel := label.new(x = runTime, y = math.max(l45, l80), text = "منطقة الارتداد إذا انتهت الحركة هنا", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
 
 
 // ============================================================================
