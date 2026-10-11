@@ -2074,6 +2074,23 @@ bool breakAcceptedUp = ev.acceptedUp
 bool breakAcceptedDn = ev.acceptedDn
 bool flipConfirmedEvent = ev.flipConfirmed
 
+// Display copies. Engine events are true only on the execution that confirms a bar, so on a
+// live chart the open bar never sees them; hold the last confirmed bar's events until the
+// next bar closes. Alerts keep using the raw events above.
+var bool heldAccUp = false
+var bool heldAccDn = false
+var bool heldBrkR = false
+var bool heldBrkS = false
+var bool heldRejR = false
+var bool heldRejS = false
+if barstate.isconfirmed
+    heldAccUp := breakAcceptedUp
+    heldAccDn := breakAcceptedDn
+    heldBrkR := breakResistance
+    heldBrkS := breakSupport
+    heldRejR := rejectResistance
+    heldRejS := rejectSupport
+
 string obstacleState = "لا يوجد عائق مباشر"
 if priceInsideObstacle
     obstacleState := obstacleRole == 1 ? "داخل مقاومة" : obstacleRole == -1 ? "داخل دعم" : "داخل عائق"
@@ -2122,18 +2139,18 @@ bool movingTowardSupport = tacticalSign < 0 and obstacleRole == -1 and obstacleI
 string roadStatus = "حركة طبيعية"
 bool roadAboutDest1 = false
 
-if breakAcceptedUp
+if heldAccUp
     roadStatus := "اختراق مقبول"
-else if breakAcceptedDn
+else if heldAccDn
     roadStatus := "كسر مقبول"
-else if breakResistance
+else if heldBrkR
     roadStatus := fuelScore >= fuelHighThreshold and tacticalSign > 0 ? "اختراق مقاومة مدعوم" : "اختراق مقاومة — يحتاج تثبيت"
-else if breakSupport
+else if heldBrkS
     roadStatus := fuelScore >= fuelHighThreshold and tacticalSign < 0 ? "كسر دعم مدعوم" : "كسر دعم — يحتاج تثبيت"
-else if rejectResistance
+else if heldRejR
     roadStatus := "رفض من مقاومة — الزخم اصطدم بالعائق"
     roadAboutDest1 := true
-else if rejectSupport
+else if heldRejS
     roadStatus := "ارتداد من دعم — ظهر دفاع سعري"
     roadAboutDest1 := true
 else if priceInsideObstacle
@@ -2429,6 +2446,7 @@ fmtOpt(float v) =>
 lampSideText(SlotState ss, bool isRes) =>
     not ss.active ? (isRes ? "لا مقاومة قريبة" : "لا دعم قريب") : (isRes ? "مقاومة " : "دعم ") + zoneDistText(ss, isRes)
 
+
 if barstate.islast
     table.clear(dash, 0, 0, 1, 10)
     table.clear(lampTable, 0, 0, 0, 2)
@@ -2439,8 +2457,8 @@ if barstate.islast
         // no obstacle within the awareness distance ahead, fuel not low, no exhaustion).
         int lamp = 1
         string why = "أدلة مختلطة"
-        if breakAcceptedUp or breakAcceptedDn
-            why := breakAcceptedUp ? "اختراق مؤكد" : "كسر مؤكد"
+        if heldAccUp or heldAccDn
+            why := heldAccUp ? "اختراق مؤكد" : "كسر مؤكد"
             lamp := 2
         else if noChase
             why := "لا تطارد"
@@ -2451,12 +2469,10 @@ if barstate.islast
         else if routeSign != 0 and headingSign != 0 and routeSign != headingSign
             why := "عكس المسار العام"
             lamp := 0
-        else if breakResistance or breakSupport
+        else if heldBrkR or heldBrkS
             why := "كسر يحتاج تأكيد"
-            lamp := 1
-        else if rejectResistance or rejectSupport
-            why := rejectResistance ? "رفض من مقاومة" : "ارتداد من دعم"
-            lamp := 1
+        else if heldRejR or heldRejS
+            why := heldRejR ? "رفض من مقاومة" : "ارتداد من دعم"
         else if obstacleNear or candleTouchesObstacle
             why := obstacleRole == 1 ? "مقاومة قريبة" : obstacleRole == -1 ? "دعم قريب" : "منطقة قريبة"
         else if movingTowardResistance or movingTowardSupport
