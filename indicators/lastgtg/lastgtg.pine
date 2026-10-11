@@ -18,6 +18,9 @@ indicator(
 // Display: COMPACT shows a two-line traffic light; zone labels use plain words and the
 // distance from price.
 // Expected pullback zone (section 15b): after a strong move, the 40%–77% band of that move.
+// Validation instrumentation of v0.4.7 (hashes, Data Window export, rolling diagnostics, log
+// capture) removed: it compared the Pine engine with the JS reference, which lastgtg no
+// longer matches. One direction (the clear heading) drives every consumer.
 //
 // GTG NAVIGATOR v0.4.7 — STRUCTURAL ZONE ENGINE
 // Route + Tactical Heading + Speed + Fuel + HUD (carried over from v0.4.6),
@@ -136,10 +139,6 @@ useDOZ = input.bool(true, "Displacement Origin Zones (DOZ)", group = groupEngine
 
 groupDebug = "DEBUG"
 strictDebug = input.bool(false, "strictDebug — إيقاف المؤشر عند كسر invariant حرج", group = groupDebug, display = display.none)
-validationMode = input.bool(false, "validationMode — مقاييس التحقق في Data Window فقط", group = groupDebug, display = display.none)
-studyExtraBars = input.int(0, "studyExtraBars — شموع إحماء إضافية للدراسة (فعّالة فقط مع validationMode)", minval = 0, maxval = 20000, group = groupDebug, display = display.none)
-captureFrom = input.time(0, "captureFrom — بداية التقاط snapshot كامل في Pine Logs (0 = معطّل)", group = groupDebug, display = display.none)
-captureTo = input.time(0, "captureTo — نهاية الالتقاط (مدى قصير فقط)", group = groupDebug, display = display.none)
 
 // Input contract (R3): Q_stay is the lower-or-equal hold threshold of the Q_enter /
 // Q_stay hysteresis pair. With Q_stay > Q_enter a held zone fails its own hold test
@@ -394,9 +393,10 @@ headingVector =
 
 headingScore = 100.0 * clampSigned(headingVector)
 headingStrength = math.abs(headingScore)
+// One direction for the whole indicator: only a clear heading (|score| > clear threshold)
+// counts. Weak drift inside the clear band reads as no direction, so a small pullback
+// cannot flip the lamp, the obstacle choice or the no-chase rule.
 int headingSign = headingScore > headingClearThreshold ? 1 : headingScore < -headingClearThreshold ? -1 : 0
-int microSign = microMoveNorm > 0.18 ? 1 : microMoveNorm < -0.18 ? -1 : 0
-int tacticalSign = headingSign != 0 ? headingSign : headingStrength > headingDeadZone ? (headingScore > 0 ? 1 : -1) : (math.abs(microMoveNorm) > 0.32 ? microSign : 0)
 
 string headingText = headingScore >= headingStrongThreshold ? "↑ صاعد بقوة" :
      headingScore > headingClearThreshold ? "↗ صاعد" :
@@ -547,10 +547,7 @@ if barstate.isfirst and not (chartSec < a1Sec and a1Sec < a2Sec)
 // makes the zone map a function of the trailing W closed bars only.
 float tMaxChart = math.max(maxAgeLocal * 1.0, math.max(maxAgeA1 * a1Sec * 1.0 / chartSec, maxAgeA2 * a2Sec * 1.0 / chartSec))
 int engineWindow = 2 * math.ceil(tMaxChart) + L_ENTRY + N_LEG + pivotLen + 10
-// Study-only extension: the last studyExtraBars bars become fully warmed. It is
-// ignored unless validationMode is on, so production behaviour cannot change.
-int engineWindowRun = engineWindow + (validationMode ? studyExtraBars : 0)
-bool engineOn = bar_index >= last_bar_index - engineWindowRun
+bool engineOn = bar_index >= last_bar_index - engineWindow
 bool engineStep = engineOn and barstate.isconfirmed
 
 // Finite-memory volatility: the only volatility measure used by the Zone Engine.
@@ -691,19 +688,6 @@ type Telemetry
     float rEffDnAtr = na
     int violationsCritical = 0
     int engineBars = 0
-    int hashSlots = 0
-    int hashState = 0
-    int deathsBar = 0
-    int largestCompBar = 0
-    int zonesBuiltBar = 0
-    int slotKeysBar = 0
-    float nextBeyondUpAtr = na
-    float nextBeyondDnAtr = na
-    bool nextBeyondUpAnchor = false
-    bool nextBeyondDnAnchor = false
-    bool hiddenNearUp = false
-    bool hiddenNearDn = false
-    int hiddenContain = 0
 
 // One source of truth for zone events. Reset on every execution, set only on
 // confirmed bars by the level state machine.
@@ -1159,8 +1143,6 @@ if engineStep
     ringPush(ringL, low)
     ringPush(ringC, close)
     tel.engineBars := tel.engineBars + 1
-    if validationMode
-        tel.deathsBar := 0
 
     // State machine + aging for every live level.
     for p = 0 to 2
@@ -1169,7 +1151,6 @@ if engineStep
         if n > 0
             for i = 0 to n - 1
                 Level lv = array.get(pool, i)
-                bool wasAlive = validationMode and lv.state != ST_DEAD
                 int nowN = nativeNowOf(lv.tfRank)
                 if not na(nowN)
                     int age = nowN - lv.birthNativeBar
@@ -1182,8 +1163,6 @@ if engineStep
                         lv.navArmed := false
                 if lv.state != ST_DEAD
                     updateLevel(lv, open, high, low, close, prevClose, atrEng, bar_index, ev, keyInPrevSlots(lv.key))
-                if wasAlive and lv.state == ST_DEAD
-                    tel.deathsBar := tel.deathsBar + 1
     compactLocal(localPool)
 
     // DOZ: displacement close through the latest unbroken, non-expired swing.
@@ -1419,8 +1398,6 @@ int workCount = 0
 
 if engineStep
     tel.supBar := 0
-    if validationMode
-        tel.largestCompBar := 0
     tel.supMaxQ := na
     tel.supNearestAtr := na
     array.clear(work)
@@ -1458,8 +1435,6 @@ if engineStep
         for i = 1 to workCount
             bool boundary = i == workCount ? true : array.get(srt, i).lo > cHi + mgAbs
             if boundary
-                if validationMode
-                    tel.largestCompBar := math.max(tel.largestCompBar, i - cStart)
                 zoneCount := packComponent(srt, memberZone, zonePool, cStart, i - 1, zoneCount, mgAbs, maxWAbs, tel, close, atrEng)
                 cStart := i
                 if i < workCount
@@ -1597,7 +1572,7 @@ float rStarUp = na
 float rStarDn = na
 float rEffUp = na
 float rEffDn = na
-// Horizon stages (identical formulas; global so validation telemetry can read them).
+// Horizon stages (global: the selection below reads them).
 float hLocal = kLocal * atrEng
 float reachA1 = na(atrA1) ? 0.0 : kA1 * atrA1
 float reachA2 = na(atrA2) ? 0.0 : kA2 * atrA2
@@ -1786,225 +1761,6 @@ if engineStep
             ss.shortTag := suffix
             ss.primaryKey := prim.key
 
-// ============================================================================
-// 12a. VALIDATION TELEMETRY — READ-ONLY WITH RESPECT TO THE ENGINE
-// Writes only Telemetry fields. Nothing below is read by any engine decision.
-// ============================================================================
-
-// Auxiliary hashes of the canonical snapshot (reference/snapshot.mjs, same integer
-// encoding and arithmetic): hashSlots covers the identity level (per slot: active,
-// containing, side, lo/hi in ticks, primaryKey, gateQ, displayQ, sorted lastKeys and
-// entryKeys), hashState covers the engine-state level (every pool record sorted by
-// key with its source identity and ages relative to this bar, the DOZ swing trackers
-// and the OHLC ring). Per bar, never cumulative.
-// Different values prove a difference; equal values do NOT prove equality. The full
-// comparison uses raw fields (Data Window export and the log capture in section 18).
-HASH_P = 2147483647
-HASH_B = 1000003
-HASH_K = 131071
-
-hashStep(int h, int x) =>
-    int r = ((x % HASH_P) + HASH_P) % HASH_P
-    (h * HASH_B + (r * r % HASH_P * 3 + r * HASH_K + 1) % HASH_P) % HASH_P
-
-toTicks(float x) =>
-    math.round(x / syminfo.mintick)
-
-q6(float x) =>
-    math.round(x * 1000000.0)
-
-sinceOr(int x) =>
-    na(x) ? -1 : bar_index - x
-
-// Copies a slot-owned key array into scratch (the slot array itself is never sorted).
-sortedCopy(array<int> keys, array<int> scratch) =>
-    replaceKeys(scratch, keys)
-    array.sort(scratch, order.ascending)
-    array.size(scratch)
-
-hashKeyList(int h0, array<int> keys, array<int> scratch) =>
-    int n = sortedCopy(keys, scratch)
-    int h = hashStep(h0, n)
-    if n > 0
-        for i = 0 to n - 1
-            h := hashStep(h, array.get(scratch, i))
-    h
-
-hashSlot(int h0, SlotState ss, array<int> lastK, array<int> entryK, array<int> scratch) =>
-    int h = h0
-    if not ss.active
-        h := hashStep(h, 0)
-    else
-        h := hashStep(h, 1)
-        h := hashStep(h, ss.containing ? 1 : 0)
-        h := hashStep(h, ss.side)
-        h := hashStep(h, toTicks(ss.lo))
-        h := hashStep(h, toTicks(ss.hi))
-        h := hashStep(h, ss.primaryKey)
-        h := hashStep(h, math.round(ss.gateQ * 100))
-        h := hashStep(h, math.round(ss.quality * 100))
-        h := hashKeyList(h, lastK, scratch)
-        h := hashKeyList(h, entryK, scratch)
-    h
-
-hashLevel(int h0, Level lv) =>
-    int h = hashStep(h0, lv.key)
-    h := hashStep(h, lv.source)
-    h := hashStep(h, lv.tfRank)
-    h := hashStep(h, lv.typ)
-    h := hashStep(h, lv.birthTime)
-    h := hashStep(h, toTicks(lv.price))
-    h := hashStep(h, lv.state)
-    h := hashStep(h, lv.polarity)
-    h := hashStep(h, toTicks(lv.lo))
-    h := hashStep(h, toTicks(lv.hi))
-    h := hashStep(h, q6(lv.s))
-    h := hashStep(h, q6(lv.mitigation))
-    h := hashStep(h, q6(lv.evidence))
-    h := hashStep(h, lv.tests)
-    h := hashStep(h, lv.ageNative)
-    h := hashStep(h, lv.epActive ? 1 : 0)
-    h := hashStep(h, lv.epSide)
-    h := hashStep(h, q6(lv.epMaxDepth))
-    h := hashStep(h, lv.breakDir)
-    h := hashStep(h, lv.breakCloses)
-    h := hashStep(h, lv.breakFromFlip ? 1 : 0)
-    h := hashStep(h, lv.backCloses)
-    h := hashStep(h, sinceOr(lv.lastTestChartBar))
-    h := hashStep(h, sinceOr(lv.stateChartBar))
-    h := hashStep(h, sinceOr(lv.backStartChartBar))
-    h := hashStep(h, lv.navArmed ? 1 : 0)
-    h
-
-hashTracker(int h0, float px, int bar, bool broken) =>
-    int h = h0
-    if na(px)
-        h := hashStep(h, 0)
-    else
-        h := hashStep(h, 1)
-        h := hashStep(h, toTicks(px))
-        h := hashStep(h, sinceOr(bar))
-        h := hashStep(h, broken ? 1 : 0)
-    h
-
-// Snapshot scratch: all pool records and their keys (read-only views of the pools).
-var array<int> hashScratch = array.new_int()
-var array<Level> snapLevels = array.new<Level>()
-var array<int> snapKeys = array.new_int()
-var array<int> snapOrd = array.new_int()
-
-// Cost gate (G2). hashSlots is cheap (four slots, ~60 integers) and stays on every engine
-// step, as the slot digest did before. The state level (every pool record, 26 fields
-// each, plus the 64-bar OHLC ring: ~1,800 integers and a sort per step) is computed only
-// when something reads it: validationMode (v_hashState) or the log capture (END line and
-// the sorted LVL lines). Write-only telemetry either way: no engine decision reads it.
-bool captureOn = engineStep and captureFrom > 0 and time >= captureFrom and time <= captureTo
-bool hashStateOn = engineStep and (validationMode or captureOn)
-
-if engineStep
-    int hs = hashStep(0, 1)
-    hs := hashSlot(hs, slotR1, keysLastR1, keysEntryR1, hashScratch)
-    hs := hashSlot(hs, slotR2, keysLastR2, keysEntryR2, hashScratch)
-    hs := hashSlot(hs, slotS1, keysLastS1, keysEntryS1, hashScratch)
-    hs := hashSlot(hs, slotS2, keysLastS2, keysEntryS2, hashScratch)
-    tel.hashSlots := hs
-
-if hashStateOn
-    array.clear(snapLevels)
-    array.clear(snapKeys)
-    for p = 0 to 2
-        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
-        int n = array.size(pool)
-        if n > 0
-            for i = 0 to n - 1
-                Level lv = array.get(pool, i)
-                array.push(snapLevels, lv)
-                array.push(snapKeys, lv.key)
-    int nSnap = array.size(snapKeys)
-    array.clear(snapOrd)
-    if nSnap >= 2
-        snapOrd := array.sort_indices(snapKeys, order.ascending)
-    else if nSnap == 1
-        array.push(snapOrd, 0)
-    int hl = hashStep(0, 2)
-    hl := hashStep(hl, nSnap)
-    if nSnap > 0
-        for i = 0 to nSnap - 1
-            hl := hashLevel(hl, array.get(snapLevels, array.get(snapOrd, i)))
-    hl := hashTracker(hl, lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken)
-    hl := hashTracker(hl, lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken)
-    // OHLC ring (index = age, 0 = newest): read by dozBuild and containEntrySide.
-    int nRing = array.size(ringC)
-    hl := hashStep(hl, nRing)
-    if nRing > 0
-        for k = 0 to nRing - 1
-            hl := hashStep(hl, toTicks(array.get(ringO, k)))
-            hl := hashStep(hl, toTicks(array.get(ringH, k)))
-            hl := hashStep(hl, toTicks(array.get(ringL, k)))
-            hl := hashStep(hl, toTicks(array.get(ringC, k)))
-    tel.hashState := hl
-
-if engineStep and validationMode
-    tel.zonesBuiltBar := zoneCount
-    tel.slotKeysBar := math.max(math.max(array.size(keysLastR1), array.size(keysLastR2)), math.max(array.size(keysLastS1), array.size(keysLastS2)))
-    // Nearest eligible zone beyond the effective horizon, per side.
-    tel.nextBeyondUpAtr := na
-    tel.nextBeyondDnAtr := na
-    tel.nextBeyondUpAnchor := false
-    tel.nextBeyondDnAnchor := false
-    if zoneCount > 0
-        for z = 0 to zoneCount - 1
-            Zone zn = array.get(zonePool, z)
-            if zn.eligible and zn.side == SIDE_ABOVE and zn.dist > rEffUp
-                float dA = zn.dist / atrEng
-                if na(tel.nextBeyondUpAtr) or dA < tel.nextBeyondUpAtr
-                    tel.nextBeyondUpAtr := dA
-                    tel.nextBeyondUpAnchor := zn.hasA1 or zn.hasA2
-            if zn.eligible and zn.side == SIDE_BELOW and zn.dist > rEffDn
-                float dB = zn.dist / atrEng
-                if na(tel.nextBeyondDnAtr) or dB < tel.nextBeyondDnAtr
-                    tel.nextBeyondDnAtr := dB
-                    tel.nextBeyondDnAnchor := zn.hasA1 or zn.hasA2
-    // hidden-near: a suppressed member with q ≥ Q_enter inside H_tact, not represented
-    // by a displayed zone on its side (no overlap, gap ≥ mergeGap), and nearer to price
-    // than the nearest displayed obstacle on that side by ≥ 0.25 ATR (or none shown).
-    tel.hiddenNearUp := false
-    tel.hiddenNearDn := false
-    tel.hiddenContain := 0
-    float mgV = mergeGapK * atrEng
-    float nearUp = na
-    float nearDn = na
-    for si = 0 to 3
-        SlotState ss = slotAt(si)
-        if ss.active
-            float d = ss.containing ? 0.0 : ss.lo > close ? ss.lo - close : close - ss.hi
-            if si < 2
-                nearUp := na(nearUp) ? d : math.min(nearUp, d)
-            else
-                nearDn := na(nearDn) ? d : math.min(nearDn, d)
-    if workCount > 0
-        for i = 0 to workCount - 1
-            if array.get(memberZone, i) == -1
-                Level m = array.get(srt, i)
-                if m.q >= qEnter
-                    int mSide = m.lo > close ? 1 : m.hi < close ? -1 : 0
-                    if mSide == 0
-                        tel.hiddenContain := tel.hiddenContain + 1
-                    else
-                        float md = mSide > 0 ? m.lo - close : close - m.hi
-                        if md <= kTact * atrEng
-                            bool represented = false
-                            for si = 0 to 3
-                                SlotState ss = slotAt(si)
-                                if ss.active and (si < 2) == (mSide > 0) and gapBetween(m.lo, m.hi, ss.lo, ss.hi) < mgV
-                                    represented := true
-                            float nearSide = mSide > 0 ? nearUp : nearDn
-                            if not represented and (na(nearSide) or md + 0.25 * atrEng <= nearSide)
-                                if mSide > 0
-                                    tel.hiddenNearUp := true
-                                else
-                                    tel.hiddenNearDn := true
-
 // Adapter: the legacy consumer variables, now fed from the persistent slots.
 float res1Low = slotR1.active ? slotR1.lo : na
 float res1High = slotR1.active ? slotR1.hi : na
@@ -2030,7 +1786,7 @@ string sup2Type = slotS2.active ? slotS2.roleType : "—"
 // accept / flip events come from the level state machine (single source).
 // ============================================================================
 
-int mapDirectionSign = tacticalSign != 0 ? tacticalSign : routeSign
+int mapDirectionSign = headingSign != 0 ? headingSign : routeSign
 bool containR = slotR1.active and slotR1.containing
 bool containS = slotS1.active and slotS1.containing
 float res1Dist = not na(res1Low) ? zoneDistance(res1Low, res1High) / atrEng : 99.0
@@ -2118,16 +1874,16 @@ if dest1Tag != "" and obstacleAvailable
 bool fuelNotSupportingChase = fuelAcceleration < -3 or fuelScore < noChaseFuelMax or fuelScore + 18 < speedScore
 bool speedHotForChase = speedScore >= math.max(60.0, speedFastThreshold - 10.0) or instantSpeedScore >= speedExtremeThreshold
 bool obstacleEngagedForChase = obstacleAvailable and (nearestObstacleAtr <= noChaseAtr or priceInsideObstacle or candleTouchesObstacle)
-bool noChaseUp = tacticalSign > 0 and obstacleRole == 1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
-bool noChaseDown = tacticalSign < 0 and obstacleRole == -1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
+bool noChaseUp = headingSign > 0 and obstacleRole == 1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
+bool noChaseDown = headingSign < 0 and obstacleRole == -1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
 bool noChase = noChaseUp or noChaseDown
 
 // Exhaustion is not a reversal call. It only says speed is being maintained while
 // participation/thrust is deteriorating.
 bool fuelExhaustion = speedScore >= 55 and fuelScore >= 40 and fuelAcceleration < -6
 bool obstacleInAwarenessRange = obstacleAvailable and not na(nearestObstacleAtr) and nearestObstacleAtr <= awarenessObstacleAtr
-bool movingTowardResistance = tacticalSign > 0 and obstacleRole == 1 and obstacleInAwarenessRange
-bool movingTowardSupport = tacticalSign < 0 and obstacleRole == -1 and obstacleInAwarenessRange
+bool movingTowardResistance = headingSign > 0 and obstacleRole == 1 and obstacleInAwarenessRange
+bool movingTowardSupport = headingSign < 0 and obstacleRole == -1 and obstacleInAwarenessRange
 
 
 // ============================================================================
@@ -2144,9 +1900,9 @@ if heldAccUp
 else if heldAccDn
     roadStatus := "كسر مقبول"
 else if heldBrkR
-    roadStatus := fuelScore >= fuelHighThreshold and tacticalSign > 0 ? "اختراق مقاومة مدعوم" : "اختراق مقاومة — يحتاج تثبيت"
+    roadStatus := fuelScore >= fuelHighThreshold and headingSign > 0 ? "اختراق مقاومة مدعوم" : "اختراق مقاومة — يحتاج تثبيت"
 else if heldBrkS
-    roadStatus := fuelScore >= fuelHighThreshold and tacticalSign < 0 ? "كسر دعم مدعوم" : "كسر دعم — يحتاج تثبيت"
+    roadStatus := fuelScore >= fuelHighThreshold and headingSign < 0 ? "كسر دعم مدعوم" : "كسر دعم — يحتاج تثبيت"
 else if heldRejR
     roadStatus := "رفض من مقاومة — الزخم اصطدم بالعائق"
     roadAboutDest1 := true
@@ -2169,12 +1925,12 @@ else if movingTowardSupport
     roadStatus := fuelExhaustion ? "هابط نحو دعم — الوقود يتآكل" : "هابط لكن دعم أمامه"
     roadAboutDest1 := true
 else if fuelExhaustion
-    roadStatus := tacticalSign > 0 ? "الصعود مستمر لكن الوقود يتآكل" : tacticalSign < 0 ? "الهبوط مستمر لكن الوقود يتآكل" : "الوقود يتآكل"
-else if routeSign < 0 and tacticalSign > 0
+    roadStatus := headingSign > 0 ? "الصعود مستمر لكن الوقود يتآكل" : headingSign < 0 ? "الهبوط مستمر لكن الوقود يتآكل" : "الوقود يتآكل"
+else if routeSign < 0 and headingSign > 0
     roadStatus := "ارتداد صاعد داخل مسار هابط"
-else if routeSign > 0 and tacticalSign < 0
+else if routeSign > 0 and headingSign < 0
     roadStatus := "تصحيح هابط داخل مسار صاعد"
-else if tacticalSign == 0
+else if headingSign == 0
     roadStatus := routeSign == 0 ? "لا يوجد اتجاه قابل للملاحة" : "توقف/تجميع داخل المسار"
 else if speedScore >= speedFastThreshold and fuelScore < fuelLowThreshold
     roadStatus := "حركة سريعة لكن الدفع يضعف"
@@ -2182,12 +1938,12 @@ else if speedScore < speedSlowThreshold and fuelScore < fuelLowThreshold
     roadStatus := routeSign == 0 ? "خمول/تجميع" : "توقف/تجميع داخل المسار"
 else if speedScore < speedSlowThreshold and fuelScore >= fuelHighThreshold
     roadStatus := "طاقة تتجمع"
-else if routeSign == tacticalSign and tacticalSign != 0 and speedScore >= speedFastThreshold and fuelScore >= fuelHighThreshold and (na(nearestObstacleAtr) or nearestObstacleAtr >= 0.80)
-    roadStatus := tacticalSign > 0 ? "اندفاع صاعد مدعوم — الطريق مفتوح نسبيًا" : "اندفاع هابط مدعوم — الطريق مفتوح نسبيًا"
-else if routeSign == tacticalSign and tacticalSign != 0 and fuelScore < fuelLowThreshold
+else if routeSign == headingSign and headingSign != 0 and speedScore >= speedFastThreshold and fuelScore >= fuelHighThreshold and (na(nearestObstacleAtr) or nearestObstacleAtr >= 0.80)
+    roadStatus := headingSign > 0 ? "اندفاع صاعد مدعوم — الطريق مفتوح نسبيًا" : "اندفاع هابط مدعوم — الطريق مفتوح نسبيًا"
+else if routeSign == headingSign and headingSign != 0 and fuelScore < fuelLowThreshold
     roadStatus := "المسار متوافق لكن الوقود ضعيف"
-else if routeSign == tacticalSign and tacticalSign != 0
-    roadStatus := tacticalSign > 0 ? "حركة صاعدة داخل المسار" : "حركة هابطة داخل المسار"
+else if routeSign == headingSign and headingSign != 0
+    roadStatus := headingSign > 0 ? "حركة صاعدة داخل المسار" : "حركة هابطة داخل المسار"
 else
     roadStatus := "أدلة الحركة مختلطة"
 
@@ -2488,8 +2244,6 @@ if barstate.islast
         else if headingSign == routeSign
             why := "الطريق مفتوح"
             lamp := 2
-        // The lamp uses the clear heading (|score| > clear threshold), not the weak-drift
-        // fallback in tacticalSign, so a small pullback does not flip the displayed direction.
         string dirText = headingSign > 0 ? "صاعد" : headingSign < 0 ? "هابط" : "متردد"
         color lampBg = lamp == 2 ? color.new(color.green, 15) : lamp == 1 ? color.new(color.yellow, 10) : color.new(color.red, 15)
         color lampFg = lamp == 1 ? color.black : color.white
@@ -2501,7 +2255,7 @@ if barstate.islast
     if showDashboard and dashboardMode != "COMPACT"
         string dSize = dashSize()
         color routeColor = routeSign > 0 ? color.lime : routeSign < 0 ? color.red : color.silver
-        color headingColor = tacticalSign > 0 ? color.lime : tacticalSign < 0 ? color.red : color.silver
+        color headingColor = headingSign > 0 ? color.lime : headingSign < 0 ? color.red : color.silver
         color speedColor = speedScore >= speedExtremeThreshold ? color.orange : speedScore >= speedFastThreshold ? color.yellow : color.white
         color fuelColor = fuelExhaustion ? color.orange : fuelScore >= fuelHighThreshold ? color.lime : fuelScore < fuelLowThreshold ? color.orange : color.white
         bool hazardRoad = str.contains(roadStatus, "مقاومة") or str.contains(roadStatus, "دعم") or str.contains(roadStatus, "لا تطارد") or str.contains(roadStatus, "يتآكل") or str.contains(roadStatus, "اختبار") or str.contains(roadStatus, "يقترب")
@@ -2539,7 +2293,7 @@ if barstate.islast
             string normalBand = na(speedNaturalLow) or na(speedNaturalHigh) ? "جارٍ المعايرة" : fmtPrice(speedNaturalLow) + "–" + fmtPrice(speedNaturalHigh)
             string d2 = not na(dest2Low) ? dest2Type + " " + fmtZone(dest2Low, dest2High) : "—"
             string d3 = not na(dest3Low) ? dest3Type + " " + fmtZone(dest3Low, dest3High) : "—"
-            string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • keys " + str.tostring(tel.maxSlotKeys) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr) + " • cap " + str.tostring(tel.zoneCapHits) + " • eng " + str.tostring(tel.engineBars) + " • hs " + str.tostring(tel.hashSlots, "#")
+            string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • keys " + str.tostring(tel.maxSlotKeys) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr) + " • cap " + str.tostring(tel.zoneCapHits) + " • eng " + str.tostring(tel.engineBars)
             table.cell(dash, 0, 8, normalBand + " • فوري " + fmtScore(instantSpeedScore), text_color = color.white, bgcolor = color.new(color.black, 4), text_size = size.tiny)
             table.cell(dash, 1, 8, "المعايرة", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
             table.cell(dash, 0, 9, d2 + " | " + d3, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = size.tiny)
@@ -2566,7 +2320,6 @@ var array<int> strongObsKeys = array.new_int()
 array<int> dest1EntryKeys = primaryUp ? keysEntryR1 : keysEntryS1
 bool strongObsNow = obstacleAvailable and nearestObstacleStrong and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr
 bool strongObsSame = keysIntersect(strongObsKeys, dest1EntryKeys)
-bool strongObsPrev = strongObsLatch
 nearStrongObstacle = barstate.isconfirmed and strongObsNow and (not strongObsLatch or not strongObsSame)
 if barstate.isconfirmed
     strongObsLatch := strongObsNow
@@ -2574,11 +2327,6 @@ if barstate.isconfirmed
         replaceKeys(strongObsKeys, dest1EntryKeys)
     else
         array.clear(strongObsKeys)
-// The latch is continuation state: fold it into hashState after the engine part.
-if hashStateOn
-    int hsObs = hashStep(tel.hashState, strongObsLatch ? 1 : 0)
-    hsObs := hashKeyList(hsObs, strongObsKeys, hashScratch)
-    tel.hashState := hsObs
 noChaseEvent = barstate.isconfirmed and noChase and not noChase[1]
 obstacleBreakEvent = breakResistance or breakSupport
 obstacleRejectEvent = rejectResistance or rejectSupport
@@ -2594,246 +2342,3 @@ alertcondition(obstacleBreakEvent, "lastgtg — Obstacle Break", "lastgtg: حد�
 alertcondition(obstacleRejectEvent, "lastgtg — Obstacle Rejection", "lastgtg: ظهر رفض/ارتداد واضح من عائق سعري معروض.")
 alertcondition(breakAcceptedEvent, "lastgtg — Break Accepted", "lastgtg: الكسر أصبح مقبولًا وفق محرك المناطق.")
 alertcondition(flipConfirmedEvent, "lastgtg — Flip Confirmed", "lastgtg: إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد.")
-
-
-// ============================================================================
-// 18. VALIDATION EXPORT — DATA WINDOW ONLY (validationMode)
-// Nothing here is drawn on the chart; values are na unless validationMode is on and
-// the engine ran on this confirmed bar. v_hashSlots and v_eventBits are exported in both
-// settings (instrumentation on/off comparisons); v_hashState only when validationMode or
-// the log capture is on (cost gate, section 12a; state-level on/off comparisons use the
-// capture, whose END line carries it in both settings); the hashes are
-// auxiliary (a difference proves a difference, equality proves nothing), so the full
-// comparison uses the raw fields: v_lo*/v_hi* (validationMode) and the log capture.
-// Export via TradingView "Export chart data".
-// ============================================================================
-
-bool vOn = validationMode and engineStep
-float vAtr = atrEng
-int cfgId = kLocal == 10.0 and kA1 == 3.0 and kA2 == 2.5 ? (mergeGapK == 0.25 ? 1 : mergeGapK == 0.35 ? 2 : 5) : kLocal == 8.0 and kA1 == 2.5 and kA2 == 2.0 ? (mergeGapK == 0.25 ? 3 : mergeGapK == 0.35 ? 4 : 5) : 5
-int flagsA = (slotR1.active ? 1 : 0) + (slotR2.active ? 2 : 0) + (slotS1.active ? 4 : 0) + (slotS2.active ? 8 : 0) + (slotR1.active and slotR1.containing ? 16 : 0) + (slotS1.active and slotS1.containing ? 32 : 0) + (reachA1 > hLocal ? 64 : 0) + (reachA2 > math.max(hLocal, reachA1) ? 128 : 0) + (rStarUp > hLocal ? 256 : 0) + (rStarDn > hLocal ? 512 : 0) + (tel.nextBeyondUpAnchor ? 1024 : 0) + (tel.nextBeyondDnAnchor ? 2048 : 0)
-// Engine events (bits 0–6, same order as flagsB) + the ten alert conditions (bits 7–16).
-int engineEventBits = (ev.breakingUp ? 1 : 0) + (ev.breakingDn ? 2 : 0) + (ev.acceptedUp ? 4 : 0) + (ev.acceptedDn ? 8 : 0) + (ev.rejectR ? 16 : 0) + (ev.rejectS ? 32 : 0) + (ev.flipConfirmed ? 64 : 0)
-int alertBits = (speedBurst ? 1 : 0) + (fuelSurge ? 2 : 0) + (headingUp ? 4 : 0) + (headingDown ? 8 : 0) + (nearStrongObstacle ? 16 : 0) + (noChaseEvent ? 32 : 0) + (obstacleBreakEvent ? 64 : 0) + (obstacleRejectEvent ? 128 : 0) + (breakAcceptedEvent ? 256 : 0) + (flipConfirmedEvent ? 512 : 0)
-int flagsB = (ev.breakingUp ? 1 : 0) + (ev.breakingDn ? 2 : 0) + (ev.acceptedUp ? 4 : 0) + (ev.acceptedDn ? 8 : 0) + (ev.rejectR ? 16 : 0) + (ev.rejectS ? 32 : 0) + (ev.flipConfirmed ? 64 : 0) + (tel.hiddenNearUp ? 128 : 0) + (tel.hiddenNearDn ? 256 : 0)
-
-plot(vOn ? cfgId : na, "v_cfg", display = display.data_window)
-plot(vOn ? slotR1.primaryKey : na, "v_sigR1", display = display.data_window)
-plot(vOn ? slotR2.primaryKey : na, "v_sigR2", display = display.data_window)
-plot(vOn ? slotS1.primaryKey : na, "v_sigS1", display = display.data_window)
-plot(vOn ? slotS2.primaryKey : na, "v_sigS2", display = display.data_window)
-plot(vOn and slotR1.active ? slotR1.distAtr : na, "v_dR1", display = display.data_window)
-plot(vOn and slotR2.active ? slotR2.distAtr : na, "v_dR2", display = display.data_window)
-plot(vOn and slotS1.active ? slotS1.distAtr : na, "v_dS1", display = display.data_window)
-plot(vOn and slotS2.active ? slotS2.distAtr : na, "v_dS2", display = display.data_window)
-plot(vOn ? hLocal / vAtr : na, "v_hLocal", display = display.data_window)
-plot(vOn ? reachA1 / vAtr : na, "v_reachA1", display = display.data_window)
-plot(vOn ? reachA2 / vAtr : na, "v_reachA2", display = display.data_window)
-plot(vOn ? rStarUp / vAtr : na, "v_rStarUp", display = display.data_window)
-plot(vOn ? rStarDn / vAtr : na, "v_rStarDn", display = display.data_window)
-plot(vOn ? rEffUp / vAtr : na, "v_rEffUp", display = display.data_window)
-plot(vOn ? rEffDn / vAtr : na, "v_rEffDn", display = display.data_window)
-plot(vOn ? tel.nextBeyondUpAtr : na, "v_nextBeyondUp", display = display.data_window)
-plot(vOn ? tel.nextBeyondDnAtr : na, "v_nextBeyondDn", display = display.data_window)
-plot(vOn ? flagsA : na, "v_flagsA", display = display.data_window)
-plot(vOn ? flagsB : na, "v_flagsB", display = display.data_window)
-plot(vOn ? tel.supBar : na, "v_supCount", display = display.data_window)
-plot(vOn ? tel.supMaxQ : na, "v_supMaxQ", display = display.data_window)
-plot(vOn ? tel.supNearestAtr : na, "v_supNearestAtr", display = display.data_window)
-plot(vOn ? array.size(localPool) : na, "v_liveL", display = display.data_window)
-plot(vOn ? array.size(anchorPoolA1) : na, "v_liveA1", display = display.data_window)
-plot(vOn ? array.size(anchorPoolA2) : na, "v_liveA2", display = display.data_window)
-plot(vOn ? tel.zonesBuiltBar : na, "v_zonesBuilt", display = display.data_window)
-plot(vOn ? tel.largestCompBar : na, "v_largestComp", display = display.data_window)
-plot(vOn ? tel.slotKeysBar : na, "v_slotKeysMax", display = display.data_window)
-plot(vOn ? tel.deathsBar : na, "v_deaths", display = display.data_window)
-plot(vOn ? tel.violations : na, "v_invTotal", display = display.data_window)
-plot(vOn ? tel.violationsCritical : na, "v_invCritical", display = display.data_window)
-plot(engineStep ? tel.hashSlots : na, "v_hashSlots", display = display.data_window, precision = 0)
-plot(hashStateOn ? tel.hashState : na, "v_hashState", display = display.data_window, precision = 0)
-plot(engineStep ? engineEventBits + alertBits * 128 : na, "v_eventBits", display = display.data_window, precision = 0)
-// Strong Obstacle state machine (R4-A): 1 qualifying now, 2 latch before this bar, 4 same obstacle, 8 event.
-plot(engineStep ? (strongObsNow ? 1 : 0) + (strongObsPrev ? 2 : 0) + (strongObsSame ? 4 : 0) + (nearStrongObstacle ? 8 : 0) : na, "v_obsState", display = display.data_window, precision = 0)
-plot(vOn and slotR1.active ? slotR1.lo : na, "v_loR1", display = display.data_window, precision = 10)
-plot(vOn and slotR1.active ? slotR1.hi : na, "v_hiR1", display = display.data_window, precision = 10)
-plot(vOn and slotR2.active ? slotR2.lo : na, "v_loR2", display = display.data_window, precision = 10)
-plot(vOn and slotR2.active ? slotR2.hi : na, "v_hiR2", display = display.data_window, precision = 10)
-plot(vOn and slotS1.active ? slotS1.lo : na, "v_loS1", display = display.data_window, precision = 10)
-plot(vOn and slotS1.active ? slotS1.hi : na, "v_hiS1", display = display.data_window, precision = 10)
-plot(vOn and slotS2.active ? slotS2.lo : na, "v_loS2", display = display.data_window, precision = 10)
-plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_window, precision = 10)
-
-// ============================================================================
-// 18b. ROLLING VALIDATION DIAGNOSTICS — validationMode only; measurement, not state
-// Window = the last DIAG_WIN confirmed chart bars; every count is over the warmed
-// engine bars inside it (engineStep and more than W engine bars already run). Four
-// exact packed integers (reference/diag.mjs decodes them), shown in a validation-only
-// table — no plot() calls, so the diagnostics consume no plot counts (a plot-based
-// version hit RE10140 on TradingView). Values are stored on confirmed bars, so the
-// open bar shows the last confirmed values. Nothing in the engine reads any of this.
-// Masks over v_eventBits (engine bits + alert bits·128): break 3 / 8192, accept 12 /
-// 32768, reject 48 / 16384, flip 64 / 65536, Strong Obstacle alert 2048, obs event 8.
-// ============================================================================
-DIAG_WIN = 1000
-DIAG_N = 13
-
-diagBit(int x, int m) =>
-    math.floor(x / m) % 2 == 1
-
-int diagEvBits = engineEventBits + alertBits * 128
-int diagObs = (strongObsNow ? 1 : 0) + (strongObsPrev ? 2 : 0) + (strongObsSame ? 4 : 0) + (nearStrongObstacle ? 8 : 0)
-bool diagBrkE = engineStep and (diagBit(diagEvBits, 1) or diagBit(diagEvBits, 2))
-bool diagAccE = engineStep and (diagBit(diagEvBits, 4) or diagBit(diagEvBits, 8))
-bool diagRejE = engineStep and (diagBit(diagEvBits, 16) or diagBit(diagEvBits, 32))
-bool diagFlpE = engineStep and diagBit(diagEvBits, 64)
-bool diagObsAlert = engineStep and diagBit(diagEvBits, 2048)
-// Bars since the last engine break / accept (every bar, so the lookbacks are chart bars).
-int diagSinceBrk = ta.barssince(diagBrkE)
-int diagSinceAcc = ta.barssince(diagAccE)
-
-var array<int> diagRing = array.new_int(DIAG_N * DIAG_WIN, 0)
-var array<int> diagSum = array.new_int(DIAG_N, 0)
-var int diagPos = 0
-var int diagEvtV = na
-var int diagMismatchV = na
-var int diagCausalV = na
-var int diagInvV = na
-var int diagBarTime = na
-INV_BASE = 67108864
-
-dS(int k) =>
-    array.get(diagSum, k)
-
-if validationMode and barstate.isconfirmed
-    bool w = engineStep and tel.engineBars > engineWindow
-    array<int> fl = array.from(
-         w and diagBrkE ? 1 : 0,
-         w and diagAccE ? 1 : 0,
-         w and diagRejE ? 1 : 0,
-         w and diagFlpE ? 1 : 0,
-         w and diagObsAlert ? 1 : 0,
-         w and diagBrkE != diagBit(diagEvBits, 8192) ? 1 : 0,
-         w and diagAccE != diagBit(diagEvBits, 32768) ? 1 : 0,
-         w and diagRejE != diagBit(diagEvBits, 16384) ? 1 : 0,
-         w and diagFlpE != diagBit(diagEvBits, 65536) ? 1 : 0,
-         w and diagBit(diagObs, 8) != diagObsAlert ? 1 : 0,
-         w and diagAccE and (na(diagSinceBrk) or diagSinceBrk > 3) ? 1 : 0,
-         w and diagFlpE and (na(diagSinceAcc) or diagSinceAcc > 60) ? 1 : 0,
-         w ? 1 : 0)
-    for k = 0 to DIAG_N - 1
-        int idx = k * DIAG_WIN + diagPos
-        array.set(diagSum, k, array.get(diagSum, k) - array.get(diagRing, idx) + array.get(fl, k))
-        array.set(diagRing, idx, array.get(fl, k))
-    diagPos := (diagPos + 1) % DIAG_WIN
-    // Exact: every field ≤ 1000 < 1024, so the largest value is < 2^50 (< 2^53).
-    diagEvtV := dS(0) + dS(1) * 1024 + dS(2) * 1048576 + dS(3) * 1073741824 + dS(4) * 1099511627776
-    diagMismatchV := dS(5) + dS(6) * 1024 + dS(7) * 1048576 + dS(8) * 1073741824 + dS(9) * 1099511627776
-    diagCausalV := dS(10) + dS(11) * 1024 + dS(12) * 1048576
-    // Invariant counters are cumulative and non-decreasing, so their maximum over the window
-    // is their value on this confirmed bar (a violation before the window still shows).
-    // Base 2^26, largest valid value 2^52 − 1; outside [0, 2^26) the value is na (no clamp,
-    // no modulo) and the raw v_invTotal / v_invCritical plots remain available.
-    bool diagInvOk = tel.violations >= 0 and tel.violations < INV_BASE and tel.violationsCritical >= 0 and tel.violationsCritical < INV_BASE
-    diagInvV := diagInvOk ? tel.violations + tel.violationsCritical * INV_BASE : na
-    diagBarTime := time
-
-// Validation-only diagnostic table (bottom-left; the HUD uses top-right). Machine-readable,
-// fixed order; cleared when validationMode is off.
-// R5 reload fingerprint (E41; validation only). Over the confirmed engine bars of the
-// capture window (captureFrom ≤ time ≤ captureTo, so hashStateOn holds and hashState is
-// computed): n warmed bars (tel.engineBars > engineWindow, as in the rolling window), cold =
-// engine bars in the window that are not yet warmed, the first/last warmed bar time, and
-// three hash folds (hashStep from 0, bar order) of hashSlots, hashState and the event bits
-// (engine + alerts·128). Two loads agree on the window iff their tuples are identical (hash
-// equality is strong evidence, not proof; GTGSNAP localises a difference). Nothing here is
-// read by the engine; outside the capture window it does no work.
-var int r5N = 0
-var int r5Cold = 0
-var int r5From = na
-var int r5To = na
-var int r5HSlots = 0
-var int r5HState = 0
-var int r5HEvents = 0
-if captureOn
-    if tel.engineBars > engineWindow
-        r5N += 1
-        r5HSlots := hashStep(r5HSlots, tel.hashSlots)
-        r5HState := hashStep(r5HState, tel.hashState)
-        r5HEvents := hashStep(r5HEvents, engineEventBits + alertBits * 128)
-        if na(r5From)
-            r5From := time
-        r5To := time
-    else
-        r5Cold += 1
-
-var table diagTable = table.new(position.bottom_left, 1, 1, border_width = 1, frame_width = 1)
-diagText(int v) =>
-    na(v) ? "na" : str.tostring(v, "#")
-if barstate.islast
-    table.clear(diagTable, 0, 0, 0, 0)
-    if validationMode
-        table.cell(diagTable, 0, 0, "GTGDIAG v1\nBAR=" + diagText(diagBarTime) + "\nEVT=" + diagText(diagEvtV) + "\nMISMATCH=" + diagText(diagMismatchV) + "\nCAUSAL=" + diagText(diagCausalV) + "\nINV=" + diagText(diagInvV) + "\nR5=" + (captureFrom > 0 ? diagText(r5N) + "," + diagText(r5Cold) + "," + diagText(r5From) + "," + diagText(r5To) + "," + diagText(r5HSlots) + "," + diagText(r5HState) + "," + diagText(r5HEvents) : "na"), text_color = color.white, bgcolor = color.new(color.black, 20), text_size = size.tiny, text_halign = text.align_left)
-
-// Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
-// "GTGSNAP v3" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
-// ≤ captureTo. Parse with reference/capture.mjs. Read-only; off when captureFrom = 0.
-// Keep the range short (at most about 40 bars): Pine Logs keeps at most 10,000 historical
-// messages per script and one bar costs 9 + levels + ring chunks (at most ~73).
-// compare-captures.mjs checks completeness per bar and coverage of the expected bars.
-f10(float x) =>
-    na(x) ? "na" : str.tostring(x, "#.##########")
-
-fi(int x) =>
-    na(x) ? "na" : str.tostring(x, "#")
-
-sinceText(int x) =>
-    na(x) ? "na" : fi(bar_index - x)
-
-joinSorted(array<int> keys, array<int> scratch) =>
-    int n = sortedCopy(keys, scratch)
-    string txt = ""
-    if n > 0
-        for i = 0 to n - 1
-            txt += (i > 0 ? "," : "") + fi(array.get(scratch, i))
-    txt
-
-slotLine(string pre, string name, SlotState ss, array<int> lastK, array<int> entryK, array<int> scratch) =>
-    ss.active ? pre + "SLOT|" + name + "|1|" + (ss.containing ? "1" : "0") + "|" + fi(ss.side) + "|" + f10(ss.lo) + "|" + f10(ss.hi) + "|" + fi(ss.primaryKey) + "|" + f10(ss.gateQ) + "|" + f10(ss.quality) + "|" + joinSorted(lastK, scratch) + "|" + joinSorted(entryK, scratch) : pre + "SLOT|" + name + "|0"
-
-levelLine(string pre, Level lv) =>
-    pre + "LVL|" + fi(lv.key) + "|" + fi(lv.source) + "|" + fi(lv.tfRank) + "|" + fi(lv.typ) + "|" + fi(lv.birthTime) + "|" + f10(lv.price) + "|" + fi(lv.state) + "|" + fi(lv.polarity) + "|" + f10(lv.lo) + "|" + f10(lv.hi) + "|" + f10(lv.s) + "|" + f10(lv.mitigation) + "|" + f10(lv.evidence) + "|" + fi(lv.tests) + "|" + fi(lv.ageNative) + "|" + (lv.epActive ? "1" : "0") + "|" + fi(lv.epSide) + "|" + f10(lv.epMaxDepth) + "|" + fi(lv.breakDir) + "|" + fi(lv.breakCloses) + "|" + (lv.breakFromFlip ? "1" : "0") + "|" + fi(lv.backCloses) + "|" + sinceText(lv.lastTestChartBar) + "|" + sinceText(lv.stateChartBar) + "|" + sinceText(lv.backStartChartBar) + "|" + (lv.navArmed ? "1" : "0")
-
-// One RING line per RING_CHUNK bars: first age, ring size, "o,h,l,c;…" (age 0 = newest).
-RING_CHUNK = 16
-ringLine(string pre, int a0, int n) =>
-    string txt = pre + "RING|" + fi(a0) + "|" + fi(n) + "|"
-    int a1 = math.min(a0 + RING_CHUNK, n) - 1
-    if a1 >= a0
-        for k = a0 to a1
-            txt += (k > a0 ? ";" : "") + f10(array.get(ringO, k)) + "," + f10(array.get(ringH, k)) + "," + f10(array.get(ringL, k)) + "," + f10(array.get(ringC, k))
-    txt
-
-trackerPart(float px, int bar, bool broken) =>
-    na(px) ? "0|na|na|0" : "1|" + f10(px) + "|" + fi(bar_index - bar) + "|" + (broken ? "1" : "0")
-
-if captureOn
-    string pre = "GTGSNAP|v3|" + fi(time) + "|"
-    log.info(pre + "META|" + syminfo.tickerid + "|" + timeframe.period + "|" + f10(syminfo.mintick))
-    log.info(slotLine(pre, "R1", slotR1, keysLastR1, keysEntryR1, hashScratch))
-    log.info(slotLine(pre, "R2", slotR2, keysLastR2, keysEntryR2, hashScratch))
-    log.info(slotLine(pre, "S1", slotS1, keysLastS1, keysEntryS1, hashScratch))
-    log.info(slotLine(pre, "S2", slotS2, keysLastS2, keysEntryS2, hashScratch))
-    int nCap = array.size(snapOrd)
-    if nCap > 0
-        for i = 0 to nCap - 1
-            log.info(levelLine(pre, array.get(snapLevels, array.get(snapOrd, i))))
-    log.info(pre + "TRK|" + trackerPart(lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken) + "|" + trackerPart(lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken))
-    int nRingCap = array.size(ringC)
-    if nRingCap == 0
-        log.info(pre + "RING|0|0|")
-    else
-        for r0 = 0 to nRingCap - 1 by RING_CHUNK
-            log.info(ringLine(pre, r0, nRingCap))
-    log.info(pre + "OBS|" + (obstacleAvailable ? "1" : "0") + "|" + f10(dest1Strength) + "|" + f10(nearestObstacleAtr) + "|" + (strongObsNow ? "1" : "0") + "|" + (strongObsSame ? "1" : "0") + "|" + (nearStrongObstacle ? "1" : "0") + "|" + (strongObsLatch ? "1" : "0") + "|" + joinSorted(strongObsKeys, hashScratch))
-    log.info(pre + "EV|" + fi(engineEventBits) + "|" + fi(alertBits))
-    log.info(pre + "END|" + fi(nCap) + "|" + fi(tel.hashSlots) + "|" + fi(tel.hashState))
