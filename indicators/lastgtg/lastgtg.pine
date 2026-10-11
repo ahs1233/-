@@ -2003,7 +2003,7 @@ labelCrowded(SlotState second, SlotState first) =>
     first.active and math.abs((second.lo + second.hi) - (first.lo + first.hi)) * 0.5 < 1.5 * atrEng
 
 zoneLabelText(SlotState ss, bool isRes) =>
-    string tag = ss.navTag == "Flip مؤكد" ? (isRes ? "كانت دعماً" : "كانت مقاومة") : ss.navTag == "Flip محتمل" ? (isRes ? "دعم مكسور" : "مقاومة مكسورة") : ss.navTag
+    string tag = ss.navTag == "Flip مؤكد" ? (isRes ? "كانت دعماً" : "كانت مقاومة") : ss.navTag == "Flip محتمل" ? "مكسورة" : ss.navTag
     (isRes ? "مقاومة " : "دعم ") + strengthWord(ss.quality, isRes) + " • " + zoneDistText(ss, isRes) + (tag != "" ? " • " + tag : "")
 
 zoneLeft(SlotState ss) =>
@@ -2174,7 +2174,7 @@ if barstate.islast
         pzBox := box.new(left = pzTime, top = pTop, right = zoneRightTime, bottom = pBot, xloc = xloc.bar_time, bgcolor = color.new(color.orange, 88), border_color = color.new(color.orange, 30), border_width = 1, border_style = line.style_dashed)
         pzMid := line.new(x1 = pzTime, y1 = pullLevel(0.60), x2 = zoneRightTime, y2 = pullLevel(0.60), xloc = xloc.bar_time, color = color.new(color.orange, 20), style = line.style_dotted, width = 1)
         pzInv := line.new(x1 = pzTime, y1 = pzStart, x2 = zoneRightTime, y2 = pzStart, xloc = xloc.bar_time, color = color.new(color.gray, 20), style = line.style_dashed, width = 1)
-        pzLabel := label.new(x = pzTime, y = pTop, text = "منطقة توقف الارتداد المعتادة — ليست إشارة دخول", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
+        pzLabel := label.new(x = zoneRightTime, y = pullLevel(0.60), text = "توقف الارتداد المعتاد • ليس دخولاً", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
     else if showPullZone and zzDir != 0 and not na(swLastPx)
         // Provisional: a strong move still in progress (top/bottom not confirmed yet). The band
         // is measured from the move's confirmed start to its running extreme, so it moves with it.
@@ -2184,7 +2184,7 @@ if barstate.islast
             float l45 = runPx - 0.45 * (runPx - swLastPx)
             float l80 = runPx - 0.80 * (runPx - swLastPx)
             pzBox := box.new(left = runTime, top = math.max(l45, l80), right = zoneRightTime, bottom = math.min(l45, l80), xloc = xloc.bar_time, bgcolor = color.new(color.orange, 94), border_color = color.new(color.orange, 55), border_width = 1, border_style = line.style_dotted)
-            pzLabel := label.new(x = runTime, y = math.max(l45, l80), text = "منطقة الارتداد إذا انتهت الحركة هنا", xloc = xloc.bar_time, style = label.style_label_lower_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
+            pzLabel := label.new(x = zoneRightTime, y = (l45 + l80) * 0.5, text = "ارتداد محتمل إذا انتهت الحركة", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
 
 
 // ============================================================================
