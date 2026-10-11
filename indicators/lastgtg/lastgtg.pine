@@ -15,6 +15,8 @@ indicator(
 //   2. Zone confluence counts only event groups whose quality reaches Q_stay.
 //   3. DOZ leg efficiency measures net move and path on the same basis.
 //   4. Unused fast-slope code removed from the tactical heading.
+// Display: COMPACT shows a two-line traffic light; zone labels use plain words and the
+// distance from price.
 //
 // GTG NAVIGATOR v0.4.7 — STRUCTURAL ZONE ENGINE
 // Route + Tactical Heading + Speed + Fuel + HUD (carried over from v0.4.6),
@@ -2212,8 +2214,18 @@ int zoneForwardBars = autoZoneSpan ? autoForwardBars : manualZoneForwardBars
 int leftBoundTime = nz(time[zoneBackBars], time)
 int zoneRightTime = time + zoneForwardBars * chartSec * 1000
 
-zoneLabelText(string name, SlotState ss) =>
-    name + " • " + strengthText(ss.quality) + ss.shortTag + (ss.isFar ? " • بعيدة" : "")
+strengthWord(float q, bool fem) =>
+    q >= strongQ ? (fem ? "قوية" : "قوي") : q >= mediumQ ? (fem ? "متوسطة" : "متوسط") : (fem ? "ضعيفة" : "ضعيف")
+
+// Distance from the live price to the zone edge facing it, in price units.
+zoneDistText(SlotState ss, bool isRes) =>
+    float d = isRes ? ss.lo - close : close - ss.hi
+    string cur = syminfo.currency == "USD" ? "$" : ""
+    ss.containing or d <= 0 ? "السعر عندها" : (isRes ? "+" : "−") + str.tostring(d, format.mintick) + cur
+
+zoneLabelText(SlotState ss, bool isRes) =>
+    string tag = ss.navTag == "Flip مؤكد" ? (isRes ? "كانت دعماً" : "كانت مقاومة") : ss.navTag == "Flip محتمل" ? (isRes ? "دعم مكسور" : "مقاومة مكسورة") : ss.navTag
+    (isRes ? "مقاومة " : "دعم ") + strengthWord(ss.quality, isRes) + " • " + zoneDistText(ss, isRes) + (tag != "" ? " • " + tag : "")
 
 zoneLeft(SlotState ss) =>
     math.max(nz(ss.leftTime, leftBoundTime), leftBoundTime)
@@ -2250,28 +2262,28 @@ if barstate.islast
             int trR1 = engagedR1 ? 83 : slotR1.quality >= strongQ ? 87 : 90
             smartResBox1 := box.new(left = zoneLeft(slotR1), top = slotR1.hi, right = zoneRightTime, bottom = slotR1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, trR1), border_color = color.new(color.red, 10), border_width = engagedR1 ? 2 : 1)
             if showZoneLabels
-                smartResLabel1 := label.new(x = zoneRightTime, y = (slotR1.lo + slotR1.hi) * 0.5, text = zoneLabelText("R1", slotR1), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 80), textcolor = color.red, size = size.tiny)
+                smartResLabel1 := label.new(x = zoneRightTime, y = (slotR1.lo + slotR1.hi) * 0.5, text = zoneLabelText(slotR1, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 80), textcolor = color.red, size = size.tiny)
 
         if zonesPerSide >= 2 and slotR2.active
             smartResBox2 := box.new(left = zoneLeft(slotR2), top = slotR2.hi, right = zoneRightTime, bottom = slotR2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, 94), border_color = color.new(color.red, 42), border_width = 1)
             if showZoneLabels
-                smartResLabel2 := label.new(x = zoneRightTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText("R2", slotR2), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
+                smartResLabel2 := label.new(x = zoneRightTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText(slotR2, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
 
         if slotS1.active
             bool engagedS1 = high >= slotS1.lo and low <= slotS1.hi
             int trS1 = engagedS1 ? 83 : slotS1.quality >= strongQ ? 87 : 90
             smartSupBox1 := box.new(left = zoneLeft(slotS1), top = slotS1.hi, right = zoneRightTime, bottom = slotS1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, trS1), border_color = color.new(color.blue, 10), border_width = engagedS1 ? 2 : 1)
             if showZoneLabels
-                smartSupLabel1 := label.new(x = zoneRightTime, y = (slotS1.lo + slotS1.hi) * 0.5, text = zoneLabelText("S1", slotS1), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 80), textcolor = color.blue, size = size.tiny)
+                smartSupLabel1 := label.new(x = zoneRightTime, y = (slotS1.lo + slotS1.hi) * 0.5, text = zoneLabelText(slotS1, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 80), textcolor = color.blue, size = size.tiny)
 
         if zonesPerSide >= 2 and slotS2.active
             smartSupBox2 := box.new(left = zoneLeft(slotS2), top = slotS2.hi, right = zoneRightTime, bottom = slotS2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, 94), border_color = color.new(color.blue, 42), border_width = 1)
             if showZoneLabels
-                smartSupLabel2 := label.new(x = zoneRightTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText("S2", slotS2), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
+                smartSupLabel2 := label.new(x = zoneRightTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText(slotS2, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
 
 
 // ============================================================================
-// 16. COMPACT ARABIC HUD
+// 16. ARABIC HUD — traffic light (COMPACT) or full table (STANDARD / DEBUG)
 // ============================================================================
 
 var table dash = table.new(
@@ -2282,13 +2294,57 @@ var table dash = table.new(
      frame_width = 1
 )
 
+// COMPACT mode: a two-line traffic light (state + nearest resistance / support).
+var table lampTable = table.new(position.top_right, 1, 2, border_width = 0, frame_width = 0)
+
 fmtOpt(float v) =>
     na(v) ? "—" : str.tostring(v, "#.##")
 
+lampSideText(SlotState ss, bool isRes) =>
+    string arrow = isRes ? "▲ " : "▼ "
+    not ss.active ? arrow + (isRes ? "لا مقاومة قريبة" : "لا دعم قريب") : arrow + (isRes ? "مقاومة " : "دعم ") + zoneDistText(ss, isRes)
+
 if barstate.islast
     table.clear(dash, 0, 0, 1, 10)
+    table.clear(lampTable, 0, 0, 0, 1)
 
-    if showDashboard
+    if showDashboard and dashboardMode == "COMPACT"
+        // 2 = green (road open), 1 = yellow (caution), 0 = red (stop / do not chase).
+        int lamp = 2
+        string why = "الطريق مفتوح"
+        if breakAcceptedUp or breakAcceptedDn
+            why := breakAcceptedUp ? "اختراق مؤكد" : "كسر مؤكد"
+        else if noChase
+            why := "لا تطارد"
+            lamp := 0
+        else if priceInsideObstacle
+            why := obstacleRole == 1 ? "داخل مقاومة" : obstacleRole == -1 ? "داخل دعم" : "داخل منطقة"
+            lamp := 0
+        else if routeSign != 0 and tacticalSign != 0 and routeSign != tacticalSign
+            why := "عكس المسار العام"
+            lamp := 0
+        else if breakResistance or breakSupport
+            why := "كسر يحتاج تأكيد"
+            lamp := 1
+        else if rejectResistance or rejectSupport
+            why := rejectResistance ? "رفض من مقاومة" : "ارتداد من دعم"
+            lamp := 1
+        else if obstacleNear or candleTouchesObstacle
+            why := obstacleRole == 1 ? "مقاومة قريبة" : obstacleRole == -1 ? "دعم قريب" : "منطقة قريبة"
+            lamp := 1
+        else if fuelExhaustion
+            why := "الزخم يضعف"
+            lamp := 1
+        else if tacticalSign == 0
+            why := "بدون اتجاه واضح"
+            lamp := 1
+        string dirText = tacticalSign > 0 ? "▲ صاعد" : tacticalSign < 0 ? "▼ هابط" : "◆ متردد"
+        color lampBg = lamp == 2 ? color.new(color.green, 15) : lamp == 1 ? color.new(color.yellow, 10) : color.new(color.red, 15)
+        color lampFg = lamp == 1 ? color.black : color.white
+        table.cell(lampTable, 0, 0, "● " + dirText + " • " + why, text_color = lampFg, bgcolor = lampBg, text_size = dashSize())
+        table.cell(lampTable, 0, 1, lampSideText(slotR1, true) + "   " + lampSideText(slotS1, false), text_color = color.white, bgcolor = color.new(color.black, 20), text_size = dashSize())
+
+    if showDashboard and dashboardMode != "COMPACT"
         string dSize = dashSize()
         color routeColor = routeSign > 0 ? color.lime : routeSign < 0 ? color.red : color.silver
         color headingColor = tacticalSign > 0 ? color.lime : tacticalSign < 0 ? color.red : color.silver
@@ -2297,7 +2353,7 @@ if barstate.islast
         bool hazardRoad = str.contains(roadStatus, "مقاومة") or str.contains(roadStatus, "دعم") or str.contains(roadStatus, "لا تطارد") or str.contains(roadStatus, "يتآكل") or str.contains(roadStatus, "اختبار") or str.contains(roadStatus, "يقترب")
         color roadColor = hazardRoad ? color.orange : str.contains(roadStatus, "مفتوح") ? color.lime : color.white
 
-        // Compact mode is the default mobile HUD: 5 decision rows + header.
+        // Full HUD (STANDARD / DEBUG): header + 5 sensor rows, then the extra rows below.
         table.cell(dash, 0, 0, "lastgtg", text_color = color.aqua, bgcolor = color.new(color.black, 4), text_size = dSize)
         table.cell(dash, 1, 0, assetLabel, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = dSize)
 
