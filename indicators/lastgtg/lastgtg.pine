@@ -60,7 +60,6 @@ showObstacleMarkers = input.bool(false, "إظهار مراكز العوائق �
 showSmartZones = input.bool(true, "إظهار خريطة المناطق الذكية", group = groupGeneral, display = display.none)
 zonesPerSide = input.int(2, "عدد المناطق فوق/تحت السعر", minval = 1, maxval = 2, group = groupGeneral, display = display.none)
 autoZoneSpan = input.bool(true, "امتداد المناطق تلقائي حسب الفريم", group = groupGeneral, display = display.none)
-manualZoneForwardBars = input.int(36, "امتداد المنطقة للأمام / شموع", minval = 8, maxval = 160, group = groupGeneral, display = display.none)
 manualZoneBackBars = input.int(36, "امتداد المنطقة للخلف / شموع", minval = 8, maxval = 200, group = groupGeneral, display = display.none)
 showZoneLabels = input.bool(true, "إظهار اسم المنطقة", group = groupGeneral, display = display.none)
 
@@ -1984,14 +1983,13 @@ var label smartSupLabel2 = na
 
 float tfMinZones = timeframe.in_seconds(timeframe.period) / 60.0
 int autoBackBars = tfMinZones <= 1 ? 110 : tfMinZones <= 5 ? 72 : tfMinZones <= 15 ? 52 : tfMinZones <= 60 ? 40 : tfMinZones <= 240 ? 30 : 22
-int autoForwardBars = tfMinZones <= 1 ? 120 : tfMinZones <= 5 ? 72 : tfMinZones <= 15 ? 48 : tfMinZones <= 60 ? 36 : tfMinZones <= 240 ? 28 : 20
 int zoneBackBars = autoZoneSpan ? autoBackBars : manualZoneBackBars
-int zoneForwardBars = autoZoneSpan ? autoForwardBars : manualZoneForwardBars
 int leftBoundTime = nz(time[zoneBackBars], time)
-int zoneRightTime = time + zoneForwardBars * chartSec * 1000
-// Labels start two bars right of the live bar, not at the box end: on a phone the box end is
-// often at or past the screen edge and the text was cut off or hidden.
+// Boxes end two bars right of the live bar and their labels start there. Boxes used to run
+// far ahead with the label at their end, which on a phone sat at or past the screen edge; a
+// label drawn over a long box hid most of it.
 int labelTime = time + 2 * chartSec * 1000
+int zoneRightTime = labelTime
 // Opaque chart-coloured background: thin boxes and MA lines ran through the old see-through labels.
 color labelBg = chart.bg_color
 
