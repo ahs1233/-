@@ -112,6 +112,7 @@ fuelExtremeThreshold = input.float(90.0, "وقود استثنائي", minval = 7
 groupMap = "الوعي بالعوائق"
 nearObstacleAtr = input.float(0.35, "اعتبار العائق قريبًا / ATR", minval = 0.05, maxval = 1.50, step = 0.05, group = groupMap, display = display.none)
 awarenessObstacleAtr = input.float(0.85, "مسافة وعي الطريق بالعائق / ATR", minval = 0.30, maxval = 2.50, step = 0.05, group = groupMap, display = display.none)
+greenRoomHtfAtr = input.float(1.0, "أقل مساحة أمام الضوء الأخضر / ATR الإطار الأعلى", minval = 0.0, maxval = 5.0, step = 0.1, group = groupMap, display = display.none)
 noChaseAtr = input.float(0.30, "منطقة منع المطاردة / ATR", minval = 0.05, maxval = 1.00, step = 0.05, group = groupMap, display = display.none)
 noChaseFuelMax = input.float(65.0, "أقصى وقود عند منع المطاردة", minval = 20, maxval = 90, step = 1, group = groupMap, display = display.none)
 includeMA200 = input.bool(true, "MA200 كتلاقٍ بصري فقط", group = groupMap, display = display.none)
@@ -1917,7 +1918,7 @@ else if candleTouchesObstacle
     roadStatus := obstacleRole == 1 ? (noChaseUp ? "اختبار مقاومة — لا تطارد" : "اختبار مقاومة") : obstacleRole == -1 ? (noChaseDown ? "اختبار دعم — لا تطارد الهبوط" : "اختبار دعم") : "اختبار عائق"
     roadAboutDest1 := true
 else if obstacleNear
-    roadStatus := obstacleRole == 1 ? (noChaseUp ? "اندفاع صاعد قرب مقاومة — لا تطارد" : nearestObstacleStrong ? "يقترب من مقاومة قوية" : "يقترب من مقاومة") : obstacleRole == -1 ? (noChaseDown ? "هبوط سريع قرب دعم — لا تطارد" : nearestObstacleStrong ? "يقترب من دعم قوي" : "يقترب من دعم") : "يقترب من عائق"
+    roadStatus := obstacleRole == 1 ? (noChaseUp ? "اندفاع صاعد قرب مقاومة — لا تطارد" : nearestObstacleStrong ? "يقترب من مقاومة مهمة" : "يقترب من مقاومة") : obstacleRole == -1 ? (noChaseDown ? "هبوط سريع قرب دعم — لا تطارد" : nearestObstacleStrong ? "يقترب من دعم مهم" : "يقترب من دعم") : "يقترب من عائق"
     roadAboutDest1 := true
 else if movingTowardResistance
     roadStatus := fuelExhaustion ? "صاعد نحو مقاومة — الوقود يتآكل" : "صاعد لكن مقاومة أمامه"
@@ -1988,9 +1989,13 @@ int zoneBackBars = autoZoneSpan ? autoBackBars : manualZoneBackBars
 int zoneForwardBars = autoZoneSpan ? autoForwardBars : manualZoneForwardBars
 int leftBoundTime = nz(time[zoneBackBars], time)
 int zoneRightTime = time + zoneForwardBars * chartSec * 1000
+// Labels start two bars right of the live bar, not at the box end: on a phone the box end is
+// often at or past the screen edge and the text was cut off or hidden.
+int labelTime = time + 2 * chartSec * 1000
 
 strengthWord(float q, bool fem) =>
-    q >= strongQ ? (fem ? "قوية" : "قوي") : q >= mediumQ ? (fem ? "متوسطة" : "متوسط") : (fem ? "ضعيفة" : "ضعيف")
+    // "مهمة" not "قوية": a high score means many timeframes see the zone, not that it will hold.
+    q >= strongQ ? (fem ? "مهمة" : "مهم") : q >= mediumQ ? (fem ? "متوسطة" : "متوسط") : (fem ? "ضعيفة" : "ضعيف")
 
 // Distance from the live price to the zone edge facing it, in price units. No sign or
 // currency symbol: mixed with Arabic text they are reordered by the bidi renderer.
@@ -2042,24 +2047,24 @@ if barstate.islast
             int trR1 = engagedR1 ? 83 : slotR1.quality >= strongQ ? 87 : 90
             smartResBox1 := box.new(left = zoneLeft(slotR1), top = slotR1.hi, right = zoneRightTime, bottom = slotR1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, trR1), border_color = color.new(color.red, 10), border_width = engagedR1 ? 2 : 1)
             if showZoneLabels
-                smartResLabel1 := label.new(x = zoneRightTime, y = (slotR1.lo + slotR1.hi) * 0.5, text = zoneLabelText(slotR1, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 80), textcolor = color.red, size = size.tiny)
+                smartResLabel1 := label.new(x = labelTime, y = (slotR1.lo + slotR1.hi) * 0.5, text = zoneLabelText(slotR1, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 80), textcolor = color.red, size = size.tiny)
 
         if zonesPerSide >= 2 and slotR2.active
             smartResBox2 := box.new(left = zoneLeft(slotR2), top = slotR2.hi, right = zoneRightTime, bottom = slotR2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, 94), border_color = color.new(color.red, 42), border_width = 1)
             if showZoneLabels and not labelCrowded(slotR2, slotR1)
-                smartResLabel2 := label.new(x = zoneRightTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText(slotR2, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
+                smartResLabel2 := label.new(x = labelTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText(slotR2, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
 
         if slotS1.active
             bool engagedS1 = high >= slotS1.lo and low <= slotS1.hi
             int trS1 = engagedS1 ? 83 : slotS1.quality >= strongQ ? 87 : 90
             smartSupBox1 := box.new(left = zoneLeft(slotS1), top = slotS1.hi, right = zoneRightTime, bottom = slotS1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, trS1), border_color = color.new(color.blue, 10), border_width = engagedS1 ? 2 : 1)
             if showZoneLabels
-                smartSupLabel1 := label.new(x = zoneRightTime, y = (slotS1.lo + slotS1.hi) * 0.5, text = zoneLabelText(slotS1, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 80), textcolor = color.blue, size = size.tiny)
+                smartSupLabel1 := label.new(x = labelTime, y = (slotS1.lo + slotS1.hi) * 0.5, text = zoneLabelText(slotS1, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 80), textcolor = color.blue, size = size.tiny)
 
         if zonesPerSide >= 2 and slotS2.active
             smartSupBox2 := box.new(left = zoneLeft(slotS2), top = slotS2.hi, right = zoneRightTime, bottom = slotS2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, 94), border_color = color.new(color.blue, 42), border_width = 1)
             if showZoneLabels and not labelCrowded(slotS2, slotS1)
-                smartSupLabel2 := label.new(x = zoneRightTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText(slotS2, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
+                smartSupLabel2 := label.new(x = labelTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText(slotS2, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
 
 
 // ============================================================================
@@ -2175,7 +2180,7 @@ if barstate.islast
         pzBox := box.new(left = pzTime, top = pTop, right = zoneRightTime, bottom = pBot, xloc = xloc.bar_time, bgcolor = color.new(color.orange, 88), border_color = color.new(color.orange, 30), border_width = 1, border_style = line.style_dashed)
         pzMid := line.new(x1 = pzTime, y1 = pullLevel(0.60), x2 = zoneRightTime, y2 = pullLevel(0.60), xloc = xloc.bar_time, color = color.new(color.orange, 20), style = line.style_dotted, width = 1)
         pzInv := line.new(x1 = pzTime, y1 = pzStart, x2 = zoneRightTime, y2 = pzStart, xloc = xloc.bar_time, color = color.new(color.gray, 20), style = line.style_dashed, width = 1)
-        pzLabel := label.new(x = zoneRightTime, y = pullLevel(0.60), text = "توقف الارتداد المعتاد • ليس دخولاً", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
+        pzLabel := label.new(x = labelTime, y = pullLevel(0.60), text = "توقف الارتداد المعتاد • ليس دخولاً", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
     else if showPullZone and zzDir != 0 and not na(swLastPx)
         // Provisional: a strong move still in progress (top/bottom not confirmed yet). The band
         // is measured from the move's confirmed start to its running extreme, so it moves with it.
@@ -2185,7 +2190,7 @@ if barstate.islast
             float l45 = runPx - 0.45 * (runPx - swLastPx)
             float l80 = runPx - 0.80 * (runPx - swLastPx)
             pzBox := box.new(left = runTime, top = math.max(l45, l80), right = zoneRightTime, bottom = math.min(l45, l80), xloc = xloc.bar_time, bgcolor = color.new(color.orange, 94), border_color = color.new(color.orange, 55), border_width = 1, border_style = line.style_dotted)
-            pzLabel := label.new(x = zoneRightTime, y = (l45 + l80) * 0.5, text = "ارتداد محتمل إذا انتهت الحركة", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
+            pzLabel := label.new(x = labelTime, y = (l45 + l80) * 0.5, text = "ارتداد محتمل إذا انتهت الحركة", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
 
 
 // ============================================================================
@@ -2231,7 +2236,8 @@ if barstate.islast
     if showDashboard and dashboardMode == "COMPACT"
         // 2 = green (road open), 1 = yellow (caution), 0 = red (stop / do not chase).
         // Yellow is the default: green must be earned (clear heading aligned with the route,
-        // no obstacle within the awareness distance ahead, fuel not low, no exhaustion).
+        // no obstacle within the awareness distance ahead, at least greenRoomHtfAtr of room
+        // before the next zone on the higher timeframe's scale, fuel not low, no exhaustion).
         int lamp = 1
         string why = "أدلة مختلطة"
         if heldAccUp or heldAccDn
@@ -2262,8 +2268,12 @@ if barstate.islast
             why := "المسار العام غير واضح"
         else if fuelScore < fuelLowThreshold
             why := "الوقود ضعيف"
+        else if headingSign == routeSign and obstacleAvailable and nearestObstacleAtr * atrEng < greenRoomHtfAtr * safeHtfAtr
+            // Room ahead is judged on the higher timeframe's scale: a few dollars is far for a
+            // 1-minute ATR but not for the market.
+            why := obstacleRole == 1 ? "مقاومة أمامه" : "دعم أمامه"
         else if headingSign == routeSign
-            why := "الطريق مفتوح"
+            why := "الاتجاه متوافق"
             lamp := 2
         string dirText = headingSign > 0 ? "صاعد" : headingSign < 0 ? "هابط" : "متردد"
         color lampBg = lamp == 2 ? color.new(color.green, 15) : lamp == 1 ? color.new(color.yellow, 10) : color.new(color.red, 15)
