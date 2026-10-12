@@ -1992,6 +1992,8 @@ int zoneRightTime = time + zoneForwardBars * chartSec * 1000
 // Labels start two bars right of the live bar, not at the box end: on a phone the box end is
 // often at or past the screen edge and the text was cut off or hidden.
 int labelTime = time + 2 * chartSec * 1000
+// Opaque chart-coloured background: thin boxes and MA lines ran through the old see-through labels.
+color labelBg = chart.bg_color
 
 strengthWord(float q, bool fem) =>
     // "مهمة" not "قوية": a high score means many timeframes see the zone, not that it will hold.
@@ -2047,24 +2049,24 @@ if barstate.islast
             int trR1 = engagedR1 ? 83 : slotR1.quality >= strongQ ? 87 : 90
             smartResBox1 := box.new(left = zoneLeft(slotR1), top = slotR1.hi, right = zoneRightTime, bottom = slotR1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, trR1), border_color = color.new(color.red, 10), border_width = engagedR1 ? 2 : 1)
             if showZoneLabels
-                smartResLabel1 := label.new(x = labelTime, y = (slotR1.lo + slotR1.hi) * 0.5, text = zoneLabelText(slotR1, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 80), textcolor = color.red, size = size.tiny)
+                smartResLabel1 := label.new(x = labelTime, y = (slotR1.lo + slotR1.hi) * 0.5, text = zoneLabelText(slotR1, true), xloc = xloc.bar_time, style = label.style_label_left, color = labelBg, textcolor = color.red, size = size.tiny)
 
         if zonesPerSide >= 2 and slotR2.active
             smartResBox2 := box.new(left = zoneLeft(slotR2), top = slotR2.hi, right = zoneRightTime, bottom = slotR2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, 94), border_color = color.new(color.red, 42), border_width = 1)
             if showZoneLabels and not labelCrowded(slotR2, slotR1)
-                smartResLabel2 := label.new(x = labelTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText(slotR2, true), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
+                smartResLabel2 := label.new(x = labelTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText(slotR2, true), xloc = xloc.bar_time, style = label.style_label_left, color = labelBg, textcolor = color.new(color.red, 5), size = size.tiny)
 
         if slotS1.active
             bool engagedS1 = high >= slotS1.lo and low <= slotS1.hi
             int trS1 = engagedS1 ? 83 : slotS1.quality >= strongQ ? 87 : 90
             smartSupBox1 := box.new(left = zoneLeft(slotS1), top = slotS1.hi, right = zoneRightTime, bottom = slotS1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, trS1), border_color = color.new(color.blue, 10), border_width = engagedS1 ? 2 : 1)
             if showZoneLabels
-                smartSupLabel1 := label.new(x = labelTime, y = (slotS1.lo + slotS1.hi) * 0.5, text = zoneLabelText(slotS1, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 80), textcolor = color.blue, size = size.tiny)
+                smartSupLabel1 := label.new(x = labelTime, y = (slotS1.lo + slotS1.hi) * 0.5, text = zoneLabelText(slotS1, false), xloc = xloc.bar_time, style = label.style_label_left, color = labelBg, textcolor = color.blue, size = size.tiny)
 
         if zonesPerSide >= 2 and slotS2.active
             smartSupBox2 := box.new(left = zoneLeft(slotS2), top = slotS2.hi, right = zoneRightTime, bottom = slotS2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, 94), border_color = color.new(color.blue, 42), border_width = 1)
             if showZoneLabels and not labelCrowded(slotS2, slotS1)
-                smartSupLabel2 := label.new(x = labelTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText(slotS2, false), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
+                smartSupLabel2 := label.new(x = labelTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText(slotS2, false), xloc = xloc.bar_time, style = label.style_label_left, color = labelBg, textcolor = color.new(color.blue, 5), size = size.tiny)
 
 
 // ============================================================================
@@ -2180,7 +2182,7 @@ if barstate.islast
         pzBox := box.new(left = pzTime, top = pTop, right = zoneRightTime, bottom = pBot, xloc = xloc.bar_time, bgcolor = color.new(color.orange, 88), border_color = color.new(color.orange, 30), border_width = 1, border_style = line.style_dashed)
         pzMid := line.new(x1 = pzTime, y1 = pullLevel(0.60), x2 = zoneRightTime, y2 = pullLevel(0.60), xloc = xloc.bar_time, color = color.new(color.orange, 20), style = line.style_dotted, width = 1)
         pzInv := line.new(x1 = pzTime, y1 = pzStart, x2 = zoneRightTime, y2 = pzStart, xloc = xloc.bar_time, color = color.new(color.gray, 20), style = line.style_dashed, width = 1)
-        pzLabel := label.new(x = labelTime, y = pullLevel(0.60), text = "توقف الارتداد المعتاد • ليس دخولاً", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 75), textcolor = color.orange, size = size.tiny)
+        pzLabel := label.new(x = labelTime, y = pullLevel(0.60), text = "توقف الارتداد المعتاد • ليس دخولاً", xloc = xloc.bar_time, style = label.style_label_left, color = labelBg, textcolor = color.orange, size = size.tiny)
     else if showPullZone and zzDir != 0 and not na(swLastPx)
         // Provisional: a strong move still in progress (top/bottom not confirmed yet). The band
         // is measured from the move's confirmed start to its running extreme, so it moves with it.
@@ -2190,7 +2192,7 @@ if barstate.islast
             float l45 = runPx - 0.45 * (runPx - swLastPx)
             float l80 = runPx - 0.80 * (runPx - swLastPx)
             pzBox := box.new(left = runTime, top = math.max(l45, l80), right = zoneRightTime, bottom = math.min(l45, l80), xloc = xloc.bar_time, bgcolor = color.new(color.orange, 94), border_color = color.new(color.orange, 55), border_width = 1, border_style = line.style_dotted)
-            pzLabel := label.new(x = labelTime, y = (l45 + l80) * 0.5, text = "ارتداد محتمل إذا انتهت الحركة", xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.orange, 85), textcolor = color.new(color.orange, 20), size = size.tiny)
+            pzLabel := label.new(x = labelTime, y = (l45 + l80) * 0.5, text = "ارتداد محتمل إذا انتهت الحركة", xloc = xloc.bar_time, style = label.style_label_left, color = labelBg, textcolor = color.new(color.orange, 20), size = size.tiny)
 
 
 // ============================================================================
