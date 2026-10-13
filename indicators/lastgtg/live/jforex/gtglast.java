@@ -172,10 +172,21 @@ public class gtglast implements IStrategy {
         }
         Set<IChart> charts = new LinkedHashSet<>();
         try { Set<IChart> c = ctx.getCharts(GOLD); if (c != null) charts.addAll(c); } catch (Throwable ignored) { }
+        int all = -1;
         if (charts.isEmpty()) {
-            try { IChart c = ctx.getLastActiveChart(); if (c != null && c.getInstrument() == GOLD) charts.add(c); } catch (Throwable ignored) { }
+            try {
+                Set<IChart> c = ctx.getCharts();
+                all = c == null ? -1 : c.size();
+                if (c != null) for (IChart x : c) if (x != null && GOLD.equals(x.getInstrument())) charts.add(x);
+            } catch (Throwable ignored) { }
         }
-        StringBuilder diag = new StringBuilder("charts=" + charts.size());
+        if (charts.isEmpty()) {
+            try { IChart c = ctx.getChart(GOLD); if (c != null) charts.add(c); } catch (Throwable ignored) { }
+        }
+        if (charts.isEmpty()) {
+            try { IChart c = ctx.getLastActiveChart(); if (c != null && GOLD.equals(c.getInstrument())) charts.add(c); } catch (Throwable ignored) { }
+        }
+        StringBuilder diag = new StringBuilder("charts=" + charts.size() + " all=" + all);
         for (IChart chart : charts) {
             clear(chart);
             List<String> keys = new ArrayList<>();
