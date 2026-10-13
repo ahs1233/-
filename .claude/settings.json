@@ -1,4 +1,15 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__desktopcommander__start_process",
+      "mcp__desktopcommander__read_file",
+      "mcp__desktopcommander__write_file",
+      "mcp__desktopcommander__edit_block",
+      "mcp__desktopcommander__read_process_output",
+      "mcp__desktopcommander__list_devices",
+      "mcp__Claude_Code_Remote__send_later"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
