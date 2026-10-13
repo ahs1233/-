@@ -2194,6 +2194,46 @@ if barstate.islast
 
 
 // ============================================================================
+// 15c. SCENARIO PATHS
+// Two vertical arrows one bar right of the live bar, left of the zone labels: up to the first
+// resistance and on to the next one, down to the first support and on to the next one. A
+// picture of both roads; it says nothing about which one the price will take.
+// ============================================================================
+
+groupPaths = "خريطة الطريقين"
+showPaths = input.bool(true, "إظهار سهمي الطريقين", group = groupPaths, display = display.none)
+
+var line pathUp1 = na
+var line pathUp2 = na
+var line pathDn1 = na
+var line pathDn2 = na
+
+if barstate.islast
+    line.delete(pathUp1)
+    line.delete(pathUp2)
+    line.delete(pathDn1)
+    line.delete(pathDn2)
+    if showPaths and showSmartZones
+        int px = time + chartSec * 1000
+        color near = color.new(color.silver, 15)
+        color far = color.new(color.silver, 60)
+        float upFrom = close
+        if slotR1.active and close < slotR1.lo
+            pathUp1 := line.new(px, close, px, slotR1.lo, xloc = xloc.bar_time, style = line.style_arrow_right, color = near, width = 2)
+        if slotR1.active
+            upFrom := math.max(close, slotR1.hi)
+        if zonesPerSide >= 2 and slotR2.active and slotR2.lo > upFrom
+            pathUp2 := line.new(px, upFrom, px, slotR2.lo, xloc = xloc.bar_time, style = line.style_arrow_right, color = far, width = 1)
+        float dnFrom = close
+        if slotS1.active and close > slotS1.hi
+            pathDn1 := line.new(px, close, px, slotS1.hi, xloc = xloc.bar_time, style = line.style_arrow_right, color = near, width = 2)
+        if slotS1.active
+            dnFrom := math.min(close, slotS1.lo)
+        if zonesPerSide >= 2 and slotS2.active and slotS2.hi < dnFrom
+            pathDn2 := line.new(px, dnFrom, px, slotS2.hi, xloc = xloc.bar_time, style = line.style_arrow_right, color = far, width = 1)
+
+
+// ============================================================================
 // 16. ARABIC HUD — traffic light (COMPACT) or full table (STANDARD / DEBUG)
 // ============================================================================
 
@@ -2207,7 +2247,19 @@ var table dash = table.new(
 
 // COMPACT mode: the traffic light, then both scenarios: the resistance ahead and the next one
 // if it breaks, the support below and the next one if it breaks.
-var table lampTable = table.new(position.top_right, 1, 5, border_width = 0, frame_width = 0)
+var table lampTable = table.new(position.top_right, 1, 6, border_width = 0, frame_width = 0)
+
+// Dollar index direction on confirmed 1-hour bars. Gold usually moves against the dollar, but
+// this was not tested here: shown as information only, it does not feed the traffic light.
+groupDxy = "الدولار"
+showDxy = input.bool(true, "إظهار اتجاه الدولار في اللوحة", group = groupDxy, display = display.none)
+dxySymbol = input.symbol("TVC:DXY", "رمز مؤشر الدولار", group = groupDxy, display = display.none)
+[dxyClose, dxyFast, dxySlow] = request.security(dxySymbol, "60", [close[1], ta.ema(close, 20)[1], ta.ema(close, 50)[1]], lookahead = barmerge.lookahead_on, ignore_invalid_symbol = true)
+
+dxyText() =>
+    na(dxyClose) or na(dxySlow) ? "الدولار • غير متاح" :
+     dxyClose > dxyFast and dxyFast > dxySlow ? "الدولار صاعد • ضغط على الذهب" :
+     dxyClose < dxyFast and dxyFast < dxySlow ? "الدولار هابط • يدعم الذهب" : "الدولار متردد"
 
 fmtOpt(float v) =>
     na(v) ? "—" : str.tostring(v, "#.##")
@@ -2231,7 +2283,7 @@ zoneLine(SlotState ss, bool isRes, string prefix) =>
 
 if barstate.islast
     table.clear(dash, 0, 0, 1, 10)
-    table.clear(lampTable, 0, 0, 0, 4)
+    table.clear(lampTable, 0, 0, 0, 5)
 
     if showDashboard and dashboardMode == "COMPACT"
         // 2 = green (road open), 1 = yellow (caution), 0 = red (stop / do not chase).
@@ -2285,6 +2337,8 @@ if barstate.islast
         table.cell(lampTable, 0, 2, zoneLine(slotR2, true, "بعد الاختراق • "), text_color = color.new(color.red, 40), bgcolor = rowBg, text_size = dashSize())
         table.cell(lampTable, 0, 3, zoneLine(slotS1, false, ""), text_color = color.new(color.aqua, 0), bgcolor = rowBg, text_size = dashSize())
         table.cell(lampTable, 0, 4, zoneLine(slotS2, false, "بعد الكسر • "), text_color = color.new(color.aqua, 40), bgcolor = rowBg, text_size = dashSize())
+        if showDxy
+            table.cell(lampTable, 0, 5, dxyText(), text_color = color.new(color.silver, 10), bgcolor = rowBg, text_size = dashSize())
 
     if showDashboard and dashboardMode != "COMPACT"
         string dSize = dashSize()
