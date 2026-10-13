@@ -109,7 +109,7 @@ public class gtglastview implements IIndicator, IDrawingIndicator {
             String[] lines;
             Color[] colors;
             if (p == null) {
-                lines = new String[] {"lastgtg • هذا الإطار غير مدعوم (1 / 5 / 15 / 60 / 240 دقيقة)"};
+                lines = new String[] {"lastgtg \u2022 \u0647\u0630\u0627 \u0627\u0644\u0625\u0637\u0627\u0631 \u063a\u064a\u0631 \u0645\u062f\u0639\u0648\u0645 (1 / 5 / 15 / 60 / 240 \u062f\u0642\u064a\u0642\u0629)"};
                 colors = new Color[] {Color.LIGHT_GRAY};
             } else {
                 int lamp = (int) num(p[1]);
