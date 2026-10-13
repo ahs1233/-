@@ -2249,12 +2249,15 @@ var table dash = table.new(
 // if it breaks, the support below and the next one if it breaks.
 var table lampTable = table.new(position.top_right, 1, 6, border_width = 0, frame_width = 0)
 
-// Dollar index direction on confirmed 1-hour bars. Gold usually moves against the dollar, but
-// this was not tested here: shown as information only, it does not feed the traffic light.
+// Dollar index direction on confirmed bars: 1-hour bars on charts below one hour, the chart's
+// own timeframe from one hour up (a lower timeframe cannot be read cleanly from a higher chart).
+// Gold usually moves against the dollar, but this was not tested here: shown as information
+// only, it does not feed the traffic light.
 groupDxy = "الدولار"
 showDxy = input.bool(true, "إظهار اتجاه الدولار في اللوحة", group = groupDxy, display = display.none)
 dxySymbol = input.symbol("TVC:DXY", "رمز مؤشر الدولار", group = groupDxy, display = display.none)
-[dxyClose, dxyFast, dxySlow] = request.security(dxySymbol, "60", [close[1], ta.ema(close, 20)[1], ta.ema(close, 50)[1]], lookahead = barmerge.lookahead_on, ignore_invalid_symbol = true)
+string dxyTf = timeframe.in_seconds() >= 3600 ? timeframe.period : "60"
+[dxyClose, dxyFast, dxySlow] = request.security(dxySymbol, dxyTf, [close[1], ta.ema(close, 20)[1], ta.ema(close, 50)[1]], lookahead = barmerge.lookahead_on, ignore_invalid_symbol = true)
 
 dxyText() =>
     na(dxyClose) or na(dxySlow) ? "الدولار • غير متاح" :
