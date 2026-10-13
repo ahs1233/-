@@ -2,6 +2,7 @@ package jforex;
 
 import com.dukascopy.api.*;
 import com.dukascopy.api.drawings.*;
+import com.dukascopy.api.feed.IFeedDescriptor;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -28,6 +29,7 @@ public class gtglast implements IStrategy {
     private static final String FEED = BASE + "/feed";
     private static final String DRAW = BASE + "/state/draw.txt";
     private static final String STATUS = BASE + "/state/java_status.txt";
+    private static final String DRAW_STATUS = BASE + "/state/draw_status.txt";
     private static final Instrument GOLD = Instrument.XAUUSD;
 
     private IContext ctx;
@@ -168,49 +170,69 @@ public class gtglast implements IStrategy {
             String[] p = l.split("\\|", -1);
             if (p.length >= 16) byTf.put(p[0], p);
         }
-        Set<IChart> charts = ctx.getCharts(GOLD);
-        if (charts == null) return;
+        Set<IChart> charts = new LinkedHashSet<>();
+        try { Set<IChart> c = ctx.getCharts(GOLD); if (c != null) charts.addAll(c); } catch (Throwable ignored) { }
+        if (charts.isEmpty()) {
+            try { IChart c = ctx.getLastActiveChart(); if (c != null && c.getInstrument() == GOLD) charts.add(c); } catch (Throwable ignored) { }
+        }
+        StringBuilder diag = new StringBuilder("charts=" + charts.size());
         for (IChart chart : charts) {
             clear(chart);
             List<String> keys = new ArrayList<>();
             drawn.put(chart, keys);
-            Period cp = chart.getSelectedPeriod();
+            Period cp = periodOf(chart);
             String tf = cp == null ? null : names.get(cp);
             String[] p = tf == null ? null : byTf.get(tf);
-            IChartObjectFactory f = chart.getChartObjectFactory();
-            if (p == null) {
-                keys.add(screen(chart, f, "gtg_head", "lastgtg • هذا الإطار غير مدعوم (1 / 5 / 15 / 60 / 240 دقيقة)", Color.LIGHT_GRAY, 10));
+            diag.append(" | period=").append(cp).append(" tf=").append(tf).append(" line=").append(p != null);
+            try {
+                IChartObjectFactory f = chart.getChartObjectFactory();
+                if (p == null) {
+                    keys.add(screen(chart, f, "gtg_head", "lastgtg • هذا الإطار غير مدعوم (1 / 5 / 15 / 60 / 240 دقيقة)", Color.LIGHT_GRAY, 10));
+                    chart.repaint();
+                    continue;
+                }
+                int lamp = Integer.parseInt(p[1]);
+                Color lampColor = lamp == 2 ? new Color(30, 170, 60) : lamp == 1 ? new Color(230, 190, 20) : new Color(210, 50, 50);
+                keys.add(screen(chart, f, "gtg_head", p[2], lampColor, 10));
+                keys.add(screen(chart, f, "gtg_r1", p[3], new Color(230, 70, 70), 32));
+                keys.add(screen(chart, f, "gtg_r2", p[4], new Color(200, 110, 110), 52));
+                keys.add(screen(chart, f, "gtg_s1", p[5], new Color(40, 190, 220), 72));
+                keys.add(screen(chart, f, "gtg_s2", p[6], new Color(90, 160, 180), 92));
+                keys.add(screen(chart, f, "gtg_dxy", p[7], Color.LIGHT_GRAY, 112));
+                long barMs = cp.getInterval();
+                long t1 = now - 60 * barMs, t2 = now + 6 * barMs;
+                String[] zn = {"R1", "R2", "S1", "S2"};
+                for (int k = 0; k < 4; k++) {
+                    double lo = num(p[8 + 2 * k]), hi = num(p[9 + 2 * k]);
+                    if (Double.isNaN(lo) || Double.isNaN(hi)) continue;
+                    boolean res = k < 2;
+                    Color c = res ? new Color(220, 60, 60) : new Color(40, 120, 230);
+                    IRectangleChartObject r = f.createRectangle("gtg_z" + zn[k], t1, hi, t2, lo);
+                    r.setColor(c);
+                    r.setFillColor(c);
+                    r.setFillOpacity(k % 2 == 0 ? 0.22f : 0.10f);
+                    r.setOpacity(0.8f);
+                    r.setMenuEnabled(false);
+                    r.setLocked(true);
+                    chart.add(r);
+                    keys.add("gtg_z" + zn[k]);
+                }
                 chart.repaint();
-                continue;
+                diag.append(" drawn=").append(keys.size());
+            } catch (Throwable t) {
+                diag.append(" error=").append(t);
             }
-            int lamp = Integer.parseInt(p[1]);
-            Color lampColor = lamp == 2 ? new Color(30, 170, 60) : lamp == 1 ? new Color(230, 190, 20) : new Color(210, 50, 50);
-            keys.add(screen(chart, f, "gtg_head", p[2], lampColor, 10));
-            keys.add(screen(chart, f, "gtg_r1", p[3], new Color(230, 70, 70), 32));
-            keys.add(screen(chart, f, "gtg_r2", p[4], new Color(200, 110, 110), 52));
-            keys.add(screen(chart, f, "gtg_s1", p[5], new Color(40, 190, 220), 72));
-            keys.add(screen(chart, f, "gtg_s2", p[6], new Color(90, 160, 180), 92));
-            keys.add(screen(chart, f, "gtg_dxy", p[7], Color.LIGHT_GRAY, 112));
-            long barMs = cp.getInterval();
-            long t1 = now - 60 * barMs, t2 = now + 6 * barMs;
-            String[] zn = {"R1", "R2", "S1", "S2"};
-            for (int k = 0; k < 4; k++) {
-                double lo = num(p[8 + 2 * k]), hi = num(p[9 + 2 * k]);
-                if (Double.isNaN(lo) || Double.isNaN(hi)) continue;
-                boolean res = k < 2;
-                Color c = res ? new Color(220, 60, 60) : new Color(40, 120, 230);
-                IRectangleChartObject r = f.createRectangle("gtg_z" + zn[k], t1, hi, t2, lo);
-                r.setColor(c);
-                r.setFillColor(c);
-                r.setFillOpacity(k % 2 == 0 ? 0.22f : 0.10f);
-                r.setOpacity(0.8f);
-                r.setMenuEnabled(false);
-                r.setLocked(true);
-                chart.add(r);
-                keys.add("gtg_z" + zn[k]);
-            }
-            chart.repaint();
         }
+        writeQuiet(DRAW_STATUS, now + " " + diag);
+    }
+
+    // Chart timeframe: feed descriptor first (JForex 4), then the older selected period.
+    private static Period periodOf(IChart chart) {
+        try {
+            IFeedDescriptor fd = chart.getFeedDescriptor();
+            if (fd != null && fd.getPeriod() != null) return fd.getPeriod();
+        } catch (Throwable ignored) { }
+        try { return chart.getSelectedPeriod(); } catch (Throwable ignored) { return null; }
     }
 
     private String screen(IChart chart, IChartObjectFactory f, String key, String text, Color color, int y) {
@@ -238,8 +260,12 @@ public class gtglast implements IStrategy {
     }
 
     private void status(String s) {
+        writeQuiet(STATUS, System.currentTimeMillis() + " " + s);
+    }
+
+    private static void writeQuiet(String path, String line) {
         try {
-            Files.write(Paths.get(STATUS), (System.currentTimeMillis() + " " + s + "\n").getBytes(StandardCharsets.UTF_8));
+            Files.write(Paths.get(path), (line + "\n").getBytes(StandardCharsets.UTF_8));
         } catch (IOException ignored) { }
     }
 
