@@ -4,7 +4,7 @@ Runs the final lastgtg indicator on live Dukascopy prices and keeps a green-ligh
 
 | File | Role |
 |---|---|
-| `jforex/GtgLive.java` | JForex strategy, read-only: writes closed BID bars (M1…W, dollar index H1/H4) to `C:/Users/alk/gtg-live/feed`, draws the panel and zones on open XAU/USD charts from `state/draw.txt`. No orders. |
+| `jforex/gtglast.java` (JForex strategy "gtglast") | JForex strategy, read-only: writes closed BID bars (M1…W, dollar index H1/H4) to `C:/Users/alk/gtg-live/feed`, draws the panel and zones on open XAU/USD charts from `state/draw.txt`. No orders. |
 | `zone-engine.mjs` | v0.4.7 engine (lab copy) + the three lastgtg engine changes, marked `[LASTGTG]`. |
 | `measure.mjs` | lab runner, pointed at that engine. |
 | `lamp.mjs` | lastgtg.pine §13 + §16: traffic light, zone rows, dollar row. Tests: `lamp.test.mjs`. |

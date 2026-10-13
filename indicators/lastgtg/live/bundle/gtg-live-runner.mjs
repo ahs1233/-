@@ -1,8 +1,8 @@
-// runner.mjs
+// indicators/lastgtg/live/runner.mjs
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, statSync, renameSync } from "node:fs";
 import { join } from "node:path";
 
-// ../../gtg-strategy-lab/engine/pine-cmp.mjs
+// indicators/gtg-strategy-lab/engine/pine-cmp.mjs
 var PINE_EPS = 1e-10;
 var eq = (a, b) => a === b || typeof a === "number" && typeof b === "number" && Math.abs(a - b) < PINE_EPS;
 var ne = (a, b) => !eq(a, b);
@@ -11,7 +11,7 @@ var gt = (a, b) => a > b && !eq(a, b);
 var le = (a, b) => a <= b || eq(a, b);
 var ge = (a, b) => a >= b || eq(a, b);
 
-// zone-engine.mjs
+// indicators/lastgtg/live/zone-engine.mjs
 var SRC = Object.freeze({ SWING: 0, DOZ: 1, ANCHOR: 2 });
 var TF = Object.freeze({ LOCAL: 0, A1: 1, A2: 2 });
 var TYP = Object.freeze({ HIGH: 0, LOW: 1 });
@@ -739,7 +739,7 @@ function dozBuild(bull, rO, rH, rL, rC, atr2, P = DEFAULTS) {
   };
 }
 
-// ../../gtg-strategy-lab/gtg-engine/reference/engine.mjs
+// indicators/gtg-strategy-lab/gtg-engine/reference/engine.mjs
 var SRC2 = Object.freeze({ SWING: 0, DOZ: 1, ANCHOR: 2 });
 var TF2 = Object.freeze({ LOCAL: 0, A1: 1, A2: 2 });
 var TYP2 = Object.freeze({ HIGH: 0, LOW: 1 });
@@ -775,12 +775,12 @@ var DEFAULTS2 = Object.freeze({
   useDOZ: true
 });
 
-// ../../gtg-strategy-lab/gtg-engine/reference/snapshot.mjs
+// indicators/gtg-strategy-lab/gtg-engine/reference/snapshot.mjs
 var SLOT_NAMES = Object.freeze(["R1", "R2", "S1", "S2"]);
 var LEVELS = Object.freeze(["geometry", "identity", "state", "events"]);
 var EVENT_NAMES = Object.freeze(["breakingUp", "breakingDn", "acceptedUp", "acceptedDn", "rejectR", "rejectS", "flipConfirmed"]);
 
-// ../../gtg-strategy-lab/gtg-engine/reference/history.mjs
+// indicators/gtg-strategy-lab/gtg-engine/reference/history.mjs
 function htfFeedValues(htf, tfRank, plen = 3, atrLen = 20) {
   const n = htf.length;
   const tr = htf.map((b, j) => j === 0 ? b.h - b.l : Math.max(b.h - b.l, Math.abs(b.h - htf[j - 1].c), Math.abs(b.l - htf[j - 1].c)));
@@ -809,7 +809,7 @@ function htfFeedValues(htf, tfRank, plen = 3, atrLen = 20) {
   return vals;
 }
 
-// ../../gtg-strategy-lab/engine/profiles.mjs
+// indicators/gtg-strategy-lab/engine/profiles.mjs
 var INPUTS = Object.freeze({
   maType: "EMA",
   speedSmooth: 3,
@@ -883,7 +883,7 @@ function zoneParams(DEFAULTS3, prof, mintick) {
   return Object.freeze({ ...DEFAULTS3, pivotLen: prof.pivotLen, maxAge: [prof.maxAgeLocal, 96, 64], flipWindow: prof.flipWindow, mintick });
 }
 
-// ../../gtg-strategy-lab/engine/pine-ta.mjs
+// indicators/gtg-strategy-lab/engine/pine-ta.mjs
 var isNa = (x) => x === null || x === void 0 || Number.isNaN(x);
 var nz = (x, y = 0) => isNa(x) ? y : x;
 var clamp1002 = (v) => Math.max(0, Math.min(100, v));
@@ -963,7 +963,7 @@ function maOf(type, src, len, seed) {
   return wma(src, len);
 }
 
-// ../../gtg-strategy-lab/engine/pinecmp/sensors.mjs
+// indicators/gtg-strategy-lab/engine/pinecmp/sensors.mjs
 function containingIndex(chartBars, htfBars) {
   const out = new Array(chartBars.length);
   let k = -1;
@@ -1111,7 +1111,7 @@ function computeSensors(bars, htfBars, prof, mintick, { inputs = INPUTS, emaSeed
   };
 }
 
-// ../../gtg-strategy-lab/engine/pinecmp/obstacle.mjs
+// indicators/gtg-strategy-lab/engine/pinecmp/obstacle.mjs
 var newObstacleLatch = () => ({ state: false, keys: [] });
 function isQualifying(obs, P) {
   return !!obs.available && obs.strength != null && obs.distAtr != null && ge(obs.strength, P.strongQ) && le(obs.distAtr, P.nearObstacleAtr);
@@ -1125,7 +1125,7 @@ function strongObstacleStep(latch, obs, P) {
 }
 var OBSTACLE_DEFAULTS = Object.freeze({ strongQ: 72, nearObstacleAtr: 0.35 });
 
-// ../../gtg-strategy-lab/engine/pinecmp/consumer.mjs
+// indicators/gtg-strategy-lab/engine/pinecmp/consumer.mjs
 function displayQOf(slot, ma200, ma1000, { isCrypto = false, close = NaN } = {}) {
   if (!slot.active) return slot.quality;
   const maConf = ge(ma200, slot.lo) && le(ma200, slot.hi) || ge(ma1000, slot.lo) && le(ma1000, slot.hi);
@@ -1227,7 +1227,7 @@ function consumerStep(st, bar, slots, ev, s, atrEng, I = INPUTS) {
   };
 }
 
-// measure.mjs
+// indicators/lastgtg/live/measure.mjs
 var SLOT_NAMES2 = ["R1", "R2", "S1", "S2"];
 function anchorFeedOf(chart, a1Bars, a2Bars) {
   const v1 = htfFeedValues(a1Bars, 1), v2 = htfFeedValues(a2Bars, 2);
@@ -1344,7 +1344,7 @@ function runTimeframe({ tf, bars, htfBars = [], a1Bars, a2Bars, mintick, startBa
   return { prof, P, W, rows, violations: eng.violations };
 }
 
-// lamp.mjs
+// indicators/lastgtg/live/lamp.mjs
 var LAMP_INPUTS = Object.freeze({
   headingClearThreshold: 20,
   routeClearThreshold: 22,
@@ -1467,7 +1467,7 @@ function dxyText(closes) {
   return c > f && f > s ? "\u0627\u0644\u062F\u0648\u0644\u0627\u0631 \u0635\u0627\u0639\u062F \u2022 \u0636\u063A\u0637 \u0639\u0644\u0649 \u0627\u0644\u0630\u0647\u0628" : c < f && f < s ? "\u0627\u0644\u062F\u0648\u0644\u0627\u0631 \u0647\u0627\u0628\u0637 \u2022 \u064A\u062F\u0639\u0645 \u0627\u0644\u0630\u0647\u0628" : "\u0627\u0644\u062F\u0648\u0644\u0627\u0631 \u0645\u062A\u0631\u062F\u062F";
 }
 
-// runner.mjs
+// indicators/lastgtg/live/runner.mjs
 var BASE = process.argv[2] || "C:/Users/alk/gtg-live";
 var FEED = join(BASE, "feed");
 var STATE = join(BASE, "state");
@@ -1506,6 +1506,7 @@ var writeAtomic = (p, s) => {
   renameSync(p + ".tmp", p);
 };
 var fmtT = (ms) => new Date(ms).toISOString().slice(0, 16).replace("T", " ");
+var dxyKeyFor = (tf) => profileFor(tf).minutes >= 60 ? "DXY_" + tf : "DXY_H1";
 function panelFor(tf, feeds) {
   const prof = profileFor(tf);
   const P = zoneParams(DEFAULTS, prof, MINTICK);
@@ -1521,9 +1522,9 @@ function panelFor(tf, feeds) {
   } });
   if (!last || !last.engineOn) return null;
   const lp = lampOf(last, { mintick: MINTICK });
-  const dxyBars = feeds[prof.minutes >= 60 ? "DXY_" + tf : "DXY_H1"];
+  const dxyBars = feeds[dxyKeyFor(tf)];
   const dxy = dxyText(dxyBars ? dxyBars.map((b) => b.c) : null);
-  return { tf, t: last.t, close: last.c, atrEng: last.atrEng, warmed: last.warmed, barCount: bars.length, W, ...lp, dxy };
+  return { tf, t: last.t, close: last.c, atrEng: last.atrEng, warmed: last.warmed, barCount: bars.length, W, ...lp, dxy, dxyHad: !!dxyBars };
 }
 var ledgerPath = join(LOG, "greens.csv");
 var statePath = join(STATE, "ledger.json");
@@ -1607,7 +1608,7 @@ function tick() {
   for (const tf of TFS) {
     if (!feeds[tf] || !feeds[tf].length) continue;
     const lastT = feeds[tf][feeds[tf].length - 1].t;
-    if (ledger.lastBarT[tf] === lastT && panels[tf]) continue;
+    if (ledger.lastBarT[tf] === lastT && panels[tf] && (panels[tf].dxyHad || !feeds[dxyKeyFor(tf)])) continue;
     let p;
     try {
       p = panelFor(tf, feeds);

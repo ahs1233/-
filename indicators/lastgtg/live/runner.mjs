@@ -1,7 +1,7 @@
-// lastgtg live runner. Reads the JForex feed (GtgLive.java), computes the lastgtg panel of
+// lastgtg live runner. Reads the JForex feed (gtglast.java), computes the lastgtg panel of
 // M1, M5, M15, H1, H4 on every newly closed bar, and writes:
 //   state/state.json    the five panels (machine-readable)
-//   state/draw.txt      the same, one line per timeframe, for GtgLive.java to draw
+//   state/draw.txt      the same, one line per timeframe, for gtglast.java to draw
 //   state/panel.txt     the five panels in plain Arabic (for reading)
 //   log/panels.csv      one row per timeframe per closed bar
 //   log/greens.csv      the green-light ledger (LIVE_PREREGISTRATION.md)
@@ -43,6 +43,7 @@ function readFeed(name) {
 const mtime = (name) => { try { return statSync(join(FEED, name + '.csv')).mtimeMs; } catch { return 0; } };
 const writeAtomic = (p, s) => { writeFileSync(p + '.tmp', s); renameSync(p + '.tmp', p); };
 const fmtT = (ms) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ');
+const dxyKeyFor = (tf) => (profileFor(tf).minutes >= 60 ? 'DXY_' + tf : 'DXY_H1');
 
 function panelFor(tf, feeds) {
   const prof = profileFor(tf);
@@ -58,9 +59,9 @@ function panelFor(tf, feeds) {
   runTimeframe({ tf, bars, htfBars: htf, a1Bars: a1, a2Bars: a2, mintick: MINTICK, startBar, keepRows: false, onRow: (r) => { if (r.i === bars.length - 1) last = r; } });
   if (!last || !last.engineOn) return null;
   const lp = lampOf(last, { mintick: MINTICK });
-  const dxyBars = feeds[prof.minutes >= 60 ? 'DXY_' + tf : 'DXY_H1'];
+  const dxyBars = feeds[dxyKeyFor(tf)];
   const dxy = dxyText(dxyBars ? dxyBars.map((b) => b.c) : null);
-  return { tf, t: last.t, close: last.c, atrEng: last.atrEng, warmed: last.warmed, barCount: bars.length, W, ...lp, dxy };
+  return { tf, t: last.t, close: last.c, atrEng: last.atrEng, warmed: last.warmed, barCount: bars.length, W, ...lp, dxy, dxyHad: !!dxyBars };
 }
 
 // Green-light ledger (LIVE_PREREGISTRATION.md): a new green (lamp turns 2, or turns 2 in the
@@ -116,7 +117,8 @@ function tick() {
   for (const tf of TFS) {
     if (!feeds[tf] || !feeds[tf].length) continue;
     const lastT = feeds[tf][feeds[tf].length - 1].t;
-    if (ledger.lastBarT[tf] === lastT && panels[tf]) continue;
+    // Same bar already computed; recompute only if the dollar file appeared since (start-up race).
+    if (ledger.lastBarT[tf] === lastT && panels[tf] && (panels[tf].dxyHad || !feeds[dxyKeyFor(tf)])) continue;
     let p;
     try { p = panelFor(tf, feeds); } catch (e) { appendFileSync(join(LOG, 'errors.log'), `${new Date().toISOString()} ${tf} ${e.stack}\n`); continue; }
     if (!p) continue;

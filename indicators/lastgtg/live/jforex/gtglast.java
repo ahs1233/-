@@ -11,7 +11,7 @@ import java.nio.file.*;
 import java.util.*;
 
 /**
- * lastgtg live — read-only bridge between JForex and the lastgtg engine (indicators/lastgtg/live).
+ * gtglast — lastgtg live, read-only bridge between JForex and the lastgtg engine (indicators/lastgtg/live).
  *
  * 1. Price feed: on start writes the last closed BID bars of XAU/USD for M1, M5, M15, H1, H4, D, W
  *    (and the dollar index H1/H4 when the platform offers it) to C:/Users/alk/gtg-live/feed as
@@ -23,7 +23,7 @@ import java.util.*;
  * No order, no position, no account change.
  */
 @RequiresFullAccess
-public class GtgLive implements IStrategy {
+public class gtglast implements IStrategy {
     private static final String BASE = "C:/Users/alk/gtg-live";
     private static final String FEED = BASE + "/feed";
     private static final String DRAW = BASE + "/state/draw.txt";
