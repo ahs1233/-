@@ -42,3 +42,15 @@ Until 2026-10-14 01:16 UTC (`aaac5a2`) the runner read the route HTF and anchor 
 bar too early (the feeds hold closed bars only; the engine looks for the bar that contains the
 chart bar). Records with id ≤ 39 were opened under that bug and are reported apart from the rest;
 the scoring rule above did not change.
+
+## Note 2026-10-14 (records 55–59, account change)
+- 03:05 UTC: the JForex demo account was blocked; only sporadic ticks reached the feed after that.
+  Records 55 and 56 were resolved on those sporadic ticks and are flagged as suspect.
+- 09:42 UTC the desktop restarted; 13:49 UTC the strategy was started again on a new demo account
+  (same code, same files). On start it rewrites the closed-bar history, so record 57 (M5, opened
+  03:00) was resolved on the full M1 history (win 03:17); it stays in the ledger.
+- The runner then opened records 58 and 59 on the last closed bars of the catch-up data:
+  - 59 (H1, signal bar 12:00) was resolved at 13:02, before it was recorded (13:49) — **excluded**.
+  - 58 (M15, signal bar 13:30) was recorded about 5 minutes after its bar closed, at a stale entry
+    price — **flagged**, reported apart.
+- Records from 60 on are opened in real time again.
