@@ -13,6 +13,7 @@ import { runTimeframe } from './measure.mjs';
 import { DEFAULTS, engineWindowFor } from './zone-engine.mjs';
 import { profileFor, zoneParams } from '../../gtg-strategy-lab/engine/profiles.mjs';
 import { lampOf, dxyText } from './lamp.mjs';
+import { withForming } from './forming.mjs';
 
 const BASE = process.argv[2] || 'C:/Users/alk/gtg-live';
 const FEED = join(BASE, 'feed'), STATE = join(BASE, 'state'), LOG = join(BASE, 'log');
@@ -51,8 +52,11 @@ function panelFor(tf, feeds) {
   const W = engineWindowFor(P, prof.chartSec, prof.a1Sec, prof.a2Sec);
   const all = feeds[tf];
   const bars = all.slice(-(W + SENSOR_WARM));
-  const htf = feeds[prof.htfTf], a1 = feeds[PINE_TO_TF[prof.a1Tf]], a2 = feeds[PINE_TO_TF[prof.a2Tf]];
-  if (!bars.length || !htf || !a1 || !a2) return null;
+  if (!bars.length || !feeds[prof.htfTf] || !feeds[PINE_TO_TF[prof.a1Tf]] || !feeds[PINE_TO_TF[prof.a2Tf]]) return null;
+  const chartT = bars[bars.length - 1].t;
+  const htf = withForming(feeds[prof.htfTf], prof.htfSec, chartT);
+  const a1 = withForming(feeds[PINE_TO_TF[prof.a1Tf]], prof.a1Sec, chartT);
+  const a2 = withForming(feeds[PINE_TO_TF[prof.a2Tf]], prof.a2Sec, chartT);
   // Pine runs the engine on the last W bars only.
   const startBar = Math.max(0, bars.length - 1 - W);
   let last = null;

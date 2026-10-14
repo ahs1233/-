@@ -1467,6 +1467,15 @@ function dxyText(closes) {
   return c > f && f > s ? "\u0627\u0644\u062F\u0648\u0644\u0627\u0631 \u0635\u0627\u0639\u062F \u2022 \u0636\u063A\u0637 \u0639\u0644\u0649 \u0627\u0644\u0630\u0647\u0628" : c < f && f < s ? "\u0627\u0644\u062F\u0648\u0644\u0627\u0631 \u0647\u0627\u0628\u0637 \u2022 \u064A\u062F\u0639\u0645 \u0627\u0644\u0630\u0647\u0628" : "\u0627\u0644\u062F\u0648\u0644\u0627\u0631 \u0645\u062A\u0631\u062F\u062F";
 }
 
+// indicators/lastgtg/live/forming.mjs
+function withForming(bars, sec, chartT) {
+  if (!bars || !bars.length) return bars;
+  const last = bars[bars.length - 1];
+  const t = last.t + sec * 1e3;
+  if (t > chartT) return bars;
+  return [...bars, { t, o: last.c, h: last.c, l: last.c, c: last.c, v: 0 }];
+}
+
 // indicators/lastgtg/live/runner.mjs
 var BASE = process.argv[2] || "C:/Users/alk/gtg-live";
 var FEED = join(BASE, "feed");
@@ -1513,8 +1522,11 @@ function panelFor(tf, feeds) {
   const W = engineWindowFor(P, prof.chartSec, prof.a1Sec, prof.a2Sec);
   const all = feeds[tf];
   const bars = all.slice(-(W + SENSOR_WARM));
-  const htf = feeds[prof.htfTf], a1 = feeds[PINE_TO_TF[prof.a1Tf]], a2 = feeds[PINE_TO_TF[prof.a2Tf]];
-  if (!bars.length || !htf || !a1 || !a2) return null;
+  if (!bars.length || !feeds[prof.htfTf] || !feeds[PINE_TO_TF[prof.a1Tf]] || !feeds[PINE_TO_TF[prof.a2Tf]]) return null;
+  const chartT = bars[bars.length - 1].t;
+  const htf = withForming(feeds[prof.htfTf], prof.htfSec, chartT);
+  const a1 = withForming(feeds[PINE_TO_TF[prof.a1Tf]], prof.a1Sec, chartT);
+  const a2 = withForming(feeds[PINE_TO_TF[prof.a2Tf]], prof.a2Sec, chartT);
   const startBar = Math.max(0, bars.length - 1 - W);
   let last = null;
   runTimeframe({ tf, bars, htfBars: htf, a1Bars: a1, a2Bars: a2, mintick: MINTICK, startBar, keepRows: false, onRow: (r) => {
