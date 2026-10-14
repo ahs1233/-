@@ -26,6 +26,7 @@ node indicators/gtg-strategy-lab/engine/pinecmp/build.mjs   # after editing a so
 - Research window: **2021-09-29 → 2026-09-29** (T_freeze). Train/Validation/Holdout are cut inside it.
 - Pre-history is loaded only for warm-up and never enters a result. The binding need is H4: 5,441 closed H4 bars before 2021-09-29 reach back to **2018-04-09** on the contract calendar (M5 2021-09-21, M15 2021-08-29, H1 2021-03-30, D 2020-12-23). Days without bars (holiday closures ≈ 2 weeks over 3.5 years) push it earlier, so acquisition starts at **2018-03-01**; the real first valid bar is checked on the data (`firstValidTime`) before any split.
 - If the Power Gate shows a hypothesis cannot be evaluated inside the window, work stops for discussion; the window is never extended automatically.
+- **Holdout exposure (2026-10-14):** by the user's decision, the lastgtg historical test (`indicators/lastgtg/history/HISTORY_PREREGISTRATION.md`) runs on 2025-01-01 → 2026-09-26. That covers the end of Validation and the whole Historical Holdout here. From then on the Holdout is no longer untouched for any indicator built on the GTG engine.
 
 ## v0.2.3 canonical dataset (JForex IHistory)
 

@@ -36,3 +36,9 @@ above 50% (lower edge of the 95% interval above 50%). Fewer than 40 records: no 
 - Zone rows do not show the "% من الحركة" suffix.
 - The dollar row uses Dukascopy's dollar index when the platform offers it; otherwise it reads
   "الدولار • غير متاح".
+
+## Correction 2026-10-14 (records 1–39)
+Until 2026-10-14 01:16 UTC (`aaac5a2`) the runner read the route HTF and anchor bars one closed
+bar too early (the feeds hold closed bars only; the engine looks for the bar that contains the
+chart bar). Records with id ≤ 39 were opened under that bug and are reported apart from the rest;
+the scoring rule above did not change.
