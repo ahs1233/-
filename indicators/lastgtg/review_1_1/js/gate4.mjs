@@ -3,7 +3,7 @@
 // captureDir: ../tv/gate4_run.mjs output (study_<res>_<v>.json, bars_<res>.json). The JS port
 // is fed exactly TradingView's data: the chart bars are the study's own m_open…m_volume rows
 // (pre-history rows included, F-006), the HTF / anchor bars are TradingView's own bars of
-// those timeframes, the route-HTF history start is recovered by inferHtfStart (F-009) and the
+// those timeframes, the request.security history starts are recovered by securityStart (F-009 extended) and the
 // engine starts on Pine's first engineOn row. Rows of bars that were still open when the
 // study loaded are dropped (closed bars only). Every row is compared, layer by layer:
 //   1 sensors (scores 1e-6; atrEng, HTF values within 1 mintick)
@@ -18,7 +18,10 @@ import { runTimeframe as runC } from './measure-c.mjs';
 import { lampOf, obstacleInputs } from '../../live/lamp.mjs';
 import { lampOfBC, EpisodeTracker } from './lamp-bc.mjs';
 import { profileFor, INPUTS } from '../../../gtg-strategy-lab/engine/profiles.mjs';
-import { feedFromTvBars, feedKeysFor, inferHtfStart } from '../../../gtg-strategy-lab/parity/compare.mjs';
+import { feedFromTvBars, feedKeysFor } from '../../../gtg-strategy-lab/parity/compare.mjs';
+import { maOf } from '../../../gtg-strategy-lab/engine/pine-ta.mjs';
+import { containingIndex } from '../../../gtg-strategy-lab/engine/pinecmp/sensors.mjs';
+import { priceTol } from '../../../gtg-strategy-lab/gtg-engine/reference/snapshot.mjs';
 import { A_REASON_TEXT } from '../diag/build-diag.mjs';
 
 export const MINTICK = 0.001, SCORE_TOL = 1e-6, PRICE_TOL = MINTICK;
@@ -73,6 +76,35 @@ const FIELDS = [
 ];
 // engineOn is bit 128 of m_events (plot budget, ../diag/build-diag.mjs).
 const pineOn = (p) => (p.m_events & 128) === 128;
+// Where TradingView started each request.security history. With calc_bars_count the route-HTF
+// values are na until the first HTF bar that opens at or after the first computed chart bar
+// (run 2: 6 na rows on M15, 9 on H4), so the start can lie after the HTF bar holding row 0; the
+// lab's inferHtfStart (F-009) only searched before it. The start is the UNIQUE HTF bar s whose
+// slice reproduces m_htfClose and m_htfMA200 on every row, na pattern included. The same
+// "first bar opening at or after the first chart bar" rule is then used for the anchors and
+// checked against the route start.
+export function securityStart(rows, htf, { back = 400, ahead = 8 } = {}) {
+  const ruleStart = htf.findIndex((b) => b.t >= rows[0].t);
+  const k0 = ruleStart < 0 ? htf.length - 1 : ruleStart;
+  const zero = [];
+  for (let s = Math.max(0, k0 - back); s <= Math.min(htf.length - 1, k0 + ahead); s++) {
+    const sl = htf.slice(s), k = containingIndex(rows, sl), closes = sl.map((b) => b.c);
+    const ma = maOf(INPUTS.maType, closes, 200, 'sma');
+    let bad = 0;
+    for (let i = 0; i < rows.length && bad === 0; i++) {
+      const j = k[i] - 1;
+      for (const [pv, jv] of [[rows[i].m_htfClose, j >= 0 ? closes[j] : NaN], [rows[i].m_htfMA200, j >= 0 ? ma[j] : NaN]]) {
+        const pf = Number.isFinite(pv), jf = Number.isFinite(jv);
+        if (pf !== jf || (pf && !(Math.abs(pv - jv) <= Math.max(priceTol(pv, MINTICK), priceTol(jv, MINTICK))))) bad++;
+      }
+    }
+    if (bad === 0) zero.push(s);
+  }
+  return { start: zero.length === 1 ? zero[0] : null, candidates: zero.length, ruleStart, sameAsRule: zero.length === 1 && zero[0] === ruleStart,
+    t: zero.length === 1 ? new Date(htf[zero[0]].t).toISOString() : null };
+}
+const ruleSlice = (bars, t0) => { const s = bars.findIndex((b) => b.t >= t0); return s < 0 ? [] : bars.slice(s); };
+
 const LAMP_FIELDS = ['lamp', 'reason', 'heading', 'route', 'accepted', 'start'];
 
 function same(a, b, kind) {
@@ -90,7 +122,9 @@ export function gateCell(dir, res, v) {
   for (const k of new Set(Object.values(keys))) feed[k] = feedFromTvBars(JSON.parse(readFileSync(join(dir, `bars_${k}.json`), 'utf8')));
   const bars = rows.map((r) => ({ t: r.t, o: r.m_open, h: r.m_high, l: r.m_low, c: r.m_close, v: r.m_volume }));
   // The study's bars must be TradingView's chart bars where both exist.
-  const chart = existsSync(join(dir, `bars_${res}.json`)) ? feedFromTvBars(JSON.parse(readFileSync(join(dir, `bars_${res}.json`), 'utf8'))) : [];
+  // The chart bars dumped right after this study was read (same page load), else the final dump.
+  const chartFile = [`bars_${res}_with_${v}.json`, `bars_${res}.json`].map((f) => join(dir, f)).find((f) => existsSync(f));
+  const chart = chartFile ? feedFromTvBars(JSON.parse(readFileSync(chartFile, 'utf8'))) : [];
   const byT = new Map(chart.map((b) => [b.t, b]));
   let chartChecked = 0, chartBad = 0;
   const chartBadList = [];
@@ -99,23 +133,24 @@ export function gateCell(dir, res, v) {
     if (c.o !== b.o || c.h !== b.h || c.l !== b.l || c.c !== b.c || c.v !== b.v) { chartBad++; if (chartBadList.length < 30) chartBadList.push({ t: new Date(b.t).toISOString(), study: [b.o, b.h, b.l, b.c, b.v], chart: [c.o, c.h, c.l, c.c, c.v] }); }
   }
 
-  const htfStart = inferHtfStart(rows, feed[keys.htf], MINTICK);
+  const htfStart = securityStart(rows, feed[keys.htf]);
   const htfBars = htfStart.start == null ? feed[keys.htf] : feed[keys.htf].slice(htfStart.start);
+  const a1Bars = ruleSlice(feed[keys.a1], rows[0].t), a2Bars = ruleSlice(feed[keys.a2], rows[0].t);
   const startBar = rows.findIndex((r) => pineOn(r));
   const run = v === 'C' ? runC : runA;
   const tracker = new EpisodeTracker();
   const stats = new Map(), first = { 1: null, 2: null, 3: null, 4: null };
   const note = (layer, name, i, ok, pv, jv) => {
-    const s = stats.get(name) ?? { layer, compared: 0, mismatched: 0, maxAbs: 0, first: null };
+    const s = stats.get(name) ?? { layer, compared: 0, mismatched: 0, maxAbs: 0, first: null, sample: [] };
     s.compared++;
     if (fin(pv) && fin(jv)) s.maxAbs = Math.max(s.maxAbs, Math.abs(pv - jv));
-    if (!ok) { s.mismatched++; if (!s.first) s.first = { row: i, t: new Date(rows[i].t).toISOString(), pine: pv, js: jv }; if (!first[layer] || first[layer].row > i) first[layer] = { row: i, t: new Date(rows[i].t).toISOString(), field: name }; }
+    if (!ok) { s.mismatched++; if (s.sample.length < 12) s.sample.push([i, new Date(rows[i].t).toISOString(), pv, jv]); if (!s.first) s.first = { row: i, t: new Date(rows[i].t).toISOString(), pine: pv, js: jv }; if (!first[layer] || first[layer].row > i) first[layer] = { row: i, t: new Date(rows[i].t).toISOString(), field: name }; }
     stats.set(name, s);
   };
   const pineStarts = [], jsStarts = [];
   let engineRows = 0, i = 0;
   const trace = {};
-  run({ tf, mintick: MINTICK, bars, htfBars, a1Bars: feed[keys.a1], a2Bars: feed[keys.a2], startBar, emaSeed: 'sma', keepRows: false, onRow: (r) => {
+  run({ tf, mintick: MINTICK, bars, htfBars, a1Bars, a2Bars, startBar, emaSeed: 'sma', keepRows: false, onRow: (r) => {
     const p = rows[i];
     if (r.t !== p.t) throw new Error(`row ${i} time`);
     const o = obstacleInputs(r, { mintick: MINTICK });
@@ -160,7 +195,7 @@ if (process.argv[1] && process.argv[1].endsWith('gate4.mjs')) {
     const out = gateCell(dir, res, v);
     writeFileSync(join(outDir, `gate4_${out.tf}_${v}.json`), JSON.stringify(out, null, 1));
     const bad = Object.entries(out.fields).filter(([, f]) => f.mismatched).map(([n, f]) => `${n} ${f.mismatched}/${f.compared}`);
-    console.log(`${out.tf} ${v}: ${out.pass ? 'PASS' : 'FAIL'} rows ${out.rows} (pre-history ${out.meta.preHistoryRows}, open dropped ${out.meta.droppedOpen}) engine rows ${out.engineRows} startBar ${out.startBar} htfStart ${out.htfStart.basis} starts pine ${out.starts.pine} js ${out.starts.js} equal ${out.starts.equal} chart bars ${out.chartBarsChecked}/${out.chartBarsDiffering} bad; ${bad.length ? 'differences: ' + bad.join(', ') + ' first layer ' + out.firstLayer + ' ' + JSON.stringify(out.firstDifferenceByLayer[out.firstLayer]) : 'no difference'} (${Math.round((Date.now() - t0) / 1000)} s)`);
+    console.log(`${out.tf} ${v}: ${out.pass ? 'PASS' : 'FAIL'} rows ${out.rows} (pre-history ${out.meta.preHistoryRows}, open dropped ${out.meta.droppedOpen}) engine rows ${out.engineRows} startBar ${out.startBar} htfStart ${out.htfStart.t ?? "none"} (candidates ${out.htfStart.candidates}, rule ${out.htfStart.sameAsRule}) starts pine ${out.starts.pine} js ${out.starts.js} equal ${out.starts.equal} chart bars ${out.chartBarsChecked}/${out.chartBarsDiffering} bad; ${bad.length ? 'differences: ' + bad.join(', ') + ' first layer ' + out.firstLayer + ' ' + JSON.stringify(out.firstDifferenceByLayer[out.firstLayer]) : 'no difference'} (${Math.round((Date.now() - t0) / 1000)} s)`);
     summary.push({ tf: out.tf, version: v, pass: out.pass, rows: out.rows, engineRows: out.engineRows, starts: out.starts.pine, mismatched: out.mismatched, firstLayer: out.firstLayer });
   }
   writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 1));
