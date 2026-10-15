@@ -43,6 +43,28 @@ s_tf (median entry spread) 0.350 / 0.357 / 0.357. No trade expired and none was 
 atrEng is always reached well inside 300 bars. Not executable: heading 0 (A only: 690 / 179 / 28) and
 a gap after the signal (28 / 9 / 5 for A).
 
+**Starts that were not executed, and what the mean is taken over.** Mean R, win share and every
+interval are per **executed trade** (the contract counts a non-executable start apart, out of every
+denominator). Causes (no start was lost to a missing entry price or to the end of the data):
+
+| TF | version | starts | heading 0 | gap after the signal | missing open | unresolved | executed | mean R per executed trade | same, per start (non-executed = 0) |
+|---|---|---|---|---|---|---|---|---|---|
+| M15 | A | 6,078 | 690 | 28 | 0 | 0 | 5,360 | −0.174 | −0.153 |
+| M15 | B | 1,118 | 0 | 0 | 0 | 0 | 1,118 | −0.181 | −0.181 |
+| M15 | C | 958 | 0 | 0 | 0 | 0 | 958 | −0.176 | −0.176 |
+| H1 | A | 1,584 | 179 | 9 | 0 | 0 | 1,396 | −0.105 | −0.093 |
+| H1 | B | 383 | 0 | 4 | 0 | 0 | 379 | −0.115 | −0.114 |
+| H1 | C | 327 | 0 | 3 | 0 | 0 | 324 | −0.130 | −0.129 |
+| H4 | A | 270 | 28 | 5 | 0 | 0 | 237 | −0.080 | −0.070 |
+| H4 | B | 59 | 0 | 1 | 0 | 0 | 58 | −0.069 | −0.068 |
+| H4 | C | 53 | 0 | 3 | 0 | 0 | 50 | −0.160 | −0.151 |
+
+- *Heading 0* (A only): A turns green on an accepted break whatever the heading, so some of its
+  starts have no direction; the contract gives them none (B and C require a heading).
+- *Gap*: the first minute after the signal close opens more than one signal bar later — the signal
+  bar is the last before the daily break or the weekend. Baseline: 475 / 131 / 69 such bars.
+- The last column only rescales by executed / starts; it is not a separate test.
+
 **H4 coverage.** H4 signals cover 2022-12-06 → 2024-12-31 only: 2021 Q4 is absent and 2022 holds
 4 / 2 / 1 starts. Its failure of condition 4 on 2022 reflects missing coverage, not a losing year.
 Why: a bar counts once the engine is warmed, i.e. `engineWindow` bars after the first feed bar;
@@ -95,9 +117,11 @@ reacted less often than naive pivot zones on M15 (interval below 0 in both popul
 
 ## What this does and does not say
 - In 2021-10 → 2024 (H4: 2022-12 → 2024), with a symmetric ±1 atrEng target and stop and this
-  execution, every version lost on average after real costs on M15, H1 and H4, and there is no
-  evidence that any did better than random bars with the same direction, year, session and
-  volatility. B and C cut the number of signals, but there is not enough evidence that the signals
+  execution, every version's point estimate is a loss after real costs. The loss is established
+  with confidence (99.5 % interval below 0) for A, B and C on M15 and for A on H1 (and on M5); on
+  H1 for B and C and on H4 the intervals include both gain and loss, so no edge is shown there but a
+  loss is not established either. There is no evidence that any version did better than random bars
+  with the same direction, year, session and volatility. B and C cut the number of signals, but there is not enough evidence that the signals
   they keep are better or worse than A's.
 - It does not show the indicator is useless in every use; it shows this trading rule showed no
   edge in this sample.
