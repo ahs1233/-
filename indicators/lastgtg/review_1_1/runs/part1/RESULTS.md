@@ -154,3 +154,29 @@ Differences, 95 %, L / 2L: M15 B−A −0.007 [−0.065, +0.053] / [−0.067, +0
 [−0.031, +0.042] / [−0.031, +0.043]; H1 B−A −0.010 [−0.100, +0.088] / [−0.092, +0.079], C−B −0.015
 [−0.075, +0.043] / [−0.066, +0.036]; H4 B−A +0.011 [−0.158, +0.191] / [−0.138, +0.152], C−B −0.091
 [−0.282, +0.107] / [−0.295, +0.087]; M5 B−A +0.029 [−0.044, +0.105], C−B −0.008 [−0.059, +0.044].
+
+## Addendum A1 — H4 coverage completion after seeing the results
+
+Declared after the v1.1 results, at the reviewer's request (`../../ADDENDUM_H4_COVERAGE.md`, commit
+`844b90b`); signals log committed before scoring (`addendum_h4/signals`, `71909f2`); outputs
+`addendum_h4/results` (`7157cc2`). One change: H4 feeds from 2018-03-01. H4 is now warmed from
+2021-09-08, so the whole period is covered. L_tf 52 and the Part 2 block 10 are unchanged. The v1.1
+H4 rows above stay as they were.
+
+| version | starts | heading 0 / gap | executed | win share | mean R | 99.5 %, L / 2L | stress | matched | − matched 95 %, L / 2L | 2021Q4 / 2022 / 2023 / 2024 (n / mean R) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| baseline | 3,399 | 0 / 112 | 3,287 | 0.486 | −0.028 | 95 %: [−0.095, +0.044] | −0.066 | | | |
+| A | 427 | 45 / 10 | 372 | 0.470 | −0.059 | [−0.224, +0.090] / [−0.215, +0.074] | −0.097 | −0.021 | [−0.193, +0.112] / [−0.187, +0.111] | 23/−0.304, 116/+0.017, 121/−0.124, 112/−0.018 |
+| B | 91 | 0 / 2 | 89 | 0.506 | +0.011 | [−0.237, +0.240] / [−0.169, +0.188] | −0.027 | +0.020 | [−0.327, +0.306] / [−0.315, +0.285] | 4/0.000, 29/+0.172, 33/−0.152, 23/+0.043 |
+| C | 83 | 0 / 3 | 80 | 0.475 | −0.050 | [−0.307, +0.229] / [−0.247, +0.164] | −0.089 | +0.006 | [−0.404, +0.287] / [−0.391, +0.275] | 4/−0.500, 27/+0.185, 29/−0.103, 20/−0.200 |
+
+B − A +0.070, 95 % [−0.059, +0.204] (2L [−0.033, +0.174]); C − B −0.061 [−0.201, +0.085]
+(2L [−0.198, +0.063]) → not enough evidence either way. Candidate: none (B and C have fewer than 100
+executed trades; A fails conditions 2 to 6). Every interval contains both gain and loss: on H4 no
+edge is shown and no loss is established.
+
+Consistency: the 2023 and 2024 rows are identical to the v1.1 run (same starts and mean R), so the
+earlier warm-up only added the bars v1.1 could not reach; it changed nothing after them.
+
+Part 2 on H4 with the same feeds: weak 2 / 2 touches → inconclusive again; important vs control
+reaction share 0.411 vs 0.445 (A/B), 95 % [−0.093, +0.027], and 0.432 vs 0.453 (C), [−0.082, +0.043].
