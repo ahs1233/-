@@ -18,6 +18,17 @@ What was run here (2026-10-15):
   matched exactly once on the full original file; outputs in `build/` with their diffs.
 - Every name the inserted code uses is declared earlier at global scope; 20 plots in total.
 
+JS port for the history test (`js/`, gate 2 of `TEST_PREREGISTRATION.md`):
+
+- `js/lamp-bc.mjs`: `gtgLampDecision`, `gtgLampReason`, the adapter inputs and the episode
+  rule, on the same obstacle inputs as A (`../live/lamp.mjs` now exports `obstacleInputs`;
+  `lampOf` unchanged, its tests pass).
+- `js/build-c.mjs` → `js/zone-engine-c.mjs`, `js/measure-c.mjs`: the live engine with
+  `c_breaking.pinefrag` in JS (exact replacements, each found once; lines marked `[C]`).
+- `node --test indicators/lastgtg/review_1_1/js/bc.test.mjs`: JS lamp = the handoff's Pine
+  translation on all 147,456 cases (lamp and reason), Astra's 20 C break cases on the real
+  `updateLevel`, strong-body acceptance in A/B but not C, B row cases. 13/13 pass.
+
 Not done yet: Pine compilation in TradingView, `handoff/lastgtg_logic_tests.pine`, replays of
 the edge cases, and any test on price data. The comparison of A, B and C on data is
 pre-registered separately before anything is computed.

@@ -36,8 +36,9 @@ export function zoneLine(slot, isRes, prefix, close, mintick, I = LAMP_INPUTS) {
   return prefix + (isRes ? 'مقاومة ' : 'دعم ') + strengthWord(slot.displayQ, isRes, I) + ' • ' + zoneDistText(slot, isRes, close, mintick);
 }
 
-// row: one measure.mjs row. Returns the panel and the inputs that decided it.
-export function lampOf(row, { mintick = 0.001, I = LAMP_INPUTS } = {}) {
+// §13 obstacle awareness and no-chase on one closed bar: every input the lamp reads.
+// Shared by lampOf (A, as live) and review_1_1/js/lamp-bc.mjs (B and C).
+export function obstacleInputs(row, { mintick = 0.001, I = LAMP_INPUTS } = {}) {
   const [R1, R2, S1, S2] = row.slots;
   const close = row.c, high = row.h, low = row.l, atrEng = row.atrEng;
   const headingSign = row.headingSign, routeSign = row.routeSign;
@@ -73,6 +74,23 @@ export function lampOf(row, { mintick = 0.001, I = LAMP_INPUTS } = {}) {
   const obstacleInAwarenessRange = obstacleAvailable && Number.isFinite(nearestObstacleAtr) && nearestObstacleAtr <= I.awarenessObstacleAtr;
   const movingTowardResistance = headingSign > 0 && obstacleRole === 1 && obstacleInAwarenessRange;
   const movingTowardSupport = headingSign < 0 && obstacleRole === -1 && obstacleInAwarenessRange;
+
+  return {
+    R1, R2, S1, S2, close, high, low, atrEng, headingSign, routeSign, fuelScore, ev, safeHtfAtr,
+    primaryUp, dest1, obstacleAvailable, nearestObstacleAtr, obstacleRole,
+    priceInsideObstacle, candleTouchesObstacle, obstacleNear, noChase, fuelExhaustion,
+    movingTowardResistance, movingTowardSupport,
+  };
+}
+
+// row: one measure.mjs row. Returns the panel and the inputs that decided it.
+export function lampOf(row, { mintick = 0.001, I = LAMP_INPUTS } = {}) {
+  const {
+    R1, R2, S1, S2, close, atrEng, headingSign, routeSign, fuelScore, ev, safeHtfAtr,
+    obstacleAvailable, nearestObstacleAtr, obstacleRole,
+    priceInsideObstacle, candleTouchesObstacle, obstacleNear, noChase, fuelExhaustion,
+    movingTowardResistance, movingTowardSupport,
+  } = obstacleInputs(row, { mintick, I });
 
   // §16 lamp: 2 green, 1 yellow, 0 red. kind tells which rule made it green.
   let lamp = 1, why = 'أدلة مختلطة', kind = null;
