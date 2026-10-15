@@ -33,7 +33,7 @@ const barsInfo = () => ev(`(() => { const b = ${MS}.bars(); return { res: ${CH}.
 // Switch resolution, then ask for more history until the first bar stops moving.
 async function loadRes(res) {
   await guard();
-  await ev(`${CH}.setResolution(${JSON.stringify(res)})`);
+  await ev(`(${CH}.setResolution(${JSON.stringify(res)}), true)`); // not awaited: its promise can stay pending
   let b = null;
   for (let k = 0; k < 60; k++) { await sleep(1000); b = await barsInfo(); if (b.res === res && b.size > 0 && !b.loading) break; }
   let stable = 0;
