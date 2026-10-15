@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SOURCES, MARK, build } from './build-diag.mjs';
+import { SOURCES, MARK, CALC_BARS, build } from './build-diag.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const sha = (s) => createHash('sha256').update(s).digest('hex');
@@ -22,6 +22,10 @@ for (const v of ['A', 'B', 'C']) {
     const k = out.indexOf('\n\n\n' + MARK);
     assert.ok(k > 0);
     const head = out.slice(0, k + 1).split('\n'), orig = src.split('\n');
+    // One inserted declaration line (calc_bars_count), right after the short title.
+    const ins = head.findIndex((l) => l === `     calc_bars_count = ${CALC_BARS},`);
+    assert.ok(ins > 0 && /^ {5}shorttitle = /.test(head[ins - 1]));
+    head.splice(ins, 1);
     assert.equal(head.length, orig.length);
     const changed = head.map((l, i) => (l === orig[i] ? null : i)).filter((i) => i !== null);
     assert.equal(changed.length, 2, 'only the title and short title lines differ');

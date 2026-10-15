@@ -1,6 +1,6 @@
 --- frozen_C
 +++ lastgtg_C_diag.pine
-@@ -3,8 +3,8 @@
+@@ -3,8 +3,9 @@
  // B/C: safe green gates, explicit missing-map state, unified moveShare, closed-bar exports.
  // C: two consecutive beyond-buffer closes, no strong-body shortcut; window offsets 0..2.
  indicator(
@@ -8,10 +8,11 @@
 -     shorttitle = "lastgtg C",
 +     "lastgtg C diag gate4 — export only",
 +     shorttitle = "lastgtg C diag",
++     calc_bars_count = 3000,
       overlay = true,
       max_labels_count = 20,
       max_lines_count = 10,
-@@ -2520,3 +2520,40 @@
+@@ -2520,3 +2521,40 @@
  alertcondition(obstacleRejectEvent, "lastgtg — Obstacle Rejection", "lastgtg: ظهر رفض/ارتداد واضح من عائق سعري معروض.")
  alertcondition(breakAcceptedEvent, "lastgtg — Break Accepted", "lastgtg: الكسر أصبح مقبولًا وفق محرك المناطق.")
  alertcondition(flipConfirmedEvent, "lastgtg — Flip Confirmed", "lastgtg: إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد.")

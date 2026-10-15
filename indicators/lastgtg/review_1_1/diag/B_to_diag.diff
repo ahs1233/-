@@ -1,6 +1,6 @@
 --- frozen_B
 +++ lastgtg_B_diag.pine
-@@ -3,8 +3,8 @@
+@@ -3,8 +3,9 @@
  // B/C: safe green gates, explicit missing-map state, unified moveShare, closed-bar exports.
  // B: original level state machine is unchanged.
  indicator(
@@ -8,10 +8,11 @@
 -     shorttitle = "lastgtg B",
 +     "lastgtg B diag gate4 — export only",
 +     shorttitle = "lastgtg B diag",
++     calc_bars_count = 3000,
       overlay = true,
       max_labels_count = 20,
       max_lines_count = 10,
-@@ -2517,3 +2517,40 @@
+@@ -2517,3 +2518,40 @@
  alertcondition(obstacleRejectEvent, "lastgtg — Obstacle Rejection", "lastgtg: ظهر رفض/ارتداد واضح من عائق سعري معروض.")
  alertcondition(breakAcceptedEvent, "lastgtg — Break Accepted", "lastgtg: الكسر أصبح مقبولًا وفق محرك المناطق.")
  alertcondition(flipConfirmedEvent, "lastgtg — Flip Confirmed", "lastgtg: إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد.")

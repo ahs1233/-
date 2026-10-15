@@ -103,6 +103,7 @@ bool dgStartA = engineStep and dgLampClosedA == 2 and (nz(dgLampClosedA[1], 1) !
 `;
 const A_COLS = [['m_lampA', 'engineOn ? dgLampClosedA : na'], ['m_codeA', 'engineOn ? dgCodeA : na'], ['m_startA', 'dgStartA ? 1 : 0']];
 
+export const CALC_BARS = 3000;
 export const MARK = '// ==== GATE 4 DIAGNOSTIC EXPORTS (export only; added by review_1_1/diag/build-diag.mjs) ====';
 
 export function blockFor(v) {
@@ -118,7 +119,11 @@ export function build(v) {
   const [title, short] = TITLES[v];
   const t1 = `     ${title},\n     shorttitle = ${short},`;
   if (src.split(t1).length !== 2) throw new Error(`${v}: title lines not found exactly once`);
-  const renamed = src.replace(t1, `     "lastgtg ${v} diag gate4 — export only",\n     shorttitle = "lastgtg ${v} diag",`);
+  // calc_bars_count: a run setting, not logic. TradingView keeps only the last ~3,032 study rows
+  // in the chart; without it the study had computed on older bars it never sent (warm values and
+  // live zones on the first exported row, 2026-10-15 run 1), so no replay could start where Pine
+  // started. With it Pine computes on exactly the bars that are exported.
+  const renamed = src.replace(t1, `     "lastgtg ${v} diag gate4 — export only",\n     shorttitle = "lastgtg ${v} diag",\n     calc_bars_count = ${CALC_BARS},`);
   const { text, cols } = blockFor(v);
   const body = renamed.endsWith('\n') ? renamed : renamed + '\n';
   return { src, out: body + text, cols };

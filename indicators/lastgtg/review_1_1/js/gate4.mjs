@@ -93,7 +93,11 @@ export function gateCell(dir, res, v) {
   const chart = existsSync(join(dir, `bars_${res}.json`)) ? feedFromTvBars(JSON.parse(readFileSync(join(dir, `bars_${res}.json`), 'utf8'))) : [];
   const byT = new Map(chart.map((b) => [b.t, b]));
   let chartChecked = 0, chartBad = 0;
-  for (const b of bars) { const c = byT.get(b.t); if (!c) continue; chartChecked++; if (c.o !== b.o || c.h !== b.h || c.l !== b.l || c.c !== b.c || c.v !== b.v) chartBad++; }
+  const chartBadList = [];
+  for (const b of bars) {
+    const c = byT.get(b.t); if (!c) continue; chartChecked++;
+    if (c.o !== b.o || c.h !== b.h || c.l !== b.l || c.c !== b.c || c.v !== b.v) { chartBad++; if (chartBadList.length < 30) chartBadList.push({ t: new Date(b.t).toISOString(), study: [b.o, b.h, b.l, b.c, b.v], chart: [c.o, c.h, c.l, c.c, c.v] }); }
+  }
 
   const htfStart = inferHtfStart(rows, feed[keys.htf], MINTICK);
   const htfBars = htfStart.start == null ? feed[keys.htf] : feed[keys.htf].slice(htfStart.start);
@@ -139,7 +143,7 @@ export function gateCell(dir, res, v) {
   const firstLayer = [1, 2, 3, 4].find((l) => first[l]) ?? null;
   return {
     res, tf, version: v, pass: mismatched === 0 && startsEqual && chartBad === 0 && pineStarts.length > 0,
-    meta, rows: rows.length, chartBarsChecked: chartChecked, chartBarsDiffering: chartBad,
+    meta, rows: rows.length, chartBarsChecked: chartChecked, chartBarsDiffering: chartBad, chartBadList,
     htfStart, startBar, engineRows, firstRow: new Date(rows[0].t).toISOString(), lastRow: new Date(rows.at(-1).t).toISOString(),
     starts: { pine: pineStarts.length, js: jsStarts.length, equal: startsEqual, list: pineStarts },
     mismatched, firstDifferenceByLayer: first, firstLayer, fields, trace,

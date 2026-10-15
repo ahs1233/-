@@ -1,16 +1,17 @@
 --- frozen_A
 +++ lastgtg_A_diag.pine
-@@ -1,7 +1,7 @@
+@@ -1,7 +1,8 @@
  //@version=6
  indicator(
 -     "lastgtg — Structural Zone Engine (based on GTG v0.4.7)",
 -     shorttitle = "lastgtg",
 +     "lastgtg A diag gate4 — export only",
 +     shorttitle = "lastgtg A diag",
++     calc_bars_count = 3000,
       overlay = true,
       max_labels_count = 20,
       max_lines_count = 10,
-@@ -2433,3 +2433,85 @@
+@@ -2433,3 +2434,85 @@
  alertcondition(obstacleRejectEvent, "lastgtg — Obstacle Rejection", "lastgtg: ظهر رفض/ارتداد واضح من عائق سعري معروض.")
  alertcondition(breakAcceptedEvent, "lastgtg — Break Accepted", "lastgtg: الكسر أصبح مقبولًا وفق محرك المناطق.")
  alertcondition(flipConfirmedEvent, "lastgtg — Flip Confirmed", "lastgtg: إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد.")

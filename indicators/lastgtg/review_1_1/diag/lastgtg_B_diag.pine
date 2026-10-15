@@ -5,6 +5,7 @@
 indicator(
      "lastgtg B diag gate4 — export only",
      shorttitle = "lastgtg B diag",
+     calc_bars_count = 3000,
      overlay = true,
      max_labels_count = 20,
      max_lines_count = 10,
