@@ -110,7 +110,11 @@ async function runStudy(res, v) {
   log(`${v} ${res}: loaded in ${Math.round((Date.now() - t0) / 1000)} s, ${j.rows.length} study rows, ${j.titles.length} plots, live bar ${new Date(j.liveBarTime * 1000).toISOString()}, sha256 ${createHash('sha256').update(s).digest('hex').slice(0, 16)}`);
   await dumpBars(res, `bars_${res}_with_${v}.json`);
   await ev(`(() => { const ch = ${CH}; for (const x of ch.getAllStudies()) ch.removeEntity(x.id); return true; })()`);
+  // The HTF / anchor bars of THIS page load: TradingView served two versions of one H4 bar in
+  // different page loads on 2026-10-15 (run 2), so each study is replayed on its own load's bars.
+  for (const k of HTF_OF[res]) { await loadRes(k); await dumpBars(k, `bars_${k}_for_${res}_${v}.json`); }
 }
+const HTF_OF = { 15: ['60', '240'], 60: ['240', '1D'], 240: ['1D', '1W'] };
 
 await connect();
 for (const res of tfArg.split(',').filter(Boolean)) for (const v of vArg.split(',').filter(Boolean)) {

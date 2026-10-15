@@ -83,7 +83,7 @@ const pineOn = (p) => (p.m_events & 128) === 128;
 // slice reproduces m_htfClose and m_htfMA200 on every row, na pattern included. The same
 // "first bar opening at or after the first chart bar" rule is then used for the anchors and
 // checked against the route start.
-export function securityStart(rows, htf, { back = 400, ahead = 8 } = {}) {
+export function securityStart(rows, htf, { back = 400, ahead = 400 } = {}) {
   const ruleStart = htf.findIndex((b) => b.t >= rows[0].t);
   const k0 = ruleStart < 0 ? htf.length - 1 : ruleStart;
   const zero = [];
@@ -119,7 +119,12 @@ export function gateCell(dir, res, v) {
   const { meta, rows } = readStudy(join(dir, `study_${res}_${v}.json`));
   const keys = feedKeysFor(tf);
   const feed = {};
-  for (const k of new Set(Object.values(keys))) feed[k] = feedFromTvBars(JSON.parse(readFileSync(join(dir, `bars_${k}.json`), 'utf8')));
+  // HTF / anchor bars of the study's own page load when captured (run 3 on), else the final dump.
+  const feedFiles = {};
+  for (const k of new Set(Object.values(keys))) {
+    feedFiles[k] = [`bars_${k}_for_${res}_${v}.json`, `bars_${k}.json`].find((f) => existsSync(join(dir, f)));
+    feed[k] = feedFromTvBars(JSON.parse(readFileSync(join(dir, feedFiles[k]), 'utf8')));
+  }
   const bars = rows.map((r) => ({ t: r.t, o: r.m_open, h: r.m_high, l: r.m_low, c: r.m_close, v: r.m_volume }));
   // The study's bars must be TradingView's chart bars where both exist.
   // The chart bars dumped right after this study was read (same page load), else the final dump.
@@ -179,7 +184,7 @@ export function gateCell(dir, res, v) {
   return {
     res, tf, version: v, pass: mismatched === 0 && startsEqual && chartBad === 0 && pineStarts.length > 0,
     meta, rows: rows.length, chartBarsChecked: chartChecked, chartBarsDiffering: chartBad, chartBadList,
-    htfStart, startBar, engineRows, firstRow: new Date(rows[0].t).toISOString(), lastRow: new Date(rows.at(-1).t).toISOString(),
+    htfStart, feedFiles, startBar, engineRows, firstRow: new Date(rows[0].t).toISOString(), lastRow: new Date(rows.at(-1).t).toISOString(),
     starts: { pine: pineStarts.length, js: jsStarts.length, equal: startsEqual, list: pineStarts },
     mismatched, firstDifferenceByLayer: first, firstLayer, fields, trace,
   };
