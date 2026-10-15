@@ -47,7 +47,7 @@ a gap after the signal (28 / 9 / 5 for A).
 4 / 2 / 1 starts. Its failure of condition 4 on 2022 reflects missing coverage, not a losing year.
 Why: a bar counts once the engine is warmed, i.e. `engineWindow` bars after the first feed bar;
 that window is the indicator's own (Pine: `engineOn = bar_index >= last_bar_index - engineWindow`),
-2 × the longest level life + 63 bars; on H4 the longest life is the weekly anchor's 64 weeks =
+2 × the longest level life + 65 bars (entry 40, leg 10, pivot 5, margin 10); on H4 the longest life is the weekly anchor's 64 weeks =
 2,688 H4 bars, so W = 5,441 H4 bars ≈ 3.5 years. With the contract's warm-up start 2019-06-01 that
 ends 2022-12-06 (M15 warms 2019-07-03, H1 2019-12-10). The data does not force it: the Dukascopy store
 starts 2018-03-01, early enough to warm H4 by about September 2021. Whether a run started fewer than
