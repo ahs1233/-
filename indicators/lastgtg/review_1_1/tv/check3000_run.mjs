@@ -1,5 +1,5 @@
-// The 3000-bar check (reviewer, 2026-10-16): on one chart and in ONE page load (same data), the
-// original and the gate 4 copy (calc_bars_count = 3000) of a version, read side by side; the
+// The 3000-bar check (reviewer, 2026-10-16): in ONE page load (same data), the original and the
+// gate 4 copy (calc_bars_count = 3000) of a version, read one after the other; the
 // comparison is ../js/check3000.mjs. Same runbook as gate4_run.mjs (backup, autosave off, page
 // reloaded without saving before each pair, nothing saved, layout restored by restore.mjs).
 //   node check3000_run.mjs <review_1_1 dir> <outDir> [15,60,240] [A,B,C]
@@ -119,13 +119,17 @@ for (const res of tfArg.split(',').filter(Boolean)) for (const v of vArg.split('
   const pre = await ev(`(() => { const title = [...document.querySelectorAll('button,div,span')].map(e => e.textContent.trim()).find(x => /^Untitled/.test(x)) || null; return { untitled: !!title, studies: ${CH}.getAllStudies().map(x => x.name) }; })()`);
   if (!pre.untitled) throw new Error('editor is not on an Untitled script: stop');
   if (pre.studies.length) throw new Error(`chart has studies ${pre.studies}: stop`);
+  // One page load, one study at a time: after an add the editor offers only "Update on chart"
+  // (it would replace the first study); after removing it, "Add to chart" comes back. The chart
+  // bars are dumped after each study to show both ran on the same data.
   const [o, d] = PAIRS[v];
-  await addStudy(o[1], o[2], 1);
-  await addStudy(d[1], d[2], 2);
-  await readStudy(o[2], `pair_${res}_${v}_orig.json`);
-  await readStudy(d[2], `pair_${res}_${v}_diag.json`);
-  await dumpBars(res, `bars_${res}_pair_${v}.json`);
-  await ev(`(() => { const ch = ${CH}; for (const x of ch.getAllStudies()) ch.removeEntity(x.id); return true; })()`);
+  for (const [tag, file, desc] of [o, d]) {
+    await addStudy(file, desc, 1);
+    await readStudy(desc, `pair_${res}_${v}_${tag}.json`);
+    await dumpBars(res, `bars_${res}_pair_${v}_${tag}.json`);
+    await ev(`(() => { const ch = ${CH}; for (const x of ch.getAllStudies()) ch.removeEntity(x.id); return true; })()`);
+    await sleep(2500);
+  }
 }
 log('done');
 await c.close();
