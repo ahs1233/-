@@ -140,7 +140,10 @@ export function gateCell(dir, res, v) {
 
   const htfStart = securityStart(rows, feed[keys.htf]);
   const htfBars = htfStart.start == null ? feed[keys.htf] : feed[keys.htf].slice(htfStart.start);
-  const a1Bars = ruleSlice(feed[keys.a1], rows[0].t), a2Bars = ruleSlice(feed[keys.a2], rows[0].t);
+  // An anchor on the route-HTF timeframe reads the same request.security history (H1 run 3:
+  // TradingView started the H4 history 2026-04-23 13:00, a week after the first chart bar).
+  const anchorBars = (k) => (k === keys.htf && htfStart.start != null ? htfBars : ruleSlice(feed[k], rows[0].t));
+  const a1Bars = anchorBars(keys.a1), a2Bars = anchorBars(keys.a2);
   const startBar = rows.findIndex((r) => pineOn(r));
   const run = v === 'C' ? runC : runA;
   const tracker = new EpisodeTracker();
