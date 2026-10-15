@@ -1,0 +1,21 @@
+{
+ "root": "C:\\Users\\alk\\gtg-lab-data-jforex",
+ "days": 2281,
+ "first_day": "2018-03-01",
+ "last_day": "2025-06-30",
+ "m1_from": "2021-09-01",
+ "counts": {
+  "in_session": 2597697,
+  "out_of_session": 0,
+  "M1": 1357422
+ },
+ "sha256": {
+  "M1": "46b1cc4550546d5c504478fa0d9ac3245cbee3d856cfeb20dd3bc67449dfbd1d",
+  "M5": "220a6911a1abc4374aa220e5499b9de85f692a225184f7e64834bc6e4d388b95",
+  "M15": "9ebdc3869a619895e56c31cdb9a68aa715e8fba8f99d9f67d24f91388f799425",
+  "H1": "566eecc44593da461238eb81f82cf4049111cf1899e697c03008ecfe53c2acc0",
+  "H4": "3269a7bcf7dd0a619d4ed26b46878d94d2e1a6640357f89e7d608ec01cbca9ed",
+  "D": "9480a1bd73ad9c1915723f9a812a4d3ed4602e9999b76f36442e348012854def",
+  "W": "c06e45bd592b0d4bddefd0a82c212eea18c5d1d69a1248d165834c8fee35e4cb"
+ }
+}
