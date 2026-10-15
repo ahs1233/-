@@ -4,7 +4,7 @@
 // read every row the study computed (pre-history rows included, F-006) with its plot titles,
 // and remove it. Then dump the bars of the HTF / anchor timeframes. Never saves anything.
 // Preconditions (runbook E-24): layout backed up, autosave OFF, studies cleared, editor Untitled.
-//   node gate4_run.mjs <diagDir> <outDir> [15,60,240] [A,B,C] [htf resolutions 15,60,240,1D,1W]
+//   node gate4_run.mjs <diagDir> <outDir> [15,60,240] [A,B,C] [htf resolutions 15,60,240,1D,1W] [moreRounds 0]
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
@@ -12,7 +12,10 @@ import { createRequire } from 'node:module';
 const require = createRequire('C:/Users/alk/tradingview-mcp-jackson/package.json');
 const CDP = require('chrome-remote-interface');
 
-const [, , diagDir, outDir, tfArg = '15,60,240', vArg = 'A,B,C', htfArg = '15,60,240,1D,1W'] = process.argv;
+const [, , diagDir, outDir, tfArg = '15,60,240', vArg = 'A,B,C', htfArg = '15,60,240,1D,1W', moreArg = '0'] = process.argv;
+// Rounds of requestMoreData per timeframe. Default 0: on the Basic plan asking past the plan's
+// bar limit opens the upgrade dialog and the study then never computes (2026-10-15 trial).
+const MORE_ROUNDS = Number(moreArg);
 mkdirSync(outDir, { recursive: true });
 const log = (m) => { const s = `${new Date().toISOString()} ${m}`; console.log(s); appendFileSync(join(outDir, 'capture.log'), s + '\n'); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -37,7 +40,7 @@ async function loadRes(res) {
   let b = null;
   for (let k = 0; k < 60; k++) { await sleep(1000); b = await barsInfo(); if (b.res === res && b.size > 0 && !b.loading) break; }
   let stable = 0;
-  for (let k = 0; k < 40 && stable < 3; k++) {
+  for (let k = 0; k < MORE_ROUNDS && stable < 3; k++) {
     const before = b.first;
     await ev(`(() => { const m = ${MS}; if (m.requestMoreData) m.requestMoreData(5000); return true; })()`);
     await sleep(2500);
