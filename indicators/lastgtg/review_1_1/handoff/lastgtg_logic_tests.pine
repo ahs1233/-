@@ -1,0 +1,103 @@
+//@version=6
+indicator("lastgtg 1.1 — pure lamp tests", overlay = false)
+// lastgtg review patch 1.1 — pure decision core, shared by B and C.
+// 0 red, 1 yellow, 2 green. Events never bypass current safety gates.
+gtgLampDecision(bool ready, bool chase, bool inside, int heading, int route, bool accUp, bool accDn, bool breaking, bool rejR, bool rejS, bool nearTouch, bool aware, bool exhausted, bool lowFuel, bool mapped, bool room) =>
+    int lamp = 1
+    int reason = 0
+    if not ready
+        reason := 10
+    else if chase
+        lamp := 0
+        reason := 20
+    else if inside
+        lamp := 0
+        reason := 21
+    else if route != 0 and heading != 0 and route != heading
+        lamp := 0
+        reason := 22
+    else if heading == 0
+        reason := 30
+    else if route == 0
+        reason := 31
+    else if accUp and accDn
+        reason := 32
+    else if (accUp and heading < 0) or (accDn and heading > 0)
+        reason := 33
+    else if breaking and not (accUp or accDn)
+        reason := 34
+    else if rejR or rejS
+        reason := rejR and rejS ? 35 : rejR ? 36 : 37
+    else if nearTouch
+        reason := 40
+    else if aware
+        reason := 41
+    else if exhausted
+        reason := 42
+    else if lowFuel
+        reason := 43
+    else if not mapped
+        reason := 44
+    else if not room
+        reason := 45
+    else if heading == route
+        lamp := 2
+        reason := accUp ? 51 : accDn ? 52 : 50
+    [lamp, reason]
+
+gtgLampReason(int reason, int role) =>
+    switch reason
+        10 => "بيانات غير مكتملة"
+        20 => "لا تطارد"
+        21 => role == 1 ? "داخل مقاومة" : role == -1 ? "داخل دعم" : "داخل منطقة"
+        22 => "عكس المسار العام"
+        30 => "بدون اتجاه واضح"
+        31 => "المسار العام غير واضح"
+        32 => "أحداث كسر متعاكسة"
+        33 => "الكسر السابق عكس الاتجاه الحالي"
+        34 => "كسر يحتاج تأكيد"
+        35 => "رفض من الجهتين"
+        36 => "رفض من مقاومة"
+        37 => "ارتداد من دعم"
+        40 => role == 1 ? "مقاومة قريبة" : role == -1 ? "دعم قريب" : "منطقة قريبة"
+        41 => role == 1 ? "مقاومة أمامه" : role == -1 ? "دعم أمامه" : "عائق أمامه"
+        42 => "الزخم يضعف"
+        43 => "الوقود ضعيف"
+        44 => "لم أجد منطقة أمامه"
+        45 => "المساحة المقاسة غير كافية"
+        50 => "الاتجاه متوافق والمساحة كافية"
+        51 => "كسر صاعد مقبول والشروط متحققة"
+        52 => "كسر هابط مقبول والشروط متحققة"
+        => "أدلة مختلطة"
+
+assertLamp(string name, int want, bool ready, bool chase, bool inside, int heading, int route, bool accUp, bool accDn, bool breaking, bool rejR, bool rejS, bool nearTouch, bool aware, bool exhausted, bool lowFuel, bool mapped, bool room) =>
+    [got, reason] = gtgLampDecision(ready, chase, inside, heading, route, accUp, accDn, breaking, rejR, rejS, nearTouch, aware, exhausted, lowFuel, mapped, room)
+    if got != want
+        runtime.error(name + ": wanted " + str.tostring(want) + " got " + str.tostring(got) + " reason " + str.tostring(reason))
+    true
+
+if barstate.isfirst
+    assertLamp("aligned green", 2, true, false, false, 1, 1, false, false, false, false, false, false, false, false, false, true, true)
+    assertLamp("accepted safe", 2, true, false, false, 1, 1, true, false, true, false, false, false, false, false, false, true, true)
+    assertLamp("accepted no chase", 0, true, true, false, 1, 1, true, false, false, false, false, false, false, false, false, true, true)
+    assertLamp("accepted inside", 0, true, false, true, 1, 1, true, false, false, false, false, false, false, false, false, true, true)
+    assertLamp("against route", 0, true, false, false, 1, -1, true, false, false, false, false, false, false, false, false, true, true)
+    assertLamp("both accepted", 1, true, false, false, 1, 1, true, true, false, false, false, false, false, false, false, true, true)
+    assertLamp("no heading", 1, true, false, false, 0, 1, false, false, false, false, false, false, false, false, false, true, true)
+    assertLamp("no route", 1, true, false, false, 1, 0, false, false, false, false, false, false, false, false, false, true, true)
+    assertLamp("missing map", 1, true, false, false, 1, 1, true, false, false, false, false, false, false, false, false, false, true)
+    assertLamp("insufficient room", 1, true, false, false, 1, 1, false, false, false, false, false, false, false, false, false, true, false)
+    assertLamp("exhaustion", 1, true, false, false, 1, 1, false, false, false, false, false, false, false, true, false, true, true)
+    assertLamp("weak fuel", 1, true, false, false, 1, 1, false, false, false, false, false, false, false, false, true, true, true)
+    assertLamp("touching obstacle", 1, true, false, false, 1, 1, false, false, false, false, false, true, false, false, false, true, true)
+    assertLamp("aware obstacle", 1, true, false, false, 1, 1, false, false, false, false, false, false, true, false, false, true, true)
+    assertLamp("rejected", 1, true, false, false, 1, 1, false, false, false, true, false, false, false, false, false, true, true)
+    assertLamp("breaking only", 1, true, false, false, 1, 1, false, false, true, false, false, false, false, false, false, true, true)
+    assertLamp("opposite accepted", 1, true, false, false, 1, 1, false, true, false, false, false, false, false, false, false, true, true)
+    assertLamp("not ready", 1, false, false, false, 1, 1, false, false, false, false, false, false, false, false, false, true, true)
+    assertLamp("safe down", 2, true, false, false, -1, -1, false, true, false, false, false, false, false, false, false, true, true)
+
+var table result = table.new(position.top_right, 1, 1)
+if barstate.islast
+    table.cell(result, 0, 0, "PASS — 19 pure lamp cases", text_color = color.white, bgcolor = color.green)
+plot(1, "Test fixture loaded", display = display.data_window)

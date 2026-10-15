@@ -1,0 +1,22 @@
+    else if st == ST_BREAKING
+        int dir = lv.breakDir
+        bool beyond = dir > 0 ? c > lv.hi + buf : c < lv.lo - buf
+        bool back = dir > 0 ? c < lv.lo : c > lv.hi
+        // Window is [start, start + BREAK_WINDOW): for 3, offsets 0,1,2.
+        // Expiry takes precedence; no acceptance at offset 3.
+        if bi - lv.stateChartBar >= BREAK_WINDOW
+            lv.state := lv.breakFromFlip ? ST_FLIP : ST_ACTIVE
+            lv.breakCloses := 0
+            lv.navArmed := false
+        else if back
+            lv.state := lv.breakFromFlip ? ST_FLIP : ST_ACTIVE
+            lv.tests := lv.tests + 1
+            lv.evidence := math.min(3.0, lv.evidence + 0.5)
+            lv.lastTestChartBar := bi
+            lv.breakCloses := 0
+            lv.navArmed := false
+        else if bi > lv.stateChartBar
+            // Each call is a consecutive confirmed chart bar for a live level.
+            lv.breakCloses := beyond ? lv.breakCloses + 1 : 0
+            if lv.breakCloses >= 2
+                acceptBreak(lv, bi, e)
