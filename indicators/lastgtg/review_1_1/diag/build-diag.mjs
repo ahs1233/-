@@ -26,25 +26,28 @@ const TITLES = {
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 
 // Exported columns: [title, expression]. Titles are the column names the extractor reads.
+// Plot budget: TradingView counts plots and alertconditions together (limit 64). B and C hold
+// 20 plots + 12 alertconditions, so the block adds at most 32 plots: the four slot codes share
+// one plot and engineOn is bit 128 of m_events (RE10140 on the first B run: 71 > 64).
 const SLOT = (n, v) => [
   [`m_${n}_lo`, `${v}.active ? ${v}.lo : na`],
   [`m_${n}_hi`, `${v}.active ? ${v}.hi : na`],
   [`m_${n}_q`, `${v}.active ? ${v}.quality : na`],
-  [`m_${n}_code`, `${v}.active ? (${v}.containing ? 2 : 1) : 0`],
 ];
+const code = (v) => `(${v}.active ? (${v}.containing ? 2 : 1) : 0)`;
 export const COMMON = [
   ['m_open', 'open'], ['m_high', 'high'], ['m_low', 'low'], ['m_close', 'close'], ['m_volume', 'volume'],
-  ['m_engineOn', 'engineOn ? 1 : 0'],
   ['m_headingScore', 'headingScore'], ['m_routeScore', 'routeScore'], ['m_speedScore', 'speedScore'],
   ['m_instantSpeedScore', 'instantSpeedScore'], ['m_fuelScore', 'fuelScore'], ['m_fuelAcceleration', 'fuelAcceleration'],
   ['m_atrEng', 'atrEng'],
-  ['m_htfClose', 'htfClose'], ['m_htfMA50', 'htfMA50'], ['m_htfMA200', 'htfMA200'], ['m_htfMA50Past', 'htfMA50Past'], ['m_htfATR', 'htfATR'],
-  ['m_dest1Low', 'dest1Low'], ['m_dest1High', 'dest1High'], ['m_obstacleRole', 'obstacleRole'], ['m_nearestObstacleAtr', 'nearestObstacleAtr'],
+  ['m_htfClose', 'htfClose'], ['m_htfMA50', 'htfMA50'], ['m_htfMA200', 'htfMA200'], ['m_htfATR', 'htfATR'],
+  ['m_obstacleRole', 'obstacleRole'], ['m_nearestObstacleAtr', 'nearestObstacleAtr'],
   ...SLOT('R1', 'slotR1'), ...SLOT('R2', 'slotR2'), ...SLOT('S1', 'slotS1'), ...SLOT('S2', 'slotS2'),
+  ['m_slotCodes', `${code('slotR1')} + 3 * ${code('slotR2')} + 9 * ${code('slotS1')} + 27 * ${code('slotS2')}`],
   ['m_events', 'dgEvents'],
 ];
 // Engine events of this bar as bits (the same events the lamp's held copies take on a closed bar).
-const EVENTS = `int dgEvents = (breakResistance ? 1 : 0) + (breakSupport ? 2 : 0) + (breakAcceptedUp ? 4 : 0) + (breakAcceptedDn ? 8 : 0) + (rejectResistance ? 16 : 0) + (rejectSupport ? 32 : 0) + (flipConfirmedEvent ? 64 : 0)`;
+const EVENTS = `int dgEvents = (breakResistance ? 1 : 0) + (breakSupport ? 2 : 0) + (breakAcceptedUp ? 4 : 0) + (breakAcceptedDn ? 8 : 0) + (rejectResistance ? 16 : 0) + (rejectSupport ? 32 : 0) + (flipConfirmedEvent ? 64 : 0) + (engineOn ? 128 : 0)`;
 
 // A's lamp chain of §16, line for line, with a branch code instead of the text. The code → text
 // table (A_REASON_TEXT) gives back A's own words, which is what the JS lampOf returns.
@@ -130,7 +133,7 @@ if (process.argv[1] && process.argv[1].endsWith('build-diag.mjs')) {
     let diff = '';
     try { execFileSync('diff', ['-u', '--label', `frozen_${v}`, '--label', name, SOURCES[v], join(here, name)]); } catch (e) { diff = e.stdout.toString(); }
     writeFileSync(join(here, `${v}_to_diag.diff`), diff);
-    const plots = (out.match(/^plot\(/gm) || []).length;
+    const plots = (out.match(/^plot\(/gm) || []).length + (out.match(/^alertcondition\(/gm) || []).length;
     manifest.files[v] = { frozen: SOURCES[v].replace(join(here, '../..') + '/', ''), frozenSha256: sha(src), diag: name, diagSha256: sha(out), exportColumns: cols, plotsTotal: plots };
     console.log(v, name, sha(out).slice(0, 12), 'plots', plots, 'cols', cols.length);
   }

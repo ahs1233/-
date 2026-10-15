@@ -60,19 +60,19 @@ const SLOTS = ['R1', 'R2', 'S1', 'S2'];
 const FIELDS = [
   ...['headingScore', 'routeScore', 'speedScore', 'instantSpeedScore', 'fuelScore', 'fuelAcceleration'].map((k) => [1, k, (p) => p[`m_${k}`], (r) => r[k], 'score']),
   [1, 'atrEng', (p) => p.m_atrEng, (r) => r.atrEng, 'price'],
-  ...['htfClose', 'htfMA50', 'htfMA200', 'htfMA50Past', 'htfATR'].map((k) => [1, k, (p) => p[`m_${k}`], (r) => r[k], 'price']),
-  [2, 'events', (p) => p.m_events, (r) => evBits(r.events), 'exact'],
+  ...['htfClose', 'htfMA50', 'htfMA200', 'htfATR'].map((k) => [1, k, (p) => p[`m_${k}`], (r) => r[k], 'price']),
+  [2, 'events', (p) => p.m_events & 127, (r) => evBits(r.events), 'exact'],
   ...SLOTS.flatMap((n, k) => [
-    [3, `${n}.code`, (p) => p[`m_${n}_code`], (r) => (r.slots[k].active ? (r.slots[k].containing ? 2 : 1) : 0), 'exact'],
+    [3, `${n}.code`, (p) => Math.floor(p.m_slotCodes / 3 ** k) % 3, (r) => (r.slots[k].active ? (r.slots[k].containing ? 2 : 1) : 0), 'exact'],
     [3, `${n}.lo`, (p) => p[`m_${n}_lo`], (r) => (r.slots[k].active ? r.slots[k].lo : NaN), 'price'],
     [3, `${n}.hi`, (p) => p[`m_${n}_hi`], (r) => (r.slots[k].active ? r.slots[k].hi : NaN), 'price'],
     [3, `${n}.q`, (p) => p[`m_${n}_q`], (r) => (r.slots[k].active ? r.slots[k].displayQ : NaN), 'score'],
   ]),
-  [3, 'dest1Low', (p) => p.m_dest1Low, (r, o) => (o.obstacleAvailable ? o.dest1.lo : NaN), 'price'],
-  [3, 'dest1High', (p) => p.m_dest1High, (r, o) => (o.obstacleAvailable ? o.dest1.hi : NaN), 'price'],
   [3, 'obstacleRole', (p) => p.m_obstacleRole, (r, o) => o.obstacleRole, 'exact'],
   [3, 'nearestObstacleAtr', (p) => p.m_nearestObstacleAtr, (r, o) => o.nearestObstacleAtr, 'score'],
 ];
+// engineOn is bit 128 of m_events (plot budget, ../diag/build-diag.mjs).
+const pineOn = (p) => (p.m_events & 128) === 128;
 const LAMP_FIELDS = ['lamp', 'reason', 'heading', 'route', 'accepted', 'start'];
 
 function same(a, b, kind) {
@@ -97,7 +97,7 @@ export function gateCell(dir, res, v) {
 
   const htfStart = inferHtfStart(rows, feed[keys.htf], MINTICK);
   const htfBars = htfStart.start == null ? feed[keys.htf] : feed[keys.htf].slice(htfStart.start);
-  const startBar = rows.findIndex((r) => r.m_engineOn === 1);
+  const startBar = rows.findIndex((r) => pineOn(r));
   const run = v === 'C' ? runC : runA;
   const tracker = new EpisodeTracker();
   const stats = new Map(), first = { 1: null, 2: null, 3: null, 4: null };
@@ -115,15 +115,15 @@ export function gateCell(dir, res, v) {
     const p = rows[i];
     if (r.t !== p.t) throw new Error(`row ${i} time`);
     const o = obstacleInputs(r, { mintick: MINTICK });
-    note(0, 'engineOn', i, (p.m_engineOn === 1) === r.engineOn, p.m_engineOn, r.engineOn ? 1 : 0);
+    note(0, 'engineOn', i, pineOn(p) === r.engineOn, pineOn(p) ? 1 : 0, r.engineOn ? 1 : 0);
     for (const [layer, name, pg, jg, kind] of FIELDS) {
-      if (layer >= 2 && !(p.m_engineOn === 1)) continue;
+      if (layer >= 2 && !(pineOn(p))) continue;
       const pv = pg(p), jv = jg(r, o);
       note(layer, name, i, same(pv, jv, kind), pv, jv);
     }
     const jl = r.engineOn ? jsLamp(v, r) : { lamp: 1, reason: v === 'A' ? null : 10, heading: r.headingSign, route: r.routeSign, accepted: 0 };
     const ep = tracker.push(r.engineOn, jl.lamp, jl.heading);
-    if (p.m_engineOn === 1) {
+    if (pineOn(p)) {
       engineRows++;
       const pl = pineLamp(v, p);
       const jlx = { ...jl, start: ep.start };

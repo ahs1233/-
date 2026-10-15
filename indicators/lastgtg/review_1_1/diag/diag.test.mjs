@@ -42,6 +42,9 @@ for (const v of ['A', 'B', 'C']) {
     }
     const src = readFileSync(SOURCES[v], 'utf8');
     assert.ok(!/\bdg[A-Z]\w*/.test(src), 'frozen file uses no dg names');
+    // TradingView counts plots and alertconditions together; the limit is 64 (RE10140).
+    const budget = (out.match(/^plot\(/gm) || []).length + (out.match(/^alertcondition\(/gm) || []).length;
+    assert.ok(budget <= 64, `plot budget ${budget} > 64`);
   });
 }
 
