@@ -42,3 +42,22 @@ H4 `21f2ab29…`, D `190930e0…`, W `fb1e4c76…`.
   the frozen contract, not changed.
 - M1 is not run as a signal timeframe here (it needs M1 bars from 2019-06 for its warm-up and its
   own gate 3); M5 is run as the diagnostic. Neither decides.
+
+## Part 2 (zone quality), fixed before any Part 2 number
+Code `../../js/part1/part2.mjs` (outcome rule tested in `part1.test.mjs`, 14/14).
+- Touch bars: warmed, opening in [2021-10-01, 2025-01-01); the outcome may read closes after the
+  period (feed to 2025-06-30). A zone's first touch is its only one, also when it falls before the
+  period (then it is not counted).
+- Identity: zones sharing any slot entry key are one zone (union over every bar).
+- Window: the touch bar's close and the next 47 closes (48 closes).
+- Strength word from the snapshot `displayQ` (the score the panel shows).
+- Control per population and timeframe: the engine's own confirmed pivots (`computeSeries`
+  swingPH / swingPL, pivotLen 3); zone [ph − w·atrEng, ph] / [pl, pl + w·atrEng] with the confirmation
+  bar's atrEng; available from the bar after confirmation; alive `maxAge[local]` bars; w = median
+  (hi − lo) / atrEng over the displayed slots of that population on bars opening 2019-06-01 →
+  2021-09-30. Same touch, snapshot (atrEng of the bar before the touch) and outcome rules.
+- Per-year sign: the point-estimate differences (important − weak and important − control) are
+  both > 0 in each of 2022, 2023 and 2024 (by the touch bar's UTC year).
+- Bootstrap: trading days of the period's bars, circular blocks of the logged Part 2 length,
+  10,000 resamples seeded 20261015; reaction share = reactions / (reactions + breaks) summed over
+  the resampled days.

@@ -102,3 +102,17 @@ test('helpers: trailing median, percentile interval, session buckets', () => {
   assert.deepEqual(interval([1, 2, 3, 4, 5], 0.5), [2, 4]);
   assert.deepEqual([0, 6, 7, 11, 12, 15, 16, 20, 21, 23].map((h) => sessionOf(Date.UTC(2023, 0, 1, h))), [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]);
 });
+
+import { outcomeOf, groupOf } from './part2.mjs';
+test('Part 2: reaction before break on the side price came from; 48-bar window; strength words', () => {
+  const z = { lo: 100, hi: 101, atr: 2, side: 1 }; // price came from above (support)
+  assert.equal(outcomeOf([100.5, 102, 103.1], 0, z, 0.1), 'reaction'); // close >= hi + atr
+  assert.equal(outcomeOf([100.5, 99.7], 0, z, 0.1), 'break'); // close < lo - 0.1·atr
+  assert.equal(outcomeOf([100.5, 99.9, 103.2], 0, z, 0.1), 'reaction'); // 99.9 is not beyond lo - 0.2
+  const flat48 = Array(48).fill(100.5);
+  assert.equal(outcomeOf(flat48, 0, z, 0.1), 'neither');
+  assert.equal(outcomeOf([...flat48, 104], 0, z, 0.1), 'neither'); // 49th close is outside the window
+  assert.equal(outcomeOf(Array(10).fill(100.5), 0, z, 0.1), 'unresolved_end');
+  assert.equal(outcomeOf([100.5, 98.1, 97.9], 0, { ...z, side: -1 }, 0.1), 'reaction'); // from below: close <= lo - atr (98)
+  assert.deepEqual([47.9, 48, 71.9, 72].map(groupOf), ['weak', 'medium', 'medium', 'important']);
+});
