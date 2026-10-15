@@ -44,7 +44,7 @@ class StreamEqualsAggregate(unittest.TestCase):
                 self.assertAlmostEqual(x[5], y[5], places=9)
         ref_m1 = [b for b in aggregate(flat, "M1") if b["t"] >= days[3][0]["t"]]
         self.assertEqual([r[0] for r in got["M1"]], [b["t"] for b in ref_m1])
-        self.assertEqual([r[6:] for r in got["M1"]], [[b["ah"], b["al"], b["ac"]] for b in ref_m1])
+        self.assertEqual([r[6:] for r in got["M1"]], [[b["ah"], b["al"], b["ac"], b["ao"]] for b in ref_m1])
         self.assertEqual(counts["in_session"] + counts["out_of_session"], len(flat))
         self.assertGreater(counts["out_of_session"], 0)
 

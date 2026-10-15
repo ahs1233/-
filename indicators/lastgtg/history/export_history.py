@@ -6,7 +6,8 @@ TradingView calendar), computed in a stream so the whole history never sits in m
 
     python export_history.py --root C:/Users/alk/gtg-lab-data-jforex --out <dir>
         [--from 2019-06-01] [--m1-from 2024-11-01] [--to 2026-09-30]
-Writes <out>/XAUUSD_{M1,M5,M15,H1,H4,D,W}.csv (t,o,h,l,c,v BID; M1 also ah,al,ac) and meta.json.
+Writes <out>/XAUUSD_{M1,M5,M15,H1,H4,D,W}.csv (t,o,h,l,c,v BID; M1 also ah,al,ac and, last so the
+existing column positions stay, ao: the ASK open the lastgtg review 1.1 Part 1 entries need) and meta.json.
 """
 from __future__ import annotations
 
@@ -63,7 +64,7 @@ def stream(days, tfs=TFS, m1_from_ms: int | None = None, sinks=None):
                 a.push(b)
             if m1_from_ms is not None and b["t"] >= m1_from_ms:
                 counts["M1"] += 1
-                sinks["M1"]([b["t"], b["bo"], b["bh"], b["bl"], b["bc"], b["v"], b["ah"], b["al"], b["ac"]])
+                sinks["M1"]([b["t"], b["bo"], b["bh"], b["bl"], b["bc"], b["v"], b["ah"], b["al"], b["ac"], b["ao"]])
     for a in aggs.values():
         a.close()
     return counts
@@ -89,7 +90,7 @@ def main(argv=None):
             entries[e["day"]] = e
     days = [d for d in sorted(entries) if a.start <= d <= a.end]
     files = {tf: open(out / f"XAUUSD_{tf}.csv", "w", newline="\n") for tf in ("M1",) + TFS}
-    files["M1"].write("t,o,h,l,c,v,ah,al,ac\n")
+    files["M1"].write("t,o,h,l,c,v,ah,al,ac,ao\n")
     for tf in TFS:
         files[tf].write("t,o,h,l,c,v\n")
     sinks = {tf: (lambda f: lambda r: f.write(",".join(_fmt(x) for x in r) + "\n"))(f) for tf, f in files.items()}
