@@ -1,9 +1,14 @@
-# lastgtg A / B / C comparison on 2021–2024 — pre-registration v1
+# lastgtg A / B / C comparison on 2021–2024 — pre-registration v1.1
 
 Frozen 2026-10-15, before any B or C row was computed on price data. Draft `2c02ac7`, revised
 the same day with Astra's six points (exact parity, gaps at execution, matched baseline, longer
-dependence blocks, zone snapshot before the touch, wording). Not changed after results; a change
-means a new dated version of this file.
+dependence blocks, zone snapshot before the touch, wording) as v1 `0296a62`. Not changed after
+results; a change means a new dated version of this file.
+
+**v1.1 (2026-10-15, before any result, Astra):** block lengths are measured on the data's own
+calendar instead of fixed day counts (holidays and gaps make 300 bars last longer); gate 4's
+export carries the higher-timeframe bars and the sensor values, not only the chart bars and the
+lamp.
 
 ## What this test is, and is not
 - **Development comparison, not independent evidence.** 2018-03 → 2024-03 (lab Train) was used
@@ -47,12 +52,19 @@ episode starts and their bar times must be equal exactly.
    2% of the sampled green starts of any timeframe, the test stops, because history could not
    stand for what a live chart shows.
 4. **Pine = JS on the same bars**: for each of M15, H1 and H4 and each of A, B and C, one
-   TradingView OANDA:XAUUSD window is exported (bars plus the Data Window plots; A through the
-   same plots added to a copy used only for the export), and exactly those bars, from the first
-   loaded bar, are fed to the JS port. Required on every engine bar: lamp, reason code, heading,
-   route, accepted flag and episode start equal; every green-episode start equal in time and
-   direction. Any unexplained difference stops the test; the port is fixed and the gate is run
-   again; no outcome is read in between.
+   TradingView OANDA:XAUUSD window is exported, and the JS port is fed exactly those data:
+   - the chart-timeframe bars from the first loaded bar, and the bars of that profile's HTF, A1
+     and A2 timeframes from their own first loaded bars (so the higher-timeframe series and the
+     sensor warm-up can be rebuilt with the same timing);
+   - the Data Window plots of a copy of the version used only for this export: the B/C closed
+     snapshot plots, plus plots of the sensor and map values the lamp reads (heading and route
+     scores, speed, fuel, `atrEng`, the HTF close, MA50, MA200 and ATR, the nearest zone's bounds
+     and distance). The copy adds plots only; no logic is touched, and it never produces a
+     result. A gets the same plots on its own copy.
+   Required on every engine bar: lamp, reason code, heading, route, accepted flag and episode
+   start equal; every green-episode start equal in time and direction; the sensor and map values
+   equal within the tolerance above. Any unexplained difference stops the test; the port is fixed
+   and the gate is run again; no outcome is read in between.
 
 ## Data and period
 - v0.2.3 canonical Dukascopy XAU/USD M1 store on the desktop (`C:/Users/alk/gtg-lab-data-jforex`),
@@ -109,9 +121,12 @@ episode starts and their bar times must be equal exactly.
   than starts draws with replacement. No outcome is used to draw.
 
 ### Dependence
-- Moving-block bootstrap over trading days, circular, 10,000 resamples, seed 20261015, block
-  length = the longest holding period in trading days: **M15 4, H1 14, H4 53**; sensitivity run
-  with twice those lengths. A trade belongs to its entry day. The same resampled days are used
+- Moving-block bootstrap over trading days (the lab's trading day: New York 17:00 to 17:00),
+  circular, 10,000 resamples, seed 20261015. **Block length L_tf** = the largest number of distinct
+  trading days spanned by 301 consecutive bars of that timeframe whose first bar opens in the
+  signal period, computed from the feed's bar times alone (no price, no outcome) and written to
+  the run log before any Part 1 result; sensitivity run with 2·L_tf. A trade belongs to its entry
+  day. The same resampled days are used
   for A, B, C and both baselines, so all are compared on the same draw. For the matched baseline,
   each resample also takes one of the 200 draws at random.
 
@@ -129,7 +144,7 @@ baselines' mean R; for B and C, how many A starts they drop, by reason code.
   3. mean R minus the matched baseline's mean R: lower edge of the 95% interval above 0;
   4. mean R above 0 in 2022, 2023 and 2024 separately;
   5. mean R stress above 0;
-  6. conditions 2 and 3 still hold with the doubled block lengths.
+  6. conditions 2 and 3 still hold with the 2·L_tf blocks.
 
 ## Part 2 — zone quality (independent of the lamp)
 - **Populations**: zones in S1, S2, R1, R2 on closed M15, H1 and H4 bars. Engine A/B is one
@@ -150,8 +165,8 @@ baselines' mean R; for B and C, how many A starts they drop, by reason code.
   warm-up bars 2019-06-01 → 2021-09-30, then fixed). Control zones follow the same identity,
   snapshot, touch and outcome rules.
 - **Measures**: reaction share = reaction / (reaction + break), and the `neither` share of all
-  touches, with the moving-block bootstrap above (Part 2 blocks: 9 trading days on every
-  timeframe, longer than the 48-bar window on H4, about 8 days; sensitivity with 18).
+  touches, with the moving-block bootstrap above (Part 2 blocks: the same rule with 49
+  consecutive bars per timeframe, logged before any Part 2 result; sensitivity with twice that).
 - **Minimum**: 50 touches per group, timeframe and population; fewer = `inconclusive` for that
   comparison.
 - **Verdict**: `scores separate zones` if, on at least two of the three timeframes, important minus
