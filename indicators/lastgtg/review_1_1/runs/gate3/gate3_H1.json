@@ -1,0 +1,60 @@
+{
+ "tf": "H1",
+ "W": 3137,
+ "sensorWarm": 2000,
+ "chartBars": 33039,
+ "chartFrom": "2019-06-02T22:00:00.000Z",
+ "periodRows": 19229,
+ "starts": {
+  "A": 1584,
+  "B": 383,
+  "C": 327
+ },
+ "sampled": 197,
+ "counts": {
+  "A": {
+   "checked": 197,
+   "differing": 0,
+   "fields": {
+    "lamp": 0,
+    "reason": 0,
+    "heading": 0,
+    "route": 0,
+    "accepted": 0,
+    "start": 0
+   },
+   "startsSampled": 135,
+   "startsDiffering": 0
+  },
+  "B": {
+   "checked": 197,
+   "differing": 0,
+   "fields": {
+    "lamp": 0,
+    "reason": 0,
+    "heading": 0,
+    "route": 0,
+    "accepted": 0,
+    "start": 0
+   },
+   "startsSampled": 100,
+   "startsDiffering": 0
+  },
+  "C": {
+   "checked": 197,
+   "differing": 0,
+   "fields": {
+    "lamp": 0,
+    "reason": 0,
+    "heading": 0,
+    "route": 0,
+    "accepted": 0,
+    "start": 0
+   },
+   "startsSampled": 90,
+   "startsDiffering": 0
+  }
+ },
+ "pass": true,
+ "diffs": []
+}
