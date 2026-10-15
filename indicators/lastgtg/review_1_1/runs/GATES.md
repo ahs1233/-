@@ -77,3 +77,31 @@ prices within 1 mintick, scores within 1e-6, everything else exactly.
    the second, matched exactly. Traced level by level (the JS A and C engines are identical there;
    the zone's anchor member differs). Each study is now replayed on the HTF / anchor bars dumped in
    its own page load (run 3).
+5. *How long each security history is.* Every request.security history held
+   ceil(calc_bars_count × chart seconds / HTF seconds) bars up to the live HTF bar. The route
+   starts recovered independently by `securityStart` (unique solutions) are exactly this: H1 on M15
+   750 bars, H4 on H1 750 (hence the week's delay on H1), D on H4 500. For the anchors the same
+   rule gives the D anchor on H1 125 bars, the only start with no difference in a bar-by-bar scan
+   (one daily bar either side fails), and the W anchor on H4 72 bars, inside the 68–78 range where
+   every start gives no difference for A, B and C alike (the engine reads a weekly level only once
+   its pivot is confirmed, so earlier starts cannot show). Rounding the count down instead of up
+   gives the same result on all nine cells. The anchors use this one rule; nothing is fitted per
+   cell.
+
+**Result (run 3, `gate4/capture_20261015_run3`, reports `gate4/report_run3`, test
+`../js/gate4.test.mjs` 9/9): PASS on every cell, no difference on any row.**
+
+| TF | rows (computed by Pine) | engine rows | route HTF start (= bar rule) | values compared per version | green starts A / B / C (equal in time and direction) |
+|---|---|---|---|---|---|
+| M15 | 2,999 (2026-09-01 04:30 → 2026-10-15 20:30) | 2,113 | H1 2026-09-01 05:00 (750 bars) | 88,813 | 162 / 30 / 27 |
+| H1 | 2,999 (2026-04-15 23:00 → 2026-10-15 19:00) | 2,999 | H4 2026-04-23 13:00 (750 bars) | 110,963 | 263 / 50 / 45 |
+| H4 | 2,999 (2024-11-06 10:00 → 2026-10-15 13:00) | 2,999 | D 2024-11-06 22:00 (500 bars) | 110,963 | 235 / 44 / 38 |
+
+932,217 values in all: sensors (heading, route, speed, instant speed, fuel, fuel acceleration,
+`atrEng`, HTF close / MA50 / MA200 / ATR), engine events, the four slots (code, bounds, quality),
+nearest-zone role and distance, and lamp, reason, heading, route, accepted flag and episode start
+on every engine row. Only closed bars (the open bar is dropped); OANDA data only. The run-2 replay
+with the same tools still fails where run 2 lacks a page load's own bars (M15 A/B, H1), and passes
+on H4, as items 3–5 predict.
+
+Gate 3 remains evidence on the bars it sampled, not a universal proof; it was not extended.

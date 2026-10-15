@@ -1,0 +1,92 @@
+[
+ {
+  "tf": "M15",
+  "version": "A",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2113,
+  "starts": 162,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "M15",
+  "version": "B",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2113,
+  "starts": 30,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "M15",
+  "version": "C",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2113,
+  "starts": 27,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "H1",
+  "version": "A",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2999,
+  "starts": 263,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "H1",
+  "version": "B",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2999,
+  "starts": 50,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "H1",
+  "version": "C",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2999,
+  "starts": 45,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "H4",
+  "version": "A",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2999,
+  "starts": 235,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "H4",
+  "version": "B",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2999,
+  "starts": 44,
+  "mismatched": 0,
+  "firstLayer": null
+ },
+ {
+  "tf": "H4",
+  "version": "C",
+  "pass": true,
+  "rows": 2999,
+  "engineRows": 2999,
+  "starts": 38,
+  "mismatched": 0,
+  "firstLayer": null
+ }
+]

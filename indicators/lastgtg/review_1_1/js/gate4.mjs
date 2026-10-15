@@ -24,6 +24,8 @@ import { containingIndex } from '../../../gtg-strategy-lab/engine/pinecmp/sensor
 import { priceTol } from '../../../gtg-strategy-lab/gtg-engine/reference/snapshot.mjs';
 import { A_REASON_TEXT } from '../diag/build-diag.mjs';
 
+import { CALC_BARS } from '../diag/build-diag.mjs';
+const RES_SEC = { 15: 900, 60: 3600, 240: 14400, '1D': 86400, '1W': 604800 };
 export const MINTICK = 0.001, SCORE_TOL = 1e-6, PRICE_TOL = MINTICK;
 const TF_OF = { 15: 'M15', 60: 'H1', 240: 'H4' };
 const sign = (x, th) => (x > th ? 1 : x < -th ? -1 : 0);
@@ -38,7 +40,7 @@ export function readStudy(path) {
   for (let i = 1; i < rows.length; i++) if (!(rows[i].t > rows[i - 1].t)) throw new Error(`${path}: duplicate time at ${i}`);
   const live = j.liveBarTime * 1000;
   const closed = rows.filter((r) => r.t < live);
-  return { meta: { desc: j.desc, resolution: j.resolution, symbol: j.symbol, capturedAt: j.capturedAt, liveBarTime: new Date(live).toISOString(), studyRows: rows.length, droppedOpen: rows.length - closed.length, preHistoryRows: rows.filter((r) => r.idx < -1000).length }, rows: closed };
+  return { meta: { desc: j.desc, resolution: j.resolution, symbol: j.symbol, capturedAt: j.capturedAt, liveBarTime: new Date(live).toISOString(), studyRows: rows.length, droppedOpen: rows.length - closed.length, preHistoryRows: rows.filter((r) => r.idx <= -1000000).length }, rows: closed };
 }
 
 // Pine columns of each version → the comparable lamp fields.
@@ -103,7 +105,6 @@ export function securityStart(rows, htf, { back = 400, ahead = 400 } = {}) {
   return { start: zero.length === 1 ? zero[0] : null, candidates: zero.length, ruleStart, sameAsRule: zero.length === 1 && zero[0] === ruleStart,
     t: zero.length === 1 ? new Date(htf[zero[0]].t).toISOString() : null };
 }
-const ruleSlice = (bars, t0) => { const s = bars.findIndex((b) => b.t >= t0); return s < 0 ? [] : bars.slice(s); };
 
 const LAMP_FIELDS = ['lamp', 'reason', 'heading', 'route', 'accepted', 'start'];
 
@@ -114,7 +115,7 @@ function same(a, b, kind) {
   return Math.abs(a - b) <= (kind === 'score' ? SCORE_TOL : PRICE_TOL);
 }
 
-export function gateCell(dir, res, v) {
+export function gateCell(dir, res, v, opts = {}) {
   const tf = TF_OF[res];
   const { meta, rows } = readStudy(join(dir, `study_${res}_${v}.json`));
   const keys = feedKeysFor(tf);
@@ -140,10 +141,17 @@ export function gateCell(dir, res, v) {
 
   const htfStart = securityStart(rows, feed[keys.htf]);
   const htfBars = htfStart.start == null ? feed[keys.htf] : feed[keys.htf].slice(htfStart.start);
-  // An anchor on the route-HTF timeframe reads the same request.security history (H1 run 3:
-  // TradingView started the H4 history 2026-04-23 13:00, a week after the first chart bar).
-  const anchorBars = (k) => (k === keys.htf && htfStart.start != null ? htfBars : ruleSlice(feed[k], rows[0].t));
-  const a1Bars = anchorBars(keys.a1), a2Bars = anchorBars(keys.a2);
+  // Every request.security history holds ceil(calc_bars_count × chartSec / htfSec) bars up to the
+  // live HTF bar (run 3: route H1 on M15 = 750, H4 on H1 = 750, D on H4 = 500 — each equal to the
+  // unique start securityStart recovers; D anchor on H1 = 125 — the only start with no difference;
+  // W anchor on H4 = 72, inside the 68–78 range that all reproduce Pine). Anchors use this rule.
+  const secBars = (k) => { const n = Math.ceil(CALC_BARS * profileFor(tf).chartSec / RES_SEC[k]); return feed[k].slice(Math.max(0, feed[k].length - n)); };
+  const routeRule = secBars(keys.htf);
+  htfStart.ruleBars = routeRule.length; htfStart.sameAsBarRule = htfStart.start != null && routeRule[0] === feed[keys.htf][htfStart.start];
+  const anchorBars = (k) => secBars(k);
+  // opts.a1Shift / a2Shift (exploration only, not used by the gate): move an anchor start by whole bars.
+  const shifted = (k, bars, n) => { if (!n) return bars; const s0 = feed[k].indexOf(bars[0]); return feed[k].slice(Math.max(0, s0 + n)); };
+  const a1Bars = shifted(keys.a1, anchorBars(keys.a1), opts.a1Shift), a2Bars = shifted(keys.a2, anchorBars(keys.a2), opts.a2Shift);
   const startBar = rows.findIndex((r) => pineOn(r));
   const run = v === 'C' ? runC : runA;
   const tracker = new EpisodeTracker();
@@ -203,7 +211,7 @@ if (process.argv[1] && process.argv[1].endsWith('gate4.mjs')) {
     const out = gateCell(dir, res, v);
     writeFileSync(join(outDir, `gate4_${out.tf}_${v}.json`), JSON.stringify(out, null, 1));
     const bad = Object.entries(out.fields).filter(([, f]) => f.mismatched).map(([n, f]) => `${n} ${f.mismatched}/${f.compared}`);
-    console.log(`${out.tf} ${v}: ${out.pass ? 'PASS' : 'FAIL'} rows ${out.rows} (pre-history ${out.meta.preHistoryRows}, open dropped ${out.meta.droppedOpen}) engine rows ${out.engineRows} startBar ${out.startBar} htfStart ${out.htfStart.t ?? "none"} (candidates ${out.htfStart.candidates}, rule ${out.htfStart.sameAsRule}) starts pine ${out.starts.pine} js ${out.starts.js} equal ${out.starts.equal} chart bars ${out.chartBarsChecked}/${out.chartBarsDiffering} bad; ${bad.length ? 'differences: ' + bad.join(', ') + ' first layer ' + out.firstLayer + ' ' + JSON.stringify(out.firstDifferenceByLayer[out.firstLayer]) : 'no difference'} (${Math.round((Date.now() - t0) / 1000)} s)`);
+    console.log(`${out.tf} ${v}: ${out.pass ? 'PASS' : 'FAIL'} rows ${out.rows} (pre-history ${out.meta.preHistoryRows}, open dropped ${out.meta.droppedOpen}) engine rows ${out.engineRows} startBar ${out.startBar} htfStart ${out.htfStart.t ?? "none"} (candidates ${out.htfStart.candidates}, = bar rule ${out.htfStart.sameAsBarRule}) starts pine ${out.starts.pine} js ${out.starts.js} equal ${out.starts.equal} chart bars ${out.chartBarsChecked}/${out.chartBarsDiffering} bad; ${bad.length ? 'differences: ' + bad.join(', ') + ' first layer ' + out.firstLayer + ' ' + JSON.stringify(out.firstDifferenceByLayer[out.firstLayer]) : 'no difference'} (${Math.round((Date.now() - t0) / 1000)} s)`);
     summary.push({ tf: out.tf, version: v, pass: out.pass, rows: out.rows, engineRows: out.engineRows, starts: out.starts.pine, mismatched: out.mismatched, firstLayer: out.firstLayer });
   }
   writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 1));

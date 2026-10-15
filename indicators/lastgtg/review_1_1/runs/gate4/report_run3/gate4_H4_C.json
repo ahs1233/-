@@ -1,0 +1,503 @@
+{
+ "res": "240",
+ "tf": "H4",
+ "version": "C",
+ "pass": true,
+ "meta": {
+  "desc": "lastgtg C diag gate4 — export only",
+  "resolution": "240",
+  "symbol": "OANDA:XAUUSD",
+  "capturedAt": "2026-10-15T21:21:58.850Z",
+  "liveBarTime": "2026-10-15T17:00:00.000Z",
+  "studyRows": 3000,
+  "droppedOpen": 1,
+  "preHistoryRows": 1384
+ },
+ "rows": 2999,
+ "chartBarsChecked": 1615,
+ "chartBarsDiffering": 0,
+ "chartBadList": [],
+ "htfStart": {
+  "start": 1116,
+  "candidates": 1,
+  "ruleStart": 1116,
+  "sameAsRule": true,
+  "t": "2024-11-06T22:00:00.000Z",
+  "ruleBars": 500,
+  "sameAsBarRule": true
+ },
+ "feedFiles": {
+  "1D": "bars_1D_for_240_C.json",
+  "1W": "bars_1W_for_240_C.json"
+ },
+ "startBar": 0,
+ "engineRows": 2999,
+ "firstRow": "2024-11-06T10:00:00.000Z",
+ "lastRow": "2026-10-15T13:00:00.000Z",
+ "starts": {
+  "pine": 38,
+  "js": 38,
+  "equal": true,
+  "list": [
+   {
+    "t": "2025-05-06T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-05-06T21:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-07-22T01:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-11-11T02:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-11-11T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-11-12T18:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-12-01T10:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-12-11T18:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-01-29T18:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-02-23T02:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-02-27T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-03-10T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-03-19T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-03-24T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-03-26T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-04-08T01:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-04-28T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-04-29T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-04-30T01:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-05-27T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-05-28T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-01T17:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-05T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-08T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-08T21:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-09T17:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-18T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-19T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-22T01:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-08-10T21:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-11T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-12T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-19T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-20T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-21T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-24T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-09-03T13:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-09-28T01:00:00.000Z",
+    "dir": -1
+   }
+  ]
+ },
+ "mismatched": 0,
+ "firstDifferenceByLayer": {
+  "1": null,
+  "2": null,
+  "3": null,
+  "4": null
+ },
+ "firstLayer": null,
+ "fields": {
+  "engineOn": {
+   "layer": 0,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "headingScore": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 1.0018652574217413e-12,
+   "first": null,
+   "sample": []
+  },
+  "routeScore": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 7.212008767965017e-13,
+   "first": null,
+   "sample": []
+  },
+  "speedScore": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 5.684341886080802e-14,
+   "first": null,
+   "sample": []
+  },
+  "instantSpeedScore": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 5.684341886080802e-14,
+   "first": null,
+   "sample": []
+  },
+  "fuelScore": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 9.947598300641403e-14,
+   "first": null,
+   "sample": []
+  },
+  "fuelAcceleration": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 5.684341886080802e-14,
+   "first": null,
+   "sample": []
+  },
+  "atrEng": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "htfClose": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "htfMA50": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 3.637978807091713e-12,
+   "first": null,
+   "sample": []
+  },
+  "htfMA200": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 2.091837814077735e-11,
+   "first": null,
+   "sample": []
+  },
+  "htfATR": {
+   "layer": 1,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 1.4210854715202004e-13,
+   "first": null,
+   "sample": []
+  },
+  "events": {
+   "layer": 2,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.code": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.lo": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.hi": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.q": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.code": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.lo": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.hi": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.q": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.code": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.lo": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.hi": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.q": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.code": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.lo": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.hi": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.q": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "obstacleRole": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "nearestObstacleAtr": {
+   "layer": 3,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "lamp": {
+   "layer": 4,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "reason": {
+   "layer": 4,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "heading": {
+   "layer": 4,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "route": {
+   "layer": 4,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "accepted": {
+   "layer": 4,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "start": {
+   "layer": 4,
+   "compared": 2999,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  }
+ },
+ "trace": {}
+}

@@ -29,6 +29,8 @@ JS port for the history test (`js/`, gate 2 of `TEST_PREREGISTRATION.md`):
   translation on all 147,456 cases (lamp and reason), Astra's 20 C break cases on the real
   `updateLevel`, strong-body acceptance in A/B but not C, B row cases. 13/13 pass.
 
-Not done yet: Pine compilation in TradingView, `handoff/lastgtg_logic_tests.pine`, replays of
-the edge cases, and any test on price data. The comparison of A, B and C on data is
-pre-registered separately before anything is computed.
+Gates of `TEST_PREREGISTRATION.md` v1.1 (record: `runs/GATES.md`): gate 1 (Pine compiles and runs,
+logic test PASS — 19 cases), gate 2 (above), gate 3 (engine start window = continuous run on
+the sampled bars) and gate 4 (Pine = JS on the same TradingView bars, M15 / H1 / H4 × A / B / C, no
+difference on any of 932,217 compared values; `diag/` export-only copies, `tv/gate4_run.mjs`,
+`js/gate4.mjs`, `js/gate4.test.mjs`) all pass. No Part 1 or Part 2 number has been read.
