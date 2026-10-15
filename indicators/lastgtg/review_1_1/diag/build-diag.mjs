@@ -129,6 +129,15 @@ export function build(v) {
   return { src, out: body + text, cols };
 }
 
+// The same copy without calc_bars_count, for the 3000-bar check (TradingView's own history):
+// frozen file + renamed title + the same export block. Used for A, whose frozen file exports no lamp.
+export function buildFull(v) {
+  const { src, out } = build(v);
+  const line = `     calc_bars_count = ${CALC_BARS},\n`;
+  if (out.split(line).length !== 2) throw new Error('calc line not found once');
+  return { src, out: out.replace(line, '').replace(`"lastgtg ${v} diag gate4 — export only"`, `"lastgtg ${v} diag full — export only"`).replace(`shorttitle = "lastgtg ${v} diag"`, `shorttitle = "lastgtg ${v} full"`) };
+}
+
 if (process.argv[1] && process.argv[1].endsWith('build-diag.mjs')) {
   const manifest = { built: new Date().toISOString().slice(0, 10), files: {} };
   for (const v of ['A', 'B', 'C']) {
@@ -142,5 +151,12 @@ if (process.argv[1] && process.argv[1].endsWith('build-diag.mjs')) {
     manifest.files[v] = { frozen: SOURCES[v].replace(join(here, '../..') + '/', ''), frozenSha256: sha(src), diag: name, diagSha256: sha(out), exportColumns: cols, plotsTotal: plots };
     console.log(v, name, sha(out).slice(0, 12), 'plots', plots, 'cols', cols.length);
   }
+  const full = buildFull('A');
+  writeFileSync(join(here, 'lastgtg_A_diag_full.pine'), full.out);
+  let fdiff = '';
+  try { execFileSync('diff', ['-u', '--label', 'frozen_A', '--label', 'lastgtg_A_diag_full.pine', SOURCES.A, join(here, 'lastgtg_A_diag_full.pine')]); } catch (e) { fdiff = e.stdout.toString(); }
+  writeFileSync(join(here, 'A_to_diag_full.diff'), fdiff);
+  manifest.files.A_full = { frozen: manifest.files.A.frozen, frozenSha256: manifest.files.A.frozenSha256, diag: 'lastgtg_A_diag_full.pine', diagSha256: sha(full.out), note: 'no calc_bars_count; for the 3000-bar check' };
+  console.log('A_full', sha(full.out).slice(0, 12));
   writeFileSync(join(here, 'manifest.json'), JSON.stringify(manifest, null, 1) + '\n');
 }

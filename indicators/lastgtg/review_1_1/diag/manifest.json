@@ -126,6 +126,13 @@
     "m_events"
    ],
    "plotsTotal": 64
+  },
+  "A_full": {
+   "frozen": "lastgtg.pine",
+   "frozenSha256": "320e33eb2b686308ea8716cd7c02a3918f9fa76c2c03692caf40f22a292e1744",
+   "diag": "lastgtg_A_diag_full.pine",
+   "diagSha256": "5c1072ed989a28967e65c6443dae3e6d47bc0fb476ecdd898947449080759478",
+   "note": "no calc_bars_count; for the 3000-bar check"
   }
  }
 }
