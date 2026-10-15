@@ -33,4 +33,10 @@ Gates of `TEST_PREREGISTRATION.md` v1.1 (record: `runs/GATES.md`): gate 1 (Pine 
 logic test PASS — 19 cases), gate 2 (above), gate 3 (engine start window = continuous run on
 the sampled bars) and gate 4 (Pine = JS on the same TradingView bars, M15 / H1 / H4 × A / B / C, no
 difference on any of 932,217 compared values; `diag/` export-only copies, `tv/gate4_run.mjs`,
-`js/gate4.mjs`, `js/gate4.test.mjs`) all pass. No Part 1 or Part 2 number has been read.
+`js/gate4.mjs`, `js/gate4.test.mjs`) all pass.
+
+Part 1 and Part 2 (code `js/part1/`, notes `runs/part1/RUN_NOTES.md`, results
+`runs/part1/RESULTS.md`): no green-light version earns anything after real costs on M15, H1 or
+H4 in 2021-10 → 2024, none beats the matched baseline, B and C show no difference from A, and no
+cell qualifies for the forward test. Zone strength: inconclusive (too few weak zones); "important"
+zones reacted less often than naive pivots on M15 and no differently on H1 / H4.
