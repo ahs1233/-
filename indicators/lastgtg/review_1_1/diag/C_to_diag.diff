@@ -1,0 +1,61 @@
+--- frozen_C
++++ lastgtg_C_diag.pine
+@@ -3,8 +3,8 @@
+ // B/C: safe green gates, explicit missing-map state, unified moveShare, closed-bar exports.
+ // C: two consecutive beyond-buffer closes, no strong-body shortcut; window offsets 0..2.
+ indicator(
+-     "lastgtg C 1.1 — Structural Zone Engine",
+-     shorttitle = "lastgtg C",
++     "lastgtg C diag gate4 — export only",
++     shorttitle = "lastgtg C diag",
+      overlay = true,
+      max_labels_count = 20,
+      max_lines_count = 10,
+@@ -2520,3 +2520,47 @@
+ alertcondition(obstacleRejectEvent, "lastgtg — Obstacle Rejection", "lastgtg: ظهر رفض/ارتداد واضح من عائق سعري معروض.")
+ alertcondition(breakAcceptedEvent, "lastgtg — Break Accepted", "lastgtg: الكسر أصبح مقبولًا وفق محرك المناطق.")
+ alertcondition(flipConfirmedEvent, "lastgtg — Flip Confirmed", "lastgtg: إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد.")
++
++
++// ==== GATE 4 DIAGNOSTIC EXPORTS (export only; added by review_1_1/diag/build-diag.mjs) ====
++// Nothing below is read by the indicator. New names only; plots go to the Data Window.
++int dgEvents = (breakResistance ? 1 : 0) + (breakSupport ? 2 : 0) + (breakAcceptedUp ? 4 : 0) + (breakAcceptedDn ? 8 : 0) + (rejectResistance ? 16 : 0) + (rejectSupport ? 32 : 0) + (flipConfirmedEvent ? 64 : 0)
++plot(open, "m_open", display = display.data_window)
++plot(high, "m_high", display = display.data_window)
++plot(low, "m_low", display = display.data_window)
++plot(close, "m_close", display = display.data_window)
++plot(volume, "m_volume", display = display.data_window)
++plot(engineOn ? 1 : 0, "m_engineOn", display = display.data_window)
++plot(headingScore, "m_headingScore", display = display.data_window)
++plot(routeScore, "m_routeScore", display = display.data_window)
++plot(speedScore, "m_speedScore", display = display.data_window)
++plot(instantSpeedScore, "m_instantSpeedScore", display = display.data_window)
++plot(fuelScore, "m_fuelScore", display = display.data_window)
++plot(fuelAcceleration, "m_fuelAcceleration", display = display.data_window)
++plot(atrEng, "m_atrEng", display = display.data_window)
++plot(htfClose, "m_htfClose", display = display.data_window)
++plot(htfMA50, "m_htfMA50", display = display.data_window)
++plot(htfMA200, "m_htfMA200", display = display.data_window)
++plot(htfMA50Past, "m_htfMA50Past", display = display.data_window)
++plot(htfATR, "m_htfATR", display = display.data_window)
++plot(dest1Low, "m_dest1Low", display = display.data_window)
++plot(dest1High, "m_dest1High", display = display.data_window)
++plot(obstacleRole, "m_obstacleRole", display = display.data_window)
++plot(nearestObstacleAtr, "m_nearestObstacleAtr", display = display.data_window)
++plot(slotR1.active ? slotR1.lo : na, "m_R1_lo", display = display.data_window)
++plot(slotR1.active ? slotR1.hi : na, "m_R1_hi", display = display.data_window)
++plot(slotR1.active ? slotR1.quality : na, "m_R1_q", display = display.data_window)
++plot(slotR1.active ? (slotR1.containing ? 2 : 1) : 0, "m_R1_code", display = display.data_window)
++plot(slotR2.active ? slotR2.lo : na, "m_R2_lo", display = display.data_window)
++plot(slotR2.active ? slotR2.hi : na, "m_R2_hi", display = display.data_window)
++plot(slotR2.active ? slotR2.quality : na, "m_R2_q", display = display.data_window)
++plot(slotR2.active ? (slotR2.containing ? 2 : 1) : 0, "m_R2_code", display = display.data_window)
++plot(slotS1.active ? slotS1.lo : na, "m_S1_lo", display = display.data_window)
++plot(slotS1.active ? slotS1.hi : na, "m_S1_hi", display = display.data_window)
++plot(slotS1.active ? slotS1.quality : na, "m_S1_q", display = display.data_window)
++plot(slotS1.active ? (slotS1.containing ? 2 : 1) : 0, "m_S1_code", display = display.data_window)
++plot(slotS2.active ? slotS2.lo : na, "m_S2_lo", display = display.data_window)
++plot(slotS2.active ? slotS2.hi : na, "m_S2_hi", display = display.data_window)
++plot(slotS2.active ? slotS2.quality : na, "m_S2_q", display = display.data_window)
++plot(slotS2.active ? (slotS2.containing ? 2 : 1) : 0, "m_S2_code", display = display.data_window)
++plot(dgEvents, "m_events", display = display.data_window)
