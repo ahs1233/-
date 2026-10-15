@@ -151,12 +151,14 @@ if (process.argv[1] && process.argv[1].endsWith('build-diag.mjs')) {
     manifest.files[v] = { frozen: SOURCES[v].replace(join(here, '../..') + '/', ''), frozenSha256: sha(src), diag: name, diagSha256: sha(out), exportColumns: cols, plotsTotal: plots };
     console.log(v, name, sha(out).slice(0, 12), 'plots', plots, 'cols', cols.length);
   }
-  const full = buildFull('A');
-  writeFileSync(join(here, 'lastgtg_A_diag_full.pine'), full.out);
-  let fdiff = '';
-  try { execFileSync('diff', ['-u', '--label', 'frozen_A', '--label', 'lastgtg_A_diag_full.pine', SOURCES.A, join(here, 'lastgtg_A_diag_full.pine')]); } catch (e) { fdiff = e.stdout.toString(); }
-  writeFileSync(join(here, 'A_to_diag_full.diff'), fdiff);
-  manifest.files.A_full = { frozen: manifest.files.A.frozen, frozenSha256: manifest.files.A.frozenSha256, diag: 'lastgtg_A_diag_full.pine', diagSha256: sha(full.out), note: 'no calc_bars_count; for the 3000-bar check' };
-  console.log('A_full', sha(full.out).slice(0, 12));
+  for (const v of ['A', 'B', 'C']) {
+    const full = buildFull(v), name = `lastgtg_${v}_diag_full.pine`;
+    writeFileSync(join(here, name), full.out);
+    let fdiff = '';
+    try { execFileSync('diff', ['-u', '--label', `frozen_${v}`, '--label', name, SOURCES[v], join(here, name)]); } catch (e) { fdiff = e.stdout.toString(); }
+    writeFileSync(join(here, `${v}_to_diag_full.diff`), fdiff);
+    manifest.files[`${v}_full`] = { frozen: manifest.files[v].frozen, frozenSha256: manifest.files[v].frozenSha256, diag: name, diagSha256: sha(full.out), note: 'no calc_bars_count (TradingView history): 3000-bar check, gate 4 without the limit' };
+    console.log(`${v}_full`, sha(full.out).slice(0, 12));
+  }
   writeFileSync(join(here, 'manifest.json'), JSON.stringify(manifest, null, 1) + '\n');
 }

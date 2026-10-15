@@ -8,7 +8,10 @@
 // upgrade dialog with no close button and the study never computed (2026-10-15 trial).
 // Preconditions (runbook E-24): layout backed up, autosave OFF, editor draft saved.
 // The caller restores afterwards (restore.mjs).
-//   node gate4_run.mjs <diagDir> <outDir> [15,60,240] [A,B,C] [htf resolutions 15,60,240,1D,1W]
+//   node gate4_run.mjs <diagDir> <outDir> [15,60,240] [A,B,C] [htf resolutions 15,60,240,1D,1W] [limit|full] [moreBars]
+// variant full: the copies without calc_bars_count (lastgtg_<v>_diag_full.pine, TradingView's own
+// history); moreBars > 0: ask for more history (requestMoreData) until the chart holds that many bars
+// or stops growing, for the chart timeframe and for every HTF / anchor dump.
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
@@ -16,7 +19,8 @@ import { createRequire } from 'node:module';
 const require = createRequire('C:/Users/alk/tradingview-mcp-jackson/package.json');
 const CDP = require('chrome-remote-interface');
 
-const [, , diagDir, outDir, tfArg = '15,60,240', vArg = 'A,B,C', htfArg = '15,60,240,1D,1W'] = process.argv;
+const [, , diagDir, outDir, tfArg = '15,60,240', vArg = 'A,B,C', htfArg = '15,60,240,1D,1W', variant = 'limit', moreArg = '0'] = process.argv;
+const MORE = Number(moreArg), SUFFIX = variant === 'full' ? '_full' : '', DESC = variant === 'full' ? 'diag full' : 'diag gate4';
 mkdirSync(outDir, { recursive: true });
 const log = (m) => { const s = `${new Date().toISOString()} ${m}`; console.log(s); appendFileSync(join(outDir, 'capture.log'), s + '\n'); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -65,6 +69,12 @@ async function loadRes(res) {
   let b = null;
   for (let k = 0; k < 60; k++) { await sleep(1000); b = await barsInfo(); if (b.res === res && b.size > 0 && !b.loading) break; }
   if (!(b.res === res && b.size > 0 && !b.loading)) throw new Error(`res ${res} did not load ${JSON.stringify(b)}`);
+  for (let k = 0, stable = 0; MORE > 0 && b.size < MORE && k < 40 && stable < 3; k++) {
+    const before = b.size;
+    await ev(`(() => { const m = ${MS}; if (m.requestMoreData) m.requestMoreData(${MORE} - m.bars().size()); return true; })()`);
+    for (let w = 0; w < 20; w++) { await sleep(1000); b = await barsInfo(); if (!b.loading && b.size > before) break; }
+    stable = b.size === before ? stable + 1 : 0;
+  }
   await sleep(1500);
   b = await barsInfo();
   log(`res ${res}: ${b.size} chart bars ${new Date(b.first * 1000).toISOString()} → ${new Date(b.last * 1000).toISOString()}`);
@@ -78,8 +88,8 @@ async function dumpBars(res, name = `bars_${res}.json`) {
 
 async function runStudy(res, v) {
   await guard();
-  const desc = `lastgtg ${v} diag gate4 — export only`;
-  const src = readFileSync(join(diagDir, `lastgtg_${v}_diag.pine`), 'utf8').replace(/\r\n/g, '\n');
+  const desc = `lastgtg ${v} ${DESC} — export only`;
+  const src = readFileSync(join(diagDir, `lastgtg_${v}_diag${SUFFIX}.pine`), 'utf8').replace(/\r\n/g, '\n');
   const pre = await ev(`(() => { const title = [...document.querySelectorAll('button,div,span')].map(e => e.textContent.trim()).find(x => /^Untitled/.test(x)) || null; return { untitled: !!title, studies: ${CH}.getAllStudies().map(x => x.name) }; })()`);
   if (!pre.untitled) throw new Error('editor is not on an Untitled script: stop');
   if (pre.studies.length) throw new Error(`chart has studies ${pre.studies}: stop`);

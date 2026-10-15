@@ -145,7 +145,13 @@ export function gateCell(dir, res, v, opts = {}) {
   // live HTF bar (run 3: route H1 on M15 = 750, H4 on H1 = 750, D on H4 = 500 — each equal to the
   // unique start securityStart recovers; D anchor on H1 = 125 — the only start with no difference;
   // W anchor on H4 = 72, inside the 68–78 range that all reproduce Pine). Anchors use this rule.
-  const secBars = (k) => { const n = Math.ceil(CALC_BARS * profileFor(tf).chartSec / RES_SEC[k]); return feed[k].slice(Math.max(0, feed[k].length - n)); };
+  // Copies without the limit ("diag full", TradingView's own history): the same rule on the number
+  // of bars Pine computed, which is every exported row only when row 0 is Pine's first bar (its
+  // atrEng is then that bar's own range); checked and reported.
+  const full = /diag full/.test(meta.desc);
+  const firstBarSig = Math.abs(rows[0].m_atrEng - Math.max(rows[0].m_high - rows[0].m_low, MINTICK)) <= MINTICK && !Number.isFinite(rows[0].m_headingScore);
+  const computedBars = full ? meta.studyRows : CALC_BARS;
+  const secBars = (k) => { const n = Math.ceil(computedBars * profileFor(tf).chartSec / RES_SEC[k]); return feed[k].slice(Math.max(0, feed[k].length - n)); };
   const routeRule = secBars(keys.htf);
   htfStart.ruleBars = routeRule.length; htfStart.sameAsBarRule = htfStart.start != null && routeRule[0] === feed[keys.htf][htfStart.start];
   const anchorBars = (k) => secBars(k);
@@ -193,8 +199,8 @@ export function gateCell(dir, res, v, opts = {}) {
   const startsEqual = JSON.stringify(pineStarts) === JSON.stringify(jsStarts);
   const firstLayer = [1, 2, 3, 4].find((l) => first[l]) ?? null;
   return {
-    res, tf, version: v, pass: mismatched === 0 && startsEqual && chartBad === 0 && pineStarts.length > 0,
-    meta, rows: rows.length, chartBarsChecked: chartChecked, chartBarsDiffering: chartBad, chartBadList,
+    res, tf, version: v, pass: mismatched === 0 && startsEqual && chartBad === 0 && pineStarts.length > 0 && (!full || firstBarSig),
+    meta, rows: rows.length, variant: full ? 'full' : 'calc_bars_count', firstRowIsFirstComputedBar: firstBarSig, computedBars, chartBarsChecked: chartChecked, chartBarsDiffering: chartBad, chartBadList,
     htfStart, feedFiles, startBar, engineRows, firstRow: new Date(rows[0].t).toISOString(), lastRow: new Date(rows.at(-1).t).toISOString(),
     starts: { pine: pineStarts.length, js: jsStarts.length, equal: startsEqual, list: pineStarts },
     mismatched, firstDifferenceByLayer: first, firstLayer, fields, trace,

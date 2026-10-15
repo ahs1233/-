@@ -68,13 +68,13 @@ test('A: the copied lamp chain has the conditions of A §16 in the same order', 
   assert.deepEqual(lampsOf(out.slice(f2, t2), 'dgLampA'), lampsOf(a.slice(from, to), 'lamp'));
 });
 
-test('A full copy: frozen A, renamed, the same export block, no calc_bars_count', () => {
-  const out = readFileSync(join(here, 'lastgtg_A_diag_full.pine'), 'utf8');
-  const src = readFileSync(SOURCES.A, 'utf8').replace(/\r\n/g, '\n');
+for (const v of ['A', 'B', 'C']) test(`${v} full copy: frozen ${v}, renamed, the same export block, no calc_bars_count`, () => {
+  const out = readFileSync(join(here, `lastgtg_${v}_diag_full.pine`), 'utf8');
+  const src = readFileSync(SOURCES[v], 'utf8').replace(/\r\n/g, '\n');
   assert.ok(!out.includes('calc_bars_count'));
   const k = out.indexOf('\n\n\n' + MARK);
   const head = out.slice(0, k + 1).split('\n'), orig = src.split('\n');
   assert.equal(head.length, orig.length);
   assert.equal(head.filter((l, i) => l !== orig[i]).length, 2);
-  assert.equal(out.slice(k), readFileSync(join(here, 'lastgtg_A_diag.pine'), 'utf8').slice(readFileSync(join(here, 'lastgtg_A_diag.pine'), 'utf8').indexOf('\n\n\n' + MARK)));
+  assert.equal(out.slice(k), readFileSync(join(here, `lastgtg_${v}_diag.pine`), 'utf8').slice(readFileSync(join(here, `lastgtg_${v}_diag.pine`), 'utf8').indexOf('\n\n\n' + MARK)));
 });
