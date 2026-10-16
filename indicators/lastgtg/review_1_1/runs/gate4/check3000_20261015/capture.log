@@ -1,0 +1,64 @@
+2026-10-15T22:06:18.116Z res 15: 1616 chart bars 2026-09-22T08:15:00.000Z → 2026-10-15T22:00:00.000Z
+2026-10-15T22:06:32.406Z lastgtg A diag full — export only: loaded in 14 s, 3032 rows, chart studies 1
+2026-10-15T22:06:32.659Z pair_15_A_orig.json 3032 rows sha256 32dd948a230eff66
+2026-10-15T22:06:32.721Z bars_15_pair_A_orig.json 1616 bars sha256 46ea80c718f4ec55
+2026-10-15T22:06:49.584Z lastgtg A diag gate4 — export only: loaded in 14 s, 3000 rows, chart studies 1
+2026-10-15T22:06:49.816Z pair_15_A_diag.json 3000 rows sha256 4d0571d5a2389c1d
+2026-10-15T22:06:49.838Z bars_15_pair_A_diag.json 1616 bars sha256 17e508444de29e16
+2026-10-15T22:07:15.336Z res 15: 1616 chart bars 2026-09-22T08:15:00.000Z → 2026-10-15T22:00:00.000Z
+2026-10-15T22:07:35.553Z lastgtg B 1.1 — Structural Zone Engine: loaded in 20 s, 3032 rows, chart studies 1
+2026-10-15T22:07:35.674Z pair_15_B_orig.json 3032 rows sha256 89ac7527e1c6d0ea
+2026-10-15T22:07:35.682Z bars_15_pair_B_orig.json 1616 bars sha256 b9fe5a643b6c3abe
+2026-10-15T22:07:54.405Z lastgtg B diag gate4 — export only: loaded in 16 s, 3000 rows, chart studies 1
+2026-10-15T22:07:54.620Z pair_15_B_diag.json 3000 rows sha256 a0d249e8d2f2973e
+2026-10-15T22:07:54.628Z bars_15_pair_B_diag.json 1616 bars sha256 6fcb97cf667263fb
+2026-10-15T22:08:17.045Z res 15: 1616 chart bars 2026-09-22T08:15:00.000Z → 2026-10-15T22:00:00.000Z
+2026-10-15T22:08:39.326Z lastgtg C 1.1 — Structural Zone Engine: loaded in 22 s, 3032 rows, chart studies 1
+2026-10-15T22:08:39.509Z pair_15_C_orig.json 3032 rows sha256 b95b4e837dce5462
+2026-10-15T22:08:39.533Z bars_15_pair_C_orig.json 1616 bars sha256 7dd4a20eaf6c5b53
+2026-10-15T22:08:58.358Z lastgtg C diag gate4 — export only: loaded in 16 s, 3000 rows, chart studies 1
+2026-10-15T22:08:58.586Z pair_15_C_diag.json 3000 rows sha256 3b933a91648804f9
+2026-10-15T22:08:58.608Z bars_15_pair_C_diag.json 1616 bars sha256 032c765932a73dde
+2026-10-15T22:09:21.918Z res 60: 1616 chart bars 2026-07-09T14:00:00.000Z → 2026-10-15T22:00:00.000Z
+2026-10-15T22:09:42.178Z lastgtg A diag full — export only: loaded in 20 s, 3032 rows, chart studies 1
+2026-10-15T22:09:42.462Z pair_60_A_orig.json 3032 rows sha256 261ebe76e76f8221
+2026-10-15T22:09:42.469Z bars_60_pair_A_orig.json 1616 bars sha256 6d3e3a22006852a0
+2026-10-15T22:09:59.229Z lastgtg A diag gate4 — export only: loaded in 14 s, 3000 rows, chart studies 1
+2026-10-15T22:09:59.450Z pair_60_A_diag.json 3000 rows sha256 09a83734ba323936
+2026-10-15T22:09:59.459Z bars_60_pair_A_diag.json 1616 bars sha256 34a41e39f37258ce
+2026-10-15T22:10:21.718Z res 60: 1616 chart bars 2026-07-09T14:00:00.000Z → 2026-10-15T22:00:00.000Z
+2026-10-15T22:10:41.962Z lastgtg B 1.1 — Structural Zone Engine: loaded in 20 s, 3032 rows, chart studies 1
+2026-10-15T22:10:42.118Z pair_60_B_orig.json 3032 rows sha256 924fbd6d8aada443
+2026-10-15T22:10:42.124Z bars_60_pair_B_orig.json 1616 bars sha256 ea434a03d08e62bf
+2026-10-15T22:11:00.857Z lastgtg B diag gate4 — export only: loaded in 16 s, 3000 rows, chart studies 1
+2026-10-15T22:11:01.060Z pair_60_B_diag.json 3000 rows sha256 9ef17e914655d92d
+2026-10-15T22:11:01.074Z bars_60_pair_B_diag.json 1616 bars sha256 9e7f0317a0823cfe
+2026-10-15T22:11:23.529Z res 60: 1616 chart bars 2026-07-09T14:00:00.000Z → 2026-10-15T22:00:00.000Z
+2026-10-15T22:11:39.787Z lastgtg C 1.1 — Structural Zone Engine: loaded in 16 s, 3032 rows, chart studies 1
+2026-10-15T22:11:39.983Z pair_60_C_orig.json 3032 rows sha256 7d863abb8642e091
+2026-10-15T22:11:40.003Z bars_60_pair_C_orig.json 1616 bars sha256 4fd8b7cb042bce95
+2026-10-15T22:11:58.771Z lastgtg C diag gate4 — export only: loaded in 16 s, 3000 rows, chart studies 1
+2026-10-15T22:11:59.049Z pair_60_C_diag.json 3000 rows sha256 dbde6d2ba53b9e0f
+2026-10-15T22:11:59.057Z bars_60_pair_C_diag.json 1616 bars sha256 6766c683cedcb318
+2026-10-15T22:12:21.413Z res 240: 1616 chart bars 2025-09-30T09:00:00.000Z → 2026-10-15T21:00:00.000Z
+2026-10-15T22:12:45.651Z lastgtg A diag full — export only: loaded in 24 s, 3032 rows, chart studies 1
+2026-10-15T22:12:45.863Z pair_240_A_orig.json 3032 rows sha256 fdbdfb21685a25b7
+2026-10-15T22:12:45.870Z bars_240_pair_A_orig.json 1616 bars sha256 1d03cdd5bbf6e77e
+2026-10-15T22:13:08.645Z lastgtg A diag gate4 — export only: loaded in 20 s, 3000 rows, chart studies 1
+2026-10-15T22:13:08.846Z pair_240_A_diag.json 3000 rows sha256 687afa59555b53a6
+2026-10-15T22:13:08.853Z bars_240_pair_A_diag.json 1616 bars sha256 ec013bfe932d4cb7
+2026-10-15T22:13:32.203Z res 240: 1616 chart bars 2025-09-30T09:00:00.000Z → 2026-10-15T21:00:00.000Z
+2026-10-15T22:13:54.414Z lastgtg B 1.1 — Structural Zone Engine: loaded in 22 s, 3032 rows, chart studies 1
+2026-10-15T22:13:54.566Z pair_240_B_orig.json 3032 rows sha256 358f4107b0cbd32b
+2026-10-15T22:13:54.573Z bars_240_pair_B_orig.json 1616 bars sha256 1829528e0b79121d
+2026-10-15T22:14:13.307Z lastgtg B diag gate4 — export only: loaded in 16 s, 3000 rows, chart studies 1
+2026-10-15T22:14:13.551Z pair_240_B_diag.json 3000 rows sha256 422fd27423be6ac0
+2026-10-15T22:14:13.561Z bars_240_pair_B_diag.json 1616 bars sha256 63e5a3e1309adbd7
+2026-10-15T22:14:35.896Z res 240: 1616 chart bars 2025-09-30T09:00:00.000Z → 2026-10-15T21:00:00.000Z
+2026-10-15T22:14:52.139Z lastgtg C 1.1 — Structural Zone Engine: loaded in 16 s, 3032 rows, chart studies 1
+2026-10-15T22:14:52.287Z pair_240_C_orig.json 3032 rows sha256 4a1bdf1cf6dabc24
+2026-10-15T22:14:52.303Z bars_240_pair_C_orig.json 1616 bars sha256 0bfb8ce6668a4379
+2026-10-15T22:15:09.033Z lastgtg C diag gate4 — export only: loaded in 14 s, 3000 rows, chart studies 1
+2026-10-15T22:15:09.239Z pair_240_C_diag.json 3000 rows sha256 a1c6ede92d6b5271
+2026-10-15T22:15:09.248Z bars_240_pair_C_diag.json 1616 bars sha256 d0236e1927ed06c7
+2026-10-15T22:15:11.777Z done
