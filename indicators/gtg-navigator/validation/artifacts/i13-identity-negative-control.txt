@@ -1,0 +1,18 @@
+# identity.test.mjs (I13) against a scratch engine.mjs with an injected defect: a held slot takes all current member keys instead of prev ∩ current | node v22.22.2 | 2026-09-28T08:16:32Z
+not ok 1 - I13.1–I13.3 entry keys shrink while held, restart fresh after the intersection breaks; Strong Obstacle follows
+    + actual - expected
+    +   54400005760000
+not ok 2 - I13.2b broken intersection below Q_enter: the zone is dropped, not held
+    + actual - expected
+    +   54400005760000
+not ok 3 - I13.5 merge: two held slots merging into one zone keep one slot identity and gain no key
+    + actual - expected
+    +   54400003840000
+ok 4 - I13.5b split and primary churn: each part keeps a subset of the held identity
+not ok 5 - I13.4 property over engine runs: non-empty entry keys, ⊆ lastKeys, and either shrink-only or fresh
+  error: 'held slot gained a key at bar 17 (seed 21)'
+# tests 5
+# pass 1
+# fail 4
+# on the real engine (HEAD worktree): I13 5/5 pass
+# note: I13.5b is not sensitive to this defect by construction (after a split each part's members are already a subset of the held identity); it pins the split/primary-churn behaviour, while I13.1/I13.2b/I13.5/I13.4 detect the injected defect.

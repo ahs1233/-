@@ -1,0 +1,8 @@
+# commit cdf1a8ab59c07943ba7c64a81bb2a52d1aa1947e | node v22.22.2 | 2026-09-28T07:06:09Z
+# cmd: node indicators/gtg-navigator/validation/repro/baseline-repro.mjs
+R1 bounds [100,101] digest=999820507; bounds [100.13,100.93] digest=999820507; collision=true
+R1 slotDigest inputs are primaryKey, lo, hi only: member keys, entry keys, quality and level states are not inputs.
+R2 JS mitigation=0.486000 rej=0.190000; Pine-formula oracle=0.048600; ratio=10.000
+R2 JS floors: runEpisode width 1e-12 (engine.mjs:80), Engine ATR 1e-12 (engine.mjs:495,538,547); Pine floors: syminfo.mintick (pine:532,571-572,864,1154,1162).
+R3 R1.active over 6 bars = true,false,true,false,true,false
+R4 quality 60→80 at constant distance 0.20 ATR: alert=false (condition tests only the distance crossing)

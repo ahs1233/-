@@ -1,0 +1,6 @@
+$ node indicators/gtg-navigator/validation/tools/compare-r5.mjs tv-e41-A-27f3bba.txt tv-e41-B-27f3bba.txt tv-e41-C-27f3bba.txt
+reading 1 (indicators/gtg-navigator/validation/artifacts/tv-e41-A-27f3bba.txt): R5=40,0,1790607600000,1790609940000,2000807814,1123013579,548762253
+reading 2 (indicators/gtg-navigator/validation/artifacts/tv-e41-B-27f3bba.txt): R5=40,0,1790607600000,1790609940000,2000807814,1123013579,548762253
+reading 3 (indicators/gtg-navigator/validation/artifacts/tv-e41-C-27f3bba.txt): R5=40,0,1790607600000,1790609940000,2000807814,1123013579,548762253
+RESULT OK
+exit=0

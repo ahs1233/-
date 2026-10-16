@@ -1,0 +1,42 @@
+// Computed on EVERY bar, outside the table and regardless of dashboard mode.
+bool gtgReady = engineOn and not na(headingScore) and not na(routeScore) and not na(speedScore) and not na(fuelScore) and not na(htfATR) and not na(atrEng)
+bool gtgMappedAhead = obstacleAvailable and not na(nearestObstacleAtr) and ((headingSign > 0 and obstacleRole == 1 and dest1Low >= close) or (headingSign < 0 and obstacleRole == -1 and dest1High <= close))
+bool gtgEnoughRoom = gtgMappedAhead and nearestObstacleAtr * atrEng >= greenRoomHtfAtr * safeHtfAtr
+[gtgLampLive, gtgReasonLive] = gtgLampDecision(gtgReady, noChase, priceInsideObstacle, headingSign, routeSign, heldAccUp, heldAccDn, heldBrkR or heldBrkS, heldRejR, heldRejS, obstacleNear or candleTouchesObstacle, movingTowardResistance or movingTowardSupport, fuelExhaustion, fuelScore < fuelLowThreshold, gtgMappedAhead, gtgEnoughRoom)
+
+// One closed-bar snapshot for export and alerts. The open-bar HUD is explicitly live.
+var int gtgLampClosed = 1
+var int gtgReasonClosed = 10
+var int gtgHeadingClosed = 0
+var int gtgRouteClosed = 0
+var int gtgAcceptedClosed = 0
+var float gtgRoomClosed = na
+var int gtgObstacleKeyClosed = na
+if barstate.isconfirmed
+    gtgLampClosed := gtgLampLive
+    gtgReasonClosed := gtgReasonLive
+    gtgHeadingClosed := headingSign
+    gtgRouteClosed := routeSign
+    gtgAcceptedClosed := breakAcceptedUp and breakAcceptedDn ? 2 : breakAcceptedUp ? 1 : breakAcceptedDn ? -1 : 0
+    gtgRoomClosed := gtgMappedAhead ? nearestObstacleAtr * atrEng : na
+    gtgObstacleKeyClosed := obstacleAvailable ? (primaryUp ? slotR1.primaryKey : slotS1.primaryKey) : na
+
+// A new episode is a transition to green OR a direction change while green.
+// Repeated accepted-break events while green do NOT create repeated entries.
+bool gtgGreenStart = engineStep and gtgLampClosed == 2 and (nz(gtgLampClosed[1], 1) != 2 or gtgHeadingClosed != nz(gtgHeadingClosed[1], 0))
+bool gtgGreenEnd = engineStep and nz(gtgLampClosed[1], 1) == 2 and gtgLampClosed != 2
+
+plot(engineOn ? gtgLampClosed : na, "GTG lamp closed 0R 1Y 2G", display = display.data_window)
+plot(engineOn ? gtgReasonClosed : na, "GTG reason closed", display = display.data_window)
+plot(engineOn ? gtgHeadingClosed : na, "GTG heading closed", display = display.data_window)
+plot(engineOn ? gtgRouteClosed : na, "GTG route closed", display = display.data_window)
+plot(engineOn ? gtgAcceptedClosed : na, "GTG accepted closed -1 down 1 up 2 both", display = display.data_window)
+plot(gtgGreenStart ? 1 : 0, "GTG green episode start", display = display.data_window)
+plot(gtgGreenEnd ? 1 : 0, "GTG green episode end", display = display.data_window)
+plot(gtgRoomClosed, "GTG room closed price units", display = display.data_window)
+plot(gtgObstacleKeyClosed, "GTG obstacle primary key diagnostic", display = display.data_window)
+plot(engineStep ? 1 : 0, "GTG confirmed engine step", display = display.data_window)
+plot(gtgGreenStart ? close : na, "GTG signal close NOT execution price", display = display.data_window)
+plot(gtgGreenStart ? time_close : na, "GTG signal available at epoch ms", display = display.data_window)
+alertcondition(gtgGreenStart, "lastgtg — Green Episode Start", "lastgtg: بداية أخضر عند إغلاق الشمعة بعد تحقق شروط الاتجاه والعائق والمساحة.")
+alertcondition(gtgGreenEnd, "lastgtg — Green Episode End", "lastgtg: انتهت حالة الأخضر عند إغلاق الشمعة.")

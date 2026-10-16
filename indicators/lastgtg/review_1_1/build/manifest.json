@@ -1,0 +1,19 @@
+{
+  "patch_version": "lastgtg-review-1.1.0",
+  "source_sha256": "320e33eb2b686308ea8716cd7c02a3918f9fa76c2c03692caf40f22a292e1744",
+  "source_path": "indicators/lastgtg/lastgtg.pine",
+  "pine_compiled": false,
+  "backtested": false,
+  "A_byte_identical": true,
+  "C_only_engine_change": "ACTIVE/FLIP -> BREAKING -> accepted break; strongBack unchanged",
+  "outputs": {
+    "lastgtg_B_1_1.pine": "42659f7acb42ec12da8a91e9872abb94e386ecbf062d240ed39377fc59fe4269",
+    "lastgtg_C_1_1.pine": "8c05c9583722647904b52a4b1e17ceb64b5e2907a9a54283840201d9e23be755"
+  },
+  "patch_files": {
+    "c_breaking.pinefrag": "5e71111921965fb601bf05006858619aa13c8ead80074d4a3e40015a7bd33a85",
+    "lamp_adapter.pinefrag": "4677143c19bddadf8ebfe77f842c96c626d2a40332aab65fc3dbd291825dc6dd",
+    "lamp_core.pinefrag": "50bffd2062b72f6cb4fa59ac7322cc0bb96bd81026bfa69cbb25d43f1cb9849f"
+  },
+  "A_note": "A is indicators/lastgtg/lastgtg.pine itself (sha256 above); no copy kept here."
+}

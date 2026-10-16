@@ -1,0 +1,740 @@
+{
+ "res": "240",
+ "tf": "H4",
+ "version": "B",
+ "pass": true,
+ "meta": {
+  "desc": "lastgtg B diag full — export only",
+  "resolution": "240",
+  "symbol": "OANDA:XAUUSD",
+  "capturedAt": "2026-10-16T21:21:28.750Z",
+  "liveBarTime": "2026-10-16T17:00:00.000Z",
+  "studyRows": 5871,
+  "droppedOpen": 1,
+  "preHistoryRows": 869
+ },
+ "rows": 5870,
+ "variant": "full",
+ "firstRowIsFirstComputedBar": true,
+ "computedBars": 5871,
+ "chartBarsChecked": 5001,
+ "chartBarsDiffering": 0,
+ "chartBadList": [],
+ "htfStart": {
+  "start": null,
+  "candidates": 0,
+  "ruleStart": 4023,
+  "sameAsRule": false,
+  "t": null,
+  "ruleBars": 5002,
+  "sameAsBarRule": false
+ },
+ "feedFiles": {
+  "1D": "bars_1D_for_240_B.json",
+  "1W": "bars_1W_for_240_B.json"
+ },
+ "startBar": 429,
+ "engineRows": 5441,
+ "firstRow": "2023-01-02T22:00:00.000Z",
+ "lastRow": "2026-10-16T13:00:00.000Z",
+ "starts": {
+  "pine": 95,
+  "js": 95,
+  "equal": true,
+  "list": [
+   {
+    "t": "2023-05-02T13:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2023-05-03T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2023-06-22T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-06-23T17:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-06-28T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-06-28T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-06-30T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-07-06T01:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-08-16T17:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-09-27T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-09-28T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-09-29T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-10-02T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2023-10-16T01:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2023-10-16T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2023-10-27T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2023-10-30T01:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2023-12-22T10:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2023-12-27T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-02-13T14:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2024-02-14T06:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2024-03-01T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-03-04T10:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-03-21T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-03-26T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-04-16T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-05-10T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-05-13T01:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-05-15T13:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-05-16T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-06-06T13:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-06-12T13:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-07-11T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-07-12T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-07-24T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-08-08T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-11-26T02:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2024-11-29T11:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-12-09T18:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2024-12-18T22:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2024-12-19T10:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2025-01-02T22:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-01-03T10:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-01-09T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-01-10T06:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-01-13T06:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-01-21T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-05-06T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-05-06T21:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-07-22T01:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-08-01T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-08-04T01:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-08-04T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-08-07T21:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-11-11T02:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-11-11T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-11-12T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-11-30T22:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-12-01T06:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-12-11T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2025-12-11T22:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-01-29T18:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-02-22T22:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-02-27T14:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-03-10T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-03-19T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-03-23T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-03-24T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-03-26T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-04-07T21:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-04-28T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-04-29T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-04-30T01:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-05-27T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-05-28T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-01T17:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-05T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-08T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-08T21:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-09T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-18T13:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-19T05:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-06-22T01:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-08-07T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-10T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-11T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-12T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-19T17:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-20T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-21T05:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-08-24T09:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-09-03T13:00:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-09-17T01:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-09-27T21:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T09:00:00.000Z",
+    "dir": -1
+   }
+  ]
+ },
+ "mismatched": 0,
+ "firstDifferenceByLayer": {
+  "1": null,
+  "2": null,
+  "3": null,
+  "4": null
+ },
+ "firstLayer": null,
+ "fields": {
+  "engineOn": {
+   "layer": 0,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "headingScore": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 1.4477308241112041e-12,
+   "first": null,
+   "sample": []
+  },
+  "routeScore": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 1.9895196601282805e-12,
+   "first": null,
+   "sample": []
+  },
+  "speedScore": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 8.526512829121202e-14,
+   "first": null,
+   "sample": []
+  },
+  "instantSpeedScore": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 8.526512829121202e-14,
+   "first": null,
+   "sample": []
+  },
+  "fuelScore": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 7.105427357601002e-14,
+   "first": null,
+   "sample": []
+  },
+  "fuelAcceleration": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 5.684341886080802e-14,
+   "first": null,
+   "sample": []
+  },
+  "atrEng": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "htfClose": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "htfMA50": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 6.366462912410498e-12,
+   "first": null,
+   "sample": []
+  },
+  "htfMA200": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 2.1827872842550278e-11,
+   "first": null,
+   "sample": []
+  },
+  "htfATR": {
+   "layer": 1,
+   "compared": 5870,
+   "mismatched": 0,
+   "maxAbs": 1.1368683772161603e-13,
+   "first": null,
+   "sample": []
+  },
+  "events": {
+   "layer": 2,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.code": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.lo": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.hi": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.q": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.code": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.lo": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.hi": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.q": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.code": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.lo": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.hi": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.q": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.code": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.lo": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.hi": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.q": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "obstacleRole": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "nearestObstacleAtr": {
+   "layer": 3,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "lamp": {
+   "layer": 4,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "reason": {
+   "layer": 4,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "heading": {
+   "layer": 4,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "route": {
+   "layer": 4,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "accepted": {
+   "layer": 4,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "start": {
+   "layer": 4,
+   "compared": 5441,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  }
+ },
+ "trace": {},
+ "agreeFrom": {
+  "row": 0,
+  "t": "2023-01-02T22:00:00.000Z",
+  "rows": 5870,
+  "beforeEngineStart": true
+ }
+}

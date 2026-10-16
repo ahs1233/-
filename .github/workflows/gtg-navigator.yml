@@ -1,0 +1,50 @@
+name: GTG Navigator reference
+
+# Standalone job: needs no store database or pnpm workspace. Runs the Navigator
+# reference model tests and fixtures on every change under indicators/gtg-navigator.
+on:
+  push:
+    branches: [main, "claude/**"]
+    paths:
+      - "indicators/gtg-navigator/**"
+      - ".github/workflows/gtg-navigator.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "indicators/gtg-navigator/**"
+      - ".github/workflows/gtg-navigator.yml"
+
+jobs:
+  reference-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Reference tests
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=tap --test-reporter-destination=tap.txt \
+            indicators/gtg-navigator/reference/*.test.mjs
+
+      - name: Result summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### GTG Navigator reference — Node ${{ matrix.node }}"
+            echo "commit: \`${GITHUB_SHA}\` · node: \`$(node --version)\`"
+            echo '```'
+            grep -E '^# (tests|pass|fail|cancelled|skipped|todo)' tap.txt || echo "no TAP output"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

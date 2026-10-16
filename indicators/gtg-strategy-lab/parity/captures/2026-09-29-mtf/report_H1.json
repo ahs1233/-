@@ -1,0 +1,336 @@
+{
+  "replay": {
+    "verdict": "PASS",
+    "emaSeed": "sma",
+    "tf": "H1",
+    "mintick": 0.001,
+    "mode": "feed",
+    "htfStart": {
+      "start": 3096,
+      "t": 1735768800000,
+      "basis": "unique",
+      "compared": 9549,
+      "nextBestBad": 3067,
+      "fullHistoryBad": 5934
+    },
+    "bars": 10311,
+    "W": 3137,
+    "jsStartBar": 5167,
+    "pineFirstEngineRow": 5167,
+    "lowPrecision": [],
+    "runs": {
+      "first": {
+        "fields": {
+          "m_speedScore": {
+            "compared": 10311,
+            "mismatched": 239,
+            "first": {
+              "bar": 1,
+              "t": 1735776000000,
+              "pine": 50,
+              "js": 62.2917039956997
+            }
+          },
+          "m_instantSpeedScore": {
+            "compared": 10311,
+            "mismatched": 237,
+            "first": {
+              "bar": 1,
+              "t": 1735776000000,
+              "pine": 50,
+              "js": 62.2917039956997
+            }
+          },
+          "m_fuelScore": {
+            "compared": 10311,
+            "mismatched": 258,
+            "first": {
+              "bar": 15,
+              "t": 1735826400000,
+              "pine": 50,
+              "js": 55.63867366573031
+            }
+          },
+          "m_htfClose": {
+            "compared": 10308,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_atr": {
+            "compared": 10298,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA14(ticks)": {
+            "compared": 10298,
+            "mismatched": 52,
+            "first": {
+              "bar": 13,
+              "t": 1735819200000,
+              "pine": 2635.014642857143,
+              "js": 2635.795581444364
+            }
+          },
+          "m_headingScore": {
+            "compared": 10290,
+            "mismatched": 94,
+            "first": {
+              "bar": 21,
+              "t": 1735848000000,
+              "pine": 53.59859794759411,
+              "js": 67.98153545741955
+            }
+          },
+          "MA22(ticks)": {
+            "compared": 10290,
+            "mismatched": 98,
+            "first": {
+              "bar": 21,
+              "t": 1735848000000,
+              "pine": 2641.865,
+              "js": 2644.2766224750826
+            }
+          },
+          "headingSign": {
+            "compared": 10290,
+            "mismatched": 8,
+            "first": {
+              "bar": 29,
+              "t": 1735880400000,
+              "pine": 0,
+              "js": 1
+            }
+          },
+          "MA50(ticks)": {
+            "compared": 10262,
+            "mismatched": 223,
+            "first": {
+              "bar": 49,
+              "t": 1736128800000,
+              "pine": 2646.9938,
+              "js": 2644.4631622182865
+            }
+          },
+          "m_htfATR": {
+            "compared": 10258,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA50": {
+            "compared": 10120,
+            "mismatched": 1319,
+            "first": {
+              "bar": 191,
+              "t": 1736834400000,
+              "pine": 2657.2658,
+              "js": 2660.22796301985
+            }
+          },
+          "MA200(ticks)": {
+            "compared": 10112,
+            "mismatched": 823,
+            "first": {
+              "bar": 199,
+              "t": 1736863200000,
+              "pine": 2657.860425,
+              "js": 2659.1978611658437
+            }
+          },
+          "m_routeScore": {
+            "compared": 10101,
+            "mismatched": 1208,
+            "first": {
+              "bar": 210,
+              "t": 1736906400000,
+              "pine": 33.6240243501935,
+              "js": 71.73159791988009
+            }
+          },
+          "m_htfMA50Past": {
+            "compared": 10101,
+            "mismatched": 1319,
+            "first": {
+              "bar": 210,
+              "t": 1736906400000,
+              "pine": 2657.2658,
+              "js": 2660.22796301985
+            }
+          },
+          "routeSign": {
+            "compared": 10101,
+            "mismatched": 107,
+            "first": {
+              "bar": 273,
+              "t": 1737140400000,
+              "pine": 0,
+              "js": 1
+            }
+          },
+          "m_htfMA200": {
+            "compared": 9549,
+            "mismatched": 5919,
+            "first": {
+              "bar": 762,
+              "t": 1739858400000,
+              "pine": 2765.750335,
+              "js": 2791.0457663826633
+            }
+          },
+          "MA1000(ticks)": {
+            "compared": 9312,
+            "mismatched": 5479,
+            "first": {
+              "bar": 999,
+              "t": 1741093200000,
+              "pine": 2800.5289559999997,
+              "js": 2819.9943648427934
+            }
+          },
+          "v_hashSlots": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_hashState": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_eventBits": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_obsState": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          }
+        },
+        "mismatched": 17383
+      },
+      "sma": {
+        "fields": {
+          "m_speedScore": {
+            "compared": 10311,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_instantSpeedScore": {
+            "compared": 10311,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_fuelScore": {
+            "compared": 10311,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfClose": {
+            "compared": 10308,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_atr": {
+            "compared": 10298,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA14(ticks)": {
+            "compared": 10298,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_headingScore": {
+            "compared": 10290,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA22(ticks)": {
+            "compared": 10290,
+            "mismatched": 0,
+            "first": null
+          },
+          "headingSign": {
+            "compared": 10290,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA50(ticks)": {
+            "compared": 10262,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfATR": {
+            "compared": 10258,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA50": {
+            "compared": 10120,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA200(ticks)": {
+            "compared": 10112,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_routeScore": {
+            "compared": 10101,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA50Past": {
+            "compared": 10101,
+            "mismatched": 0,
+            "first": null
+          },
+          "routeSign": {
+            "compared": 10101,
+            "mismatched": 0,
+            "first": null
+          },
+          "m_htfMA200": {
+            "compared": 9549,
+            "mismatched": 0,
+            "first": null
+          },
+          "MA1000(ticks)": {
+            "compared": 9312,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_hashSlots": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_hashState": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_eventBits": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          },
+          "v_obsState": {
+            "compared": 5143,
+            "mismatched": 0,
+            "first": null
+          }
+        },
+        "mismatched": 0
+      }
+    }
+  },
+  "copyVsFrozen": {
+    "verdict": "PASS",
+    "shared": 10311,
+    "compared": 20572,
+    "mismatched": 0,
+    "first": null
+  }
+}

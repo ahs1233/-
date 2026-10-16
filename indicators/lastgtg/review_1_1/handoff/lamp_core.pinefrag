@@ -1,0 +1,69 @@
+// lastgtg review patch 1.1 — pure decision core, shared by B and C.
+// 0 red, 1 yellow, 2 green. Events never bypass current safety gates.
+gtgLampDecision(bool ready, bool chase, bool inside, int heading, int route, bool accUp, bool accDn, bool breaking, bool rejR, bool rejS, bool nearTouch, bool aware, bool exhausted, bool lowFuel, bool mapped, bool room) =>
+    int lamp = 1
+    int reason = 0
+    if not ready
+        reason := 10
+    else if chase
+        lamp := 0
+        reason := 20
+    else if inside
+        lamp := 0
+        reason := 21
+    else if route != 0 and heading != 0 and route != heading
+        lamp := 0
+        reason := 22
+    else if heading == 0
+        reason := 30
+    else if route == 0
+        reason := 31
+    else if accUp and accDn
+        reason := 32
+    else if (accUp and heading < 0) or (accDn and heading > 0)
+        reason := 33
+    else if breaking and not (accUp or accDn)
+        reason := 34
+    else if rejR or rejS
+        reason := rejR and rejS ? 35 : rejR ? 36 : 37
+    else if nearTouch
+        reason := 40
+    else if aware
+        reason := 41
+    else if exhausted
+        reason := 42
+    else if lowFuel
+        reason := 43
+    else if not mapped
+        reason := 44
+    else if not room
+        reason := 45
+    else if heading == route
+        lamp := 2
+        reason := accUp ? 51 : accDn ? 52 : 50
+    [lamp, reason]
+
+gtgLampReason(int reason, int role) =>
+    switch reason
+        10 => "بيانات غير مكتملة"
+        20 => "لا تطارد"
+        21 => role == 1 ? "داخل مقاومة" : role == -1 ? "داخل دعم" : "داخل منطقة"
+        22 => "عكس المسار العام"
+        30 => "بدون اتجاه واضح"
+        31 => "المسار العام غير واضح"
+        32 => "أحداث كسر متعاكسة"
+        33 => "الكسر السابق عكس الاتجاه الحالي"
+        34 => "كسر يحتاج تأكيد"
+        35 => "رفض من الجهتين"
+        36 => "رفض من مقاومة"
+        37 => "ارتداد من دعم"
+        40 => role == 1 ? "مقاومة قريبة" : role == -1 ? "دعم قريب" : "منطقة قريبة"
+        41 => role == 1 ? "مقاومة أمامه" : role == -1 ? "دعم أمامه" : "عائق أمامه"
+        42 => "الزخم يضعف"
+        43 => "الوقود ضعيف"
+        44 => "لم أجد منطقة أمامه"
+        45 => "المساحة المقاسة غير كافية"
+        50 => "الاتجاه متوافق والمساحة كافية"
+        51 => "كسر صاعد مقبول والشروط متحققة"
+        52 => "كسر هابط مقبول والشروط متحققة"
+        => "أدلة مختلطة"

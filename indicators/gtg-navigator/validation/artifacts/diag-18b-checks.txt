@@ -1,0 +1,9 @@
+# 18b rolling diagnostics — static checks on file blob 461ca64a87f6ac2cba904902ff49e6e1778d2477 | node v22.22.2 | 2026-09-28T10:51:14Z
+# pynescript parse of section 18b (syntax only, NOT a TradingView compile): ok
+## negative control 1: acceptBars and rejectBars swapped in v_diagEvt1000
+not ok 17 - C17 rolling diagnostics (18b): window 1000, analyzer masks, field order, validationMode + confirmed gating
+## negative control 2: accept lookback 3 → 4
+not ok 17 - C17 rolling diagnostics (18b): window 1000, analyzer masks, field order, validationMode + confirmed gating
+## negative control 3: open bar counted (barstate.isconfirmed removed from the update gate)
+not ok 17 - C17 rolling diagnostics (18b): window 1000, analyzer masks, field order, validationMode + confirmed gating
+# restored blob 461ca64a87f6ac2cba904902ff49e6e1778d2477

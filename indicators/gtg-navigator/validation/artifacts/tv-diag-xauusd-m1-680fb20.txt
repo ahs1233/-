@@ -1,0 +1,47 @@
+# TradingView cell for 680fb20 (review message 61)
+# Run by GPT in TradingView. Claude did not run TradingView; the text below is what GPT reported.
+# The decode was re-run independently by Claude with validation/tools/decode-diag.mjs at c85f7d2.
+
+code under test      : 680fb2056090f1a686099d6745dabbc8637074db
+artifact HEAD then   : c85f7d2d3efeb295fd71d574d86036bcff8638b2
+Pine blob            : 8cdddd18f15995d4723a64ff1c2f2725cc2daef5 (checked by GPT locally, on GitHub and inside the Pine Editor)
+symbol / timeframe   : OANDA:XAUUSD, 1
+inputs               : validationMode=On, studyExtraBars=5000, strictDebug=Off, capture inputs default (0)
+instance             : fresh install; stale editor (blob 8b137891…, still with v_diag* plots) and duplicate
+                       instances removed before the final reading; GTG_TREE_COUNT=1
+result               : RUNTIME_ERROR_COUNT=0; no RE10140; GTGDIAG table visible on the chart
+
+--- table text as reported ---
+GTGDIAG v1
+BAR=1790597700000
+EVT=146260889788525
+MISMATCH=0
+CAUSAL=1048576000
+INV=0
+
+--- decode (node validation/tools/decode-diag.mjs "<table text>") ---
+bar open time (ms)                 1790597700000  (2026-09-28T12:15:00.000Z)
+breakBars                               109   (109.00 per 1000 warmed bars)
+acceptBars                               88   (88.00 per 1000 warmed bars)
+rejectBars                               70   (70.00 per 1000 warmed bars)
+flipBars                                 24   (24.00 per 1000 warmed bars)
+strongObstacleAlerts                    133   (133.00 per 1000 warmed bars)
+breakAlertMismatch                        0   (0.00 per 1000 warmed bars)
+acceptAlertMismatch                       0   (0.00 per 1000 warmed bars)
+rejectAlertMismatch                       0   (0.00 per 1000 warmed bars)
+flipAlertMismatch                         0   (0.00 per 1000 warmed bars)
+obsEventMismatch                          0   (0.00 per 1000 warmed bars)
+acceptWithoutBreakWithin3Bars             0   (0.00 per 1000 warmed bars)
+flipWithoutAcceptedWithin60Bars           0   (0.00 per 1000 warmed bars)
+warmedConfirmedCount                   1000
+maxInvTotal1000                           0
+maxInvCritical1000                        0
+exit=0
+
+--- scope ---
+One cell only: OANDA:XAUUSD M1, one 1000-bar window ending 2026-09-28 12:15 UTC.
+Not covered here: H1 and other symbols, N2 (validationMode on/off), G2 (Profiler), E20 (Pine vs JS snapshot hashes).
+Side observation for E20/E21: str.tostring(x, "#") printed a 15-digit integer (146260889788525 ≈ 1.46e14)
+in full, without an exponent, and it decodes without error (every field ≤ 1000). This shows the format is
+not scientific at this magnitude; it cannot by itself prove the digits were not rounded (a rounded value can
+still decode). E20 therefore stays NOT_RUN.

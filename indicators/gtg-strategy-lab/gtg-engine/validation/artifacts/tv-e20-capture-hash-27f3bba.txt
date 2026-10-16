@@ -1,0 +1,30 @@
+E20 — Pine hashes vs JS hashes on a full real capture (GTGSNAP v3)
+Build: blob 27f3bba (saved script v23, editor hash checked). Surface: TradingView Desktop over CDP.
+Chart: OANDA:XAUUSD, 1m, mintick 0.001 (META line). Inputs: defaults except captureFrom = 1790625600000
+(2026-09-28 20:00 UTC) and captureTo = 1790629140000 (20:59 UTC). Captured at ~22:00 UTC during the gold break.
+Log source: the study's own Pine Logs store (opened from the legend menu "Pine logs..."), 3587 messages read
+through CDP in log-id order; no screen scraping.
+Capture file: 606862 bytes, sha1 58f2d9ef1621b5a20c24c48941aaaea81a70d388, 3587 lines
+  (META 60, SLOT 240, LVL 2807, TRK 60, RING 240, OBS 60, EV 60, END 60). Kept on the operator PC:
+  Documents\gtg-e20-27f3bba\capture.txt (too large for this repo's artifact budget; the hash identifies it).
+Expected bars: the chart's own bar times in [captureFrom, captureTo]: 60 bars, every minute 20:00–20:59
+  (times.txt, sha1 33cd8bac54e28d40f2ece71f2d910d1bc8b2a2ff).
+Tool: validation/tools/compare-captures.mjs with reference/{capture,snapshot,engine}.mjs fetched from the
+  pushed commit and checked by sha1 against the repo.
+
+Run 1 — reference at 9b46635 (exact BigInt hash arithmetic):
+  capture.txt: bars=60 incomplete=0 missing=0 unexpected=0 pineVsJsHashMismatch=60
+  RESULT FAIL (60)   — every bar, both hashSlots and hashState.
+  Last bar 1790629140000: pine=(1426211986,1269755286) js=(1685210918,1626769583).
+Diagnosis: the SLOT fields of the last bar hashed with float64 arithmetic give 1426211986 = Pine's value;
+  exact integers give 1685210918. Pine evaluates the hash arithmetic in float64 (r*r > 2^53 is rounded).
+Fix (reference only, 759b61c): snapshot.mjs hashStep in Number arithmetic; S11 vectors from Python floats;
+  S12 pins this bar (1426211986) as a TradingView oracle.
+
+Run 2 — reference at 759b61c:
+  capture.txt: bars=60 incomplete=0 missing=0 unexpected=0 pineVsJsHashMismatch=0
+  RESULT OK
+
+Result: E20 VERIFIED on 60 real bars: capture complete, coverage exact, Pine hash = JS hash for both levels.
+Scope: this checks the hash code on real captured fields (the Pine encoding and arithmetic), not a JS engine
+replay of the real bars.

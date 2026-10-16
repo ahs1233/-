@@ -1,0 +1,2650 @@
+//@version=6
+// [MEASURE] GTG Engine — measurement copy of GTG Navigator v0.4.7 (blob 0c7cbe3).
+// GTG Strategy Lab, TRADE_CONTRACT §1.2. Changes against the frozen file, all tagged
+// [MEASURE]: the indicator title, the three optional debug marker plots and 30 diagnostic
+// v_* plots are removed (plot budget, F-005), and section 19 adds data-window exports.
+// No computation is changed.
+indicator(
+     "GTG Engine v0.4.7 — measurement copy (export only)",
+     shorttitle = "GTG Engine m",
+     overlay = true,
+     max_labels_count = 20,
+     max_lines_count = 10,
+     max_boxes_count = 10,
+     behind_chart = false
+)
+
+// ============================================================================
+// GTG NAVIGATOR v0.4.7 — STRUCTURAL ZONE ENGINE
+// Route + Tactical Heading + Speed + Fuel + HUD (carried over from v0.4.6),
+// with the Zone Engine rewritten to the frozen v0.4.7-B architecture:
+//
+//   Phase 1  Structural memory: persistent Level pools (local + anchors) with a
+//            per-level state machine (ACTIVE / BREAKING / BROKEN / FLIP / DEAD)
+//            and test episodes (mitigation vs rejection evidence).
+//   Phase 2  Deterministic zone builder: live levels sorted by lo, connected
+//            components, component packing, MTF event groups, gateQ/displayQ.
+//   Phase 3  Spatial selection: global progressive horizon R* / R_eff, nearest
+//            first, containing zone, Q_enter / Q_stay through slot entry keys.
+//   Slots    Four persistent SlotStates (scalars) + eight slot-owned int key arrays.
+//
+// Free-data only: OHLC, standard volume/tick activity when available, MTF price.
+// 0..100 values are relative strengths, NOT win probabilities. Zones are
+// obstacles / areas of interest, NOT targets. Alerts are state changes, NOT
+// trade calls.
+//
+// Engine rules: zone geometry and slots change on confirmed bars only; every
+// volatility measure inside the engine is finite-memory (SMA of true range);
+// no history operator on UDT/collection references; no varip.
+// ============================================================================
+
+// ============================================================================
+// 1. CONFIG
+// ============================================================================
+
+groupGeneral = "عام"
+showDashboard = input.bool(true, "إظهار لوحة الملاحة", group = groupGeneral, display = display.none)
+dashboardMode = input.string("COMPACT", "وضع اللوحة", options = ["COMPACT", "STANDARD", "DEBUG"], group = groupGeneral, display = display.none)
+dashboardTextSize = input.string("TINY", "حجم خط اللوحة", options = ["TINY", "SMALL", "NORMAL"], group = groupGeneral, display = display.none)
+showMAs = input.bool(true, "إظهار المتوسطات", group = groupGeneral, display = display.none)
+showFastMAs = input.bool(false, "إظهار MA14 / MA22", group = groupGeneral, display = display.none)
+showObstacleMarkers = input.bool(false, "إظهار مراكز العوائق — Debug", group = groupGeneral, display = display.none)
+showSmartZones = input.bool(true, "إظهار خريطة المناطق الذكية", group = groupGeneral, display = display.none)
+zonesPerSide = input.int(2, "عدد المناطق فوق/تحت السعر", minval = 1, maxval = 2, group = groupGeneral, display = display.none)
+autoZoneSpan = input.bool(true, "امتداد المناطق تلقائي حسب الفريم", group = groupGeneral, display = display.none)
+manualZoneForwardBars = input.int(36, "امتداد المنطقة للأمام / شموع", minval = 8, maxval = 160, group = groupGeneral, display = display.none)
+manualZoneBackBars = input.int(36, "امتداد المنطقة للخلف / شموع", minval = 8, maxval = 200, group = groupGeneral, display = display.none)
+showZoneLabels = input.bool(true, "إظهار اسم المنطقة", group = groupGeneral, display = display.none)
+
+// Moving-average sensors.
+groupMA = "حساسات المتوسطات"
+maType = input.string("EMA", "نوع المتوسط", options = ["EMA", "SMA", "WMA"], group = groupMA, display = display.none)
+
+// Calibration / ranking.
+groupCalibration = "المعايرة"
+rankMode = input.string("AUTO", "نافذة المعايرة", options = ["AUTO", "MANUAL"], group = groupCalibration, display = display.none)
+manualRankLen = input.int(300, "نافذة المعايرة اليدوية", minval = 80, maxval = 2000, group = groupCalibration, display = display.none)
+normalLowPct = input.float(25.0, "بداية النطاق الطبيعي %", minval = 5, maxval = 45, step = 1, group = groupCalibration, display = display.none)
+normalHighPct = input.float(75.0, "نهاية النطاق الطبيعي %", minval = 55, maxval = 95, step = 1, group = groupCalibration, display = display.none)
+
+// Speedometer.
+groupSpeed = "عداد السرعة"
+speedSmooth = input.int(3, "تنعيم السرعة اللحظية", minval = 1, maxval = 20, group = groupSpeed, display = display.none)
+speedFlowMode = input.string("AUTO", "نافذة سرعة التدفق", options = ["AUTO", "MANUAL"], group = groupSpeed, display = display.none)
+manualSpeedFlowLen = input.int(5, "نافذة التدفق اليدوية", minval = 2, maxval = 20, group = groupSpeed, display = display.none)
+speedAccelLookback = input.int(3, "نافذة التسارع", minval = 1, maxval = 20, group = groupSpeed, display = display.none)
+speedSlowThreshold = input.float(25.0, "سرعة منخفضة", minval = 5, maxval = 45, step = 1, group = groupSpeed, display = display.none)
+speedFastThreshold = input.float(70.0, "سرعة مرتفعة", minval = 50, maxval = 90, step = 1, group = groupSpeed, display = display.none)
+speedExtremeThreshold = input.float(90.0, "سرعة استثنائية", minval = 75, maxval = 99, step = 1, group = groupSpeed, display = display.none)
+
+// Local heading.
+groupHeading = "الاتجاه الحالي"
+headingLookback = input.int(14, "نافذة كفاءة المسار", minval = 5, maxval = 100, group = groupHeading, display = display.none)
+headingSlopeLookback = input.int(8, "نافذة الميل", minval = 2, maxval = 50, group = groupHeading, display = display.none)
+headingClearThreshold = input.float(20.0, "حد اتجاه واضح", minval = 5, maxval = 45, step = 1, group = groupHeading, display = display.none)
+headingStrongThreshold = input.float(60.0, "حد اتجاه قوي", minval = 40, maxval = 90, step = 1, group = groupHeading, display = display.none)
+headingDeadZone = input.float(15.0, "منطقة عدم الحسم", minval = 5, maxval = 25, step = 1, group = groupHeading, display = display.none)
+
+// Macro route / HTF.
+groupRoute = "المسار العام"
+htfMode = input.string("AUTO", "وضع الإطار الأعلى", options = ["AUTO", "MANUAL"], group = groupRoute, display = display.none)
+manualHTF = input.timeframe("240", "الإطار الأعلى اليدوي", group = groupRoute, display = display.none)
+routeClearThreshold = input.float(22.0, "حد المسار الواضح", minval = 5, maxval = 45, step = 1, group = groupRoute, display = display.none)
+routeStrongThreshold = input.float(62.0, "حد المسار القوي", minval = 40, maxval = 90, step = 1, group = groupRoute, display = display.none)
+
+// Fuel / thrust.
+groupFuel = "عداد الوقود"
+fuelSmooth = input.int(3, "تنعيم الوقود", minval = 1, maxval = 20, group = groupFuel, display = display.none)
+fuelBaselineLen = input.int(50, "خط أساس النشاط", minval = 20, maxval = 300, group = groupFuel, display = display.none)
+fuelLowThreshold = input.float(25.0, "وقود منخفض", minval = 5, maxval = 50, step = 1, group = groupFuel, display = display.none)
+fuelHighThreshold = input.float(70.0, "وقود مرتفع", minval = 50, maxval = 90, step = 1, group = groupFuel, display = display.none)
+fuelExtremeThreshold = input.float(90.0, "وقود استثنائي", minval = 75, maxval = 99, step = 1, group = groupFuel, display = display.none)
+
+// Obstacle awareness (consumers of the zone map).
+groupMap = "الوعي بالعوائق"
+nearObstacleAtr = input.float(0.35, "اعتبار العائق قريبًا / ATR", minval = 0.05, maxval = 1.50, step = 0.05, group = groupMap, display = display.none)
+awarenessObstacleAtr = input.float(0.85, "مسافة وعي الطريق بالعائق / ATR", minval = 0.30, maxval = 2.50, step = 0.05, group = groupMap, display = display.none)
+noChaseAtr = input.float(0.30, "منطقة منع المطاردة / ATR", minval = 0.05, maxval = 1.00, step = 0.05, group = groupMap, display = display.none)
+noChaseFuelMax = input.float(65.0, "أقصى وقود عند منع المطاردة", minval = 20, maxval = 90, step = 1, group = groupMap, display = display.none)
+includeMA200 = input.bool(true, "MA200 كتلاقٍ بصري فقط", group = groupMap, display = display.none)
+includeMA1000 = input.bool(true, "MA1000 كتلاقٍ بصري فقط", group = groupMap, display = display.none)
+usePsychLevels = input.bool(true, "المستويات النفسية للكريبتو كتلاقٍ بصري فقط", group = groupMap, display = display.none)
+
+// Zone Engine v0.4.7 — initial values from the frozen architecture (G5 calibrates them).
+groupEngine = "محرك المناطق v0.4.7"
+qEnter = input.float(55.0, "Q_enter — عتبة دخول الخانة", minval = 0, maxval = 100, step = 1, group = groupEngine, display = display.none)
+qStay = input.float(45.0, "Q_stay — عتبة البقاء في الخانة", minval = 0, maxval = 100, step = 1, group = groupEngine, display = display.none)
+kLocal = input.float(8.0, "k_L — أفق البنية المحلية / ATR", minval = 2.0, maxval = 40.0, step = 0.5, group = groupEngine, display = display.none)
+kA1 = input.float(2.5, "k_1 — مدى A1 / ATR_A1", minval = 0.5, maxval = 10.0, step = 0.25, group = groupEngine, display = display.none)
+kA2 = input.float(2.0, "k_2 — مدى A2 / ATR_A2", minval = 0.5, maxval = 10.0, step = 0.25, group = groupEngine, display = display.none)
+kTact = input.float(6.0, "H_tact — الأفق التكتيكي / ATR", minval = 1.0, maxval = 20.0, step = 0.5, group = groupEngine, display = display.none)
+mergeGapK = input.float(0.35, "mergeGap / ATR", minval = 0.05, maxval = 1.0, step = 0.01, group = groupEngine, display = display.none)
+maxWidthK = input.float(1.0, "أقصى عرض للمنطقة / ATR", minval = 0.3, maxval = 3.0, step = 0.05, group = groupEngine, display = display.none)
+mitAlpha = input.float(0.6, "α — معامل الاستهلاك", minval = 0.1, maxval = 1.0, step = 0.05, group = groupEngine, display = display.none)
+rejAtrK = input.float(1.0, "R_rej — ابتعاد الرفض الكامل / ATR", minval = 0.2, maxval = 3.0, step = 0.1, group = groupEngine, display = display.none)
+breakBufK = input.float(0.10, "b — هامش الكسر / ATR", minval = 0.01, maxval = 0.5, step = 0.01, group = groupEngine, display = display.none)
+dispBodyK = input.float(0.80, "d — جسم الاندفاع / ATR", minval = 0.3, maxval = 2.0, step = 0.05, group = groupEngine, display = display.none)
+legEff = input.float(0.55, "e — كفاءة ساق الاندفاع", minval = 0.2, maxval = 0.95, step = 0.05, group = groupEngine, display = display.none)
+eventEpsK = input.float(0.15, "ε — تطابق الحدث بين الفريمات / ATR الأعلى", minval = 0.02, maxval = 0.5, step = 0.01, group = groupEngine, display = display.none)
+strongQ = input.float(72.0, "حد المنطقة القوية", minval = 40, maxval = 95, step = 1, group = groupEngine, display = display.none)
+mediumQ = input.float(48.0, "حد المنطقة المتوسطة", minval = 20, maxval = 80, step = 1, group = groupEngine, display = display.none)
+useDOZ = input.bool(true, "Displacement Origin Zones (DOZ)", group = groupEngine, display = display.none)
+
+groupDebug = "DEBUG"
+strictDebug = input.bool(false, "strictDebug — إيقاف المؤشر عند كسر invariant حرج", group = groupDebug, display = display.none)
+validationMode = input.bool(false, "validationMode — مقاييس التحقق في Data Window فقط", group = groupDebug, display = display.none)
+studyExtraBars = input.int(0, "studyExtraBars — شموع إحماء إضافية للدراسة (فعّالة فقط مع validationMode)", minval = 0, maxval = 20000, group = groupDebug, display = display.none)
+captureFrom = input.time(0, "captureFrom — بداية التقاط snapshot كامل في Pine Logs (0 = معطّل)", group = groupDebug, display = display.none)
+captureTo = input.time(0, "captureTo — نهاية الالتقاط (مدى قصير فقط)", group = groupDebug, display = display.none)
+
+// Input contract (R3): Q_stay is the lower-or-equal hold threshold of the Q_enter /
+// Q_stay hysteresis pair. With Q_stay > Q_enter a held zone fails its own hold test
+// and is re-admitted on the next bar (flicker). Refused on the first bar, never clamped.
+if barstate.isfirst and qStay > qEnter
+    runtime.error("GTG Navigator: Q_stay (" + str.tostring(qStay) + ") يجب ألا تتجاوز Q_enter (" + str.tostring(qEnter) + "). عتبة البقاء أقل من عتبة الدخول أو تساويها.")
+
+// Input contracts (R3b): a text that says "strong" must never sit on a neutral sign
+// (strict: the text uses >= strong, the sign uses > clear), and the extreme speed
+// colour / Speed Burst must never sit on a class below "استثنائية" (equality allowed).
+if barstate.isfirst and headingStrongThreshold <= headingClearThreshold
+    runtime.error("GTG Navigator: حد الاتجاه القوي (" + str.tostring(headingStrongThreshold) + ") يجب أن يكون أكبر من حد الاتجاه الواضح (" + str.tostring(headingClearThreshold) + ").")
+if barstate.isfirst and routeStrongThreshold <= routeClearThreshold
+    runtime.error("GTG Navigator: حد المسار القوي (" + str.tostring(routeStrongThreshold) + ") يجب أن يكون أكبر من حد المسار الواضح (" + str.tostring(routeClearThreshold) + ").")
+if barstate.isfirst and speedExtremeThreshold < speedFastThreshold
+    runtime.error("GTG Navigator: حد السرعة الاستثنائية (" + str.tostring(speedExtremeThreshold) + ") يجب ألا يقل عن حد السرعة المرتفعة (" + str.tostring(speedFastThreshold) + ").")
+
+
+// ============================================================================
+// 2. HELPERS
+// ============================================================================
+
+getMA(float src, int len) =>
+    switch maType
+        "EMA" => ta.ema(src, len)
+        "SMA" => ta.sma(src, len)
+        => ta.wma(src, len)
+
+clamp100(float value) =>
+    math.max(0.0, math.min(100.0, value))
+
+clampSigned(float value) =>
+    math.max(-1.0, math.min(1.0, value))
+
+fmtPrice(float value) =>
+    str.tostring(value, format.mintick)
+
+fmtScore(float value) =>
+    str.tostring(math.round(value)) + "/100"
+
+fmtZone(float lo, float hi) =>
+    math.abs(hi - lo) <= syminfo.mintick * 2.0 ? fmtPrice((lo + hi) * 0.5) : fmtPrice(lo) + "–" + fmtPrice(hi)
+
+strengthText(float score) =>
+    score >= strongQ ? "قوي" : score >= mediumQ ? "متوسط" : "ضعيف"
+
+dashSize() =>
+    dashboardTextSize == "NORMAL" ? size.normal : dashboardTextSize == "SMALL" ? size.small : size.tiny
+
+// Chart timeframe expressed in minutes. Seconds charts return values below 1,
+// so they share the M1 profile instead of being read through timeframe.multiplier.
+chartMinutes() =>
+    timeframe.in_seconds() / 60.0
+
+autoHTF() =>
+    string result = "D"
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? "15" :
+             m <= 5 ? "60" :
+             m <= 15 ? "60" :
+             m <= 60 ? "240" :
+             m <= 240 ? "D" : "D"
+    else if timeframe.isdaily
+        result := "W"
+    else if timeframe.isweekly
+        result := "M"
+    else
+        result := "3M"
+    result
+
+autoRankLength() =>
+    int result = 240
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? 1000 :
+             m <= 5 ? 500 :
+             m <= 15 ? 320 :
+             m <= 60 ? 240 :
+             m <= 240 ? 180 : 160
+    else if timeframe.isdaily
+        result := 180
+    else
+        result := 120
+    result
+
+autoSpeedFlowLen() =>
+    int result = 4
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? 8 :
+             m <= 5 ? 6 :
+             m <= 15 ? 5 :
+             m <= 60 ? 4 : 3
+    else
+        result := 3
+    result
+
+routeHtfWeight() =>
+    float result = 0.50
+    if timeframe.isintraday
+        float m = chartMinutes()
+        result := m <= 1 ? 0.70 :
+             m <= 5 ? 0.65 :
+             m <= 15 ? 0.60 :
+             m <= 60 ? 0.55 :
+             m <= 240 ? 0.45 : 0.45
+    else if timeframe.isdaily
+        result := 0.40
+    else if timeframe.isweekly
+        result := 0.35
+    else
+        result := 0.30
+    result
+
+// Distance from current price to a zone. Returns 0 when price is inside it.
+zoneDistance(float lo, float hi) =>
+    close < lo ? lo - close : close > hi ? close - hi : 0.0
+
+autoPsychStep(float price) =>
+    price >= 100000 ? 10000.0 :
+     price >= 50000 ? 5000.0 :
+     price >= 10000 ? 1000.0 :
+     price >= 1000 ? 500.0 :
+     price >= 100 ? 50.0 :
+     price >= 10 ? 5.0 : 1.0
+
+
+// 3. CORE SENSORS
+// ============================================================================
+
+
+ma14 = getMA(close, 14)
+ma22 = getMA(close, 22)
+ma50 = getMA(close, 50)
+ma200 = getMA(close, 200)
+ma1000 = getMA(close, 1000)
+
+atr = ta.atr(14)
+safeAtr = math.max(atr, syminfo.mintick)
+
+prevClose = nz(close[1], close)
+trueRange = math.max(high - low, math.max(math.abs(high - prevClose), math.abs(low - prevClose)))
+bodySize = math.abs(close - open)
+barRange = math.max(high - low, syminfo.mintick)
+bodyQuality = bodySize / barRange
+bodyAtr = bodySize / safeAtr
+
+rankLen = rankMode == "AUTO" ? autoRankLength() : manualRankLen
+resolvedHTF = htfMode == "AUTO" ? autoHTF() : manualHTF
+
+if barstate.isfirst and timeframe.in_seconds(resolvedHTF) <= timeframe.in_seconds()
+    runtime.error("GTG Navigator: الإطار الأعلى يجب أن يكون أعلى من إطار الرسم الحالي.")
+
+// Confirmed HTF data only (route layer). All requested series are offset by one
+// HTF bar so realtime values use the latest fully closed higher-timeframe bar.
+// ta.atr stays here: the route is outside the Zone Engine.
+[htfClose, htfMA50, htfMA200, htfMA50Past, htfATR] = request.security(
+     syminfo.tickerid,
+     resolvedHTF,
+     [close[1], getMA(close, 50)[1], getMA(close, 200)[1], getMA(close, 50)[6], ta.atr(14)[1]],
+     lookahead = barmerge.lookahead_on
+)
+
+safeHtfAtr = math.max(htfATR, syminfo.mintick)
+
+// Asset awareness. The measurement core is scale-free; context labels adapt by asset type.
+string assetType = syminfo.type
+bool isCrypto = assetType == "crypto"
+string assetLabel = syminfo.ticker
+
+// Session/activity label is context only. It never claims centralized volume.
+bool sessionRelevant = timeframe.isintraday and timeframe.in_seconds() <= 3600
+bool inLondon = sessionRelevant and not na(time(timeframe.period, "0700-1600:23456", "Europe/London"))
+bool inNewYork = sessionRelevant and not na(time(timeframe.period, "0800-1700:23456", "America/New_York"))
+bool inAsia = sessionRelevant and not na(time(timeframe.period, "0900-1700:23456", "Asia/Tokyo"))
+string sessionText = not timeframe.isintraday ? "HTF" :
+     isCrypto ? (not sessionRelevant ? "كريبتو 24/7" : inLondon and inNewYork ? "كريبتو 24/7 • أوروبا + أمريكا" : inNewYork ? "كريبتو 24/7 • نشاط أمريكا" : inLondon ? "كريبتو 24/7 • نشاط أوروبا" : inAsia ? "كريبتو 24/7 • نشاط آسيا" : "كريبتو 24/7") :
+     not sessionRelevant ? "HTF" : inLondon and inNewYork ? "لندن + نيويورك" : inLondon ? "لندن" : inNewYork ? "نيويورك" : inAsia ? "آسيا" : "خارج الجلسات الرئيسية"
+
+
+// ============================================================================
+// 4. SPEED ENGINE — FLOW SPEED + INSTANT SPEED
+// ============================================================================
+
+// "Instant" answers how fast the current bar is moving.
+// "Flow" answers how fast the recent stream of bars is moving.
+// The dashboard uses Flow Speed so one quiet bar does not collapse the gauge.
+closeStep = math.abs(close - prevClose)
+barTravel = 0.70 * closeStep + 0.30 * trueRange
+instantSpeedRaw = ta.ema(barTravel, speedSmooth)
+speedFlowLen = speedFlowMode == "AUTO" ? autoSpeedFlowLen() : manualSpeedFlowLen
+flowSpeedRaw = ta.ema(instantSpeedRaw, speedFlowLen)
+
+instantSpeedRankRaw = ta.percentrank(instantSpeedRaw, rankLen)
+flowSpeedRankRaw = ta.percentrank(flowSpeedRaw, rankLen)
+
+flowFallbackBase = ta.ema(flowSpeedRaw, math.min(rankLen, 50))
+flowFallback = flowFallbackBase > 0 ? clamp100(50.0 * flowSpeedRaw / flowFallbackBase) : 50.0
+speedScore = nz(flowSpeedRankRaw, flowFallback)
+instantSpeedScore = nz(instantSpeedRankRaw, speedScore)
+
+// Natural band is based on FLOW speed, not one bar.
+speedNaturalLow = ta.percentile_nearest_rank(flowSpeedRaw, rankLen, normalLowPct)
+speedNaturalHigh = ta.percentile_nearest_rank(flowSpeedRaw, rankLen, normalHighPct)
+
+speedAcceleration = speedScore - nz(speedScore[speedAccelLookback], speedScore)
+string speedClass = speedScore < speedSlowThreshold ? "بطيئة" : speedScore < speedFastThreshold ? "طبيعية" : speedScore < speedExtremeThreshold ? "سريعة" : "استثنائية"
+string speedTrend = speedAcceleration > 5 ? "↑ تتسارع" : speedAcceleration < -5 ? "↓ تتباطأ" : "→ ثابتة"
+
+
+// ============================================================================
+// 5. TACTICAL HEADING — WHERE PRICE IS POINTING NOW
+// ============================================================================
+
+// Shorter horizons on LTF prevent a strong current push from being diluted by
+// older chop. Higher timeframes keep the original, slower structural windows.
+int headingEffLen = headingLookback
+int headingSlopeEffLen = headingSlopeLookback
+int microLen = 3
+if timeframe.isintraday
+    float hm = chartMinutes()
+    headingEffLen := hm <= 1 ? math.min(headingLookback, 8) : hm <= 5 ? math.min(headingLookback, 10) : hm <= 15 ? math.min(headingLookback, 12) : headingLookback
+    headingSlopeEffLen := hm <= 1 ? math.min(headingSlopeLookback, 4) : hm <= 5 ? math.min(headingSlopeLookback, 5) : hm <= 15 ? math.min(headingSlopeLookback, 6) : headingSlopeLookback
+    microLen := hm <= 1 ? 3 : hm <= 5 ? 3 : hm <= 15 ? 4 : hm <= 60 ? 5 : 6
+else
+    microLen := timeframe.isdaily ? 3 : 2
+
+absStep = math.abs(close - prevClose)
+pathTravel = ta.sma(absStep, headingEffLen) * headingEffLen
+netDisplacement = close - close[headingEffLen]
+signedEfficiency = pathTravel > 0 ? clampSigned(netDisplacement / pathTravel) : 0.0
+
+localEma = ta.ema(close, 14)
+localSlopeNorm = (localEma - localEma[headingSlopeEffLen]) / (safeAtr * headingSlopeEffLen)
+localSlopeNorm := clampSigned(localSlopeNorm * 2.5)
+
+microMoveNorm = (close - close[microLen]) / (safeAtr * microLen)
+microMoveNorm := clampSigned(microMoveNorm * 3.0)
+fastEma = ta.ema(close, 5)
+fastSlopeNorm = (fastEma - fastEma[microLen]) / (safeAtr * microLen)
+fastSlopeNorm := clampSigned(fastSlopeNorm * 2.5)
+
+float maStructure = ma14 > ma22 and ma22 > ma50 ? 1.0 :
+     ma14 < ma22 and ma22 < ma50 ? -1.0 :
+     ma14 > ma50 ? 0.35 : ma14 < ma50 ? -0.35 : 0.0
+
+// Tactical heading excludes HTF context to prevent double counting.
+// Micro displacement and fast slope make LTF direction responsive without using speed itself.
+headingVector =
+     0.38 * signedEfficiency +
+     0.24 * localSlopeNorm +
+     0.23 * microMoveNorm +
+     0.15 * maStructure
+
+headingScore = 100.0 * clampSigned(headingVector)
+headingStrength = math.abs(headingScore)
+int headingSign = headingScore > headingClearThreshold ? 1 : headingScore < -headingClearThreshold ? -1 : 0
+int microSign = microMoveNorm > 0.18 ? 1 : microMoveNorm < -0.18 ? -1 : 0
+int tacticalSign = headingSign != 0 ? headingSign : headingStrength > headingDeadZone ? (headingScore > 0 ? 1 : -1) : (math.abs(microMoveNorm) > 0.32 ? microSign : 0)
+
+string headingText = headingScore >= headingStrongThreshold ? "↑ صاعد بقوة" :
+     headingScore > headingClearThreshold ? "↗ صاعد" :
+     headingScore <= -headingStrongThreshold ? "↓ هابط بقوة" :
+     headingScore < -headingClearThreshold ? "↘ هابط" :
+     headingStrength <= headingDeadZone ? "→ غير حاسم" :
+     headingScore > 0 ? "↗ ميل صاعد ضعيف" : "↘ ميل هابط ضعيف"
+
+
+// ============================================================================
+// 6. MACRO ROUTE — ADAPTIVE CURRENT-TF + HTF STRUCTURE
+// ============================================================================
+
+// HTF structure
+float htfStructure = htfClose > htfMA50 and htfMA50 > htfMA200 ? 1.0 :
+     htfClose < htfMA50 and htfMA50 < htfMA200 ? -1.0 :
+     htfClose > htfMA200 ? 0.45 : htfClose < htfMA200 ? -0.45 : 0.0
+
+htfMA50SlopeNorm = (htfMA50 - htfMA50Past) / (safeHtfAtr * 5.0)
+htfMA50SlopeNorm := clampSigned(htfMA50SlopeNorm * 2.5)
+htfRouteVector = 0.70 * htfStructure + 0.30 * htfMA50SlopeNorm
+
+// Current-chart structural route. This stops D1/H4 from being dominated by a stale HTF.
+float currentStructure = close > ma50 and ma50 > ma200 ? 1.0 :
+     close < ma50 and ma50 < ma200 ? -1.0 :
+     close > ma200 ? 0.45 : close < ma200 ? -0.45 : 0.0
+
+currentMA50SlopeNorm = (ma50 - ma50[5]) / (safeAtr * 5.0)
+currentMA50SlopeNorm := clampSigned(currentMA50SlopeNorm * 2.5)
+currentRouteVector = 0.70 * currentStructure + 0.30 * currentMA50SlopeNorm
+
+htfWeight = routeHtfWeight()
+currentWeight = 1.0 - htfWeight
+routeVector = htfWeight * htfRouteVector + currentWeight * currentRouteVector
+routeScore = 100.0 * clampSigned(routeVector)
+routeStrength = math.abs(routeScore)
+int routeSign = routeScore > routeClearThreshold ? 1 : routeScore < -routeClearThreshold ? -1 : 0
+
+string routeText = routeScore >= routeStrongThreshold ? "↑ صاعد بقوة" :
+     routeScore > routeClearThreshold ? "↗ صاعد" :
+     routeScore <= -routeStrongThreshold ? "↓ هابط بقوة" :
+     routeScore < -routeClearThreshold ? "↘ هابط" : "→ غير حاسم"
+
+
+// ============================================================================
+// 7. FUEL ENGINE — PARTICIPATION / THRUST, CALIBRATED BY PERCENT-RANK
+// ============================================================================
+
+volumeBaseline = ta.sma(volume, fuelBaselineLen)
+volumeAvailable = not na(volume) and not na(volumeBaseline) and volumeBaseline > 0 and volume > 0
+volumeRelative = volumeAvailable ? volume / volumeBaseline : 1.0
+
+rangeBaseline = ta.ema(trueRange, fuelBaselineLen)
+rangeRelative = rangeBaseline > 0 ? trueRange / rangeBaseline : 1.0
+
+// Directional persistence answers whether bars are repeatedly pushing one way.
+barDirection = close > prevClose ? 1.0 : close < prevClose ? -1.0 : 0.0
+persistence = math.abs(ta.ema(barDirection, 5))
+
+// Fuel is deliberately not the same thing as speed. Range has a smaller weight;
+// participation, persistence and body thrust dominate the proxy.
+fuelRaw = volumeAvailable ?
+     0.40 * math.min(volumeRelative, 3.0) +
+     0.15 * math.min(rangeRelative, 3.0) +
+     0.20 * math.min(bodyAtr, 2.0) +
+     0.15 * persistence +
+     0.10 * math.abs(signedEfficiency) :
+     0.25 * math.min(rangeRelative, 3.0) +
+     0.30 * math.min(bodyAtr, 2.0) +
+     0.25 * persistence +
+     0.20 * math.abs(signedEfficiency)
+
+fuelRawSmooth = ta.ema(fuelRaw, fuelSmooth)
+fuelRankRaw = ta.percentrank(fuelRawSmooth, rankLen)
+fuelFallbackBase = ta.ema(fuelRawSmooth, math.min(rankLen, 50))
+fuelFallback = fuelFallbackBase > 0 ? clamp100(50.0 * fuelRawSmooth / fuelFallbackBase) : 50.0
+fuelScore = nz(fuelRankRaw, fuelFallback)
+
+fuelAcceleration = fuelScore - nz(fuelScore[speedAccelLookback], fuelScore)
+string fuelClass = fuelScore < fuelLowThreshold ? "منخفض" : fuelScore < fuelHighThreshold ? "طبيعي" : fuelScore < fuelExtremeThreshold ? "مرتفع" : "استثنائي"
+string fuelTrend = fuelAcceleration > 5 ? "↑ يزيد" : fuelAcceleration < -5 ? "↓ ينخفض" : "→ ثابت"
+string fuelSource = volumeAvailable ? "نشاط حجمي/تيك" : "بديل نشاط سعري"
+
+
+// ============================================================================
+// 8. ZONE ENGINE — FOUNDATION
+// Bounded integer enumerations, profiles, finite-memory ATR, types, keys.
+// ============================================================================
+
+// Integer constants (not Pine enums) because the member key is built from
+// them arithmetically. Every value range below is closed and documented.
+SRC_SWING = 0
+SRC_DOZ = 1
+SRC_ANCHOR = 2
+TF_LOCAL = 0
+TF_A1 = 1
+TF_A2 = 2
+TYP_HIGH = 0
+TYP_LOW = 1
+ST_ACTIVE = 0
+ST_BREAKING = 1
+ST_BROKEN = 2
+ST_FLIP = 3
+ST_DEAD = 4
+SIDE_BELOW = -1
+SIDE_CONTAIN = 0
+SIDE_ABOVE = 1
+
+// memberKey = birthTime × KEY_BASE + disc,   disc = src·6 + tfRank·2 + typ
+// src ∈ [0,2], tfRank ∈ [0,2], typ ∈ [0,1]  ⇒  disc ∈ [0,17] ⊂ [0, KEY_BASE).
+// Because 0 ≤ disc < KEY_BASE, birthTime = floor(key / KEY_BASE) and
+// disc = key mod KEY_BASE, so distinct (birthTime, src, tfRank, typ) tuples can
+// never share a key. birthTime is epoch ms (< 2^42), so key < 2^47: well inside
+// Pine's 64-bit int. Keys are int end to end (fields, arrays, equality tests).
+KEY_BASE = 32
+EMPTY_KEY = -1
+LOCAL_CAP = 48
+ANCHOR_FEED_MAX = 6
+ZONE_CAP = 64
+ATR_ENG_LEN = 20
+ANCHOR_PIVOT_LEN = 3
+RING_LEN = 64
+L_ENTRY = 40
+N_LEG = 10
+M_ORIGIN = 3
+BREAK_WINDOW = 3
+
+// Timeframe profiles. The relationship chart < A1 < A2 is asserted on the first bar.
+float tfMin = chartMinutes()
+int profClass = timeframe.isintraday ? (tfMin <= 1 ? 0 : tfMin <= 5 ? 1 : tfMin <= 15 ? 2 : tfMin <= 60 ? 3 : 4) : timeframe.isdaily ? 5 : timeframe.isweekly ? 6 : 7
+string a1Tf = profClass == 0 ? "5" : profClass == 1 ? "15" : profClass == 2 ? "60" : profClass == 3 ? "240" : profClass == 4 ? "D" : profClass == 5 ? "W" : profClass == 6 ? "M" : "3M"
+string a2Tf = profClass == 0 ? "15" : profClass == 1 ? "60" : profClass == 2 ? "240" : profClass == 3 ? "D" : profClass == 4 ? "W" : profClass == 5 ? "M" : profClass == 6 ? "3M" : "12M"
+int pivotLen = profClass == 0 ? 3 : profClass == 1 ? 4 : 5
+int maxAgeLocal = profClass == 0 ? 720 : profClass == 1 ? 576 : profClass == 2 ? 480 : profClass == 3 ? 360 : profClass == 4 ? 270 : profClass == 5 ? 250 : profClass == 6 ? 156 : 60
+int flipWindow = profClass == 0 ? 60 : profClass == 1 ? 48 : profClass == 2 ? 48 : profClass == 3 ? 72 : profClass == 4 ? 42 : profClass == 5 ? 20 : profClass == 6 ? 12 : 6
+int maxAgeA1 = 96
+int maxAgeA2 = 64
+int chartSec = timeframe.in_seconds()
+int a1Sec = timeframe.in_seconds(a1Tf)
+int a2Sec = timeframe.in_seconds(a2Tf)
+
+if barstate.isfirst and not (chartSec < a1Sec and a1Sec < a2Sec)
+    runtime.error("GTG Navigator v0.4.7: فريم غير مدعوم — يجب أن يتحقق chart < A1 < A2.")
+
+// Determinism window. Every piece of engine state has a bounded lifetime of at
+// most tMaxChart chart bars (anchor lifetimes are converted with the upper-bound
+// ratio of chart bars per anchor bar), so W ≥ 2·T_max + L_entry + N_leg + pivotLen
+// makes the zone map a function of the trailing W closed bars only.
+float tMaxChart = math.max(maxAgeLocal * 1.0, math.max(maxAgeA1 * a1Sec * 1.0 / chartSec, maxAgeA2 * a2Sec * 1.0 / chartSec))
+int engineWindow = 2 * math.ceil(tMaxChart) + L_ENTRY + N_LEG + pivotLen + 10
+// Study-only extension: the last studyExtraBars bars become fully warmed. It is
+// ignored unless validationMode is on, so production behaviour cannot change.
+int engineWindowRun = engineWindow + (validationMode ? studyExtraBars : 0)
+bool engineOn = bar_index >= last_bar_index - engineWindowRun
+bool engineStep = engineOn and barstate.isconfirmed
+
+// Finite-memory volatility: the only volatility measure used by the Zone Engine.
+atrEng = math.max(nz(ta.sma(ta.tr(true), ATR_ENG_LEN), ta.tr(true)), syminfo.mintick)
+
+
+// ============================================================================
+// 9. ANCHOR RETRIEVAL — CONFIRMED HTF SCALARS ONLY
+// Last three confirmed pivot highs/lows per anchor timeframe, their native bar
+// index and open time, the anchor's finite-memory ATR and its current bar
+// index. Scalars only, offset by one HTF bar with lookahead_on (closed bars).
+// ============================================================================
+
+anchorFeed(int plen) =>
+    float ph = ta.pivothigh(high, plen, plen)
+    float pl = ta.pivotlow(low, plen, plen)
+    bool isH = not na(ph)
+    bool isL = not na(pl)
+    float h0 = ta.valuewhen(isH, ph, 0)
+    float h1 = ta.valuewhen(isH, ph, 1)
+    float h2 = ta.valuewhen(isH, ph, 2)
+    int hb0 = ta.valuewhen(isH, bar_index - plen, 0)
+    int hb1 = ta.valuewhen(isH, bar_index - plen, 1)
+    int hb2 = ta.valuewhen(isH, bar_index - plen, 2)
+    int ht0 = ta.valuewhen(isH, time[plen], 0)
+    int ht1 = ta.valuewhen(isH, time[plen], 1)
+    int ht2 = ta.valuewhen(isH, time[plen], 2)
+    float l0 = ta.valuewhen(isL, pl, 0)
+    float l1 = ta.valuewhen(isL, pl, 1)
+    float l2 = ta.valuewhen(isL, pl, 2)
+    int lb0 = ta.valuewhen(isL, bar_index - plen, 0)
+    int lb1 = ta.valuewhen(isL, bar_index - plen, 1)
+    int lb2 = ta.valuewhen(isL, bar_index - plen, 2)
+    int lt0 = ta.valuewhen(isL, time[plen], 0)
+    int lt1 = ta.valuewhen(isL, time[plen], 1)
+    int lt2 = ta.valuewhen(isL, time[plen], 2)
+    float atrE = ta.sma(ta.tr(true), ATR_ENG_LEN)
+    [h0[1], hb0[1], ht0[1], h1[1], hb1[1], ht1[1], h2[1], hb2[1], ht2[1], l0[1], lb0[1], lt0[1], l1[1], lb1[1], lt1[1], l2[1], lb2[1], lt2[1], atrE[1], bar_index[1]]
+
+[a1H0, a1HB0, a1HT0, a1H1, a1HB1, a1HT1, a1H2, a1HB2, a1HT2, a1L0, a1LB0, a1LT0, a1L1, a1LB1, a1LT1, a1L2, a1LB2, a1LT2, a1AtrRaw, a1Now] = request.security(syminfo.tickerid, a1Tf, anchorFeed(ANCHOR_PIVOT_LEN), lookahead = barmerge.lookahead_on)
+[a2H0, a2HB0, a2HT0, a2H1, a2HB1, a2HT1, a2H2, a2HB2, a2HT2, a2L0, a2LB0, a2LT0, a2L1, a2LB1, a2LT1, a2L2, a2LB2, a2LT2, a2AtrRaw, a2Now] = request.security(syminfo.tickerid, a2Tf, anchorFeed(ANCHOR_PIVOT_LEN), lookahead = barmerge.lookahead_on)
+
+float atrA1 = na(a1AtrRaw) ? na : math.max(a1AtrRaw, syminfo.mintick)
+float atrA2 = na(a2AtrRaw) ? na : math.max(a2AtrRaw, syminfo.mintick)
+
+
+// ============================================================================
+// 10. TYPES, PERSISTENT STATE AND ENGINE HELPERS
+// ============================================================================
+
+// Persistent structural level. Native coordinates: birthNativeBar is a bar index
+// on the level's own timeframe (tfRank) and is only ever compared with
+// nativeNowOf(tfRank). Every *ChartBar field is a chart bar index.
+type Level
+    int key
+    float lo
+    float hi
+    float price
+    int source
+    int tfRank
+    int typ
+    int polarity
+    int birthNativeBar
+    int birthTime
+    float birthAtr
+    float s
+    float mitigation = 0.0
+    float evidence = 0.0
+    int tests = 0
+    int lastTestChartBar
+    int state = 0
+    int stateChartBar
+    int breakDir = 0
+    int breakCloses = 0
+    bool breakFromFlip = false
+    int backCloses = 0
+    int backStartChartBar
+    bool epActive = false
+    int epSide = 0
+    float epMaxDepth = 0.0
+    int ageNative = 0
+    float q = 0.0
+    // R4-B: navigation chain armed when the level went ACTIVE/FLIP -> BREAKING while it
+    // was a member of a displayed slot; Break Accepted / Flip Confirmed follow it.
+    bool navArmed = false
+
+// Ephemeral working zone. Objects are preallocated and rewritten on every
+// confirmed bar; no persistent state ever holds a Zone reference.
+type Zone
+    float lo
+    float hi
+    float wz
+    int memberStart = 0
+    int memberCount = 0
+    int primaryIdx = -1
+    float gateQ = 0.0
+    float displayQ = 0.0
+    bool hasA1 = false
+    bool hasA2 = false
+    bool hasFlip = false
+    int side = 0
+    float dist = 0.0
+    int privSlot = -1
+    bool eligible = false
+    int entrySide = 0
+
+// Persistent slot state: scalars only (no collections, no UDT references). Its entry
+// and last-member keys live in dedicated int arrays owned by the slot (see below).
+type SlotState
+    bool active = false
+    bool containing = false
+    float lo
+    float hi
+    int side = 0
+    float quality = 0.0
+    float gateQ = 0.0
+    float distAtr = 0.0
+    bool isFar = false
+    int leftTime
+    string roleType = "—"
+    string navTag = ""
+    string shortTag = ""
+    int primaryKey = 0
+
+type Telemetry
+    int violations = 0
+    string lastViolation = ""
+    int dupKeys = 0
+    int naSort = 0
+    int negativeAge = 0
+    int supBar = 0
+    int supTotal = 0
+    float supMaxQ = na
+    float supNearestAtr = na
+    int maxSlotKeys = 0
+    int zoneCapHits = 0
+    float rEffUpAtr = na
+    float rEffDnAtr = na
+    int violationsCritical = 0
+    int engineBars = 0
+    int hashSlots = 0
+    int hashState = 0
+    int deathsBar = 0
+    int largestCompBar = 0
+    int zonesBuiltBar = 0
+    int slotKeysBar = 0
+    float nextBeyondUpAtr = na
+    float nextBeyondDnAtr = na
+    bool nextBeyondUpAnchor = false
+    bool nextBeyondDnAnchor = false
+    bool hiddenNearUp = false
+    bool hiddenNearDn = false
+    int hiddenContain = 0
+
+// One source of truth for zone events. Reset on every execution, set only on
+// confirmed bars by the level state machine.
+type Events
+    bool breakingUp = false
+    bool breakingDn = false
+    bool acceptedUp = false
+    bool acceptedDn = false
+    bool flipConfirmed = false
+    bool rejectR = false
+    bool rejectS = false
+
+var array<Level> localPool = array.new<Level>()
+// Anchor records per timeframe. Each pool holds at most the feed's six keys.
+var array<Level> anchorPoolA1 = array.new<Level>()
+var array<Level> anchorPoolA2 = array.new<Level>()
+var array<int> feedKeysA1 = array.new_int()
+var array<int> feedKeysA2 = array.new_int()
+var array<Zone> zonePool = array.new<Zone>()
+if array.size(zonePool) == 0
+    for i = 0 to ZONE_CAP - 1
+        array.push(zonePool, Zone.new())
+
+var SlotState slotR1 = SlotState.new()
+var SlotState slotR2 = SlotState.new()
+var SlotState slotS1 = SlotState.new()
+var SlotState slotS2 = SlotState.new()
+var Telemetry tel = Telemetry.new()
+var Events ev = Events.new()
+
+// Engine-owned ring buffers of the last RING_LEN confirmed bars (index 0 = current).
+var array<float> ringO = array.new_float()
+var array<float> ringH = array.new_float()
+var array<float> ringL = array.new_float()
+var array<float> ringC = array.new_float()
+
+// Working sets (cleared and refilled on each confirmed bar; never sorted with na).
+var array<Level> work = array.new<Level>()
+var array<float> workLo = array.new_float()
+var array<Level> srt = array.new<Level>()
+var array<int> memberZone = array.new_int()
+var array<int> zmi = array.new_int()
+var array<float> zoneLoKeys = array.new_float()
+var array<int> zoneOrd = array.new_int()
+var array<int> scratchOrd = array.new_int()
+var array<int> memberGroup = array.new_int()
+var array<int> gPrim = array.new_int()
+var array<int> gL = array.new_int()
+var array<int> gA1 = array.new_int()
+var array<int> gA2 = array.new_int()
+var array<int> rList = array.new_int()
+var array<int> sList = array.new_int()
+// Slot key storage: eight int arrays, each owned by exactly one slot. They are only
+// ever updated with clear + push (never copied, never reassigned between slots),
+// so there is no aliasing and no cap on the number of keys a slot can carry.
+var array<int> keysEntryR1 = array.new_int()
+var array<int> keysEntryR2 = array.new_int()
+var array<int> keysEntryS1 = array.new_int()
+var array<int> keysEntryS2 = array.new_int()
+var array<int> keysLastR1 = array.new_int()
+var array<int> keysLastR2 = array.new_int()
+var array<int> keysLastS1 = array.new_int()
+var array<int> keysLastS2 = array.new_int()
+// Per-bar scratch for the next slot keys (filled before any slot is written).
+var array<int> nextEntryR1 = array.new_int()
+var array<int> nextEntryR2 = array.new_int()
+var array<int> nextEntryS1 = array.new_int()
+var array<int> nextEntryS2 = array.new_int()
+var array<int> nextLastR1 = array.new_int()
+var array<int> nextLastR2 = array.new_int()
+var array<int> nextLastS1 = array.new_int()
+var array<int> nextLastS2 = array.new_int()
+
+// DOZ bookkeeping: most recent confirmed swing in chart coordinates.
+var float lastSwingHighPx = na
+var int lastSwingHighBar = na
+var bool lastSwingHighBroken = true
+var float lastSwingLowPx = na
+var int lastSwingLowBar = na
+var bool lastSwingLowBroken = true
+
+// Events are cleared on every execution; the state machine sets them only on
+// confirmed bars, so consumers never see a stale event on a realtime tick.
+ev.breakingUp := false
+ev.breakingDn := false
+ev.acceptedUp := false
+ev.acceptedDn := false
+ev.flipConfirmed := false
+ev.rejectR := false
+ev.rejectS := false
+
+memberKeyOf(int birthTime, int src, int tfRank, int typ) =>
+    int disc = src * 6 + tfRank * 2 + typ
+    if disc < 0 or disc >= KEY_BASE
+        runtime.error("GTG Navigator: memberKey discriminator out of range.")
+    birthTime * KEY_BASE + disc
+
+reportViolation(Telemetry t, string code, bool critical) =>
+    t.violations := t.violations + 1
+    if critical
+        t.violationsCritical := t.violationsCritical + 1
+    t.lastViolation := code
+    if critical and strictDebug
+        runtime.error("GTG Navigator invariant violated: " + code)
+    t.violations
+
+maxAgeOf(int tfRank) =>
+    tfRank == TF_LOCAL ? maxAgeLocal : tfRank == TF_A1 ? maxAgeA1 : maxAgeA2
+
+nativeNowOf(int tfRank) =>
+    tfRank == TF_LOCAL ? bar_index : tfRank == TF_A1 ? a1Now : a2Now
+
+stateMult(int st) =>
+    st == ST_ACTIVE or st == ST_FLIP ? 1.0 : st == ST_BREAKING ? 0.7 : st == ST_BROKEN ? 0.6 : 0.0
+
+// q = s × f,  f = freshness(age) × (1 − mitigation) × stateMult(state).
+levelQuality(Level lv) =>
+    float fresh = 1.0 - 0.5 * math.min(1.0, math.max(0, lv.ageNative) * 1.0 / math.max(1, maxAgeOf(lv.tfRank)))
+    lv.s * fresh * (1.0 - math.min(1.0, lv.mitigation)) * stateMult(lv.state)
+
+// Total order used for every order-sensitive decision (seeds, absorption,
+// primary, key lists). The key is unique, so no two live levels compare equal.
+precedes(Level a, Level b) =>
+    a.q != b.q ? a.q > b.q : a.lo != b.lo ? a.lo < b.lo : a.hi != b.hi ? a.hi < b.hi : a.birthTime != b.birthTime ? a.birthTime < b.birthTime : a.source != b.source ? a.source < b.source : a.tfRank != b.tfRank ? a.tfRank < b.tfRank : a.key < b.key
+
+slotAt(int i) =>
+    i == 0 ? slotR1 : i == 1 ? slotR2 : i == 2 ? slotS1 : slotS2
+
+entryKeysOf(int si) =>
+    si == 0 ? keysEntryR1 : si == 1 ? keysEntryR2 : si == 2 ? keysEntryS1 : keysEntryS2
+
+lastKeysOf(int si) =>
+    si == 0 ? keysLastR1 : si == 1 ? keysLastR2 : si == 2 ? keysLastS1 : keysLastS2
+
+nextEntryOf(int si) =>
+    si == 0 ? nextEntryR1 : si == 1 ? nextEntryR2 : si == 2 ? nextEntryS1 : nextEntryS2
+
+nextLastOf(int si) =>
+    si == 0 ? nextLastR1 : si == 1 ? nextLastR2 : si == 2 ? nextLastS1 : nextLastS2
+
+slotHasEntry(int si, int k) =>
+    slotAt(si).active and array.includes(entryKeysOf(si), k)
+
+// Event filter: a level belongs to a displayed zone if its key was among the
+// member keys of any active slot at the previous confirmed bar.
+keyInPrevSlots(int k) =>
+    (slotR1.active and array.includes(keysLastR1, k)) or (slotR2.active and array.includes(keysLastR2, k)) or (slotS1.active and array.includes(keysLastS1, k)) or (slotS2.active and array.includes(keysLastS2, k))
+
+keysIntersect(array<int> a, array<int> b) =>
+    bool found = false
+    int n = array.size(a)
+    if n > 0
+        for i = 0 to n - 1
+            if not found and array.includes(b, array.get(a, i))
+                found := true
+    found
+
+// Overwrites dst with the contents of src element by element (no array.copy, no
+// reference assignment between slot-owned arrays).
+replaceKeys(array<int> dst, array<int> src) =>
+    array.clear(dst)
+    int n = array.size(src)
+    if n > 0
+        for i = 0 to n - 1
+            array.push(dst, array.get(src, i))
+    n
+
+keyExists(array<Level> pool, int k) =>
+    bool found = false
+    int n = array.size(pool)
+    if n > 0
+        for i = 0 to n - 1
+            if not found and array.get(pool, i).key == k
+                found := true
+    found
+
+ringPush(array<float> ring, float v) =>
+    array.unshift(ring, v)
+    if array.size(ring) > RING_LEN
+        array.pop(ring)
+    array.size(ring)
+
+
+// ============================================================================
+// 10a. LEVEL STATE MACHINE + TEST EPISODES (Phase 1 logic)
+// ACTIVE ─close beyond far edge + b·ATR→ BREAKING ─2nd close / strong body→ BROKEN
+// BREAKING ─close back on the original side / window expiry→ ACTIVE (or FLIP)
+// BROKEN ─retest from the new side, rej ≥ 0.5 within flipWindow→ FLIP_CONFIRMED
+// BROKEN ─acceptance back to the original side→ DEAD
+// FLIP_CONFIRMED ─same break rules→ DEAD;  ACTIVE/FLIP ─mitigation ≥ 1→ DEAD
+// ============================================================================
+
+// Test episode. Returns the rejection strength when an episode ends on this bar,
+// na otherwise. tests is information only; consumption lives in mitigation.
+runEpisode(Level lv, float h, float l, float c, float pc, float atr, int bi) =>
+    float width = math.max(lv.hi - lv.lo, syminfo.mintick)
+    bool touch = h >= lv.lo and l <= lv.hi
+    float rej = na
+    if not lv.epActive and touch and bi - nz(lv.lastTestChartBar, bi - pivotLen - 1) > pivotLen
+        lv.epActive := true
+        lv.epSide := pc > lv.hi ? 1 : pc < lv.lo ? -1 : (lv.polarity > 0 ? -1 : 1)
+        lv.epMaxDepth := 0.0
+    if lv.epActive
+        float depth = lv.epSide < 0 ? (h - lv.lo) / width : (lv.hi - l) / width
+        lv.epMaxDepth := math.max(lv.epMaxDepth, math.max(0.0, math.min(1.0, depth)))
+        bool exitNear = lv.epSide < 0 ? c < lv.lo : c > lv.hi
+        if exitNear
+            float exc = lv.epSide < 0 ? lv.lo - c : c - lv.hi
+            rej := math.max(0.0, math.min(1.0, exc / (rejAtrK * atr)))
+            lv.mitigation := lv.mitigation + lv.epMaxDepth * (1.0 - rej) * mitAlpha
+            lv.evidence := math.min(3.0, lv.evidence + rej)
+            lv.tests := lv.tests + 1
+            lv.lastTestChartBar := bi
+            lv.epActive := false
+    rej
+
+// Break Accepted follows the arm set at break start (R4-B), not the current slot.
+acceptBreak(Level lv, int bi, Events e) =>
+    if lv.navArmed
+        if lv.breakDir > 0
+            e.acceptedUp := true
+        else
+            e.acceptedDn := true
+    if lv.breakFromFlip
+        lv.state := ST_DEAD
+        lv.navArmed := false
+    else
+        lv.state := ST_BROKEN
+        lv.stateChartBar := bi
+        lv.epActive := false
+        lv.backCloses := 0
+    lv.state
+
+markRejection(Level lv, float rej, Events e, bool inSlot) =>
+    if not na(rej) and rej >= 0.5 and inSlot
+        if lv.epSide < 0
+            e.rejectR := true
+        else
+            e.rejectS := true
+    rej
+
+updateLevel(Level lv, float o, float h, float l, float c, float pc, float atr, int bi, Events e, bool inSlot) =>
+    float buf = breakBufK * atr
+    int st = lv.state
+    if st == ST_ACTIVE or st == ST_FLIP
+        int dir = lv.polarity > 0 ? 1 : -1
+        bool beyond = dir > 0 ? c > lv.hi + buf : c < lv.lo - buf
+        if beyond
+            if lv.epActive
+                lv.epActive := false
+                lv.tests := lv.tests + 1
+                lv.lastTestChartBar := bi
+            lv.breakDir := dir
+            lv.breakFromFlip := st == ST_FLIP
+            lv.breakCloses := 1
+            lv.stateChartBar := bi
+            lv.state := ST_BREAKING
+            lv.navArmed := inSlot
+            if inSlot
+                if dir > 0
+                    e.breakingUp := true
+                else
+                    e.breakingDn := true
+            bool strongBody = math.abs(c - o) >= dispBodyK * atr and (dir > 0 ? c > o : c < o)
+            if strongBody
+                acceptBreak(lv, bi, e)
+        else
+            float rej = runEpisode(lv, h, l, c, pc, atr, bi)
+            markRejection(lv, rej, e, inSlot)
+            if lv.mitigation >= 1.0
+                lv.state := ST_DEAD
+                lv.navArmed := false
+    else if st == ST_BREAKING
+        int dir = lv.breakDir
+        bool beyond = dir > 0 ? c > lv.hi + buf : c < lv.lo - buf
+        bool back = dir > 0 ? c < lv.lo : c > lv.hi
+        if beyond and bi > lv.stateChartBar
+            lv.breakCloses := lv.breakCloses + 1
+            if lv.breakCloses >= 2
+                acceptBreak(lv, bi, e)
+        else if back
+            lv.state := lv.breakFromFlip ? ST_FLIP : ST_ACTIVE
+            lv.tests := lv.tests + 1
+            lv.evidence := math.min(3.0, lv.evidence + 0.5)
+            lv.lastTestChartBar := bi
+            lv.navArmed := false
+        else if bi - lv.stateChartBar >= BREAK_WINDOW
+            lv.state := lv.breakFromFlip ? ST_FLIP : ST_ACTIVE
+            lv.navArmed := false
+    else if st == ST_BROKEN
+        int dir = lv.breakDir
+        if lv.navArmed and bi - lv.stateChartBar > flipWindow
+            lv.navArmed := false
+        bool backBeyond = dir > 0 ? c < lv.lo - buf : c > lv.hi + buf
+        if backBeyond
+            bool strongBack = math.abs(c - o) >= dispBodyK * atr and (dir > 0 ? c < o : c > o)
+            if lv.backCloses == 0 or bi - nz(lv.backStartChartBar, bi) > BREAK_WINDOW
+                lv.backCloses := 1
+                lv.backStartChartBar := bi
+            else
+                lv.backCloses := lv.backCloses + 1
+            if strongBack or lv.backCloses >= 2
+                lv.state := ST_DEAD
+                lv.navArmed := false
+        else
+            float rej = runEpisode(lv, h, l, c, pc, atr, bi)
+            if not na(rej) and rej >= 0.5 and lv.epSide == dir and bi - lv.stateChartBar <= flipWindow
+                lv.polarity := -lv.polarity
+                lv.s := math.min(100.0, lv.s + 8.0)
+                lv.state := ST_FLIP
+                if lv.navArmed
+                    e.flipConfirmed := true
+                lv.navArmed := false
+            markRejection(lv, rej, e, inSlot)
+    lv.state
+
+compactLocal(array<Level> pool) =>
+    int n = array.size(pool)
+    int removed = 0
+    if n > 0
+        for i = n - 1 to 0
+            if array.get(pool, i).state == ST_DEAD
+                array.remove(pool, i)
+                removed += 1
+    removed
+
+// Anchor lifecycle follows the HTF feed. A record lives while its key is one of
+// the feed's current keys (last three confirmed highs + lows of its timeframe).
+// A DEAD record stays as a tombstone for exactly that period, so the feed cannot
+// re-admit it fresh; once its key leaves the feed (or it has aged out) it is
+// removed. A1 and A2 have separate pools and never compete for capacity.
+feedKeyPush(array<int> keys, float px, int bt, int typ, int tfRank) =>
+    if not na(px) and not na(bt)
+        array.push(keys, memberKeyOf(bt, SRC_ANCHOR, tfRank, typ))
+    array.size(keys)
+
+syncAnchorPool(array<Level> pool, array<int> feedKeys, bool feedOk) =>
+    int n = array.size(pool)
+    int removed = 0
+    if n > 0
+        for i = n - 1 to 0
+            Level lv = array.get(pool, i)
+            bool agedOut = lv.state == ST_DEAD and lv.ageNative > maxAgeOf(lv.tfRank)
+            if agedOut or (feedOk and not array.includes(feedKeys, lv.key))
+                array.remove(pool, i)
+                removed += 1
+    removed
+
+// Local-pool capacity is a safety valve. Eviction is oldest-birth first (key breaks
+// ties), which depends only on births and keeps the map start-point independent.
+evictOldest(array<Level> pool, int cap) =>
+    int evicted = 0
+    while array.size(pool) > cap
+        int n = array.size(pool)
+        int oi = 0
+        for i = 1 to n - 1
+            Level a = array.get(pool, i)
+            Level b = array.get(pool, oi)
+            if a.birthTime < b.birthTime or (a.birthTime == b.birthTime and a.key < b.key)
+                oi := i
+        array.remove(pool, oi)
+        evicted += 1
+    evicted
+
+admitLocal(array<Level> pool, Level lv, Telemetry t) =>
+    bool ok = not keyExists(pool, lv.key)
+    if ok
+        array.push(pool, lv)
+    else
+        t.dupKeys := t.dupKeys + 1
+        reportViolation(t, "DUP_KEY", true)
+    ok
+
+upsertAnchor(array<Level> pool, float px, int nb, int bt, int typ, int tfRank, int nowN, int maxAge, float atrA, float atrC) =>
+    bool added = false
+    if not na(px) and not na(nb) and not na(bt) and not na(nowN) and not na(atrA)
+        int age = nowN - nb
+        if age >= 0 and age <= maxAge
+            int k = memberKeyOf(bt, SRC_ANCHOR, tfRank, typ)
+            if not keyExists(pool, k)
+                float w = math.max(0.15 * atrC, math.min(0.60 * atrC, 0.10 * atrA))
+                float zlo = typ == TYP_HIGH ? px - w : px
+                float zhi = typ == TYP_HIGH ? px : px + w
+                array.push(pool, Level.new(key = k, lo = zlo, hi = zhi, price = px, source = SRC_ANCHOR, tfRank = tfRank, typ = typ, polarity = typ == TYP_HIGH ? 1 : -1, birthNativeBar = nb, birthTime = bt, birthAtr = atrC, s = tfRank == TF_A1 ? 70.0 : 78.0, lastTestChartBar = bar_index, stateChartBar = bar_index, ageNative = age))
+                added := true
+    added
+
+// Displacement Origin Zone from the ring buffers (index 0 = displacement bar).
+// Leg start = most extreme opposite price within N_LEG bars (ties → older bar),
+// efficiency = net move / sum of |Δclose| over the leg, origin = last opposite
+// candle in [legStart, legStart + M_ORIGIN] (else the leg-start bar itself).
+dozBuild(bool bull, array<float> rO, array<float> rH, array<float> rL, array<float> rC, float atr) =>
+    int n = array.size(rC)
+    bool ok = false
+    float zlo = na
+    float zhi = na
+    bool fvg = false
+    if n >= 3
+        int legN = math.min(N_LEG, n)
+        int s0 = 0
+        float ext = bull ? array.get(rL, 0) : array.get(rH, 0)
+        for k = 1 to legN - 1
+            float v = bull ? array.get(rL, k) : array.get(rH, k)
+            if bull ? v <= ext : v >= ext
+                ext := v
+                s0 := k
+        float path = 0.0
+        int pathEnd = math.min(math.max(s0, 1), n - 1)
+        for j = 0 to pathEnd - 1
+            path += math.abs(array.get(rC, j) - array.get(rC, j + 1))
+        float net = bull ? array.get(rC, 0) - ext : ext - array.get(rC, 0)
+        float eff = path > 0 ? math.min(1.0, net / path) : 0.0
+        int o = s0
+        bool found = false
+        int oEnd = math.min(s0 + M_ORIGIN, n - 1)
+        for k = s0 to oEnd
+            if not found and (bull ? array.get(rC, k) < array.get(rO, k) : array.get(rC, k) > array.get(rO, k))
+                o := k
+                found := true
+        float oOpen = array.get(rO, o)
+        float oClose = array.get(rC, o)
+        float rawLo = bull ? array.get(rL, o) : math.min(oOpen, oClose)
+        float rawHi = bull ? math.max(oOpen, oClose) : array.get(rH, o)
+        float w = math.max(0.15 * atr, math.min(0.80 * atr, rawHi - rawLo))
+        zlo := bull ? rawLo : rawHi - w
+        zhi := bull ? rawLo + w : rawHi
+        fvg := bull ? array.get(rL, 0) > array.get(rH, 2) : array.get(rH, 0) < array.get(rL, 2)
+        ok := eff >= legEff
+    [ok, zlo, zhi, fvg]
+
+
+// ============================================================================
+// 10b. PHASE 1 — STRUCTURAL MEMORY UPDATE (confirmed bars only; mutates Levels)
+// ============================================================================
+
+// Swing pivots of the chart timeframe (global so their windows stay consistent).
+swingPH = ta.pivothigh(high, pivotLen, pivotLen)
+swingPL = ta.pivotlow(low, pivotLen, pivotLen)
+swingRightLow = ta.lowest(low, pivotLen + 1)
+swingRightHigh = ta.highest(high, pivotLen + 1)
+swingAtr = atrEng[pivotLen]
+swingBodyTop = math.max(open[pivotLen], close[pivotLen])
+swingBodyBot = math.min(open[pivotLen], close[pivotLen])
+swingTime = time[pivotLen]
+
+if engineStep
+    ringPush(ringO, open)
+    ringPush(ringH, high)
+    ringPush(ringL, low)
+    ringPush(ringC, close)
+    tel.engineBars := tel.engineBars + 1
+    if validationMode
+        tel.deathsBar := 0
+
+    // State machine + aging for every live level.
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
+        int n = array.size(pool)
+        if n > 0
+            for i = 0 to n - 1
+                Level lv = array.get(pool, i)
+                bool wasAlive = validationMode and lv.state != ST_DEAD
+                int nowN = nativeNowOf(lv.tfRank)
+                if not na(nowN)
+                    int age = nowN - lv.birthNativeBar
+                    lv.ageNative := age
+                    if age < 0
+                        tel.negativeAge := tel.negativeAge + 1
+                        reportViolation(tel, "AGE_NEGATIVE", true)
+                    if age > maxAgeOf(lv.tfRank)
+                        lv.state := ST_DEAD
+                        lv.navArmed := false
+                if lv.state != ST_DEAD
+                    updateLevel(lv, open, high, low, close, prevClose, atrEng, bar_index, ev, keyInPrevSlots(lv.key))
+                if wasAlive and lv.state == ST_DEAD
+                    tel.deathsBar := tel.deathsBar + 1
+    compactLocal(localPool)
+
+    // DOZ: displacement close through the latest unbroken, non-expired swing.
+    if not na(lastSwingHighPx) and not lastSwingHighBroken and close > lastSwingHighPx
+        lastSwingHighBroken := true
+        if useDOZ and bar_index - lastSwingHighBar <= maxAgeLocal and close > open and bodySize >= dispBodyK * atrEng and prevClose <= lastSwingHighPx
+            [dOk, dLo, dHi, dFvg] = dozBuild(true, ringO, ringH, ringL, ringC, atrEng)
+            if dOk
+                float dS = clamp100(58.0 + math.min(30.0, (bodySize / atrEng - dispBodyK) * 30.0) + (dFvg ? 6.0 : 0.0))
+                admitLocal(localPool, Level.new(key = memberKeyOf(time, SRC_DOZ, TF_LOCAL, TYP_LOW), lo = dLo, hi = dHi, price = dLo, source = SRC_DOZ, tfRank = TF_LOCAL, typ = TYP_LOW, polarity = -1, birthNativeBar = bar_index, birthTime = time, birthAtr = atrEng, s = dS, lastTestChartBar = bar_index, stateChartBar = bar_index), tel)
+    if not na(lastSwingLowPx) and not lastSwingLowBroken and close < lastSwingLowPx
+        lastSwingLowBroken := true
+        if useDOZ and bar_index - lastSwingLowBar <= maxAgeLocal and close < open and bodySize >= dispBodyK * atrEng and prevClose >= lastSwingLowPx
+            [dOk, dLo, dHi, dFvg] = dozBuild(false, ringO, ringH, ringL, ringC, atrEng)
+            if dOk
+                float dS = clamp100(58.0 + math.min(30.0, (bodySize / atrEng - dispBodyK) * 30.0) + (dFvg ? 6.0 : 0.0))
+                admitLocal(localPool, Level.new(key = memberKeyOf(time, SRC_DOZ, TF_LOCAL, TYP_HIGH), lo = dLo, hi = dHi, price = dHi, source = SRC_DOZ, tfRank = TF_LOCAL, typ = TYP_HIGH, polarity = 1, birthNativeBar = bar_index, birthTime = time, birthAtr = atrEng, s = dS, lastTestChartBar = bar_index, stateChartBar = bar_index), tel)
+
+    // SWING admissions (confirmed pivots).
+    if not na(swingPH)
+        float sAtr = math.max(nz(swingAtr, atrEng), syminfo.mintick)
+        float w = math.max(0.10 * sAtr, math.min(0.50 * sAtr, swingPH - swingBodyTop))
+        float departure = (swingPH - swingRightLow) / sAtr
+        admitLocal(localPool, Level.new(key = memberKeyOf(swingTime, SRC_SWING, TF_LOCAL, TYP_HIGH), lo = swingPH - w, hi = swingPH, price = swingPH, source = SRC_SWING, tfRank = TF_LOCAL, typ = TYP_HIGH, polarity = 1, birthNativeBar = bar_index - pivotLen, birthTime = swingTime, birthAtr = sAtr, s = clamp100(45.0 + math.min(38.0, departure * 16.0)), lastTestChartBar = bar_index, stateChartBar = bar_index, ageNative = pivotLen), tel)
+        lastSwingHighPx := swingPH
+        lastSwingHighBar := bar_index - pivotLen
+        lastSwingHighBroken := false
+    if not na(swingPL)
+        float sAtr = math.max(nz(swingAtr, atrEng), syminfo.mintick)
+        float w = math.max(0.10 * sAtr, math.min(0.50 * sAtr, swingBodyBot - swingPL))
+        float departure = (swingRightHigh - swingPL) / sAtr
+        admitLocal(localPool, Level.new(key = memberKeyOf(swingTime, SRC_SWING, TF_LOCAL, TYP_LOW), lo = swingPL, hi = swingPL + w, price = swingPL, source = SRC_SWING, tfRank = TF_LOCAL, typ = TYP_LOW, polarity = -1, birthNativeBar = bar_index - pivotLen, birthTime = swingTime, birthAtr = sAtr, s = clamp100(45.0 + math.min(38.0, departure * 16.0)), lastTestChartBar = bar_index, stateChartBar = bar_index, ageNative = pivotLen), tel)
+        lastSwingLowPx := swingPL
+        lastSwingLowBar := bar_index - pivotLen
+        lastSwingLowBroken := false
+
+    // ANCHOR lifecycle: current feed keys → sync (drop keys that left the feed or
+    // aged-out records) → upsert missing keys. Pools are bounded by the feed.
+    array.clear(feedKeysA1)
+    feedKeyPush(feedKeysA1, a1H0, a1HT0, TYP_HIGH, TF_A1)
+    feedKeyPush(feedKeysA1, a1H1, a1HT1, TYP_HIGH, TF_A1)
+    feedKeyPush(feedKeysA1, a1H2, a1HT2, TYP_HIGH, TF_A1)
+    feedKeyPush(feedKeysA1, a1L0, a1LT0, TYP_LOW, TF_A1)
+    feedKeyPush(feedKeysA1, a1L1, a1LT1, TYP_LOW, TF_A1)
+    feedKeyPush(feedKeysA1, a1L2, a1LT2, TYP_LOW, TF_A1)
+    array.clear(feedKeysA2)
+    feedKeyPush(feedKeysA2, a2H0, a2HT0, TYP_HIGH, TF_A2)
+    feedKeyPush(feedKeysA2, a2H1, a2HT1, TYP_HIGH, TF_A2)
+    feedKeyPush(feedKeysA2, a2H2, a2HT2, TYP_HIGH, TF_A2)
+    feedKeyPush(feedKeysA2, a2L0, a2LT0, TYP_LOW, TF_A2)
+    feedKeyPush(feedKeysA2, a2L1, a2LT1, TYP_LOW, TF_A2)
+    feedKeyPush(feedKeysA2, a2L2, a2LT2, TYP_LOW, TF_A2)
+    syncAnchorPool(anchorPoolA1, feedKeysA1, not na(a1Now))
+    syncAnchorPool(anchorPoolA2, feedKeysA2, not na(a2Now))
+    upsertAnchor(anchorPoolA1, a1H0, a1HB0, a1HT0, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1H1, a1HB1, a1HT1, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1H2, a1HB2, a1HT2, TYP_HIGH, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1L0, a1LB0, a1LT0, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1L1, a1LB1, a1LT1, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA1, a1L2, a1LB2, a1LT2, TYP_LOW, TF_A1, a1Now, maxAgeA1, atrA1, atrEng)
+    upsertAnchor(anchorPoolA2, a2H0, a2HB0, a2HT0, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2H1, a2HB1, a2HT1, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2H2, a2HB2, a2HT2, TYP_HIGH, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2L0, a2LB0, a2LT0, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2L1, a2LB1, a2LT1, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    upsertAnchor(anchorPoolA2, a2L2, a2LB2, a2LT2, TYP_LOW, TF_A2, a2Now, maxAgeA2, atrA2, atrEng)
+    if array.size(anchorPoolA1) > ANCHOR_FEED_MAX or array.size(anchorPoolA2) > ANCHOR_FEED_MAX
+        reportViolation(tel, "ANCHOR_POOL_SIZE", true)
+
+    evictOldest(localPool, LOCAL_CAP)
+
+    // Effective quality for this bar (s × f), after all transitions and admissions.
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
+        int n = array.size(pool)
+        if n > 0
+            for i = 0 to n - 1
+                Level lv = array.get(pool, i)
+                lv.q := lv.state == ST_DEAD ? 0.0 : levelQuality(lv)
+
+
+// ============================================================================
+// 11. PHASE 2 — DETERMINISTIC ZONE BUILDER (confirmed bars only; read-only on Levels)
+// sort by lo → connected components (gap ≤ mergeGap) → component packing →
+// member lists → primary, MTF event groups, gateQ, displayQ.
+// ============================================================================
+
+gapBetween(float aLo, float aHi, float bLo, float bHi) =>
+    aLo > bHi ? aLo - bHi : bLo > aHi ? bLo - aHi : -1.0
+
+// A member may only seed a zone when it keeps ≥ mergeGap from every zone already
+// formed in its component; otherwise it is suppressed (contributes nothing).
+// Absorption keeps bounds = union of absorbed cores, width ≤ Wz, and the
+// ≥ mergeGap separation from the other zones of the component.
+packComponent(array<Level> s, array<int> mz, array<Zone> zones, int a, int b, int zc0, float mg, float maxW, Telemetry t, float px, float atr) =>
+    int zc = zc0
+    bool more = true
+    while more
+        int best = -1
+        for i = a to b
+            if array.get(mz, i) == -2
+                if best < 0 or precedes(array.get(s, i), array.get(s, best))
+                    best := i
+        if best < 0
+            more := false
+        else
+            Level m = array.get(s, best)
+            bool blocked = zc >= ZONE_CAP
+            if zc >= ZONE_CAP
+                t.zoneCapHits := t.zoneCapHits + 1
+            if not blocked and zc > zc0
+                for z = zc0 to zc - 1
+                    Zone zz = array.get(zones, z)
+                    if gapBetween(m.lo, m.hi, zz.lo, zz.hi) < mg
+                        blocked := true
+            if blocked
+                array.set(mz, best, -1)
+                t.supBar := t.supBar + 1
+                t.supTotal := t.supTotal + 1
+                t.supMaxQ := na(t.supMaxQ) ? m.q : math.max(t.supMaxQ, m.q)
+                float dAtr = (m.lo > px ? m.lo - px : m.hi < px ? px - m.hi : 0.0) / atr
+                t.supNearestAtr := na(t.supNearestAtr) ? dAtr : math.min(t.supNearestAtr, dAtr)
+            else
+                Zone zn = array.get(zones, zc)
+                zn.lo := m.lo
+                zn.hi := m.hi
+                zn.wz := math.max(maxW, m.hi - m.lo)
+                array.set(mz, best, zc)
+                bool grow = true
+                while grow
+                    int cand = -1
+                    for i = a to b
+                        if array.get(mz, i) == -2
+                            Level c = array.get(s, i)
+                            float g = gapBetween(c.lo, c.hi, zn.lo, zn.hi)
+                            float nlo = math.min(zn.lo, c.lo)
+                            float nhi = math.max(zn.hi, c.hi)
+                            bool ok = g <= mg and nhi - nlo <= zn.wz
+                            if ok and zc > zc0
+                                for z = zc0 to zc - 1
+                                    Zone zz = array.get(zones, z)
+                                    if gapBetween(nlo, nhi, zz.lo, zz.hi) < mg
+                                        ok := false
+                            if ok and (cand < 0 or precedes(c, array.get(s, cand)))
+                                cand := i
+                    if cand < 0
+                        grow := false
+                    else
+                        Level c = array.get(s, cand)
+                        zn.lo := math.min(zn.lo, c.lo)
+                        zn.hi := math.max(zn.hi, c.hi)
+                        array.set(mz, cand, zc)
+                zc += 1
+    zc
+
+// Same market event seen from two timeframes: same type, the finer pivot's open
+// time lies inside the coarser pivot's bar, and prices within ε·ATR_coarse.
+sameEvent(Level a, Level b) =>
+    bool diffTf = a.tfRank != b.tfRank
+    Level f = a.tfRank < b.tfRank ? a : b
+    Level c = a.tfRank < b.tfRank ? b : a
+    float cAtr = c.tfRank == TF_A1 ? atrA1 : atrA2
+    int cDurMs = (c.tfRank == TF_A1 ? a1Sec : a2Sec) * 1000
+    diffTf and a.source != SRC_DOZ and b.source != SRC_DOZ and a.typ == b.typ and c.tfRank != TF_LOCAL and not na(cAtr) and f.birthTime >= c.birthTime and f.birthTime < c.birthTime + cDurMs and math.abs(f.price - c.price) <= eventEpsK * cAtr
+
+// Orders the zone's member segment by `precedes`, then derives primary, flags,
+// event groups and gateQ. Confluence is counted per distinct event group with a
+// diminishing, capped bonus; MTF duplicates of one event add only the MTF bonus.
+aggregateZone(Zone zn, array<Level> s, array<int> mi, array<int> ord, array<int> mg, array<int> gp, array<int> fl, array<int> f1, array<int> f2) =>
+    int m = zn.memberCount
+    array.clear(ord)
+    for j = 0 to m - 1
+        array.push(ord, array.get(mi, zn.memberStart + j))
+    if m > 1
+        for x = 0 to m - 2
+            int bestPos = x
+            for y = x + 1 to m - 1
+                if precedes(array.get(s, array.get(ord, y)), array.get(s, array.get(ord, bestPos)))
+                    bestPos := y
+            if bestPos != x
+                int tmp = array.get(ord, x)
+                array.set(ord, x, array.get(ord, bestPos))
+                array.set(ord, bestPos, tmp)
+    for j = 0 to m - 1
+        array.set(mi, zn.memberStart + j, array.get(ord, j))
+    zn.primaryIdx := array.get(ord, 0)
+    zn.hasA1 := false
+    zn.hasA2 := false
+    zn.hasFlip := false
+    array.clear(mg)
+    array.clear(gp)
+    array.clear(fl)
+    array.clear(f1)
+    array.clear(f2)
+    for j = 0 to m - 1
+        Level lv = array.get(s, array.get(ord, j))
+        zn.hasA1 := zn.hasA1 or lv.tfRank == TF_A1
+        zn.hasA2 := zn.hasA2 or lv.tfRank == TF_A2
+        zn.hasFlip := zn.hasFlip or lv.state == ST_FLIP
+        int joined = -1
+        if j > 0
+            for k = 0 to j - 1
+                if joined < 0 and sameEvent(lv, array.get(s, array.get(ord, k)))
+                    joined := array.get(mg, k)
+        if joined < 0
+            joined := array.size(gp)
+            array.push(gp, array.get(ord, j))
+            array.push(fl, 0)
+            array.push(f1, 0)
+            array.push(f2, 0)
+        array.push(mg, joined)
+        if lv.tfRank == TF_LOCAL
+            array.set(fl, joined, 1)
+        else if lv.tfRank == TF_A1
+            array.set(f1, joined, 1)
+        else
+            array.set(f2, joined, 1)
+    float bestG = 0.0
+    int gn = array.size(gp)
+    for g = 0 to gn - 1
+        int tfc = array.get(fl, g) + array.get(f1, g) + array.get(f2, g)
+        float gq = array.get(s, array.get(gp, g)).q + (tfc >= 3 ? 12.0 : tfc == 2 ? 8.0 : 0.0)
+        bestG := math.max(bestG, gq)
+    float conf = gn > 1 ? math.min(12.0, 12.0 * (1.0 - math.pow(0.5, gn - 1))) : 0.0
+    zn.gateQ := math.min(100.0, bestG + conf)
+    zn.gateQ
+
+int zoneCount = 0
+int workCount = 0
+
+if engineStep
+    tel.supBar := 0
+    if validationMode
+        tel.largestCompBar := 0
+    tel.supMaxQ := na
+    tel.supNearestAtr := na
+    array.clear(work)
+    array.clear(workLo)
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
+        int n = array.size(pool)
+        if n > 0
+            for i = 0 to n - 1
+                Level lv = array.get(pool, i)
+                if na(lv)
+                    tel.naSort := tel.naSort + 1
+                    reportViolation(tel, "NA_IN_POOL", true)
+                else if lv.state != ST_DEAD
+                    array.push(work, lv)
+                    array.push(workLo, lv.lo)
+    workCount := array.size(work)
+    array.clear(srt)
+    if workCount >= 2
+        array<int> ordIdx = array.sort_indices(workLo, order.ascending)
+        for i = 0 to workCount - 1
+            array.push(srt, array.get(work, array.get(ordIdx, i)))
+    else if workCount == 1
+        array.push(srt, array.get(work, 0))
+
+    // Connected components on the sorted list, then packing per component.
+    float mgAbs = mergeGapK * atrEng
+    float maxWAbs = maxWidthK * atrEng
+    array.clear(memberZone)
+    if workCount > 0
+        for i = 0 to workCount - 1
+            array.push(memberZone, -2)
+        int cStart = 0
+        float cHi = array.get(srt, 0).hi
+        for i = 1 to workCount
+            bool boundary = i == workCount ? true : array.get(srt, i).lo > cHi + mgAbs
+            if boundary
+                if validationMode
+                    tel.largestCompBar := math.max(tel.largestCompBar, i - cStart)
+                zoneCount := packComponent(srt, memberZone, zonePool, cStart, i - 1, zoneCount, mgAbs, maxWAbs, tel, close, atrEng)
+                cStart := i
+                if i < workCount
+                    cHi := array.get(srt, i).hi
+            else
+                cHi := math.max(cHi, array.get(srt, i).hi)
+
+    // Member lists per zone (counting sort; each segment later reordered by precedes).
+    if zoneCount > 0
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            zn.memberCount := 0
+        int assigned = 0
+        if workCount > 0
+            for i = 0 to workCount - 1
+                int z = array.get(memberZone, i)
+                if z >= 0
+                    Zone zn = array.get(zonePool, z)
+                    zn.memberCount := zn.memberCount + 1
+                    assigned += 1
+        int run = 0
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            zn.memberStart := run
+            run += zn.memberCount
+            zn.memberCount := 0
+        array.clear(zmi)
+        if assigned > 0
+            for i = 0 to assigned - 1
+                array.push(zmi, -1)
+        if workCount > 0
+            for i = 0 to workCount - 1
+                int z = array.get(memberZone, i)
+                if z >= 0
+                    Zone zn = array.get(zonePool, z)
+                    array.set(zmi, zn.memberStart + zn.memberCount, i)
+                    zn.memberCount := zn.memberCount + 1
+
+        // Aggregation + display-only confluence (MA / psych never enter gateQ).
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            if zn.memberCount < 1
+                reportViolation(tel, "I6_NO_MEMBER", true)
+                zn.gateQ := 0.0
+                zn.displayQ := 0.0
+            else
+                aggregateZone(zn, srt, zmi, scratchOrd, memberGroup, gPrim, gL, gA1, gA2)
+                bool maConf = (includeMA200 and ma200 >= zn.lo and ma200 <= zn.hi) or (includeMA1000 and ma1000 >= zn.lo and ma1000 <= zn.hi)
+                float pStep = autoPsychStep(close)
+                bool psychConf = isCrypto and usePsychLevels and math.ceil(zn.lo / pStep) * pStep <= zn.hi
+                zn.displayQ := math.min(100.0, zn.gateQ + (maConf ? 4.0 : 0.0) + (psychConf ? 3.0 : 0.0))
+
+        // Zones in ascending price order.
+        array.clear(zoneLoKeys)
+        for z = 0 to zoneCount - 1
+            array.push(zoneLoKeys, array.get(zonePool, z).lo)
+        zoneOrd := array.sort_indices(zoneLoKeys, order.ascending)
+
+        // Builder invariants I1–I6.
+        float tol = math.abs(close) * 1e-9 + syminfo.mintick * 1e-6
+        int contributing = 0
+        for oz = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, array.get(zoneOrd, oz))
+            contributing += zn.memberCount
+            if zn.lo > zn.hi
+                reportViolation(tel, "I1_BOUNDS", true)
+            if zn.hi - zn.lo > zn.wz + tol
+                reportViolation(tel, "I3_WIDTH", true)
+            float ulo = na
+            float uhi = na
+            if zn.memberCount > 0
+                for j = 0 to zn.memberCount - 1
+                    Level lv = array.get(srt, array.get(zmi, zn.memberStart + j))
+                    ulo := na(ulo) ? lv.lo : math.min(ulo, lv.lo)
+                    uhi := na(uhi) ? lv.hi : math.max(uhi, lv.hi)
+                    if lv.lo < zn.lo - tol or lv.hi > zn.hi + tol
+                        reportViolation(tel, "I5_CORE_OUTSIDE", true)
+            if ulo != zn.lo or uhi != zn.hi
+                reportViolation(tel, "I4_UNION", true)
+            if oz > 0
+                Zone prevZ = array.get(zonePool, array.get(zoneOrd, oz - 1))
+                if prevZ.hi >= zn.lo
+                    reportViolation(tel, "I1_OVERLAP", true)
+                if zn.lo - prevZ.hi < mgAbs - tol
+                    reportViolation(tel, "I2_GAP", true)
+        if contributing + tel.supBar != workCount
+            reportViolation(tel, "I5_ACCOUNTING", true)
+
+
+// ============================================================================
+// 12. PHASE 3 — SPATIAL SELECTION + PERSISTENT SLOTS + ADAPTER
+// R*_side = max(H_local, max dist of eligible zones justified by an A1/A2 member
+// within that anchor's reach); R_eff extends R* for current holders (≤ 1.25·R*).
+// Candidates on each side are ALL eligible zones within R_eff, nearest first.
+// ============================================================================
+
+zonePrivSlot(Zone zn, array<Level> s, array<int> mi) =>
+    int ps = -1
+    for si = 0 to 3
+        if ps < 0
+            SlotState ss = slotAt(si)
+            if ss.active
+                for j = 0 to zn.memberCount - 1
+                    if ps < 0 and slotHasEntry(si, array.get(s, array.get(mi, zn.memberStart + j)).key)
+                        ps := si
+    ps
+
+zoneHasKey(Zone zn, array<Level> s, array<int> mi, int k) =>
+    bool found = false
+    for j = 0 to zn.memberCount - 1
+        if not found and array.get(s, array.get(mi, zn.memberStart + j)).key == k
+            found := true
+    found
+
+// entrySide: first confirmed close outside the zone within L_ENTRY bars, else the
+// primary's polarity. −1 = entered from below (resistance → R1), +1 = from above (S1).
+containEntrySide(Zone zn, array<float> rc, Level prim) =>
+    int side = 0
+    int n = array.size(rc)
+    if n > 1
+        int kEnd = math.min(L_ENTRY, n - 1)
+        for k = 1 to kEnd
+            if side == 0
+                float ck = array.get(rc, k)
+                if ck > zn.hi
+                    side := 1
+                else if ck < zn.lo
+                    side := -1
+    side == 0 ? (prim.polarity > 0 ? -1 : 1) : side
+
+sourceShort(Level lv) =>
+    lv.source == SRC_SWING ? "Swing" : lv.source == SRC_DOZ ? "DOZ" : lv.tfRank == TF_A1 ? "A1" : "A2"
+
+float rStarUp = na
+float rStarDn = na
+float rEffUp = na
+float rEffDn = na
+// Horizon stages (identical formulas; global so validation telemetry can read them).
+float hLocal = kLocal * atrEng
+float reachA1 = na(atrA1) ? 0.0 : kA1 * atrA1
+float reachA2 = na(atrA2) ? 0.0 : kA2 * atrA2
+
+if engineStep
+    int containIdx = -1
+    int containCount = 0
+
+    // Side, distance, privilege (live entry keys of an active slot), eligibility.
+    if zoneCount > 0
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            zn.side := zn.lo > close ? SIDE_ABOVE : zn.hi < close ? SIDE_BELOW : SIDE_CONTAIN
+            zn.dist := zn.side == SIDE_ABOVE ? zn.lo - close : zn.side == SIDE_BELOW ? close - zn.hi : 0.0
+            zn.privSlot := zn.memberCount > 0 ? zonePrivSlot(zn, srt, zmi) : -1
+            zn.eligible := zn.memberCount > 0 and zn.gateQ >= (zn.privSlot >= 0 ? qStay : qEnter)
+            if zn.side == SIDE_CONTAIN
+                containCount += 1
+                containIdx := z
+    if containCount > 1
+        reportViolation(tel, "I8_MULTI_CONTAIN", true)
+
+    // Global progressive horizon per side.
+    rStarUp := hLocal
+    rStarDn := hLocal
+    float holdUp = 0.0
+    float holdDn = 0.0
+    if zoneCount > 0
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            if zn.eligible and zn.side != SIDE_CONTAIN
+                bool justified = (zn.hasA1 and zn.dist <= reachA1) or (zn.hasA2 and zn.dist <= reachA2)
+                if zn.side == SIDE_ABOVE
+                    if justified
+                        rStarUp := math.max(rStarUp, zn.dist)
+                    if zn.privSlot >= 0
+                        holdUp := math.max(holdUp, zn.dist)
+                else
+                    if justified
+                        rStarDn := math.max(rStarDn, zn.dist)
+                    if zn.privSlot >= 0
+                        holdDn := math.max(holdDn, zn.dist)
+    rEffUp := math.max(rStarUp, math.min(holdUp, 1.25 * rStarUp))
+    rEffDn := math.max(rStarDn, math.min(holdDn, 1.25 * rStarDn))
+    tel.rEffUpAtr := rEffUp / atrEng
+    tel.rEffDnAtr := rEffDn / atrEng
+
+    // Containing zone goes to R1 (entered from below) or S1 (entered from above).
+    int containEntry = 0
+    if containIdx >= 0
+        Zone cz = array.get(zonePool, containIdx)
+        if cz.eligible
+            containEntry := containEntrySide(cz, ringC, array.get(srt, cz.primaryIdx))
+            cz.entrySide := containEntry
+
+    // Nearest-first candidate lists over ALL eligible zones within R_eff.
+    array.clear(rList)
+    array.clear(sList)
+    if containEntry < 0
+        array.push(rList, containIdx)
+    if containEntry > 0
+        array.push(sList, containIdx)
+    if zoneCount > 0
+        for oz = 0 to zoneCount - 1
+            int z = array.get(zoneOrd, oz)
+            Zone zn = array.get(zonePool, z)
+            if zn.eligible and zn.side == SIDE_ABOVE and zn.dist <= rEffUp
+                array.push(rList, z)
+        for oz = zoneCount - 1 to 0
+            int z = array.get(zoneOrd, oz)
+            Zone zn = array.get(zonePool, z)
+            if zn.eligible and zn.side == SIDE_BELOW and zn.dist <= rEffDn
+                array.push(sList, z)
+
+    int nR1 = array.size(rList) > 0 ? array.get(rList, 0) : -1
+    int nR2 = array.size(rList) > 1 ? array.get(rList, 1) : -1
+    int nS1 = array.size(sList) > 0 ? array.get(sList, 0) : -1
+    int nS2 = array.size(sList) > 1 ? array.get(sList, 1) : -1
+
+    // Selection invariants I10–I12 (recount, independent of the list build).
+    if (nR2 >= 0 and nR1 < 0) or (nS2 >= 0 and nS1 < 0)
+        reportViolation(tel, "I10_ORDER", true)
+    if (nR1 >= 0 and (nR1 == nS1 or nR1 == nS2)) or (nR2 >= 0 and (nR2 == nS1 or nR2 == nS2)) or (nR1 >= 0 and nR1 == nR2) or (nS1 >= 0 and nS1 == nS2)
+        reportViolation(tel, "I10_DUP_SLOT", true)
+    if nR1 >= 0 and nR2 >= 0
+        Zone z1 = array.get(zonePool, nR1)
+        Zone z2 = array.get(zonePool, nR2)
+        if not (z1.hi < z2.lo and (z1.side == SIDE_CONTAIN or z1.lo > close))
+            reportViolation(tel, "I9_R_ORDER", true)
+    if nS1 >= 0 and nS2 >= 0
+        Zone z1 = array.get(zonePool, nS1)
+        Zone z2 = array.get(zonePool, nS2)
+        if not (z1.lo > z2.hi and (z1.side == SIDE_CONTAIN or z1.hi < close))
+            reportViolation(tel, "I9_S_ORDER", true)
+    if zoneCount > 0
+        float maxSelUp = -1.0
+        float maxSelDn = -1.0
+        int selUp = 0
+        int selDn = 0
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            bool inR = z == nR1 or z == nR2
+            bool inS = z == nS1 or z == nS2
+            if inR and zn.side == SIDE_ABOVE
+                maxSelUp := math.max(maxSelUp, zn.dist)
+                selUp += 1
+            if inS and zn.side == SIDE_BELOW
+                maxSelDn := math.max(maxSelDn, zn.dist)
+                selDn += 1
+        int capUp = containEntry < 0 ? 1 : 2
+        int capDn = containEntry > 0 ? 1 : 2
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            bool selected = z == nR1 or z == nR2 or z == nS1 or z == nS2
+            if zn.eligible and not selected and zn.side == SIDE_ABOVE and zn.dist <= rEffUp
+                if selUp < capUp
+                    reportViolation(tel, "I12_EMPTY_UP", true)
+                if zn.dist < maxSelUp
+                    reportViolation(tel, "I11_SKIP_UP", true)
+            if zn.eligible and not selected and zn.side == SIDE_BELOW and zn.dist <= rEffDn
+                if selDn < capDn
+                    reportViolation(tel, "I12_EMPTY_DN", true)
+                if zn.dist < maxSelDn
+                    reportViolation(tel, "I11_SKIP_DN", true)
+
+    // Next entry keys and last-member keys for all four slots, computed into scratch
+    // arrays before any slot is written (old entry keys stay untouched until then).
+    // Privileged zones carry old entry keys ∩ live members; new entries take all
+    // current member keys (precedes order). No cap on the number of keys.
+    for si = 0 to 3
+        int z = si == 0 ? nR1 : si == 1 ? nR2 : si == 2 ? nS1 : nS2
+        array<int> ne = nextEntryOf(si)
+        array<int> nl = nextLastOf(si)
+        array.clear(ne)
+        array.clear(nl)
+        if z >= 0
+            Zone zn = array.get(zonePool, z)
+            for j = 0 to zn.memberCount - 1
+                array.push(nl, array.get(srt, array.get(zmi, zn.memberStart + j)).key)
+            if zn.privSlot >= 0
+                array<int> oldE = entryKeysOf(zn.privSlot)
+                int on = array.size(oldE)
+                if on > 0
+                    for j = 0 to on - 1
+                        int k = array.get(oldE, j)
+                        if zoneHasKey(zn, srt, zmi, k)
+                            array.push(ne, k)
+            else
+                for j = 0 to zn.memberCount - 1
+                    array.push(ne, array.get(srt, array.get(zmi, zn.memberStart + j)).key)
+            tel.maxSlotKeys := math.max(tel.maxSlotKeys, zn.memberCount)
+
+    // Write the four slots (scalar fields only).
+    for si = 0 to 3
+        int z = si == 0 ? nR1 : si == 1 ? nR2 : si == 2 ? nS1 : nS2
+        SlotState ss = slotAt(si)
+        bool isRes = si < 2
+        replaceKeys(entryKeysOf(si), nextEntryOf(si))
+        replaceKeys(lastKeysOf(si), nextLastOf(si))
+        if z < 0
+            ss.active := false
+            ss.containing := false
+            ss.lo := na
+            ss.hi := na
+            ss.roleType := "—"
+            ss.navTag := ""
+            ss.shortTag := ""
+            ss.primaryKey := 0
+        else
+            Zone zn = array.get(zonePool, z)
+            Level prim = array.get(srt, zn.primaryIdx)
+            string typeTag = zn.hasFlip ? "Flip" : prim.state == ST_BROKEN ? "مكسور" : prim.state == ST_BREAKING ? "قيد الكسر" : ""
+            string suffix = " • " + sourceShort(prim) + (typeTag != "" ? " • " + typeTag : "")
+            ss.active := true
+            ss.containing := zn.side == SIDE_CONTAIN
+            ss.lo := zn.lo
+            ss.hi := zn.hi
+            ss.side := zn.side
+            ss.quality := zn.displayQ
+            ss.gateQ := zn.gateQ
+            ss.distAtr := zn.dist / atrEng
+            ss.isFar := zn.dist > kTact * atrEng
+            ss.leftTime := prim.birthTime
+            ss.roleType := (isRes ? "مقاومة" : "دعم") + suffix
+            ss.navTag := zn.hasFlip ? "Flip مؤكد" : prim.state == ST_BROKEN ? "Flip محتمل" : prim.state == ST_BREAKING ? "قيد الكسر" : ""
+            ss.shortTag := suffix
+            ss.primaryKey := prim.key
+
+// ============================================================================
+// 12a. VALIDATION TELEMETRY — READ-ONLY WITH RESPECT TO THE ENGINE
+// Writes only Telemetry fields. Nothing below is read by any engine decision.
+// ============================================================================
+
+// Auxiliary hashes of the canonical snapshot (reference/snapshot.mjs, same integer
+// encoding and arithmetic): hashSlots covers the identity level (per slot: active,
+// containing, side, lo/hi in ticks, primaryKey, gateQ, displayQ, sorted lastKeys and
+// entryKeys), hashState covers the engine-state level (every pool record sorted by
+// key with its source identity and ages relative to this bar, the DOZ swing trackers
+// and the OHLC ring). Per bar, never cumulative.
+// Different values prove a difference; equal values do NOT prove equality. The full
+// comparison uses raw fields (Data Window export and the log capture in section 18).
+HASH_P = 2147483647
+HASH_B = 1000003
+HASH_K = 131071
+
+hashStep(int h, int x) =>
+    int r = ((x % HASH_P) + HASH_P) % HASH_P
+    (h * HASH_B + (r * r % HASH_P * 3 + r * HASH_K + 1) % HASH_P) % HASH_P
+
+toTicks(float x) =>
+    math.round(x / syminfo.mintick)
+
+q6(float x) =>
+    math.round(x * 1000000.0)
+
+sinceOr(int x) =>
+    na(x) ? -1 : bar_index - x
+
+// Copies a slot-owned key array into scratch (the slot array itself is never sorted).
+sortedCopy(array<int> keys, array<int> scratch) =>
+    replaceKeys(scratch, keys)
+    array.sort(scratch, order.ascending)
+    array.size(scratch)
+
+hashKeyList(int h0, array<int> keys, array<int> scratch) =>
+    int n = sortedCopy(keys, scratch)
+    int h = hashStep(h0, n)
+    if n > 0
+        for i = 0 to n - 1
+            h := hashStep(h, array.get(scratch, i))
+    h
+
+hashSlot(int h0, SlotState ss, array<int> lastK, array<int> entryK, array<int> scratch) =>
+    int h = h0
+    if not ss.active
+        h := hashStep(h, 0)
+    else
+        h := hashStep(h, 1)
+        h := hashStep(h, ss.containing ? 1 : 0)
+        h := hashStep(h, ss.side)
+        h := hashStep(h, toTicks(ss.lo))
+        h := hashStep(h, toTicks(ss.hi))
+        h := hashStep(h, ss.primaryKey)
+        h := hashStep(h, math.round(ss.gateQ * 100))
+        h := hashStep(h, math.round(ss.quality * 100))
+        h := hashKeyList(h, lastK, scratch)
+        h := hashKeyList(h, entryK, scratch)
+    h
+
+hashLevel(int h0, Level lv) =>
+    int h = hashStep(h0, lv.key)
+    h := hashStep(h, lv.source)
+    h := hashStep(h, lv.tfRank)
+    h := hashStep(h, lv.typ)
+    h := hashStep(h, lv.birthTime)
+    h := hashStep(h, toTicks(lv.price))
+    h := hashStep(h, lv.state)
+    h := hashStep(h, lv.polarity)
+    h := hashStep(h, toTicks(lv.lo))
+    h := hashStep(h, toTicks(lv.hi))
+    h := hashStep(h, q6(lv.s))
+    h := hashStep(h, q6(lv.mitigation))
+    h := hashStep(h, q6(lv.evidence))
+    h := hashStep(h, lv.tests)
+    h := hashStep(h, lv.ageNative)
+    h := hashStep(h, lv.epActive ? 1 : 0)
+    h := hashStep(h, lv.epSide)
+    h := hashStep(h, q6(lv.epMaxDepth))
+    h := hashStep(h, lv.breakDir)
+    h := hashStep(h, lv.breakCloses)
+    h := hashStep(h, lv.breakFromFlip ? 1 : 0)
+    h := hashStep(h, lv.backCloses)
+    h := hashStep(h, sinceOr(lv.lastTestChartBar))
+    h := hashStep(h, sinceOr(lv.stateChartBar))
+    h := hashStep(h, sinceOr(lv.backStartChartBar))
+    h := hashStep(h, lv.navArmed ? 1 : 0)
+    h
+
+hashTracker(int h0, float px, int bar, bool broken) =>
+    int h = h0
+    if na(px)
+        h := hashStep(h, 0)
+    else
+        h := hashStep(h, 1)
+        h := hashStep(h, toTicks(px))
+        h := hashStep(h, sinceOr(bar))
+        h := hashStep(h, broken ? 1 : 0)
+    h
+
+// Snapshot scratch: all pool records and their keys (read-only views of the pools).
+var array<int> hashScratch = array.new_int()
+var array<Level> snapLevels = array.new<Level>()
+var array<int> snapKeys = array.new_int()
+var array<int> snapOrd = array.new_int()
+
+// Cost gate (G2). hashSlots is cheap (four slots, ~60 integers) and stays on every engine
+// step, as the slot digest did before. The state level (every pool record, 26 fields
+// each, plus the 64-bar OHLC ring: ~1,800 integers and a sort per step) is computed only
+// when something reads it: validationMode (v_hashState) or the log capture (END line and
+// the sorted LVL lines). Write-only telemetry either way: no engine decision reads it.
+bool captureOn = engineStep and captureFrom > 0 and time >= captureFrom and time <= captureTo
+bool hashStateOn = engineStep and (validationMode or captureOn)
+
+if engineStep
+    int hs = hashStep(0, 1)
+    hs := hashSlot(hs, slotR1, keysLastR1, keysEntryR1, hashScratch)
+    hs := hashSlot(hs, slotR2, keysLastR2, keysEntryR2, hashScratch)
+    hs := hashSlot(hs, slotS1, keysLastS1, keysEntryS1, hashScratch)
+    hs := hashSlot(hs, slotS2, keysLastS2, keysEntryS2, hashScratch)
+    tel.hashSlots := hs
+
+if hashStateOn
+    array.clear(snapLevels)
+    array.clear(snapKeys)
+    for p = 0 to 2
+        array<Level> pool = p == 0 ? localPool : p == 1 ? anchorPoolA1 : anchorPoolA2
+        int n = array.size(pool)
+        if n > 0
+            for i = 0 to n - 1
+                Level lv = array.get(pool, i)
+                array.push(snapLevels, lv)
+                array.push(snapKeys, lv.key)
+    int nSnap = array.size(snapKeys)
+    array.clear(snapOrd)
+    if nSnap >= 2
+        snapOrd := array.sort_indices(snapKeys, order.ascending)
+    else if nSnap == 1
+        array.push(snapOrd, 0)
+    int hl = hashStep(0, 2)
+    hl := hashStep(hl, nSnap)
+    if nSnap > 0
+        for i = 0 to nSnap - 1
+            hl := hashLevel(hl, array.get(snapLevels, array.get(snapOrd, i)))
+    hl := hashTracker(hl, lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken)
+    hl := hashTracker(hl, lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken)
+    // OHLC ring (index = age, 0 = newest): read by dozBuild and containEntrySide.
+    int nRing = array.size(ringC)
+    hl := hashStep(hl, nRing)
+    if nRing > 0
+        for k = 0 to nRing - 1
+            hl := hashStep(hl, toTicks(array.get(ringO, k)))
+            hl := hashStep(hl, toTicks(array.get(ringH, k)))
+            hl := hashStep(hl, toTicks(array.get(ringL, k)))
+            hl := hashStep(hl, toTicks(array.get(ringC, k)))
+    tel.hashState := hl
+
+if engineStep and validationMode
+    tel.zonesBuiltBar := zoneCount
+    tel.slotKeysBar := math.max(math.max(array.size(keysLastR1), array.size(keysLastR2)), math.max(array.size(keysLastS1), array.size(keysLastS2)))
+    // Nearest eligible zone beyond the effective horizon, per side.
+    tel.nextBeyondUpAtr := na
+    tel.nextBeyondDnAtr := na
+    tel.nextBeyondUpAnchor := false
+    tel.nextBeyondDnAnchor := false
+    if zoneCount > 0
+        for z = 0 to zoneCount - 1
+            Zone zn = array.get(zonePool, z)
+            if zn.eligible and zn.side == SIDE_ABOVE and zn.dist > rEffUp
+                float dA = zn.dist / atrEng
+                if na(tel.nextBeyondUpAtr) or dA < tel.nextBeyondUpAtr
+                    tel.nextBeyondUpAtr := dA
+                    tel.nextBeyondUpAnchor := zn.hasA1 or zn.hasA2
+            if zn.eligible and zn.side == SIDE_BELOW and zn.dist > rEffDn
+                float dB = zn.dist / atrEng
+                if na(tel.nextBeyondDnAtr) or dB < tel.nextBeyondDnAtr
+                    tel.nextBeyondDnAtr := dB
+                    tel.nextBeyondDnAnchor := zn.hasA1 or zn.hasA2
+    // hidden-near: a suppressed member with q ≥ Q_enter inside H_tact, not represented
+    // by a displayed zone on its side (no overlap, gap ≥ mergeGap), and nearer to price
+    // than the nearest displayed obstacle on that side by ≥ 0.25 ATR (or none shown).
+    tel.hiddenNearUp := false
+    tel.hiddenNearDn := false
+    tel.hiddenContain := 0
+    float mgV = mergeGapK * atrEng
+    float nearUp = na
+    float nearDn = na
+    for si = 0 to 3
+        SlotState ss = slotAt(si)
+        if ss.active
+            float d = ss.containing ? 0.0 : ss.lo > close ? ss.lo - close : close - ss.hi
+            if si < 2
+                nearUp := na(nearUp) ? d : math.min(nearUp, d)
+            else
+                nearDn := na(nearDn) ? d : math.min(nearDn, d)
+    if workCount > 0
+        for i = 0 to workCount - 1
+            if array.get(memberZone, i) == -1
+                Level m = array.get(srt, i)
+                if m.q >= qEnter
+                    int mSide = m.lo > close ? 1 : m.hi < close ? -1 : 0
+                    if mSide == 0
+                        tel.hiddenContain := tel.hiddenContain + 1
+                    else
+                        float md = mSide > 0 ? m.lo - close : close - m.hi
+                        if md <= kTact * atrEng
+                            bool represented = false
+                            for si = 0 to 3
+                                SlotState ss = slotAt(si)
+                                if ss.active and (si < 2) == (mSide > 0) and gapBetween(m.lo, m.hi, ss.lo, ss.hi) < mgV
+                                    represented := true
+                            float nearSide = mSide > 0 ? nearUp : nearDn
+                            if not represented and (na(nearSide) or md + 0.25 * atrEng <= nearSide)
+                                if mSide > 0
+                                    tel.hiddenNearUp := true
+                                else
+                                    tel.hiddenNearDn := true
+
+// Adapter: the legacy consumer variables, now fed from the persistent slots.
+float res1Low = slotR1.active ? slotR1.lo : na
+float res1High = slotR1.active ? slotR1.hi : na
+float res1Strength = slotR1.active ? slotR1.quality : na
+string res1Type = slotR1.active ? slotR1.roleType : "—"
+float res2Low = slotR2.active ? slotR2.lo : na
+float res2High = slotR2.active ? slotR2.hi : na
+float res2Strength = slotR2.active ? slotR2.quality : na
+string res2Type = slotR2.active ? slotR2.roleType : "—"
+float sup1Low = slotS1.active ? slotS1.lo : na
+float sup1High = slotS1.active ? slotS1.hi : na
+float sup1Strength = slotS1.active ? slotS1.quality : na
+string sup1Type = slotS1.active ? slotS1.roleType : "—"
+float sup2Low = slotS2.active ? slotS2.lo : na
+float sup2High = slotS2.active ? slotS2.hi : na
+float sup2Strength = slotS2.active ? slotS2.quality : na
+string sup2Type = slotS2.active ? slotS2.roleType : "—"
+
+// ============================================================================
+// 13. OBSTACLE AWARENESS — APPROACH / TOUCH / INSIDE / BREAK / REJECT
+// Consumer contract: dest1 = containing zone when one exists, otherwise the
+// heading-based choice of v0.4.6. Distances use ATR_eng. Break / reject /
+// accept / flip events come from the level state machine (single source).
+// ============================================================================
+
+int mapDirectionSign = tacticalSign != 0 ? tacticalSign : routeSign
+bool containR = slotR1.active and slotR1.containing
+bool containS = slotS1.active and slotS1.containing
+float res1Dist = not na(res1Low) ? zoneDistance(res1Low, res1High) / atrEng : 99.0
+float sup1Dist = not na(sup1Low) ? zoneDistance(sup1Low, sup1High) / atrEng : 99.0
+bool primaryUp = containR ? true : containS ? false : (mapDirectionSign > 0 or (mapDirectionSign == 0 and res1Dist <= sup1Dist))
+bool secondSameSide = containR ? mapDirectionSign >= 0 : containS ? mapDirectionSign <= 0 : true
+
+float dest1Low = primaryUp ? res1Low : sup1Low
+float dest1High = primaryUp ? res1High : sup1High
+float dest1Strength = primaryUp ? res1Strength : sup1Strength
+string dest1Type = primaryUp ? res1Type : sup1Type
+string dest1Tag = primaryUp ? (slotR1.active ? slotR1.navTag : "") : (slotS1.active ? slotS1.navTag : "")
+float dest2Low = primaryUp ? (secondSameSide ? res2Low : sup1Low) : (secondSameSide ? sup2Low : res1Low)
+float dest2High = primaryUp ? (secondSameSide ? res2High : sup1High) : (secondSameSide ? sup2High : res1High)
+float dest2Strength = primaryUp ? (secondSameSide ? res2Strength : sup1Strength) : (secondSameSide ? sup2Strength : res1Strength)
+string dest2Type = primaryUp ? (secondSameSide ? res2Type : sup1Type) : (secondSameSide ? sup2Type : res1Type)
+float dest3Low = primaryUp ? (secondSameSide ? sup1Low : res2Low) : (secondSameSide ? res1Low : sup2Low)
+float dest3High = primaryUp ? (secondSameSide ? sup1High : res2High) : (secondSameSide ? res1High : sup2High)
+float dest3Strength = primaryUp ? (secondSameSide ? sup1Strength : res2Strength) : (secondSameSide ? res1Strength : sup2Strength)
+string dest3Type = primaryUp ? (secondSameSide ? sup1Type : res2Type) : (secondSameSide ? res1Type : sup2Type)
+
+nearestObstacleAtr = not na(dest1Low) ? zoneDistance(dest1Low, dest1High) / atrEng : na
+nearestObstacleStrong = not na(dest1Strength) and dest1Strength >= strongQ
+
+obstacleAvailable = not na(dest1Low) and not na(dest1High)
+obstacleCenter = obstacleAvailable ? (dest1Low + dest1High) * 0.5 : na
+bool typeResistance = obstacleAvailable and (str.contains(dest1Type, "مقاومة") or str.contains(dest1Type, "عرض"))
+bool typeSupport = obstacleAvailable and (str.contains(dest1Type, "دعم") or str.contains(dest1Type, "طلب"))
+int obstacleRole = not obstacleAvailable ? 0 : typeResistance ? 1 : typeSupport ? -1 : obstacleCenter >= close ? 1 : -1
+
+bool priceInsideObstacle = obstacleAvailable and close >= dest1Low and close <= dest1High
+bool candleTouchesObstacle = obstacleAvailable and high >= dest1Low and low <= dest1High
+bool obstacleNear = obstacleAvailable and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr
+
+// Engine events (false on every non-confirmed execution).
+bool rejectResistance = ev.rejectR
+bool rejectSupport = ev.rejectS
+bool breakResistance = ev.breakingUp
+bool breakSupport = ev.breakingDn
+bool breakAcceptedUp = ev.acceptedUp
+bool breakAcceptedDn = ev.acceptedDn
+bool flipConfirmedEvent = ev.flipConfirmed
+
+string obstacleState = "لا يوجد عائق مباشر"
+if priceInsideObstacle
+    obstacleState := obstacleRole == 1 ? "داخل مقاومة" : obstacleRole == -1 ? "داخل دعم" : "داخل عائق"
+else if breakAcceptedUp
+    obstacleState := "اختراق مقبول"
+else if breakAcceptedDn
+    obstacleState := "كسر مقبول"
+else if rejectResistance
+    obstacleState := "رفض من مقاومة"
+else if rejectSupport
+    obstacleState := "ارتداد من دعم"
+else if breakResistance
+    obstacleState := "اختراق مقاومة"
+else if breakSupport
+    obstacleState := "كسر دعم"
+else if candleTouchesObstacle
+    obstacleState := obstacleRole == 1 ? "اختبار مقاومة" : obstacleRole == -1 ? "اختبار دعم" : "اختبار عائق"
+else if obstacleNear
+    obstacleState := obstacleRole == 1 ? "يقترب من مقاومة" : obstacleRole == -1 ? "يقترب من دعم" : "عائق قريب"
+if dest1Tag != "" and obstacleAvailable
+    obstacleState := obstacleState + " • " + dest1Tag
+
+// No-chase engine: fast movement into a nearby obstacle while thrust is not
+// keeping pace with speed.
+bool fuelNotSupportingChase = fuelAcceleration < -3 or fuelScore < noChaseFuelMax or fuelScore + 18 < speedScore
+bool speedHotForChase = speedScore >= math.max(60.0, speedFastThreshold - 10.0) or instantSpeedScore >= speedExtremeThreshold
+bool obstacleEngagedForChase = obstacleAvailable and (nearestObstacleAtr <= noChaseAtr or priceInsideObstacle or candleTouchesObstacle)
+bool noChaseUp = tacticalSign > 0 and obstacleRole == 1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
+bool noChaseDown = tacticalSign < 0 and obstacleRole == -1 and obstacleEngagedForChase and speedHotForChase and fuelNotSupportingChase
+bool noChase = noChaseUp or noChaseDown
+
+// Exhaustion is not a reversal call. It only says speed is being maintained while
+// participation/thrust is deteriorating.
+bool fuelExhaustion = speedScore >= 55 and fuelScore >= 40 and fuelAcceleration < -6
+bool obstacleInAwarenessRange = obstacleAvailable and not na(nearestObstacleAtr) and nearestObstacleAtr <= awarenessObstacleAtr
+bool movingTowardResistance = tacticalSign > 0 and obstacleRole == 1 and obstacleInAwarenessRange
+bool movingTowardSupport = tacticalSign < 0 and obstacleRole == -1 and obstacleInAwarenessRange
+
+
+// ============================================================================
+// 14. NAVIGATION STATE — STRICT CONTEXT PRIORITY
+// Accepted breaks lead; the v0.4.6 price-proxy block branches are gone (DOZ is a zone source,
+// covered by the inside/test branches); dest1 state tags are appended.
+// ============================================================================
+
+string roadStatus = "حركة طبيعية"
+bool roadAboutDest1 = false
+
+if breakAcceptedUp
+    roadStatus := "اختراق مقبول"
+else if breakAcceptedDn
+    roadStatus := "كسر مقبول"
+else if breakResistance
+    roadStatus := fuelScore >= fuelHighThreshold and tacticalSign > 0 ? "اختراق مقاومة مدعوم" : "اختراق مقاومة — يحتاج تثبيت"
+else if breakSupport
+    roadStatus := fuelScore >= fuelHighThreshold and tacticalSign < 0 ? "كسر دعم مدعوم" : "كسر دعم — يحتاج تثبيت"
+else if rejectResistance
+    roadStatus := "رفض من مقاومة — الزخم اصطدم بالعائق"
+    roadAboutDest1 := true
+else if rejectSupport
+    roadStatus := "ارتداد من دعم — ظهر دفاع سعري"
+    roadAboutDest1 := true
+else if priceInsideObstacle
+    roadStatus := obstacleRole == 1 ? (noChaseUp ? "داخل مقاومة — لا تطارد" : "داخل مقاومة — راقب القبول أو الرفض") : obstacleRole == -1 ? (noChaseDown ? "داخل دعم — لا تطارد الهبوط" : "داخل دعم — راقب الثبات أو الكسر") : "داخل عائق سعري"
+    roadAboutDest1 := true
+else if candleTouchesObstacle
+    roadStatus := obstacleRole == 1 ? (noChaseUp ? "اختبار مقاومة — لا تطارد" : "اختبار مقاومة") : obstacleRole == -1 ? (noChaseDown ? "اختبار دعم — لا تطارد الهبوط" : "اختبار دعم") : "اختبار عائق"
+    roadAboutDest1 := true
+else if obstacleNear
+    roadStatus := obstacleRole == 1 ? (noChaseUp ? "اندفاع صاعد قرب مقاومة — لا تطارد" : nearestObstacleStrong ? "يقترب من مقاومة قوية" : "يقترب من مقاومة") : obstacleRole == -1 ? (noChaseDown ? "هبوط سريع قرب دعم — لا تطارد" : nearestObstacleStrong ? "يقترب من دعم قوي" : "يقترب من دعم") : "يقترب من عائق"
+    roadAboutDest1 := true
+else if movingTowardResistance
+    roadStatus := fuelExhaustion ? "صاعد نحو مقاومة — الوقود يتآكل" : "صاعد لكن مقاومة أمامه"
+    roadAboutDest1 := true
+else if movingTowardSupport
+    roadStatus := fuelExhaustion ? "هابط نحو دعم — الوقود يتآكل" : "هابط لكن دعم أمامه"
+    roadAboutDest1 := true
+else if fuelExhaustion
+    roadStatus := tacticalSign > 0 ? "الصعود مستمر لكن الوقود يتآكل" : tacticalSign < 0 ? "الهبوط مستمر لكن الوقود يتآكل" : "الوقود يتآكل"
+else if routeSign < 0 and tacticalSign > 0
+    roadStatus := "ارتداد صاعد داخل مسار هابط"
+else if routeSign > 0 and tacticalSign < 0
+    roadStatus := "تصحيح هابط داخل مسار صاعد"
+else if tacticalSign == 0
+    roadStatus := routeSign == 0 ? "لا يوجد اتجاه قابل للملاحة" : "توقف/تجميع داخل المسار"
+else if speedScore >= speedFastThreshold and fuelScore < fuelLowThreshold
+    roadStatus := "حركة سريعة لكن الدفع يضعف"
+else if speedScore < speedSlowThreshold and fuelScore < fuelLowThreshold
+    roadStatus := routeSign == 0 ? "خمول/تجميع" : "توقف/تجميع داخل المسار"
+else if speedScore < speedSlowThreshold and fuelScore >= fuelHighThreshold
+    roadStatus := "طاقة تتجمع"
+else if routeSign == tacticalSign and tacticalSign != 0 and speedScore >= speedFastThreshold and fuelScore >= fuelHighThreshold and (na(nearestObstacleAtr) or nearestObstacleAtr >= 0.80)
+    roadStatus := tacticalSign > 0 ? "اندفاع صاعد مدعوم — الطريق مفتوح نسبيًا" : "اندفاع هابط مدعوم — الطريق مفتوح نسبيًا"
+else if routeSign == tacticalSign and tacticalSign != 0 and fuelScore < fuelLowThreshold
+    roadStatus := "المسار متوافق لكن الوقود ضعيف"
+else if routeSign == tacticalSign and tacticalSign != 0
+    roadStatus := tacticalSign > 0 ? "حركة صاعدة داخل المسار" : "حركة هابطة داخل المسار"
+else
+    roadStatus := "أدلة الحركة مختلطة"
+
+if roadAboutDest1 and dest1Tag != ""
+    roadStatus := roadStatus + " (" + dest1Tag + ")"
+
+
+// ============================================================================
+// 15. VISUALS — FOUR NAVIGATION ZONES FROM CONFIRMED SLOT STATE ONLY
+// Geometry comes from the slots written on the last confirmed bar; only the
+// touch highlight reacts intrabar. No raw zone is ever drawn.
+// ============================================================================
+
+plot(showMAs and showFastMAs ? ma14 : na, "MA14", color = color.new(color.yellow, 15), linewidth = 1)
+plot(showMAs and showFastMAs ? ma22 : na, "MA22", color = color.new(color.orange, 15), linewidth = 1)
+plot(showMAs ? ma50 : na, "MA50", color = color.new(color.blue, 0), linewidth = 2)
+plot(showMAs ? ma200 : na, "MA200", color = color.new(color.red, 0), linewidth = 2)
+plot(showMAs ? ma1000 : na, "MA1000", color = color.new(color.purple, 0), linewidth = 2)
+
+// Optional diagnostic center markers. Off by default.
+dest1Center = not na(dest1Low) ? (dest1Low + dest1High) * 0.5 : na
+dest2Center = not na(dest2Low) ? (dest2Low + dest2High) * 0.5 : na
+dest3Center = not na(dest3Low) ? (dest3Low + dest3High) * 0.5 : na
+// [MEASURE] debug marker plot 1 removed (plot budget for section 19)
+// [MEASURE] debug marker plot 2 removed (plot budget for section 19)
+// [MEASURE] debug marker plot 3 removed (plot budget for section 19)
+
+var box smartResBox1 = na
+var box smartResBox2 = na
+var box smartSupBox1 = na
+var box smartSupBox2 = na
+var label smartResLabel1 = na
+var label smartResLabel2 = na
+var label smartSupLabel1 = na
+var label smartSupLabel2 = na
+
+float tfMinZones = timeframe.in_seconds(timeframe.period) / 60.0
+int autoBackBars = tfMinZones <= 1 ? 110 : tfMinZones <= 5 ? 72 : tfMinZones <= 15 ? 52 : tfMinZones <= 60 ? 40 : tfMinZones <= 240 ? 30 : 22
+int autoForwardBars = tfMinZones <= 1 ? 120 : tfMinZones <= 5 ? 72 : tfMinZones <= 15 ? 48 : tfMinZones <= 60 ? 36 : tfMinZones <= 240 ? 28 : 20
+int zoneBackBars = autoZoneSpan ? autoBackBars : manualZoneBackBars
+int zoneForwardBars = autoZoneSpan ? autoForwardBars : manualZoneForwardBars
+int leftBoundTime = nz(time[zoneBackBars], time)
+int zoneRightTime = time + zoneForwardBars * chartSec * 1000
+
+zoneLabelText(string name, SlotState ss) =>
+    name + " • " + strengthText(ss.quality) + ss.shortTag + (ss.isFar ? " • بعيدة" : "")
+
+zoneLeft(SlotState ss) =>
+    math.max(nz(ss.leftTime, leftBoundTime), leftBoundTime)
+
+if barstate.islast
+    if not na(smartResBox1)
+        box.delete(smartResBox1)
+        smartResBox1 := na
+    if not na(smartResBox2)
+        box.delete(smartResBox2)
+        smartResBox2 := na
+    if not na(smartSupBox1)
+        box.delete(smartSupBox1)
+        smartSupBox1 := na
+    if not na(smartSupBox2)
+        box.delete(smartSupBox2)
+        smartSupBox2 := na
+    if not na(smartResLabel1)
+        label.delete(smartResLabel1)
+        smartResLabel1 := na
+    if not na(smartResLabel2)
+        label.delete(smartResLabel2)
+        smartResLabel2 := na
+    if not na(smartSupLabel1)
+        label.delete(smartSupLabel1)
+        smartSupLabel1 := na
+    if not na(smartSupLabel2)
+        label.delete(smartSupLabel2)
+        smartSupLabel2 := na
+
+    if showSmartZones
+        if slotR1.active
+            bool engagedR1 = high >= slotR1.lo and low <= slotR1.hi
+            int trR1 = engagedR1 ? 83 : slotR1.quality >= strongQ ? 87 : 90
+            smartResBox1 := box.new(left = zoneLeft(slotR1), top = slotR1.hi, right = zoneRightTime, bottom = slotR1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, trR1), border_color = color.new(color.red, 10), border_width = engagedR1 ? 2 : 1)
+            if showZoneLabels
+                smartResLabel1 := label.new(x = zoneRightTime, y = (slotR1.lo + slotR1.hi) * 0.5, text = zoneLabelText("R1", slotR1), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 80), textcolor = color.red, size = size.tiny)
+
+        if zonesPerSide >= 2 and slotR2.active
+            smartResBox2 := box.new(left = zoneLeft(slotR2), top = slotR2.hi, right = zoneRightTime, bottom = slotR2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.red, 94), border_color = color.new(color.red, 42), border_width = 1)
+            if showZoneLabels
+                smartResLabel2 := label.new(x = zoneRightTime, y = (slotR2.lo + slotR2.hi) * 0.5, text = zoneLabelText("R2", slotR2), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.red, 89), textcolor = color.new(color.red, 5), size = size.tiny)
+
+        if slotS1.active
+            bool engagedS1 = high >= slotS1.lo and low <= slotS1.hi
+            int trS1 = engagedS1 ? 83 : slotS1.quality >= strongQ ? 87 : 90
+            smartSupBox1 := box.new(left = zoneLeft(slotS1), top = slotS1.hi, right = zoneRightTime, bottom = slotS1.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, trS1), border_color = color.new(color.blue, 10), border_width = engagedS1 ? 2 : 1)
+            if showZoneLabels
+                smartSupLabel1 := label.new(x = zoneRightTime, y = (slotS1.lo + slotS1.hi) * 0.5, text = zoneLabelText("S1", slotS1), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 80), textcolor = color.blue, size = size.tiny)
+
+        if zonesPerSide >= 2 and slotS2.active
+            smartSupBox2 := box.new(left = zoneLeft(slotS2), top = slotS2.hi, right = zoneRightTime, bottom = slotS2.lo, xloc = xloc.bar_time, bgcolor = color.new(color.blue, 94), border_color = color.new(color.blue, 42), border_width = 1)
+            if showZoneLabels
+                smartSupLabel2 := label.new(x = zoneRightTime, y = (slotS2.lo + slotS2.hi) * 0.5, text = zoneLabelText("S2", slotS2), xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.blue, 89), textcolor = color.new(color.blue, 5), size = size.tiny)
+
+
+// ============================================================================
+// 16. COMPACT ARABIC HUD
+// ============================================================================
+
+var table dash = table.new(
+     position.top_right,
+     2,
+     11,
+     border_width = 1,
+     frame_width = 1
+)
+
+fmtOpt(float v) =>
+    na(v) ? "—" : str.tostring(v, "#.##")
+
+if barstate.islast
+    table.clear(dash, 0, 0, 1, 10)
+
+    if showDashboard
+        string dSize = dashSize()
+        color routeColor = routeSign > 0 ? color.lime : routeSign < 0 ? color.red : color.silver
+        color headingColor = tacticalSign > 0 ? color.lime : tacticalSign < 0 ? color.red : color.silver
+        color speedColor = speedScore >= speedExtremeThreshold ? color.orange : speedScore >= speedFastThreshold ? color.yellow : color.white
+        color fuelColor = fuelExhaustion ? color.orange : fuelScore >= fuelHighThreshold ? color.lime : fuelScore < fuelLowThreshold ? color.orange : color.white
+        bool hazardRoad = str.contains(roadStatus, "مقاومة") or str.contains(roadStatus, "دعم") or str.contains(roadStatus, "لا تطارد") or str.contains(roadStatus, "يتآكل") or str.contains(roadStatus, "اختبار") or str.contains(roadStatus, "يقترب")
+        color roadColor = hazardRoad ? color.orange : str.contains(roadStatus, "مفتوح") ? color.lime : color.white
+
+        // Compact mode is the default mobile HUD: 5 decision rows + header.
+        table.cell(dash, 0, 0, "GTG v0.4.7", text_color = color.aqua, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 0, assetLabel, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+        table.cell(dash, 0, 1, routeText + " " + str.tostring(math.round(routeStrength)), text_color = routeColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 1, "المسار", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+        table.cell(dash, 0, 2, headingText + " " + str.tostring(math.round(headingStrength)), text_color = headingColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 2, "الآن", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+        table.cell(dash, 0, 3, str.tostring(math.round(speedScore)) + " " + speedTrend, text_color = speedColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 3, "السرعة", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+        string fuelHud = str.tostring(math.round(fuelScore)) + " " + fuelTrend + (fuelExhaustion ? " • يتآكل" : "")
+        table.cell(dash, 0, 4, fuelHud, text_color = fuelColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 4, "الوقود", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+        table.cell(dash, 0, 5, roadStatus, text_color = roadColor, bgcolor = color.new(color.black, 4), text_size = dSize)
+        table.cell(dash, 1, 5, "الطريق", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+        if dashboardMode != "COMPACT"
+            string d1 = not na(dest1Low) ? fmtZone(dest1Low, dest1High) + " • " + strengthText(dest1Strength) + (dest1Tag != "" ? " • " + dest1Tag : "") : "—"
+            table.cell(dash, 0, 6, d1, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = dSize)
+            table.cell(dash, 1, 6, "العائق", text_color = color.silver, bgcolor = color.new(color.black, 4), text_size = dSize)
+
+            table.cell(dash, 0, 7, sessionText + " • HTF " + resolvedHTF + " • A " + a1Tf + "/" + a2Tf, text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 7, "السياق", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+
+        if dashboardMode == "DEBUG"
+            string normalBand = na(speedNaturalLow) or na(speedNaturalHigh) ? "جارٍ المعايرة" : fmtPrice(speedNaturalLow) + "–" + fmtPrice(speedNaturalHigh)
+            string d2 = not na(dest2Low) ? dest2Type + " " + fmtZone(dest2Low, dest2High) : "—"
+            string d3 = not na(dest3Low) ? dest3Type + " " + fmtZone(dest3Low, dest3High) : "—"
+            string engineDebug = "inv " + str.tostring(tel.violations) + (tel.lastViolation != "" ? " (" + tel.lastViolation + ")" : "") + " • sup " + str.tostring(tel.supBar) + "/" + str.tostring(tel.supTotal) + " q " + fmtOpt(tel.supMaxQ) + " d " + fmtOpt(tel.supNearestAtr) + " • keys " + str.tostring(tel.maxSlotKeys) + " • dup " + str.tostring(tel.dupKeys) + " • R_eff " + fmtOpt(tel.rEffUpAtr) + "/" + fmtOpt(tel.rEffDnAtr) + " • cap " + str.tostring(tel.zoneCapHits) + " • eng " + str.tostring(tel.engineBars) + " • hs " + str.tostring(tel.hashSlots, "#")
+            table.cell(dash, 0, 8, normalBand + " • فوري " + fmtScore(instantSpeedScore), text_color = color.white, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 8, "المعايرة", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 0, 9, d2 + " | " + d3, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 9, "العوائق", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 0, 10, obstacleState + " • " + fuelSource + " • " + engineDebug, text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+            table.cell(dash, 1, 10, "Debug", text_color = color.gray, bgcolor = color.new(color.black, 4), text_size = size.tiny)
+
+
+// ============================================================================
+// 17. NAVIGATION ALERTS — STATE CHANGES ONLY, CLOSED BARS ONLY, NOT TRADE CALLS
+// ============================================================================
+
+speedBurst = barstate.isconfirmed and speedScore >= speedExtremeThreshold and speedScore[1] < speedExtremeThreshold
+fuelSurge = barstate.isconfirmed and fuelScore >= fuelHighThreshold and fuelScore[1] < fuelHighThreshold
+headingUp = barstate.isconfirmed and headingScore > headingClearThreshold and headingScore[1] <= headingClearThreshold
+headingDown = barstate.isconfirmed and headingScore < -headingClearThreshold and headingScore[1] >= -headingClearThreshold
+// Strong Obstacle (R4-A): entering, on a confirmed close, the state Strong+Near for a
+// specific obstacle. Identity = dest1's slot entryKeys (the engine's own slot identity:
+// it survives primary churn and R1/S1 relabelling); same obstacle = the entry-key sets
+// intersect. The latch (state + keys of the last confirmed bar) moves on confirmed bars
+// only; far→near, weak→strong, A→B and exit→re-entry fire, persistence does not.
+var bool strongObsLatch = false
+var array<int> strongObsKeys = array.new_int()
+array<int> dest1EntryKeys = primaryUp ? keysEntryR1 : keysEntryS1
+bool strongObsNow = obstacleAvailable and nearestObstacleStrong and not na(nearestObstacleAtr) and nearestObstacleAtr <= nearObstacleAtr
+bool strongObsSame = keysIntersect(strongObsKeys, dest1EntryKeys)
+bool strongObsPrev = strongObsLatch
+nearStrongObstacle = barstate.isconfirmed and strongObsNow and (not strongObsLatch or not strongObsSame)
+if barstate.isconfirmed
+    strongObsLatch := strongObsNow
+    if strongObsNow
+        replaceKeys(strongObsKeys, dest1EntryKeys)
+    else
+        array.clear(strongObsKeys)
+// The latch is continuation state: fold it into hashState after the engine part.
+if hashStateOn
+    int hsObs = hashStep(tel.hashState, strongObsLatch ? 1 : 0)
+    hsObs := hashKeyList(hsObs, strongObsKeys, hashScratch)
+    tel.hashState := hsObs
+noChaseEvent = barstate.isconfirmed and noChase and not noChase[1]
+obstacleBreakEvent = breakResistance or breakSupport
+obstacleRejectEvent = rejectResistance or rejectSupport
+breakAcceptedEvent = breakAcceptedUp or breakAcceptedDn
+
+alertcondition(speedBurst, "GTG — Speed Burst", "GTG Navigator: السرعة أصبحت استثنائية مقارنة بعينتها الأخيرة.")
+alertcondition(fuelSurge, "GTG — Fuel Surge", "GTG Navigator: وقود/دفع الحركة دخل النطاق المرتفع.")
+alertcondition(headingUp, "GTG — Heading Up", "GTG Navigator: الاتجاه الحالي أصبح صاعدًا بوضوح.")
+alertcondition(headingDown, "GTG — Heading Down", "GTG Navigator: الاتجاه الحالي أصبح هابطًا بوضوح.")
+alertcondition(nearStrongObstacle, "GTG — Strong Obstacle", "GTG Navigator: السعر اقترب من عائق سعري قوي.")
+alertcondition(noChaseEvent, "GTG — No Chase", "GTG Navigator: اندفاع سريع قرب عائق مع دفع غير متحسن — لا تطارد الحركة.")
+alertcondition(obstacleBreakEvent, "GTG — Obstacle Break", "GTG Navigator: حدث اختراق/كسر لعائق سعري معروض (قيد التأكيد).")
+alertcondition(obstacleRejectEvent, "GTG — Obstacle Rejection", "GTG Navigator: ظهر رفض/ارتداد واضح من عائق سعري معروض.")
+alertcondition(breakAcceptedEvent, "GTG — Break Accepted", "GTG Navigator: الكسر أصبح مقبولًا وفق محرك المناطق.")
+alertcondition(flipConfirmedEvent, "GTG — Flip Confirmed", "GTG Navigator: إعادة اختبار ناجحة من الجهة الجديدة — Flip مؤكد.")
+
+
+// ============================================================================
+// 18. VALIDATION EXPORT — DATA WINDOW ONLY (validationMode)
+// Nothing here is drawn on the chart; values are na unless validationMode is on and
+// the engine ran on this confirmed bar. v_hashSlots and v_eventBits are exported in both
+// settings (instrumentation on/off comparisons); v_hashState only when validationMode or
+// the log capture is on (cost gate, section 12a; state-level on/off comparisons use the
+// capture, whose END line carries it in both settings); the hashes are
+// auxiliary (a difference proves a difference, equality proves nothing), so the full
+// comparison uses the raw fields: v_lo*/v_hi* (validationMode) and the log capture.
+// Export via TradingView "Export chart data".
+// ============================================================================
+
+bool vOn = validationMode and engineStep
+float vAtr = atrEng
+int cfgId = kLocal == 10.0 and kA1 == 3.0 and kA2 == 2.5 ? (mergeGapK == 0.25 ? 1 : mergeGapK == 0.35 ? 2 : 5) : kLocal == 8.0 and kA1 == 2.5 and kA2 == 2.0 ? (mergeGapK == 0.25 ? 3 : mergeGapK == 0.35 ? 4 : 5) : 5
+int flagsA = (slotR1.active ? 1 : 0) + (slotR2.active ? 2 : 0) + (slotS1.active ? 4 : 0) + (slotS2.active ? 8 : 0) + (slotR1.active and slotR1.containing ? 16 : 0) + (slotS1.active and slotS1.containing ? 32 : 0) + (reachA1 > hLocal ? 64 : 0) + (reachA2 > math.max(hLocal, reachA1) ? 128 : 0) + (rStarUp > hLocal ? 256 : 0) + (rStarDn > hLocal ? 512 : 0) + (tel.nextBeyondUpAnchor ? 1024 : 0) + (tel.nextBeyondDnAnchor ? 2048 : 0)
+// Engine events (bits 0–6, same order as flagsB) + the ten alert conditions (bits 7–16).
+int engineEventBits = (ev.breakingUp ? 1 : 0) + (ev.breakingDn ? 2 : 0) + (ev.acceptedUp ? 4 : 0) + (ev.acceptedDn ? 8 : 0) + (ev.rejectR ? 16 : 0) + (ev.rejectS ? 32 : 0) + (ev.flipConfirmed ? 64 : 0)
+int alertBits = (speedBurst ? 1 : 0) + (fuelSurge ? 2 : 0) + (headingUp ? 4 : 0) + (headingDown ? 8 : 0) + (nearStrongObstacle ? 16 : 0) + (noChaseEvent ? 32 : 0) + (obstacleBreakEvent ? 64 : 0) + (obstacleRejectEvent ? 128 : 0) + (breakAcceptedEvent ? 256 : 0) + (flipConfirmedEvent ? 512 : 0)
+int flagsB = (ev.breakingUp ? 1 : 0) + (ev.breakingDn ? 2 : 0) + (ev.acceptedUp ? 4 : 0) + (ev.acceptedDn ? 8 : 0) + (ev.rejectR ? 16 : 0) + (ev.rejectS ? 32 : 0) + (ev.flipConfirmed ? 64 : 0) + (tel.hiddenNearUp ? 128 : 0) + (tel.hiddenNearDn ? 256 : 0)
+
+// [MEASURE] plot "v_cfg" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_sigR1" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_sigR2" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_sigS1" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_sigS2" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_dR1" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_dR2" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_dS1" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_dS2" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_hLocal" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_reachA1" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_reachA2" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_rStarUp" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_rStarDn" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_rEffUp" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_rEffDn" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_nextBeyondUp" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_nextBeyondDn" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_flagsA" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_flagsB" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_supCount" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_supMaxQ" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_supNearestAtr" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_liveL" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_liveA1" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_liveA2" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_zonesBuilt" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_largestComp" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_slotKeysMax" removed (plot budget, FAILURE_LOG F-005)
+// [MEASURE] plot "v_deaths" removed (plot budget, FAILURE_LOG F-005)
+plot(vOn ? tel.violations : na, "v_invTotal", display = display.data_window)
+plot(vOn ? tel.violationsCritical : na, "v_invCritical", display = display.data_window)
+plot(engineStep ? tel.hashSlots : na, "v_hashSlots", display = display.data_window, precision = 0)
+plot(hashStateOn ? tel.hashState : na, "v_hashState", display = display.data_window, precision = 0)
+plot(engineStep ? engineEventBits + alertBits * 128 : na, "v_eventBits", display = display.data_window, precision = 0)
+// Strong Obstacle state machine (R4-A): 1 qualifying now, 2 latch before this bar, 4 same obstacle, 8 event.
+plot(engineStep ? (strongObsNow ? 1 : 0) + (strongObsPrev ? 2 : 0) + (strongObsSame ? 4 : 0) + (nearStrongObstacle ? 8 : 0) : na, "v_obsState", display = display.data_window, precision = 0)
+plot(vOn and slotR1.active ? slotR1.lo : na, "v_loR1", display = display.data_window, precision = 10)
+plot(vOn and slotR1.active ? slotR1.hi : na, "v_hiR1", display = display.data_window, precision = 10)
+plot(vOn and slotR2.active ? slotR2.lo : na, "v_loR2", display = display.data_window, precision = 10)
+plot(vOn and slotR2.active ? slotR2.hi : na, "v_hiR2", display = display.data_window, precision = 10)
+plot(vOn and slotS1.active ? slotS1.lo : na, "v_loS1", display = display.data_window, precision = 10)
+plot(vOn and slotS1.active ? slotS1.hi : na, "v_hiS1", display = display.data_window, precision = 10)
+plot(vOn and slotS2.active ? slotS2.lo : na, "v_loS2", display = display.data_window, precision = 10)
+plot(vOn and slotS2.active ? slotS2.hi : na, "v_hiS2", display = display.data_window, precision = 10)
+
+// ============================================================================
+// 18b. ROLLING VALIDATION DIAGNOSTICS — validationMode only; measurement, not state
+// Window = the last DIAG_WIN confirmed chart bars; every count is over the warmed
+// engine bars inside it (engineStep and more than W engine bars already run). Four
+// exact packed integers (reference/diag.mjs decodes them), shown in a validation-only
+// table — no plot() calls, so the diagnostics consume no plot counts (a plot-based
+// version hit RE10140 on TradingView). Values are stored on confirmed bars, so the
+// open bar shows the last confirmed values. Nothing in the engine reads any of this.
+// Masks over v_eventBits (engine bits + alert bits·128): break 3 / 8192, accept 12 /
+// 32768, reject 48 / 16384, flip 64 / 65536, Strong Obstacle alert 2048, obs event 8.
+// ============================================================================
+DIAG_WIN = 1000
+DIAG_N = 13
+
+diagBit(int x, int m) =>
+    math.floor(x / m) % 2 == 1
+
+int diagEvBits = engineEventBits + alertBits * 128
+int diagObs = (strongObsNow ? 1 : 0) + (strongObsPrev ? 2 : 0) + (strongObsSame ? 4 : 0) + (nearStrongObstacle ? 8 : 0)
+bool diagBrkE = engineStep and (diagBit(diagEvBits, 1) or diagBit(diagEvBits, 2))
+bool diagAccE = engineStep and (diagBit(diagEvBits, 4) or diagBit(diagEvBits, 8))
+bool diagRejE = engineStep and (diagBit(diagEvBits, 16) or diagBit(diagEvBits, 32))
+bool diagFlpE = engineStep and diagBit(diagEvBits, 64)
+bool diagObsAlert = engineStep and diagBit(diagEvBits, 2048)
+// Bars since the last engine break / accept (every bar, so the lookbacks are chart bars).
+int diagSinceBrk = ta.barssince(diagBrkE)
+int diagSinceAcc = ta.barssince(diagAccE)
+
+var array<int> diagRing = array.new_int(DIAG_N * DIAG_WIN, 0)
+var array<int> diagSum = array.new_int(DIAG_N, 0)
+var int diagPos = 0
+var int diagEvtV = na
+var int diagMismatchV = na
+var int diagCausalV = na
+var int diagInvV = na
+var int diagBarTime = na
+INV_BASE = 67108864
+
+dS(int k) =>
+    array.get(diagSum, k)
+
+if validationMode and barstate.isconfirmed
+    bool w = engineStep and tel.engineBars > engineWindow
+    array<int> fl = array.from(
+         w and diagBrkE ? 1 : 0,
+         w and diagAccE ? 1 : 0,
+         w and diagRejE ? 1 : 0,
+         w and diagFlpE ? 1 : 0,
+         w and diagObsAlert ? 1 : 0,
+         w and diagBrkE != diagBit(diagEvBits, 8192) ? 1 : 0,
+         w and diagAccE != diagBit(diagEvBits, 32768) ? 1 : 0,
+         w and diagRejE != diagBit(diagEvBits, 16384) ? 1 : 0,
+         w and diagFlpE != diagBit(diagEvBits, 65536) ? 1 : 0,
+         w and diagBit(diagObs, 8) != diagObsAlert ? 1 : 0,
+         w and diagAccE and (na(diagSinceBrk) or diagSinceBrk > 3) ? 1 : 0,
+         w and diagFlpE and (na(diagSinceAcc) or diagSinceAcc > 60) ? 1 : 0,
+         w ? 1 : 0)
+    for k = 0 to DIAG_N - 1
+        int idx = k * DIAG_WIN + diagPos
+        array.set(diagSum, k, array.get(diagSum, k) - array.get(diagRing, idx) + array.get(fl, k))
+        array.set(diagRing, idx, array.get(fl, k))
+    diagPos := (diagPos + 1) % DIAG_WIN
+    // Exact: every field ≤ 1000 < 1024, so the largest value is < 2^50 (< 2^53).
+    diagEvtV := dS(0) + dS(1) * 1024 + dS(2) * 1048576 + dS(3) * 1073741824 + dS(4) * 1099511627776
+    diagMismatchV := dS(5) + dS(6) * 1024 + dS(7) * 1048576 + dS(8) * 1073741824 + dS(9) * 1099511627776
+    diagCausalV := dS(10) + dS(11) * 1024 + dS(12) * 1048576
+    // Invariant counters are cumulative and non-decreasing, so their maximum over the window
+    // is their value on this confirmed bar (a violation before the window still shows).
+    // Base 2^26, largest valid value 2^52 − 1; outside [0, 2^26) the value is na (no clamp,
+    // no modulo) and the raw v_invTotal / v_invCritical plots remain available.
+    bool diagInvOk = tel.violations >= 0 and tel.violations < INV_BASE and tel.violationsCritical >= 0 and tel.violationsCritical < INV_BASE
+    diagInvV := diagInvOk ? tel.violations + tel.violationsCritical * INV_BASE : na
+    diagBarTime := time
+
+// Validation-only diagnostic table (bottom-left; the HUD uses top-right). Machine-readable,
+// fixed order; cleared when validationMode is off.
+// R5 reload fingerprint (E41; validation only). Over the confirmed engine bars of the
+// capture window (captureFrom ≤ time ≤ captureTo, so hashStateOn holds and hashState is
+// computed): n warmed bars (tel.engineBars > engineWindow, as in the rolling window), cold =
+// engine bars in the window that are not yet warmed, the first/last warmed bar time, and
+// three hash folds (hashStep from 0, bar order) of hashSlots, hashState and the event bits
+// (engine + alerts·128). Two loads agree on the window iff their tuples are identical (hash
+// equality is strong evidence, not proof; GTGSNAP localises a difference). Nothing here is
+// read by the engine; outside the capture window it does no work.
+var int r5N = 0
+var int r5Cold = 0
+var int r5From = na
+var int r5To = na
+var int r5HSlots = 0
+var int r5HState = 0
+var int r5HEvents = 0
+if captureOn
+    if tel.engineBars > engineWindow
+        r5N += 1
+        r5HSlots := hashStep(r5HSlots, tel.hashSlots)
+        r5HState := hashStep(r5HState, tel.hashState)
+        r5HEvents := hashStep(r5HEvents, engineEventBits + alertBits * 128)
+        if na(r5From)
+            r5From := time
+        r5To := time
+    else
+        r5Cold += 1
+
+var table diagTable = table.new(position.bottom_left, 1, 1, border_width = 1, frame_width = 1)
+diagText(int v) =>
+    na(v) ? "na" : str.tostring(v, "#")
+if barstate.islast
+    table.clear(diagTable, 0, 0, 0, 0)
+    if validationMode
+        table.cell(diagTable, 0, 0, "GTGDIAG v1\nBAR=" + diagText(diagBarTime) + "\nEVT=" + diagText(diagEvtV) + "\nMISMATCH=" + diagText(diagMismatchV) + "\nCAUSAL=" + diagText(diagCausalV) + "\nINV=" + diagText(diagInvV) + "\nR5=" + (captureFrom > 0 ? diagText(r5N) + "," + diagText(r5Cold) + "," + diagText(r5From) + "," + diagText(r5To) + "," + diagText(r5HSlots) + "," + diagText(r5HState) + "," + diagText(r5HEvents) : "na"), text_color = color.white, bgcolor = color.new(color.black, 20), text_size = size.tiny, text_halign = text.align_left)
+
+// Diagnostic capture: the full canonical snapshot (all four equivalence levels) as
+// "GTGSNAP v3" lines in Pine Logs for confirmed engine bars with captureFrom ≤ time
+// ≤ captureTo. Parse with reference/capture.mjs. Read-only; off when captureFrom = 0.
+// Keep the range short (at most about 40 bars): Pine Logs keeps at most 10,000 historical
+// messages per script and one bar costs 9 + levels + ring chunks (at most ~73).
+// compare-captures.mjs checks completeness per bar and coverage of the expected bars.
+f10(float x) =>
+    na(x) ? "na" : str.tostring(x, "#.##########")
+
+fi(int x) =>
+    na(x) ? "na" : str.tostring(x, "#")
+
+sinceText(int x) =>
+    na(x) ? "na" : fi(bar_index - x)
+
+joinSorted(array<int> keys, array<int> scratch) =>
+    int n = sortedCopy(keys, scratch)
+    string txt = ""
+    if n > 0
+        for i = 0 to n - 1
+            txt += (i > 0 ? "," : "") + fi(array.get(scratch, i))
+    txt
+
+slotLine(string pre, string name, SlotState ss, array<int> lastK, array<int> entryK, array<int> scratch) =>
+    ss.active ? pre + "SLOT|" + name + "|1|" + (ss.containing ? "1" : "0") + "|" + fi(ss.side) + "|" + f10(ss.lo) + "|" + f10(ss.hi) + "|" + fi(ss.primaryKey) + "|" + f10(ss.gateQ) + "|" + f10(ss.quality) + "|" + joinSorted(lastK, scratch) + "|" + joinSorted(entryK, scratch) : pre + "SLOT|" + name + "|0"
+
+levelLine(string pre, Level lv) =>
+    pre + "LVL|" + fi(lv.key) + "|" + fi(lv.source) + "|" + fi(lv.tfRank) + "|" + fi(lv.typ) + "|" + fi(lv.birthTime) + "|" + f10(lv.price) + "|" + fi(lv.state) + "|" + fi(lv.polarity) + "|" + f10(lv.lo) + "|" + f10(lv.hi) + "|" + f10(lv.s) + "|" + f10(lv.mitigation) + "|" + f10(lv.evidence) + "|" + fi(lv.tests) + "|" + fi(lv.ageNative) + "|" + (lv.epActive ? "1" : "0") + "|" + fi(lv.epSide) + "|" + f10(lv.epMaxDepth) + "|" + fi(lv.breakDir) + "|" + fi(lv.breakCloses) + "|" + (lv.breakFromFlip ? "1" : "0") + "|" + fi(lv.backCloses) + "|" + sinceText(lv.lastTestChartBar) + "|" + sinceText(lv.stateChartBar) + "|" + sinceText(lv.backStartChartBar) + "|" + (lv.navArmed ? "1" : "0")
+
+// One RING line per RING_CHUNK bars: first age, ring size, "o,h,l,c;…" (age 0 = newest).
+RING_CHUNK = 16
+ringLine(string pre, int a0, int n) =>
+    string txt = pre + "RING|" + fi(a0) + "|" + fi(n) + "|"
+    int a1 = math.min(a0 + RING_CHUNK, n) - 1
+    if a1 >= a0
+        for k = a0 to a1
+            txt += (k > a0 ? ";" : "") + f10(array.get(ringO, k)) + "," + f10(array.get(ringH, k)) + "," + f10(array.get(ringL, k)) + "," + f10(array.get(ringC, k))
+    txt
+
+trackerPart(float px, int bar, bool broken) =>
+    na(px) ? "0|na|na|0" : "1|" + f10(px) + "|" + fi(bar_index - bar) + "|" + (broken ? "1" : "0")
+
+if captureOn
+    string pre = "GTGSNAP|v3|" + fi(time) + "|"
+    log.info(pre + "META|" + syminfo.tickerid + "|" + timeframe.period + "|" + f10(syminfo.mintick))
+    log.info(slotLine(pre, "R1", slotR1, keysLastR1, keysEntryR1, hashScratch))
+    log.info(slotLine(pre, "R2", slotR2, keysLastR2, keysEntryR2, hashScratch))
+    log.info(slotLine(pre, "S1", slotS1, keysLastS1, keysEntryS1, hashScratch))
+    log.info(slotLine(pre, "S2", slotS2, keysLastS2, keysEntryS2, hashScratch))
+    int nCap = array.size(snapOrd)
+    if nCap > 0
+        for i = 0 to nCap - 1
+            log.info(levelLine(pre, array.get(snapLevels, array.get(snapOrd, i))))
+    log.info(pre + "TRK|" + trackerPart(lastSwingHighPx, lastSwingHighBar, lastSwingHighBroken) + "|" + trackerPart(lastSwingLowPx, lastSwingLowBar, lastSwingLowBroken))
+    int nRingCap = array.size(ringC)
+    if nRingCap == 0
+        log.info(pre + "RING|0|0|")
+    else
+        for r0 = 0 to nRingCap - 1 by RING_CHUNK
+            log.info(ringLine(pre, r0, nRingCap))
+    log.info(pre + "OBS|" + (obstacleAvailable ? "1" : "0") + "|" + f10(dest1Strength) + "|" + f10(nearestObstacleAtr) + "|" + (strongObsNow ? "1" : "0") + "|" + (strongObsSame ? "1" : "0") + "|" + (nearStrongObstacle ? "1" : "0") + "|" + (strongObsLatch ? "1" : "0") + "|" + joinSorted(strongObsKeys, hashScratch))
+    log.info(pre + "EV|" + fi(engineEventBits) + "|" + fi(alertBits))
+    log.info(pre + "END|" + fi(nCap) + "|" + fi(tel.hashSlots) + "|" + fi(tel.hashState))
+
+
+// ============================================================================
+// 19. [MEASURE] STRATEGY LAB PARITY EXPORTS — DATA WINDOW ONLY (validationMode)
+// Read by nothing above. Inputs the JS Measurement Engine needs to replay this chart
+// (OHLC and volume of every bar the study computed on — including history before the
+// chart's first loaded bar, F-006 — and the route HTF values) and sensor outputs to compare. Export with
+// TradingView "Export chart data".
+// ============================================================================
+bool mOn = validationMode
+plot(mOn ? volume : na, "m_volume", display = display.data_window, precision = 10)
+plot(mOn ? open : na, "m_open", display = display.data_window, precision = 10)
+plot(mOn ? high : na, "m_high", display = display.data_window, precision = 10)
+plot(mOn ? low : na, "m_low", display = display.data_window, precision = 10)
+plot(mOn ? close : na, "m_close", display = display.data_window, precision = 10)
+plot(mOn ? htfClose : na, "m_htfClose", display = display.data_window, precision = 10)
+plot(mOn ? htfMA50 : na, "m_htfMA50", display = display.data_window, precision = 10)
+plot(mOn ? htfMA200 : na, "m_htfMA200", display = display.data_window, precision = 10)
+plot(mOn ? htfMA50Past : na, "m_htfMA50Past", display = display.data_window, precision = 10)
+plot(mOn ? htfATR : na, "m_htfATR", display = display.data_window, precision = 10)
+plot(mOn ? routeScore : na, "m_routeScore", display = display.data_window, precision = 10)
+plot(mOn ? headingScore : na, "m_headingScore", display = display.data_window, precision = 10)
+plot(mOn ? speedScore : na, "m_speedScore", display = display.data_window, precision = 10)
+plot(mOn ? instantSpeedScore : na, "m_instantSpeedScore", display = display.data_window, precision = 10)
+plot(mOn ? fuelScore : na, "m_fuelScore", display = display.data_window, precision = 10)
+plot(mOn ? safeAtr : na, "m_atr", display = display.data_window, precision = 10)

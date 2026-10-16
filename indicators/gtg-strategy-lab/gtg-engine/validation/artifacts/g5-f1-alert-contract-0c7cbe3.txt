@@ -1,0 +1,8 @@
+# G5-F1 — static alert contract, blob 0c7cbe366668fba20c9bc128448f908ce9314041
+# Method: the 10/10 review of g5-f1-alert-contract-27f3bba.txt carried over mechanically.
+# 27f3bba -> 0c7cbe3 changes only: 67 inputs (+ display = display.none), 20 HUD row backgrounds (18 -> 4),
+# shorttitle, and one added line in indicator() (behind_chart = false), so every line after line 9 moves by +1.
+alert/alertcondition lines: 10 in both blobs, byte-identical.
+lines cited by the 27f3bba review (29, e.g. 340, 395, 1771, 2061, 2112-2132, 2334-2364): byte-identical at line + 1.
+ALERT_CONTRACT tests (reference suite): pass (116/116).
+Result: F1 10/10 OK on 0c7cbe3 (line numbers in the 27f3bba table read as +1 after line 9).

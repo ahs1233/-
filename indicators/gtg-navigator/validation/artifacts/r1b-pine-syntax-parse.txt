@@ -1,0 +1,3 @@
+# pynescript per-statement syntax parse (v5 grammar; syntax only — NOT a TradingView compile) | file blob da83651cc95d7ecc79d48144fc18c3d094dbb297 | 2026-09-28T07:40:21Z
+header OK
+DONE 564 statements, 0 problems

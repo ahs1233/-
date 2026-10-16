@@ -1,0 +1,62 @@
+name: GTG Lab forward capture
+
+# Pristine-OOS raw capture (TRADE_CONTRACT §22). Downloads Dukascopy XAUUSD tick files
+# for complete hours after T_freeze, stores them as an artifact, and commits ONLY the
+# sha256 manifest to branch lab/forward-manifest. No bars are built and nothing is analysed.
+# Note: GitHub runs scheduled workflows only from the default branch.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gtg-lab-forward-capture
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore manifest branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/lab"
+          if git fetch origin lab/forward-manifest 2>/dev/null; then
+            git show origin/lab/forward-manifest:manifest.jsonl > "$RUNNER_TEMP/lab/manifest.jsonl" || true
+          fi
+
+      - name: Capture complete hours after T_freeze
+        working-directory: indicators/gtg-strategy-lab/data
+        run: python3 capture_forward.py --root "$RUNNER_TEMP/lab"
+
+      - name: Keep raw files
+        uses: actions/upload-artifact@v4
+        with:
+          name: gtg-forward-raw-${{ github.run_id }}
+          path: ${{ runner.temp }}/lab/raw
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Commit manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp "$RUNNER_TEMP/lab/manifest.jsonl" "$RUNNER_TEMP/manifest.jsonl"
+          git config user.name "gtg-lab-capture"
+          git config user.email "gtg-lab-capture@users.noreply.github.com"
+          if git show-ref --quiet refs/remotes/origin/lab/forward-manifest; then
+            git checkout -B lab/forward-manifest origin/lab/forward-manifest
+          else
+            git checkout --orphan lab/forward-manifest
+            git rm -rfq .
+          fi
+          cp "$RUNNER_TEMP/manifest.jsonl" manifest.jsonl
+          git add manifest.jsonl
+          git diff --cached --quiet || git commit -m "forward capture $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push origin lab/forward-manifest

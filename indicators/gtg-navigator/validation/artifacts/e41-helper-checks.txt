@@ -1,0 +1,40 @@
+# E41 helper (R5 fingerprint) — 6d62bee, Pine blob 27f3bba90231e742f9b261eb17a1ba4d5ae67873
+# Validation-only: active only inside the capture window (captureOn ⊆ hashStateOn). Not TradingView evidence.
+
+## node --test reference/r5.test.mjs
+✔ R5.1 fold: counts, first/last warmed time, hash folds in bar order (hand oracle)
+✔ R5.2 text: round trip inside a GTGDIAG cell; R5=na; malformed refused
+✔ R5.3 independent loads agree on a fixed 40-bar window; three negative controls are rejected
+ℹ R5=40,0,1704795600000,1704797940000,1345901455,1571035009,595974781; NC1 cold=40; NC2 R5=40,0,1704795600000,1704797940000,2010514887,1940933787,1903992446
+ℹ pass 3
+ℹ fail 0
+
+## C19 negative controls (scratch copies; expected: C19 fails alone, 18 pass)
+### NC1 — fold runs on every engine step (always-on cost)
+ℹ pass 18
+ℹ fail 1
+### NC2 — table fields swapped (hState before hSlots)
+ℹ pass 18
+ℹ fail 1
+### NC3 — warmed rule uses engineWindowRun
+ℹ pass 18
+ℹ fail 1
+### NC4 — r5 re-exported as a plot
+ℹ pass 18
+ℹ fail 1
+
+## Syntax (pynescript; syntax only, not a compile)
+full file: TOOLING_NOT_RUN (timeout at 240 s; the same tool finished on 4b5234e with 606 statements, 0 problems)
+changed statements (R5 block + GTGDIAG cell, standalone extract): 11 statements, 0 problems
+
+## compare-r5.mjs self-check
+reading 1 (text): R5=40,0,1,2,3,4,5
+reading 2 (text): R5=40,0,1,2,3,4,5
+RESULT OK
+exit=0
+reading 1 (text): R5=40,0,1,2,3,4,5
+reading 2 (text): R5=40,3,1,2,3,4,5
+PROBLEM reading 2: cold = 3 (window not warmed)
+PROBLEM reading 2 differs from reading 1: R5=40,3,1,2,3,4,5 ≠ R5=40,0,1,2,3,4,5
+RESULT FAIL (2)
+exit=1

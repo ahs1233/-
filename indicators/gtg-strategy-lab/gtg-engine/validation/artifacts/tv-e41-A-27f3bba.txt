@@ -1,0 +1,5 @@
+# E41 reading A — TradingView run by GPT (review message 69); transcribed by Claude from the reported values.
+# Only the R5 line of the GTGDIAG cell was reported; the other cell lines are not part of this record.
+# OANDA:XAUUSD 1m; helper 6d62bee; Pine blob 27f3bba90231e742f9b261eb17a1ba4d5ae67873; validationMode=ON; strictDebug=OFF
+# capture window 2026-09-28 15:00–15:39 UTC; studyExtraBars=5000; applied 2026-09-28T16:02:05.738Z
+R5=40,0,1790607600000,1790609940000,2000807814,1123013579,548762253

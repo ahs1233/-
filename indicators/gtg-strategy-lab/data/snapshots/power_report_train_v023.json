@@ -1,0 +1,112 @@
+{
+ "label": "Power Gate — Train only (no ATT, no outcomes reported)",
+ "jointL": 1,
+ "nDaysHoldout": 397,
+ "w": 0.6931346032639416,
+ "jaccardTcCe": 0,
+ "per": [
+  {
+   "h": "H1",
+   "eligible_rows": 37118,
+   "episodes": 8135,
+   "L": 1,
+   "L_fallback": false,
+   "DE": 6.790722015671302,
+   "sigma": 2.6928821363511872,
+   "nEffYear": 473.5789234895942,
+   "deltaEcon": 0.0618715743128366,
+   "support": 1,
+   "supportClass": "BROAD",
+   "MDE": 0.14,
+   "powerAtDeltaEcon": 0.1335,
+   "verdict": "UNDERPOWERED",
+   "stageA_MDE": 0.14,
+   "refinedCells": 5
+  },
+  {
+   "h": "H2",
+   "eligible_rows": 23022,
+   "episodes": 4447,
+   "L": 1,
+   "L_fallback": false,
+   "DE": 6.366343265292976,
+   "sigma": 2.6572711850726813,
+   "nEffYear": 276.1390581385919,
+   "deltaEcon": 0.07995432531300634,
+   "support": 1,
+   "supportClass": "BROAD",
+   "MDE": 0.4,
+   "powerAtDeltaEcon": 0.0255,
+   "verdict": "UNDERPOWERED",
+   "stageA_MDE": 0.39,
+   "refinedCells": 9
+  },
+  {
+   "h": "H3",
+   "eligible_rows": 30221,
+   "episodes": 25392,
+   "L": 1,
+   "L_fallback": false,
+   "DE": 2.2345729509189454,
+   "sigma": 3.1243632902570018,
+   "nEffYear": 4492.138453393481,
+   "deltaEcon": 0.02330799756788329,
+   "support": 0.9491203043271517,
+   "supportClass": "BROAD",
+   "MDE": 0.2,
+   "powerAtDeltaEcon": 0.006,
+   "verdict": "UNDERPOWERED",
+   "stageA_MDE": 0.2,
+   "refinedCells": 6
+  },
+  {
+   "h": "H4",
+   "eligible_rows": 10831,
+   "episodes": 10831,
+   "L": 1,
+   "L_fallback": false,
+   "DE": 1.0800137928780127,
+   "sigma": 3.0726351856629353,
+   "nEffYear": 3964.5145422593646,
+   "deltaEcon": 0.02439978481220153,
+   "support": 0.9331348132106118,
+   "supportClass": "BROAD",
+   "MDE": 0.58,
+   "powerAtDeltaEcon": 0.0085,
+   "verdict": "UNDERPOWERED",
+   "stageA_MDE": 0.58,
+   "refinedCells": 11
+  },
+  {
+   "h": "H5",
+   "eligible_rows": 18824,
+   "episodes": 18824,
+   "L": 1,
+   "L_fallback": false,
+   "DE": 1.514103729998536,
+   "sigma": 2.749710210262065,
+   "nEffYear": 4914.813540800012,
+   "deltaEcon": 0.01961116562764465,
+   "support": 1,
+   "supportClass": "BROAD",
+   "MDE": 0.29,
+   "powerAtDeltaEcon": 0.0105,
+   "verdict": "UNDERPOWERED",
+   "stageA_MDE": 0.29,
+   "refinedCells": 7
+  }
+ ],
+ "split": {
+  "firstValid": "2021-09-08T17:00:00.000Z",
+  "trainEnd": "2024-03-20T15:20:24.500Z",
+  "tFreeze": "2026-09-30T13:40:49.000Z"
+ },
+ "input": {
+  "feeds_sha256": "242f8c47a6cd38608d99c8e939d70c64a62ef40b628a810f949694a5daf21234",
+  "lastBar": "2024-03-20T15:15:00.000Z"
+ },
+ "seconds": {
+  "rows": 378,
+  "power": 6465
+ }
+}

@@ -36,3 +36,7 @@ pnpm-debug.log*
 # pwa generated
 apps/web/public/sw.js
 apps/web/public/workbox-*.js
+
+# GTG Strategy Lab market data (never committed; only manifests are)
+.lab-data/
+__pycache__/

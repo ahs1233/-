@@ -1,0 +1,95 @@
+# commit 96c475d4f5cde1d7a1913f4ec9251f1648eac07e | node v22.22.2 | 2026-09-28T08:22:36Z
+# cmd: node --test indicators/gtg-navigator/reference/*.test.mjs
+ok 1 - A1 threshold-crossing alerts: cross fires once, persistence does not repeat, re-cross fires again
+ok 2 - A2 confirmed-close gating: intrabar crossings neither fire nor move the reference value
+ok 3 - A3 No Chase is a state-entry alert on the condition itself (obstacle-agnostic by contract)
+ok 4 - A4 engine alerts are the OR of their up/down flags; Accepted/Flip follow the arm (lifecycle.test B1–B8)
+ok 5 - A5 entry-member death: the surviving member keeps its events while its zone stays displayed
+ok 6 - A6 entry-member death with a survivor below Q_enter: the zone loses its slot, so its break is not displayed
+ok 7 - K1 heading: clear > strong, and clear = strong, are refused (text "strong" with sign 0)
+ok 8 - K2 route: clear > strong, and clear = strong, are refused (text "strong" with sign 0)
+ok 9 - K3 speed: extreme < fast is refused (extreme colour and Speed Burst while the class is "طبيعية")
+ok 10 - K4 valid configurations are consistent at every score (grid, boundaries included)
+ok 11 - K5 defaults are valid, and equality is allowed only for speed
+ok 12 - K6 negative control: the consistency oracle rejects the outputs recorded before the fix
+ok 13 - T0 memberKey: discriminator stays below KEY_BASE and keys are injective
+ok 14 - T1 candidate permutation: 150 permutations give the same zone map
+ok 15 - T2 connected chain wider than maxWidth: one deterministic packing, invariants hold
+ok 16 - T3 MTF duplicate: M1 swing + M15 pivot of the same event get one MTF bonus, not two bonuses
+ok 17 - T4 nearer obstacle: horizon opened by A2 reveals the nearer local zone first
+ok 18 - T5 identity expiry: Q_stay privilege needs a live entry member
+ok 19 - T6 mitigation: deep penetration + weak rejection consumes more than + strong rejection
+ok 20 - T7 reload determinism: same trailing W bars → same map (local + DOZ + A1/A2 anchors)
+ok 21 - T7b a start inside the window can differ, which is why W is required
+ok 22 - T8 anchor lifecycle follows the feed: no live eviction, tombstones only while in feed
+ok 23 - T9 zones with more than 6 members: privilege and last keys are never truncated
+ok 24 - I13.1–I13.3 entry keys shrink while held, restart fresh after the intersection breaks; Strong Obstacle follows
+ok 25 - I13.2b broken intersection below Q_enter: the zone is dropped, not held
+ok 26 - I13.5 merge: two held slots merging into one zone keep one slot identity and gain no key
+ok 27 - I13.5b split and primary churn: each part keeps a subset of the held identity
+ok 28 - I13.4 property over engine runs: non-empty entry keys, ⊆ lastKeys, and either shrink-only or fresh
+ok 29 - B1 accepted after slot loss: armed at break start ⇒ Break Accepted even when no longer displayed
+ok 30 - B2 flip after slot loss: armed chain ⇒ Flip Confirmed inside flipWindow, then the arm clears
+ok 31 - B3 hidden at break start ⇒ no Accepted and no Flip later, even if displayed by then
+ok 32 - B4 arm clears on return to ACTIVE (close back) and on BREAK_WINDOW expiry
+ok 33 - B5 arm survives in BROKEN within flipWindow and clears when flipWindow ends
+ok 34 - B6 death clears the arm (acceptance back to the original side)
+ok 35 - B7 break of a FLIP level accepted to DEAD: Accepted if armed, then the arm clears
+ok 36 - B8 unchanged rules: Breaking and Rejection still use the per-bar displayed filter
+ok 37 - O1 far → strong+near is an event (both rules)
+ok 38 - O2 weak+near → strong+near for the same obstacle is an event (baseline misses it: R4)
+ok 39 - O3 strong+near A → strong+near B (different obstacle) is an event (baseline misses it)
+ok 40 - O4 strong+near A persisting: no repeat, whatever the distance or quality inside the state
+ok 41 - O5 exit then re-entry is a new event (by distance, by quality, by unavailability)
+ok 42 - O6 intrabar: unconfirmed executions never fire and never move the latch
+ok 43 - O7 boundaries are inclusive: strength = strongQ and distance = nearObstacleAtr qualify
+ok 44 - O8 primary churn inside one zone: primaryKey changes, entryKeys identity does not (token choice)
+ok 45 - O9 label change only (R1 → S1) keeps the identity: no new event
+ok 46 - Q1 R3 fixture: qEnter=55, qStay=80, gateQ=70 is refused instead of flickering
+ok 47 - Q2 valid pairs never alternate: R1 is constant and equals (q ≥ Q_enter)
+ok 48 - Q3 boundary: qStay = qEnter and qStay < qEnter are accepted, defaults are valid
+ok 49 - Q4 the engine refuses an inverted pair at construction, before any bar
+ok 50 - P1 R2 fixture: zone narrower than mintick uses width = mintick (Pine runEpisode)
+ok 51 - P2 width floor across mintick sizes and both approach sides
+ok 52 - P3 ATR floor: zero-range bars give atrEng = mintick (pine:532)
+ok 53 - P4 anchor ATR floor: na stays na, positive values are floored at mintick (pine:571-572)
+ok 54 - P5 contract: formulas that need the symbol tick refuse to run without it
+ok 55 - P6 negative control: re-injecting the 1e-12 floor breaks P1
+ok 56 - C1 hash constants match the JS reference
+ok 57 - C2 hashLevel field order equals the per-level part of encodeState (snapshot.mjs)
+ok 58 - C3 hashSlot field order equals encodeSlots (snapshot.mjs)
+ok 59 - C4 the linear slotDigest and cumulative checksum are gone
+ok 60 - C8 hashState folds trackers then the OHLC ring (age order), as encodeState does
+ok 61 - C9 capture prints GTGSNAP v3 with the identity fields, RING, OBS and navArmed
+ok 62 - C5 plot budget and export names
+ok 63 - C6 R2 anchors: Pine floors that the reference mirrors are still present
+ok 64 - C7 legacy v0.4.6 file is unchanged
+ok 65 - C10 R3 guard: Pine refuses Q_stay > Q_enter on the first bar with runtime.error
+ok 66 - C11 consumers.mjs transcribes these Pine lines verbatim (fails if Pine changes them)
+ok 67 - C12 R3b guards: Pine refuses the three inverted pairs on the first bar with runtime.error
+ok 68 - C13 R4-A Strong Obstacle: latch on confirmed bars, entry-key identity, no distance-crossing rule
+ok 69 - C14 R4-B lifecycle: arm at break start, Accepted/Flip follow the arm, every exit clears it
+ok 70 - C15 Q-A: Break Accepted message is neutral (a FLIP whose break is accepted dies, it is not a potential flip)
+ok 71 - C16 roadStatus for accepted breaks is neutral; "Flip محتمل" stays only on the BROKEN navTag
+ok 72 - S12 repeated key: two identical records against one is a state difference (multiplicity)
+ok 73 - S13 ring: a different OHLC ring is detected at state, and it changes the next selection
+ok 74 - S15 source identity: each identity field alone is a state difference
+ok 75 - S14 compare-captures: a whole missing bar fails (two files strict, and single file with an expectation)
+ok 76 - S16 new continuation state (R4): the arm and the Strong Obstacle latch are state-level differences
+ok 77 - S1 Astra collision: bounds [100,101] vs [100.13,100.93] with the same primary are detected
+ok 78 - S2 non-primary member key change: invisible to geometry, detected at identity
+ok 79 - S3 entry keys and quality changes are identity-level differences
+ok 80 - S4 level state change with identical slots: only the state level detects it
+ok 81 - S5 events are their own level
+ok 82 - S6 declared tolerance: float noise passes, sub-tick raw differences are reported, not rounded away
+ok 83 - S7 canonical order: member key order in the slot does not change the snapshot
+ok 84 - S8 snapshot is independent of the absolute bar index (history prepended before the engine start)
+ok 85 - S9 capture text round-trips and reports truncation
+ok 86 - S10 hash encoding is pinned: regression guard for the Pine↔JS encoding contract (values taken from this implementation, not an oracle)
+ok 87 - S11 hash arithmetic matches an independent implementation (Python int, vectors below)
+# tests 87
+# pass 87
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0

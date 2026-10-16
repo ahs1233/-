@@ -1,0 +1,468 @@
+{
+ "res": "15",
+ "tf": "M15",
+ "version": "C",
+ "pass": true,
+ "meta": {
+  "desc": "lastgtg C diag full — export only",
+  "resolution": "15",
+  "symbol": "OANDA:XAUUSD",
+  "capturedAt": "2026-10-16T21:16:26.486Z",
+  "liveBarTime": "2026-10-16T20:45:00.000Z",
+  "studyRows": 5050,
+  "droppedOpen": 1,
+  "preHistoryRows": 48
+ },
+ "rows": 5049,
+ "variant": "full",
+ "firstRowIsFirstComputedBar": true,
+ "computedBars": 5050,
+ "chartBarsChecked": 5001,
+ "chartBarsDiffering": 0,
+ "chartBadList": [],
+ "htfStart": {
+  "start": null,
+  "candidates": 0,
+  "ruleStart": 3739,
+  "sameAsRule": false,
+  "t": null,
+  "ruleBars": 5002,
+  "sameAsBarRule": false
+ },
+ "feedFiles": {
+  "60": "bars_60_for_15_C.json",
+  "240": "bars_240_for_15_C.json"
+ },
+ "startBar": 2936,
+ "engineRows": 2113,
+ "firstRow": "2026-08-02T22:00:00.000Z",
+ "lastRow": "2026-10-16T20:30:00.000Z",
+ "starts": {
+  "pine": 27,
+  "js": 27,
+  "equal": true,
+  "list": [
+   {
+    "t": "2026-09-22T11:15:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-09-23T13:15:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-09-30T01:15:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-09-30T15:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-09-30T16:15:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-01T07:30:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-01T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-01T15:15:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T02:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T03:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T03:45:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T04:30:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T06:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T14:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-07T19:45:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-08T06:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-12T12:30:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-12T14:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-13T04:15:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-10-13T11:30:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-10-13T12:15:00.000Z",
+    "dir": 1
+   },
+   {
+    "t": "2026-10-13T14:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-14T09:00:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-14T10:45:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-14T12:45:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-15T06:30:00.000Z",
+    "dir": -1
+   },
+   {
+    "t": "2026-10-15T20:15:00.000Z",
+    "dir": 1
+   }
+  ]
+ },
+ "mismatched": 0,
+ "firstDifferenceByLayer": {
+  "1": null,
+  "2": null,
+  "3": null,
+  "4": null
+ },
+ "firstLayer": null,
+ "fields": {
+  "engineOn": {
+   "layer": 0,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "headingScore": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 4.362732397567015e-12,
+   "first": null,
+   "sample": []
+  },
+  "routeScore": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 3.680611371237319e-12,
+   "first": null,
+   "sample": []
+  },
+  "speedScore": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 8.526512829121202e-14,
+   "first": null,
+   "sample": []
+  },
+  "instantSpeedScore": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 8.526512829121202e-14,
+   "first": null,
+   "sample": []
+  },
+  "fuelScore": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 9.947598300641403e-14,
+   "first": null,
+   "sample": []
+  },
+  "fuelAcceleration": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 6.394884621840902e-14,
+   "first": null,
+   "sample": []
+  },
+  "atrEng": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "htfClose": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "htfMA50": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 8.185452315956354e-12,
+   "first": null,
+   "sample": []
+  },
+  "htfMA200": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 2.4556356947869062e-11,
+   "first": null,
+   "sample": []
+  },
+  "htfATR": {
+   "layer": 1,
+   "compared": 5049,
+   "mismatched": 0,
+   "maxAbs": 1.7763568394002505e-14,
+   "first": null,
+   "sample": []
+  },
+  "events": {
+   "layer": 2,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.code": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.lo": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.hi": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R1.q": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.code": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.lo": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.hi": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "R2.q": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.code": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.lo": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.hi": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S1.q": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.code": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.lo": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.hi": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "S2.q": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "obstacleRole": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "nearestObstacleAtr": {
+   "layer": 3,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "lamp": {
+   "layer": 4,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "reason": {
+   "layer": 4,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "heading": {
+   "layer": 4,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "route": {
+   "layer": 4,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "accepted": {
+   "layer": 4,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  },
+  "start": {
+   "layer": 4,
+   "compared": 2113,
+   "mismatched": 0,
+   "maxAbs": 0,
+   "first": null,
+   "sample": []
+  }
+ },
+ "trace": {},
+ "agreeFrom": {
+  "row": 0,
+  "t": "2026-08-02T22:00:00.000Z",
+  "rows": 5049,
+  "beforeEngineStart": true
+ }
+}

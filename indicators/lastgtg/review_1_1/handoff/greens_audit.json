@@ -1,0 +1,120 @@
+{
+  "source_sha256": "42db3b8aa1ba2bd94fad94dc60ed65947189a7cf1b7eeeb881d5cc7e50b6fc5e",
+  "all": {
+    "n": 112,
+    "kind": {
+      "break": 109,
+      "aligned": 3
+    },
+    "result": {
+      "loss": 52,
+      "win": 59,
+      "loss_both": 1
+    }
+  },
+  "id_1_to_39": {
+    "n": 39,
+    "kind": {
+      "break": 38,
+      "aligned": 1
+    },
+    "result": {
+      "loss": 20,
+      "win": 18,
+      "loss_both": 1
+    }
+  },
+  "id_ge_40": {
+    "n": 73,
+    "kind": {
+      "break": 71,
+      "aligned": 2
+    },
+    "result": {
+      "win": 41,
+      "loss": 32
+    }
+  },
+  "id_ge_40_excluding_58_59_sensitivity_only": {
+    "n": 71,
+    "kind": {
+      "break": 70,
+      "aligned": 1
+    },
+    "result": {
+      "win": 39,
+      "loss": 32
+    }
+  },
+  "special_ids_58_59": [
+    {
+      "id": "59",
+      "tf": "H1",
+      "kind": "break",
+      "dir": "-1",
+      "signal_bar_utc": "2026-10-14 12:00",
+      "entry": "4097.711",
+      "atr": "13.771",
+      "target": "4083.940",
+      "stop": "4111.482",
+      "result": "win",
+      "resolved_utc": "2026-10-14 13:02",
+      "bars_to_result": "0",
+      "why": "هابط • كسر مؤكد"
+    },
+    {
+      "id": "58",
+      "tf": "M15",
+      "kind": "aligned",
+      "dir": "-1",
+      "signal_bar_utc": "2026-10-14 13:30",
+      "entry": "4103.995",
+      "atr": "10.506",
+      "target": "4093.488",
+      "stop": "4114.502",
+      "result": "win",
+      "resolved_utc": "2026-10-14 13:52",
+      "bars_to_result": "0",
+      "why": "هابط • الاتجاه متوافق"
+    }
+  ],
+  "loss_both": [
+    {
+      "id": "35",
+      "tf": "M1",
+      "kind": "break",
+      "dir": "-1",
+      "signal_bar_utc": "2026-10-14 00:59",
+      "entry": "4154.865",
+      "atr": "1.356",
+      "target": "4153.509",
+      "stop": "4156.221",
+      "result": "loss_both",
+      "resolved_utc": "2026-10-14 01:00",
+      "bars_to_result": "0",
+      "why": "هابط • كسر مؤكد"
+    }
+  ],
+  "timeframes": {
+    "M1": 87,
+    "M5": 17,
+    "M15": 6,
+    "H1": 1,
+    "H4": 1
+  },
+  "duplicate_ids": [],
+  "signal_range_utc": [
+    "2026-10-13 18:26",
+    "2026-10-15 01:12"
+  ],
+  "missing_ids_within_observed_range": [
+    111
+  ],
+  "limitations": [
+    "Resolved trades only; open trades absent.",
+    "Versions are mixed; id cutoff supplied by user, not independently versioned.",
+    "Cannot prove green transitions from this file.",
+    "No execution-price side or commission/slippage fields.",
+    "No profitability estimate computed."
+  ]
+}

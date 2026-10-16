@@ -1,0 +1,62 @@
+# commit aaefe4d1e5539130aad1bf2f3845c19f5b10b330 | node v22.22.2 | 2026-09-28T07:55:03Z
+# cmd: node --test indicators/gtg-navigator/reference/*.test.mjs
+ok 1 - K1 heading: clear > strong, and clear = strong, are refused (text "strong" with sign 0)
+ok 2 - K2 route: clear > strong, and clear = strong, are refused (text "strong" with sign 0)
+ok 3 - K3 speed: extreme < fast is refused (extreme colour and Speed Burst while the class is "طبيعية")
+ok 4 - K4 valid configurations are consistent at every score (grid, boundaries included)
+ok 5 - K5 defaults are valid, and equality is allowed only for speed
+ok 6 - K6 negative control: the consistency oracle rejects the outputs recorded before the fix
+ok 7 - T0 memberKey: discriminator stays below KEY_BASE and keys are injective
+ok 8 - T1 candidate permutation: 150 permutations give the same zone map
+ok 9 - T2 connected chain wider than maxWidth: one deterministic packing, invariants hold
+ok 10 - T3 MTF duplicate: M1 swing + M15 pivot of the same event get one MTF bonus, not two bonuses
+ok 11 - T4 nearer obstacle: horizon opened by A2 reveals the nearer local zone first
+ok 12 - T5 identity expiry: Q_stay privilege needs a live entry member
+ok 13 - T6 mitigation: deep penetration + weak rejection consumes more than + strong rejection
+ok 14 - T7 reload determinism: same trailing W bars → same map (local + DOZ + A1/A2 anchors)
+ok 15 - T7b a start inside the window can differ, which is why W is required
+ok 16 - T8 anchor lifecycle follows the feed: no live eviction, tombstones only while in feed
+ok 17 - T9 zones with more than 6 members: privilege and last keys are never truncated
+ok 18 - Q1 R3 fixture: qEnter=55, qStay=80, gateQ=70 is refused instead of flickering
+ok 19 - Q2 valid pairs never alternate: R1 is constant and equals (q ≥ Q_enter)
+ok 20 - Q3 boundary: qStay = qEnter and qStay < qEnter are accepted, defaults are valid
+ok 21 - Q4 the engine refuses an inverted pair at construction, before any bar
+ok 22 - P1 R2 fixture: zone narrower than mintick uses width = mintick (Pine runEpisode)
+ok 23 - P2 width floor across mintick sizes and both approach sides
+ok 24 - P3 ATR floor: zero-range bars give atrEng = mintick (pine:532)
+ok 25 - P4 anchor ATR floor: na stays na, positive values are floored at mintick (pine:571-572)
+ok 26 - P5 contract: formulas that need the symbol tick refuse to run without it
+ok 27 - P6 negative control: re-injecting the 1e-12 floor breaks P1
+ok 28 - C1 hash constants match the JS reference
+ok 29 - C2 hashLevel field order equals the per-level part of encodeState (snapshot.mjs)
+ok 30 - C3 hashSlot field order equals encodeSlots (snapshot.mjs)
+ok 31 - C4 the linear slotDigest and cumulative checksum are gone
+ok 32 - C8 hashState folds trackers then the OHLC ring (age order), as encodeState does
+ok 33 - C9 capture prints GTGSNAP v2 with the identity fields and RING lines
+ok 34 - C5 plot budget and export names
+ok 35 - C6 R2 anchors: Pine floors that the reference mirrors are still present
+ok 36 - C7 legacy v0.4.6 file is unchanged
+ok 37 - C10 R3 guard: Pine refuses Q_stay > Q_enter on the first bar with runtime.error
+ok 38 - C11 consumers.mjs transcribes these Pine lines verbatim (fails if Pine changes them)
+ok 39 - C12 R3b guards: Pine refuses the three inverted pairs on the first bar with runtime.error
+ok 40 - S12 repeated key: two identical records against one is a state difference (multiplicity)
+ok 41 - S13 ring: a different OHLC ring is detected at state, and it changes the next selection
+ok 42 - S15 source identity: each identity field alone is a state difference
+ok 43 - S14 compare-captures: a whole missing bar fails (two files strict, and single file with an expectation)
+ok 44 - S1 Astra collision: bounds [100,101] vs [100.13,100.93] with the same primary are detected
+ok 45 - S2 non-primary member key change: invisible to geometry, detected at identity
+ok 46 - S3 entry keys and quality changes are identity-level differences
+ok 47 - S4 level state change with identical slots: only the state level detects it
+ok 48 - S5 events are their own level
+ok 49 - S6 declared tolerance: float noise passes, sub-tick raw differences are reported, not rounded away
+ok 50 - S7 canonical order: member key order in the slot does not change the snapshot
+ok 51 - S8 snapshot is independent of the absolute bar index (history prepended before the engine start)
+ok 52 - S9 capture text round-trips and reports truncation
+ok 53 - S10 hash encoding is pinned: regression guard for the Pine↔JS encoding contract (values taken from this implementation, not an oracle)
+ok 54 - S11 hash arithmetic matches an independent implementation (Python int, vectors below)
+# tests 54
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0

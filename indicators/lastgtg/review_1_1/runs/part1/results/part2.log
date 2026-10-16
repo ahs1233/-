@@ -1,0 +1,8 @@
+2026-10-15T21:41:36.939Z M15 AB: weak 15 r0.667 | medium 1304 r0.409 | important 3360 r0.427 | control 8758 r0.479 → inconclusive
+2026-10-15T21:41:38.313Z M15 C: weak 12 r0.583 | medium 1256 r0.415 | important 3079 r0.428 | control 8765 r0.483 → inconclusive
+2026-10-15T21:41:46.743Z H1 AB: weak 1 r0.000 | medium 324 r0.426 | important 852 r0.477 | control 2162 r0.478 → inconclusive
+2026-10-15T21:41:48.120Z H1 C: weak 3 r0.667 | medium 296 r0.436 | important 781 r0.471 | control 2164 r0.482 → inconclusive
+2026-10-15T21:41:51.315Z H4 AB: weak 1 r1.000 | medium 50 r0.420 | important 140 r0.407 | control 358 r0.450 → inconclusive
+2026-10-15T21:41:52.652Z H4 C: weak 1 r1.000 | medium 42 r0.452 | important 133 r0.421 | control 358 r0.458 → inconclusive
+2026-10-15T21:41:52.658Z AB: scores separate zones on 0 of 3 timeframes → not shown
+2026-10-15T21:41:52.659Z C: scores separate zones on 0 of 3 timeframes → not shown

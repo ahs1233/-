@@ -1,0 +1,62 @@
+{
+ "prereg": "reports/sniper_preregistration.md",
+ "feeds": {
+  "train": "242f8c47a6cd38608d99c8e939d70c64a62ef40b628a810f949694a5daf21234",
+  "oos": "5f030b4795417a3a91e6fd59dc6ae9603518b8fe9d918262c1242827f560d792"
+ },
+ "combos": {
+  "H1+M5": {
+   "train": {
+    "n": 1866,
+    "winRate": 0.2207931404072883,
+    "avgR": -0.24918632018544393,
+    "profitFactor": 0.8838804734655693,
+    "targetRate": 0.1795284030010718,
+    "targetChance": 0.2120550692659591,
+    "medianRR": 3.642396349583466
+   },
+   "post": {
+    "n": 1391,
+    "winRate": 0.199137311286844,
+    "avgR": -0.1986645340145498,
+    "profitFactor": 0.7974051548876463,
+    "targetRate": 0.15959741193386054,
+    "targetChance": 0.21112693927530862,
+    "medianRR": 3.665790191603751
+   },
+   "criteria": {
+    "positiveBoth": false,
+    "pf120": false,
+    "n100": true
+   },
+   "pass": false
+  },
+  "H4+M15": {
+   "train": {
+    "n": 225,
+    "winRate": 0.2577777777777778,
+    "avgR": 0.07788560090115292,
+    "profitFactor": 1.1153648595861145,
+    "targetRate": 0.19111111111111112,
+    "targetChance": 0.20713852108038583,
+    "medianRR": 3.7768403418806797
+   },
+   "post": {
+    "n": 442,
+    "winRate": 0.18099547511312217,
+    "avgR": -0.22425961025901558,
+    "profitFactor": 0.887213195858961,
+    "targetRate": 0.13574660633484162,
+    "targetChance": 0.19889340581760137,
+    "medianRR": 3.9985826737717103
+   },
+   "criteria": {
+    "positiveBoth": false,
+    "pf120": false,
+    "n100": true
+   },
+   "pass": false
+  }
+ },
+ "verdict": "NOT_VALID"
+}

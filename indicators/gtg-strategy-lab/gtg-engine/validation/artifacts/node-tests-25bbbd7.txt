@@ -1,0 +1,43 @@
+# commit 25bbbd77fb49d739b2277278c6cb524fd5924e90 | node v22.22.2 | 2026-09-28T07:23:14Z
+# cmd: node --test indicators/gtg-navigator/reference/*.test.mjs
+ok 1 - T0 memberKey: discriminator stays below KEY_BASE and keys are injective
+ok 2 - T1 candidate permutation: 150 permutations give the same zone map
+ok 3 - T2 connected chain wider than maxWidth: one deterministic packing, invariants hold
+ok 4 - T3 MTF duplicate: M1 swing + M15 pivot of the same event get one MTF bonus, not two bonuses
+ok 5 - T4 nearer obstacle: horizon opened by A2 reveals the nearer local zone first
+ok 6 - T5 identity expiry: Q_stay privilege needs a live entry member
+ok 7 - T6 mitigation: deep penetration + weak rejection consumes more than + strong rejection
+ok 8 - T7 reload determinism: same trailing W bars → same map (local + DOZ + A1/A2 anchors)
+ok 9 - T7b a start inside the window can differ, which is why W is required
+ok 10 - T8 anchor lifecycle follows the feed: no live eviction, tombstones only while in feed
+ok 11 - T9 zones with more than 6 members: privilege and last keys are never truncated
+ok 12 - P1 R2 fixture: zone narrower than mintick uses width = mintick (Pine runEpisode)
+ok 13 - P2 width floor across mintick sizes and both approach sides
+ok 14 - P3 ATR floor: zero-range bars give atrEng = mintick (pine:532)
+ok 15 - P4 anchor ATR floor: na stays na, positive values are floored at mintick (pine:571-572)
+ok 16 - P5 contract: formulas that need the symbol tick refuse to run without it
+ok 17 - P6 negative control: re-injecting the 1e-12 floor breaks P1
+ok 18 - C1 hash constants match the JS reference
+ok 19 - C2 hashLevel field order equals encodeLevels (snapshot.mjs)
+ok 20 - C3 hashSlot field order equals encodeSlots (snapshot.mjs)
+ok 21 - C4 the linear slotDigest and cumulative checksum are gone
+ok 22 - C5 plot budget and export names
+ok 23 - C6 R2 anchors: Pine floors that the reference mirrors are still present
+ok 24 - C7 legacy v0.4.6 file is unchanged
+ok 25 - S1 Astra collision: bounds [100,101] vs [100.13,100.93] with the same primary are detected
+ok 26 - S2 non-primary member key change: invisible to geometry, detected at identity
+ok 27 - S3 entry keys and quality changes are identity-level differences
+ok 28 - S4 level state change with identical slots: only the state level detects it
+ok 29 - S5 events are their own level
+ok 30 - S6 declared tolerance: float noise passes, sub-tick raw differences are reported, not rounded away
+ok 31 - S7 canonical order: member key order in the slot does not change the snapshot
+ok 32 - S8 snapshot is independent of the absolute bar index (history prepended before the engine start)
+ok 33 - S9 capture text round-trips and reports truncation
+ok 34 - S10 hash encoding is pinned: regression guard for the Pine↔JS encoding contract (values taken from this implementation, not an oracle)
+ok 35 - S11 hash arithmetic matches an independent implementation (Python int, vectors below)
+# tests 35
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0

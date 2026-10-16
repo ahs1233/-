@@ -1,0 +1,218 @@
+--- lastgtg_A_original.pine
++++ lastgtg_B_1_1.pine
+@@ -1,7 +1,10 @@
+ //@version=6
++// lastgtg-review-1.1.0 variant B. Original comments below are retained for provenance.
++// B/C: safe green gates, explicit missing-map state, unified moveShare, closed-bar exports.
++// B: original level state machine is unchanged.
+ indicator(
+-     "lastgtg — Structural Zone Engine (based on GTG v0.4.7)",
+-     shorttitle = "lastgtg",
++     "lastgtg B 1.1 — Structural Zone Engine",
++     shorttitle = "lastgtg B",
+      overlay = true,
+      max_labels_count = 20,
+      max_lines_count = 10,
+@@ -2270,13 +2273,16 @@
+ // Where a price sits inside the current strong zigzag move: 0 at the move's running extreme,
+ // 1 at its start. na when the move is not strong (same rule as the pullback zone).
+ moveShare(float px) =>
+-    float runPx = zzDir > 0 ? zzHi : zzDir < 0 ? zzLo : na
+-    float span = na(runPx) or na(swLastPx) ? na : runPx - swLastPx
+-    bool strongMove = not na(span) and math.abs(span) >= pullMinMove * swLastAtr
+-    strongMove ? (runPx - px) / span : na
++    // Use the exact move that owns the drawn confirmed pullback zone.
++    // Only fall back to the developing leg when no confirmed zone is active.
++    float refStart = pzOn ? pzStart : swLastPx
++    float refEnd = pzOn ? pzEnd : zzDir > 0 ? zzHi : zzDir < 0 ? zzLo : na
++    float span = na(refStart) or na(refEnd) ? na : refEnd - refStart
++    bool strongMove = pzOn or (not na(span) and not na(swLastAtr) and math.abs(span) >= pullMinMove * swLastAtr)
++    strongMove and not na(span) and math.abs(span) > 0 ? (refEnd - px) / span : na
+ 
+ zoneLine(SlotState ss, bool isRes, string prefix) =>
+-    string txt = prefix + (isRes ? "لا مقاومة قريبة" : "لا دعم قريب")
++    string txt = prefix + (isRes ? "لم أجد مقاومة مؤهلة" : "لم أجد دعماً مؤهلاً")
+     if ss.active
+         float sh = moveShare(isRes ? ss.lo : ss.hi)
+         string shareTxt = not na(sh) and sh > 0 and sh <= 1.2 ? " • " + str.tostring(math.round(sh * 100)) + "% من الحركة" : ""
+@@ -2284,6 +2290,119 @@
+     txt
+ 
+ 
++// lastgtg review patch 1.1 — pure decision core, shared by B and C.
++// 0 red, 1 yellow, 2 green. Events never bypass current safety gates.
++gtgLampDecision(bool ready, bool chase, bool inside, int heading, int route, bool accUp, bool accDn, bool breaking, bool rejR, bool rejS, bool nearTouch, bool aware, bool exhausted, bool lowFuel, bool mapped, bool room) =>
++    int lamp = 1
++    int reason = 0
++    if not ready
++        reason := 10
++    else if chase
++        lamp := 0
++        reason := 20
++    else if inside
++        lamp := 0
++        reason := 21
++    else if route != 0 and heading != 0 and route != heading
++        lamp := 0
++        reason := 22
++    else if heading == 0
++        reason := 30
++    else if route == 0
++        reason := 31
++    else if accUp and accDn
++        reason := 32
++    else if (accUp and heading < 0) or (accDn and heading > 0)
++        reason := 33
++    else if breaking and not (accUp or accDn)
++        reason := 34
++    else if rejR or rejS
++        reason := rejR and rejS ? 35 : rejR ? 36 : 37
++    else if nearTouch
++        reason := 40
++    else if aware
++        reason := 41
++    else if exhausted
++        reason := 42
++    else if lowFuel
++        reason := 43
++    else if not mapped
++        reason := 44
++    else if not room
++        reason := 45
++    else if heading == route
++        lamp := 2
++        reason := accUp ? 51 : accDn ? 52 : 50
++    [lamp, reason]
++
++gtgLampReason(int reason, int role) =>
++    switch reason
++        10 => "بيانات غير مكتملة"
++        20 => "لا تطارد"
++        21 => role == 1 ? "داخل مقاومة" : role == -1 ? "داخل دعم" : "داخل منطقة"
++        22 => "عكس المسار العام"
++        30 => "بدون اتجاه واضح"
++        31 => "المسار العام غير واضح"
++        32 => "أحداث كسر متعاكسة"
++        33 => "الكسر السابق عكس الاتجاه الحالي"
++        34 => "كسر يحتاج تأكيد"
++        35 => "رفض من الجهتين"
++        36 => "رفض من مقاومة"
++        37 => "ارتداد من دعم"
++        40 => role == 1 ? "مقاومة قريبة" : role == -1 ? "دعم قريب" : "منطقة قريبة"
++        41 => role == 1 ? "مقاومة أمامه" : role == -1 ? "دعم أمامه" : "عائق أمامه"
++        42 => "الزخم يضعف"
++        43 => "الوقود ضعيف"
++        44 => "لم أجد منطقة أمامه"
++        45 => "المساحة المقاسة غير كافية"
++        50 => "الاتجاه متوافق والمساحة كافية"
++        51 => "كسر صاعد مقبول والشروط متحققة"
++        52 => "كسر هابط مقبول والشروط متحققة"
++        => "أدلة مختلطة"
++
++// Computed on EVERY bar, outside the table and regardless of dashboard mode.
++bool gtgReady = engineOn and not na(headingScore) and not na(routeScore) and not na(speedScore) and not na(fuelScore) and not na(htfATR) and not na(atrEng)
++bool gtgMappedAhead = obstacleAvailable and not na(nearestObstacleAtr) and ((headingSign > 0 and obstacleRole == 1 and dest1Low >= close) or (headingSign < 0 and obstacleRole == -1 and dest1High <= close))
++bool gtgEnoughRoom = gtgMappedAhead and nearestObstacleAtr * atrEng >= greenRoomHtfAtr * safeHtfAtr
++[gtgLampLive, gtgReasonLive] = gtgLampDecision(gtgReady, noChase, priceInsideObstacle, headingSign, routeSign, heldAccUp, heldAccDn, heldBrkR or heldBrkS, heldRejR, heldRejS, obstacleNear or candleTouchesObstacle, movingTowardResistance or movingTowardSupport, fuelExhaustion, fuelScore < fuelLowThreshold, gtgMappedAhead, gtgEnoughRoom)
++
++// One closed-bar snapshot for export and alerts. The open-bar HUD is explicitly live.
++var int gtgLampClosed = 1
++var int gtgReasonClosed = 10
++var int gtgHeadingClosed = 0
++var int gtgRouteClosed = 0
++var int gtgAcceptedClosed = 0
++var float gtgRoomClosed = na
++var int gtgObstacleKeyClosed = na
++if barstate.isconfirmed
++    gtgLampClosed := gtgLampLive
++    gtgReasonClosed := gtgReasonLive
++    gtgHeadingClosed := headingSign
++    gtgRouteClosed := routeSign
++    gtgAcceptedClosed := breakAcceptedUp and breakAcceptedDn ? 2 : breakAcceptedUp ? 1 : breakAcceptedDn ? -1 : 0
++    gtgRoomClosed := gtgMappedAhead ? nearestObstacleAtr * atrEng : na
++    gtgObstacleKeyClosed := obstacleAvailable ? (primaryUp ? slotR1.primaryKey : slotS1.primaryKey) : na
++
++// A new episode is a transition to green OR a direction change while green.
++// Repeated accepted-break events while green do NOT create repeated entries.
++bool gtgGreenStart = engineStep and gtgLampClosed == 2 and (nz(gtgLampClosed[1], 1) != 2 or gtgHeadingClosed != nz(gtgHeadingClosed[1], 0))
++bool gtgGreenEnd = engineStep and nz(gtgLampClosed[1], 1) == 2 and gtgLampClosed != 2
++
++plot(engineOn ? gtgLampClosed : na, "GTG lamp closed 0R 1Y 2G", display = display.data_window)
++plot(engineOn ? gtgReasonClosed : na, "GTG reason closed", display = display.data_window)
++plot(engineOn ? gtgHeadingClosed : na, "GTG heading closed", display = display.data_window)
++plot(engineOn ? gtgRouteClosed : na, "GTG route closed", display = display.data_window)
++plot(engineOn ? gtgAcceptedClosed : na, "GTG accepted closed -1 down 1 up 2 both", display = display.data_window)
++plot(gtgGreenStart ? 1 : 0, "GTG green episode start", display = display.data_window)
++plot(gtgGreenEnd ? 1 : 0, "GTG green episode end", display = display.data_window)
++plot(gtgRoomClosed, "GTG room closed price units", display = display.data_window)
++plot(gtgObstacleKeyClosed, "GTG obstacle primary key diagnostic", display = display.data_window)
++plot(engineStep ? 1 : 0, "GTG confirmed engine step", display = display.data_window)
++plot(gtgGreenStart ? close : na, "GTG signal close NOT execution price", display = display.data_window)
++plot(gtgGreenStart ? time_close : na, "GTG signal available at epoch ms", display = display.data_window)
++alertcondition(gtgGreenStart, "lastgtg — Green Episode Start", "lastgtg: بداية أخضر عند إغلاق الشمعة بعد تحقق شروط الاتجاه والعائق والمساحة.")
++alertcondition(gtgGreenEnd, "lastgtg — Green Episode End", "lastgtg: انتهت حالة الأخضر عند إغلاق الشمعة.")
++
+ if barstate.islast
+     table.clear(dash, 0, 0, 1, 10)
+     table.clear(lampTable, 0, 0, 0, 5)
+@@ -2293,48 +2412,13 @@
+         // Yellow is the default: green must be earned (clear heading aligned with the route,
+         // no obstacle within the awareness distance ahead, at least greenRoomHtfAtr of room
+         // before the next zone on the higher timeframe's scale, fuel not low, no exhaustion).
+-        int lamp = 1
+-        string why = "أدلة مختلطة"
+-        if heldAccUp or heldAccDn
+-            why := heldAccUp ? "اختراق مؤكد" : "كسر مؤكد"
+-            lamp := 2
+-        else if noChase
+-            why := "لا تطارد"
+-            lamp := 0
+-        else if priceInsideObstacle
+-            why := obstacleRole == 1 ? "داخل مقاومة" : obstacleRole == -1 ? "داخل دعم" : "داخل منطقة"
+-            lamp := 0
+-        else if routeSign != 0 and headingSign != 0 and routeSign != headingSign
+-            why := "عكس المسار العام"
+-            lamp := 0
+-        else if heldBrkR or heldBrkS
+-            why := "كسر يحتاج تأكيد"
+-        else if heldRejR or heldRejS
+-            why := heldRejR ? "رفض من مقاومة" : "ارتداد من دعم"
+-        else if obstacleNear or candleTouchesObstacle
+-            why := obstacleRole == 1 ? "مقاومة قريبة" : obstacleRole == -1 ? "دعم قريب" : "منطقة قريبة"
+-        else if movingTowardResistance or movingTowardSupport
+-            why := movingTowardResistance ? "مقاومة أمامه" : "دعم أمامه"
+-        else if fuelExhaustion
+-            why := "الزخم يضعف"
+-        else if headingSign == 0
+-            why := "بدون اتجاه واضح"
+-        else if routeSign == 0
+-            why := "المسار العام غير واضح"
+-        else if fuelScore < fuelLowThreshold
+-            why := "الوقود ضعيف"
+-        else if headingSign == routeSign and obstacleAvailable and nearestObstacleAtr * atrEng < greenRoomHtfAtr * safeHtfAtr
+-            // Room ahead is judged on the higher timeframe's scale: a few dollars is far for a
+-            // 1-minute ATR but not for the market.
+-            why := obstacleRole == 1 ? "مقاومة أمامه" : "دعم أمامه"
+-        else if headingSign == routeSign
+-            why := "الاتجاه متوافق"
+-            lamp := 2
++        int lamp = gtgLampLive
++        string why = gtgLampReason(gtgReasonLive, obstacleRole)
+         string dirText = headingSign > 0 ? "صاعد" : headingSign < 0 ? "هابط" : "متردد"
+         color lampBg = lamp == 2 ? color.new(color.green, 15) : lamp == 1 ? color.new(color.yellow, 10) : color.new(color.red, 15)
+         color lampFg = lamp == 1 ? color.black : color.white
+         // One idea per cell: Arabic words and plain numbers only, so nothing is reordered.
+-        table.cell(lampTable, 0, 0, dirText + " • " + why, text_color = lampFg, bgcolor = lampBg, text_size = dashSize())
++        table.cell(lampTable, 0, 0, dirText + " • " + why + (barstate.isconfirmed ? "" : " • لحظي"), text_color = lampFg, bgcolor = lampBg, text_size = dashSize())
+         color rowBg = color.new(color.black, 20)
+         table.cell(lampTable, 0, 1, zoneLine(slotR1, true, ""), text_color = color.new(color.red, 0), bgcolor = rowBg, text_size = dashSize())
+         table.cell(lampTable, 0, 2, zoneLine(slotR2, true, "بعد الاختراق • "), text_color = color.new(color.red, 40), bgcolor = rowBg, text_size = dashSize())
+@@ -2353,7 +2437,7 @@
+         color roadColor = hazardRoad ? color.orange : str.contains(roadStatus, "مفتوح") ? color.lime : color.white
+ 
+         // Full HUD (STANDARD / DEBUG): header + 5 sensor rows, then the extra rows below.
+-        table.cell(dash, 0, 0, "lastgtg", text_color = color.aqua, bgcolor = color.new(color.black, 4), text_size = dSize)
++        table.cell(dash, 0, 0, "lastgtg B 1.1", text_color = color.aqua, bgcolor = color.new(color.black, 4), text_size = dSize)
+         table.cell(dash, 1, 0, assetLabel, text_color = color.white, bgcolor = color.new(color.black, 4), text_size = dSize)
+ 
+         table.cell(dash, 0, 1, routeText + " " + str.tostring(math.round(routeStrength)), text_color = routeColor, bgcolor = color.new(color.black, 4), text_size = dSize)

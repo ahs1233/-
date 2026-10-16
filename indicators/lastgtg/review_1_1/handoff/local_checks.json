@@ -1,0 +1,10 @@
+{
+  "lamp_truth_table_cases": 147456,
+  "C_break_cases": 20,
+  "patch_fixture_assertions": 9,
+  "semantic_examples": 3,
+  "pine_compiled": false,
+  "full_original_file_patch_run": false,
+  "market_backtest": false,
+  "scope": "Pure decision and C branch translated from authored Pine; patch tested on source excerpts only."
+}

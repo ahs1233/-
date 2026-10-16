@@ -1,0 +1,4 @@
+# impact of R3b on the engine with defaults: engine.mjs 466ec8b vs working tree | node v22.22.2 | 2026-09-28T07:54:14Z
+{"bars":8000,"seed":21,"mintick":0.01,"differingBars":0,"firstDifferingBar":-1}
+{"bars":8000,"seed":7,"mintick":0.01,"differingBars":0,"firstDifferingBar":-1}
+{"bars":8000,"seed":5,"mintick":0.01,"differingBars":0,"firstDifferingBar":-1}

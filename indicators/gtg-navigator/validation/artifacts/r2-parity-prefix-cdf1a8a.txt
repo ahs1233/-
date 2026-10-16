@@ -1,0 +1,18 @@
+# parity.test.mjs run against baseline engine.mjs (cdf1a8a) + withSymbol shim | node v22.22.2 | 2026-09-28T07:08:46Z
+not ok 1 - P1 R2 fixture: zone narrower than mintick uses width = mintick (Pine runEpisode)
+  error: 'mitigation 0.4860000000000525'
+not ok 2 - P2 width floor across mintick sizes and both approach sides
+  error: 'mitigation 0.28200000000281306 vs 0.07049999982270787 (mintick 0.00001)'
+# Subtest: P3 ATR floor: zero-range bars give atrEng = mintick (pine:532)
+not ok 3 - P3 ATR floor: zero-range bars give atrEng = mintick (pine:532)
+  error: 'atrEng 0,0,0'
+not ok 4 - P4 anchor ATR floor: na stays na, positive values are floored at mintick (pine:571-572)
+  error: "Cannot read properties of undefined (reading 'atrA1')"
+  name: 'TypeError'
+not ok 5 - P5 contract: formulas that need the symbol tick refuse to run without it
+  error: 'Missing expected exception.'
+  operator: 'throws'
+ok 6 - P6 negative control: re-injecting the 1e-12 floor breaks P1
+# tests 6
+# pass 1
+# fail 5

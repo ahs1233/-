@@ -1,0 +1,4 @@
+# impact of R2 fix: baseline cdf1a8a engine vs working tree | node v22.22.2 | 2026-09-28T07:09:44Z
+{"bars":8000,"seed":21,"mintick":0.01,"differingBars":0,"firstDifferingBar":-1}
+{"bars":8000,"seed":21,"mintick":0.1,"differingBars":0,"firstDifferingBar":-1}
+{"bars":8000,"seed":7,"mintick":1,"differingBars":1169,"firstDifferingBar":38}
