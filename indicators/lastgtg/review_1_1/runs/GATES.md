@@ -105,3 +105,58 @@ with the same tools still fails where run 2 lacks a page load's own bars (M15 A/
 on H4, as items 3–5 predict.
 
 Gate 3 remains evidence on the bars it sampled, not a universal proof; it was not extended.
+
+### The 3000-bar check (reviewer, 2026-10-16)
+The reviewer did not accept `calc_bars_count = 3000` without evidence and asked: is the copy with
+the limit showing what the original shows on TradingView's own history? `../tv/check3000_run.mjs`
+read, in one page load per pair, the original (frozen B / C; for A, whose lamp exists only on the
+last bar, the export-only copy without the limit `lastgtg_A_diag_full.pine`) and the gate 4 copy,
+one after the other; `../js/check3000.mjs` compared lamp, reason, heading, green-episode start
+(time and direction) and engine rows on every common closed bar (`gate4/check3000_20261015`).
+The originals held 3,031 closed rows whose first row was already warm (TradingView had computed
+on older bars it does not export).
+
+| TF | lamp rows differing A / B / C | starts differing A / B / C | identical from (last rows) | green starts original / copy A, B, C |
+|---|---|---|---|---|
+| M15 | 7 / 8 / 8 | 0 / 0 / 0 | 2026-09-22 19:00 (1,572) | 161/161, 30/30, 27/27 |
+| H1 | 140 / 175 / 172 | 11 / 11 / 7 | 2026-06-04 20:00 (2,176) | 264/263, 55/50, 46/45 |
+| H4 | 145 / 183 / 192 | 17 / 16 / 14 | A 2025-09-02 17:00 (1,733); B, C 2026-03-23 13:00 (882) | 246/235, 59/43, 52/38 |
+
+Engine rows were the same in every cell. **All nine differ in the first part of the window and
+are identical after it**: the limit changes where the history starts (zones and HTF levels built
+from fewer bars), not the logic. So run 3 does not by itself cover a long history, and, as the
+reviewer decided, gate 4 is redone without the limit (run 4).
+
+### Run 4 — gate 4 without the limit (2026-10-16)
+Copies `../diag/lastgtg_{A,B,C}_diag_full.pine` (the frozen file + the same export block, no
+`calc_bars_count`), TradingView Desktop with **5,000 chart bars** loaded on each timeframe
+(requestMoreData), one copy per page load with that load's HTF / anchor bars
+(`../tv/gate4_run.mjs … full 5000`, capture `gate4/capture_20261016_run4full` + `SHA256SUMS`),
+layout backed up and restored, autosave off meanwhile. Comparison `../js/gate4.mjs` (variant
+"full"), test `../js/gate4_full.test.mjs` 9/9; reports `gate4/report_run4full`.
+
+One replay setting differs from run 3 and was settled on this run's data: the HTF / anchor history
+lengths. Run 3's rule (ceil(calc_bars_count × chart s / HTF s) bars) comes from calc_bars_count
+and has nothing to count here; applied to the full copies it cut the H4 weekly anchor to 140 bars
+and H4 differed in the zones on 2023-04 → 2024-07 (sensors identical). Every weekly start at
+least 82 weeks earlier, up to the whole history, gives no difference, and the route HTF had no
+start within ±400 bars of the chart start and matched on the page load's whole history. So, for
+the full copies only, every HTF / anchor history is the page load's whole dump; nothing is fitted
+per cell. No rule, weight or tolerance of the comparison changed.
+
+| TF | exported rows | Pine's first bar = row 0 | engine rows (from) | values compared per version | differences | green starts A / B / C (equal in time and direction) |
+|---|---|---|---|---|---|---|
+| M15 | 5,049 (2026-08-02 22:00 → 2026-10-16 20:30) | yes | 2,113 (2026-09-15 22:30) | 113,413 | 0 | 162 / 30 / 27 |
+| H1 | 8,487 (2025-05-13 12:00 → 2026-10-16 19:00) | **no** | 3,137 (2026-04-08 23:00) | 180,269 | 4,205, all sensors, all before 2025-10-15 05:00 | 272 / 56 / 47 |
+| H4 | 5,870 (2023-01-02 22:00 → 2026-10-16 13:00) | yes | 5,441 (2023-04-13 09:00) | 206,465 | 0 | 458 / 95 / 87 |
+
+1,500,441 values in all. **M15 and H4: PASS on every row of A, B and C, from Pine's own first
+bar** (H4: the whole engine window, 5,441 rows, 3.5 years of H4). **H1: not a pass by the strict
+rule.** With 5,000 chart bars TradingView exported 8,487 H1 rows but had computed on older bars
+it does not export (row 0: `atrEng` 11.59 against the bar's own range 12.64), so the replay cannot
+start where Pine started. The differences are sensors only (heading, route, speed, fuel, `atrEng`
+on the first rows; the H4 MA200 until 2025-10-15 04:00, an EMA seeded at an unseen start), and from
+2025-10-15 05:00 every value of A, B and C matches on all 5,951 remaining rows, every engine row
+(3,137) and every green start included. With the limit (run 3) H1 matched from Pine's first bar on
+2,999 rows. 5,000 chart bars was the only size tried (TradingView's stated limit for this plan;
+a larger request was not attempted).

@@ -145,13 +145,16 @@ export function gateCell(dir, res, v, opts = {}) {
   // live HTF bar (run 3: route H1 on M15 = 750, H4 on H1 = 750, D on H4 = 500 — each equal to the
   // unique start securityStart recovers; D anchor on H1 = 125 — the only start with no difference;
   // W anchor on H4 = 72, inside the 68–78 range that all reproduce Pine). Anchors use this rule.
-  // Copies without the limit ("diag full", TradingView's own history): the same rule on the number
-  // of bars Pine computed, which is every exported row only when row 0 is Pine's first bar (its
-  // atrEng is then that bar's own range); checked and reported.
+  // Copies without the limit ("diag full", TradingView's own history, run 4): the count rule above
+  // comes from calc_bars_count and has no counterpart here; every HTF / anchor history is the page
+  // load's whole dump. (Run 4, H4: the count rule cut the weekly anchor to 140 bars and differed on
+  // 2023-04 → 2024-07; every start at least 82 weeks earlier, up to the whole history, gives no
+  // difference; the route HTF had no start within ±400 bars and matched on the whole history.)
+  // Pine's first bar is row 0 only when its atrEng is that bar's own range; checked and reported.
   const full = /diag full/.test(meta.desc);
   const firstBarSig = Math.abs(rows[0].m_atrEng - Math.max(rows[0].m_high - rows[0].m_low, MINTICK)) <= MINTICK && !Number.isFinite(rows[0].m_headingScore);
   const computedBars = full ? meta.studyRows : CALC_BARS;
-  const secBars = (k) => { const n = Math.ceil(computedBars * profileFor(tf).chartSec / RES_SEC[k]); return feed[k].slice(Math.max(0, feed[k].length - n)); };
+  const secBars = (k) => { if (full && !opts.countRule) return feed[k]; const n = Math.ceil(computedBars * profileFor(tf).chartSec / RES_SEC[k]); return feed[k].slice(Math.max(0, feed[k].length - n)); };
   const routeRule = secBars(keys.htf);
   htfStart.ruleBars = routeRule.length; htfStart.sameAsBarRule = htfStart.start != null && routeRule[0] === feed[keys.htf][htfStart.start];
   const anchorBars = (k) => secBars(k);
@@ -162,11 +165,12 @@ export function gateCell(dir, res, v, opts = {}) {
   const run = v === 'C' ? runC : runA;
   const tracker = new EpisodeTracker();
   const stats = new Map(), first = { 1: null, 2: null, 3: null, 4: null };
+  let lastBad = -1; // last row with any difference: every row after it matches on every field
   const note = (layer, name, i, ok, pv, jv) => {
     const s = stats.get(name) ?? { layer, compared: 0, mismatched: 0, maxAbs: 0, first: null, sample: [] };
     s.compared++;
     if (fin(pv) && fin(jv)) s.maxAbs = Math.max(s.maxAbs, Math.abs(pv - jv));
-    if (!ok) { s.mismatched++; if (s.sample.length < 12) s.sample.push([i, new Date(rows[i].t).toISOString(), pv, jv]); if (!s.first) s.first = { row: i, t: new Date(rows[i].t).toISOString(), pine: pv, js: jv }; if (!first[layer] || first[layer].row > i) first[layer] = { row: i, t: new Date(rows[i].t).toISOString(), field: name }; }
+    if (!ok) { s.mismatched++; if (s.sample.length < 12) s.sample.push([i, new Date(rows[i].t).toISOString(), pv, jv]); if (!s.first) s.first = { row: i, t: new Date(rows[i].t).toISOString(), pine: pv, js: jv }; s.last = { row: i, t: new Date(rows[i].t).toISOString() }; if (i > lastBad) lastBad = i; if (!first[layer] || first[layer].row > i) first[layer] = { row: i, t: new Date(rows[i].t).toISOString(), field: name }; }
     stats.set(name, s);
   };
   const pineStarts = [], jsStarts = [];
@@ -204,6 +208,7 @@ export function gateCell(dir, res, v, opts = {}) {
     htfStart, feedFiles, startBar, engineRows, firstRow: new Date(rows[0].t).toISOString(), lastRow: new Date(rows.at(-1).t).toISOString(),
     starts: { pine: pineStarts.length, js: jsStarts.length, equal: startsEqual, list: pineStarts },
     mismatched, firstDifferenceByLayer: first, firstLayer, fields, trace,
+    agreeFrom: lastBad + 1 < rows.length ? { row: lastBad + 1, t: new Date(rows[lastBad + 1].t).toISOString(), rows: rows.length - lastBad - 1, beforeEngineStart: lastBad + 1 <= startBar } : null,
   };
 }
 
@@ -217,8 +222,8 @@ if (process.argv[1] && process.argv[1].endsWith('gate4.mjs')) {
     const out = gateCell(dir, res, v);
     writeFileSync(join(outDir, `gate4_${out.tf}_${v}.json`), JSON.stringify(out, null, 1));
     const bad = Object.entries(out.fields).filter(([, f]) => f.mismatched).map(([n, f]) => `${n} ${f.mismatched}/${f.compared}`);
-    console.log(`${out.tf} ${v}: ${out.pass ? 'PASS' : 'FAIL'} rows ${out.rows} (pre-history ${out.meta.preHistoryRows}, open dropped ${out.meta.droppedOpen}) engine rows ${out.engineRows} startBar ${out.startBar} htfStart ${out.htfStart.t ?? "none"} (candidates ${out.htfStart.candidates}, = bar rule ${out.htfStart.sameAsBarRule}) starts pine ${out.starts.pine} js ${out.starts.js} equal ${out.starts.equal} chart bars ${out.chartBarsChecked}/${out.chartBarsDiffering} bad; ${bad.length ? 'differences: ' + bad.join(', ') + ' first layer ' + out.firstLayer + ' ' + JSON.stringify(out.firstDifferenceByLayer[out.firstLayer]) : 'no difference'} (${Math.round((Date.now() - t0) / 1000)} s)`);
-    summary.push({ tf: out.tf, version: v, pass: out.pass, rows: out.rows, engineRows: out.engineRows, starts: out.starts.pine, mismatched: out.mismatched, firstLayer: out.firstLayer });
+    console.log(`${out.tf} ${v}: ${out.pass ? 'PASS' : 'FAIL'} rows ${out.rows} (pre-history ${out.meta.preHistoryRows}, open dropped ${out.meta.droppedOpen}) engine rows ${out.engineRows} startBar ${out.startBar} htfStart ${out.htfStart.t ?? "none"} (candidates ${out.htfStart.candidates}, = bar rule ${out.htfStart.sameAsBarRule}) starts pine ${out.starts.pine} js ${out.starts.js} equal ${out.starts.equal} chart bars ${out.chartBarsChecked}/${out.chartBarsDiffering} bad; ${bad.length ? 'differences: ' + bad.join(', ') + ' first layer ' + out.firstLayer + ' ' + JSON.stringify(out.firstDifferenceByLayer[out.firstLayer]) : 'no difference'} ; all fields agree from row ${out.agreeFrom?.row} ${out.agreeFrom?.t} (${out.agreeFrom?.rows} rows, before the engine start ${out.agreeFrom?.beforeEngineStart}) (${Math.round((Date.now() - t0) / 1000)} s)`);
+    summary.push({ tf: out.tf, version: v, pass: out.pass, rows: out.rows, engineRows: out.engineRows, starts: out.starts.pine, mismatched: out.mismatched, firstLayer: out.firstLayer, firstRowIsFirstComputedBar: out.firstRowIsFirstComputedBar, agreeFrom: out.agreeFrom });
   }
   writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 1));
 }

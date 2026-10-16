@@ -12,12 +12,19 @@ L_tf logged and committed before scoring (`signals/prelog.json`).
   replay test `../../js/gate4.test.mjs` 9/9 on that capture; export-only copies `../../diag/`
   (manifest, diffs, `diag.test.mjs` 7/7). Then: Part 1 code `218556b` (21:36), Part 2 code `1ea8c57`
   (21:39), signals log `fa89f2c` (21:40), outputs `4f7d6b8` (21:42), this file `4edb223` (21:43).
-- One declared deviation awaits the reviewer's acceptance: the gate 4 copies carry
-  `calc_bars_count = 3000` in their declaration (a run setting, the only non-export line; without it
-  TradingView computes on history it never exports). Until it is accepted, read these results as
-  conditional on gate 4. Outputs: `results/`
+- The deviation in run 3: the gate 4 copies carry `calc_bars_count = 3000` (a run setting, the
+  only non-export line). The reviewer did not accept it without evidence. The 3000-bar check
+  (`../GATES.md`, commit `706ef14`) showed that the limit changes the start of the window: original
+  and copy differ early and are identical afterwards, on all nine cells. Gate 4 was therefore
+  redone without the limit (run 4, 5,000 chart bars, `../GATES.md` § run 4): **M15 and H4 match on
+  every row from Pine's first bar** (H4: 5,870 rows, 2023-01 → 2026-10, the whole engine window);
+  **H1 cannot be replayed from Pine's first bar** (TradingView computed on older bars it does not
+  export); there only sensors differ, all before 2025-10-15, and every value matches on the
+  remaining 5,951 rows, every engine row and green start included. No difference between Pine and
+  JS logic was found anywhere; the results below stand as computed. Outputs: `results/`
 (`part1_<tf>.json`, every trade in `trades_<tf>.csv`, `part2.json`, logs). Development comparison,
-not independent evidence (contract, first section). Per-signal R, overlapping signals included.
+not independent evidence (contract, first section). R is taken per executed trade (one trade per
+executable start; trades that overlap in time are all counted).
 
 ## Part 1 — green light after real costs
 
